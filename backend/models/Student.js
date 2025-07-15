@@ -2,68 +2,81 @@
 // import mongoose from 'mongoose';
 
 // const studentSchema = new mongoose.Schema({
-//   name: { type: String, required: true },
-//   fatherName: { type: String, required: true },
-//   cnic: { type: String, required: true, unique: true, minlength: 13, maxlength: 13 },
-//   address: { type: String, required: true },
-//   guardianContact: { type: String, required: true, minlength: 11, maxlength: 11 },
-//   class: { type: String, required: true },
-//   feePerMonth: { type: Number, required: true, min: 0 },
-//   siblings: [{
-//     name: String,
-//     cnic: { type: String, minlength: 13, maxlength: 13 }
-//   }],
-//   feeStatus: { 
+//   name: { type: String, required: true, trim: true },
+//   fatherName: { type: String, required: true, trim: true },
+//   cnic: { type: String, required: true, unique: true, trim: true, match: /^\d{13}$/ },
+//   address: { type: String, required: true, trim: true },
+//   guardianContact: { type: String, required: true, trim: true, match: /^\d{11}$/ },
+//   additionalContact: { type: String, trim: true, match: /^\d{11}$/, default: '' },
+
+//   dob: { type: Date, required: true },
+//   gender: { type: String, enum: ['Male', 'Female', 'Other'], required: true },
+//   admissionDate: { type: Date, required: true },
+//   email: {
 //     type: String,
-//     enum: ['Paid', 'Unpaid'],
-//     default: 'Unpaid' 
-//   }
+//     trim: true,
+//     lowercase: true,
+//     match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please fill a valid email address']
+//   },
+//   profilePictureUrl: { type: String, default: '' },
+
+//   class: { type: String, required: true, trim: true },
+//   // --- RE-ADDED FIELD ---
+//   classNumber: { type: String, default: '-', trim: true }, // Re-added classNumber
+//   // --- END RE-ADDED FIELD ---
+//   majorSubject: { type: String, default: '-', trim: true },
+//   degreeName: { type: String, default: '-', trim: true },
+//   semester: { type: Number, default: null },
+//   feePerMonth: { type: Number, required: true },
+//   siblings: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Student' }],
+//   feeStatus: { type: String, enum: ['Paid', 'Unpaid', 'Partial Paid'], default: 'Unpaid' },
+//   studentStatus: {
+//     type: String,
+//     enum: ['Regular', 'Withdrawn', 'Expelled', 'Graduated'],
+//     default: 'Regular'
+//   },
 // }, { timestamps: true });
 
 // export default mongoose.model('Student', studentSchema);
-
-
 
 // backend/models/Student.js
 import mongoose from 'mongoose';
 
 const studentSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  fatherName: { type: String, required: true },
-  cnic: { type: String, required: true, unique: true, minlength: 13, maxlength: 13 },
-  address: { type: String, required: true },
-  guardianContact: { type: String, required: true, minlength: 11, maxlength: 11 },
-  class: { // Can be "1st", "2nd", ..., "12th", "BS"
+  name: { type: String, required: true, trim: true },
+  fatherName: { type: String, required: true, trim: true },
+  cnic: { type: String, required: true, unique: true, trim: true, match: /^\d{13}$/ },
+  address: { type: String, required: true, trim: true },
+  guardianContact: { type: String, required: true, trim: true, match: /^\d{11}$/ },
+  additionalContact: { type: String, trim: true, match: /^\d{11}$/, default: '' },
+
+  dob: { type: Date, required: true },
+  gender: { type: String, enum: ['Male', 'Female', 'Other'], required: true },
+  admissionDate: { type: Date, required: true },
+  email: {
     type: String,
-    required: true
+    trim: true,
+    lowercase: true,
+    match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please fill a valid email address']
   },
-  // New fields for class/BS level differentiation
-  majorSubject: { // Only applicable for classes 1-12
+  profilePictureUrl: { type: String, default: '' },
+
+  class: { type: String, required: true, trim: true },
+  classNumber: { type: String, default: '-', trim: true },
+  majorSubject: { type: String, default: '-', trim: true },
+  degreeName: { type: String, default: '-', trim: true },
+  semester: { type: Number, default: null },
+  feePerMonth: { type: Number, required: true },
+  siblings: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Student' }],
+  feeStatus: { type: String, enum: ['Paid', 'Unpaid', 'Partial Paid'], default: 'Unpaid' },
+  studentStatus: {
     type: String,
-    enum: ['Arts', 'Science', 'N/A'], // 'N/A' for BS students
-    default: 'N/A'
+    enum: ['Regular', 'Withdrawn', 'Expelled', 'Graduated'],
+    default: 'Regular'
   },
-  degreeName: { // Only applicable for BS students
-    type: String,
-    enum: ['Islamiyat', 'Software Engineering', 'Honors', 'N/A'], // 'N/A' for non-BS students
-    default: 'N/A'
-  },
-  semester: { // Only applicable for BS students
-    type: Number,
-    min: 1,
-    max: 8, // Assuming 8 semesters max for a 4-year degree
-    default: null // Null for non-BS students
-  },
-  feePerMonth: { type: Number, required: true, min: 0 },
-  siblings: [{
-    name: String,
-    cnic: { type: String, minlength: 13, maxlength: 13 }
-  }],
-  feeStatus: {
-    type: String,
-    enum: ['Paid', 'Unpaid'],
-    default: 'Unpaid'
-  }
+  // --- NEW FIELD ---
+  reason: { type: String, trim: true, default: '' }, // Reason for withdrawal/expulsion
+  // --- END NEW FIELD ---
 }, { timestamps: true });
 
 export default mongoose.model('Student', studentSchema);

@@ -32,6 +32,8 @@ const StudentForm = ({ editingStudent, fetchStudents, onClose, isViewMode = fals
     semester: '',
     feePerMonth: '',
     profilePictureUrl: '',
+    depositedAmount: '',
+    otherDues: '',
   };
   const [student, setStudent] = useState(initialState);
   const [selectedFile, setSelectedFile] = useState(null);
@@ -48,6 +50,8 @@ const StudentForm = ({ editingStudent, fetchStudents, onClose, isViewMode = fals
         profilePictureUrl: editingStudent.profilePictureUrl || '',
         feePerMonth: editingStudent.feePerMonth !== undefined ? editingStudent.feePerMonth.toString() : '',
         reason: editingStudent.reason || '',
+        depositedAmount: editingStudent.depositedAmount !== undefined ? editingStudent.depositedAmount.toString() : '',
+        otherDues: editingStudent.otherDues !== undefined ? editingStudent.otherDues.toString() : '',
       });
       setSelectedFile(null);
     } else {
@@ -175,59 +179,150 @@ const StudentForm = ({ editingStudent, fetchStudents, onClose, isViewMode = fals
 
   const showReasonField = student.studentStatus === 'Expelled' || student.studentStatus === 'Withdrawn';
 
-  const handleDownloadPdf = () => {
+  const handleDownloadPdf = async () => {
     const doc = new jsPDF();
     let yPos = 20;
+    const margin = 30;
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const columnGap = 30;
+    const columnWidth = (pageWidth - 2 * margin - columnGap) / 2;
 
-    doc.setFontSize(18);
-    doc.text('Student Details', 10, yPos);
-    yPos += 10;
+    // --- Institute Logo + Title ---
+    const logo = new Image();
+    logo.src = '/default-avatar.jpg';
+
+    await new Promise((resolve) => {
+      logo.onload = () => {
+        doc.addImage(logo, 'JPEG', margin, yPos - 5, 15, 15);
+        resolve();
+      };
+      logo.onerror = () => resolve();
+    });
+
+    doc.setFontSize(16);
+    doc.setFont(undefined, 'bold');
+    doc.text('Bright Future Institute', margin + 20, yPos);
+    yPos += 7;
     doc.setFontSize(10);
-    doc.text(`Generated on: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, 10, yPos);
-    yPos += 15;
-    doc.line(10, yPos, 200, yPos);
-    yPos += 10;
+    doc.setFont(undefined, 'normal');
+    doc.text('123 Education St, Knowledge City', margin + 20, yPos);
+    yPos += 5;
+    doc.text('Phone: (042) 1234567 | Email: info@bfi.edu.pk', margin + 20, yPos);
+    yPos += 12;
 
-    const addField = (label, value) => {
-      if (value !== null && value !== undefined && value !== '') {
+    // --- Title & Timestamp ---
+    doc.setFontSize(14);
+    doc.setFont(undefined, 'bold');
+    doc.setTextColor(40, 167, 69);
+    doc.text('Student Details', pageWidth / 2, yPos, { align: 'center' });
+    yPos += 6;
+
+    doc.setFontSize(9);
+    doc.setFont(undefined, 'normal');
+    doc.setTextColor(100);
+    doc.text(`Generated on: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, margin, yPos);
+    doc.setTextColor(0, 0, 0);
+    yPos += 5;
+    doc.line(margin, yPos, pageWidth - margin, yPos);
+    yPos += 8;
+
+    // --- Profile Picture Centered ---
+    if (student.profilePictureUrl) {
+      try {
+        const img = new Image();
+        img.src = `${backendBaseUrl}${student.profilePictureUrl}`;
+        await new Promise((resolve) => {
+          img.onload = () => {
+            const imgWidth = 40;
+            const imgHeight = (img.height * imgWidth) / img.width;
+            const xOffset = (pageWidth - imgWidth) / 2;
+            if (yPos + imgHeight > doc.internal.pageSize.getHeight() - margin) {
+              doc.addPage();
+              yPos = margin;
+            }
+            doc.addImage(img, 'JPEG', xOffset, yPos, imgWidth, imgHeight);
+            yPos += imgHeight + 15;
+            resolve();
+          };
+          img.onerror = () => resolve();
+        });
+      } catch {
+        yPos += 10;
+      }
+    } else {
+      doc.setFontSize(10);
+      doc.setTextColor(150);
+      doc.text('No Profile Picture Available', pageWidth / 2, yPos, { align: 'center' });
+      doc.setTextColor(0, 0, 0);
+      yPos += 10;
+    }
+
+    // --- Add Field Function (Two per row) ---
+    const addTwoFields = (label1, value1, label2, value2) => {
+      const addSingle = (x, label, value) => {
         doc.setFontSize(10);
         doc.setFont(undefined, 'bold');
-        doc.text(`${label}:`, 10, yPos);
+        doc.text(`${label}:`, x, yPos);
+        const labelWidth = doc.getTextWidth(`${label}:`);
         doc.setFont(undefined, 'normal');
-        const lines = doc.splitTextToSize(String(value), 180);
-        doc.text(lines, 50, yPos);
-        yPos += (lines.length * 7) + 3;
+        doc.text(`${value || 'N/A'}`, x + labelWidth + 3, yPos);
+      };
+
+      // addSingle(margin, label1, value1);
+      // addSingle(margin + columnWidth + columnGap, label2, value2);
+
+      addSingle(margin, label1, value1);
+
+      if (label2 && String(label2).trim() !== '') {
+        addSingle(margin + columnWidth + columnGap, label2, value2);
+      }
+      yPos += 8;
+
+      if (yPos > doc.internal.pageSize.getHeight() - margin) {
+        doc.addPage();
+        yPos = margin;
       }
     };
 
-    addField('Student Name', student.name);
-    addField('Father Name', student.fatherName);
-    addField('CNIC', student.cnic);
-    addField('Date of Birth', student.dob ? new Date(student.dob).toLocaleDateString() : 'N/A');
-    addField('Gender', student.gender);
-    addField('Email', student.email);
-    addField('Address', student.address);
-    addField('Guardian Contact', student.guardianContact);
-    addField('Additional Contact', student.additionalContact);
-    addField('Admission Date', student.admissionDate ? new Date(student.admissionDate).toLocaleDateString() : 'N/A');
-    addField('Student Status', student.studentStatus);
-    if (showReasonField) {
-      addField('Reason', student.reason);
-    }
-    addField('Class Type', student.class);
-    if (student.class === 'Class') {
-      addField('Class Number', student.classNumber);
-      addField('Major Subject', student.majorSubject);
-    } else if (student.class === 'BS') {
-      addField('Degree Name', student.degreeName);
-      addField('Semester', student.semester);
-      addField('Degree Years', degreeYearsMap[student.degreeName] || 'N/A');
-    }
-    addField('Fee Per Month', student.feePerMonth);
-    addField('Profile Picture URL', student.profilePictureUrl ? `${backendBaseUrl}${student.profilePictureUrl}` : 'N/A');
+    const addFullWidthField = (label, value) => {
+      doc.setFontSize(10);
+      doc.setFont(undefined, 'bold');
+      doc.text(`${label}:`, margin, yPos);
+      const labelWidth = doc.getTextWidth(`${label}:`);
+      doc.setFont(undefined, 'normal');
+      const lines = doc.splitTextToSize(value || 'N/A', pageWidth - margin * 2 - labelWidth - 4);
+      doc.text(lines, margin + labelWidth + 4, yPos);
+      yPos += lines.length * 7 + 2;
 
+      if (yPos > doc.internal.pageSize.getHeight() - margin) {
+        doc.addPage();
+        yPos = margin;
+      }
+    };
+
+    // --- Render Fields ---
+    addTwoFields('Student Name', student.name, 'Father Name', student.fatherName);
+    addTwoFields('CNIC', student.cnic, 'Gender', student.gender);
+    addTwoFields('DOB', student.dob ? new Date(student.dob).toLocaleDateString() : '', 'Email', student.email);
+    addTwoFields('Guardian Contact', student.guardianContact, 'Additional Contact', student.additionalContact);
+    addTwoFields('Admission Date', student.admissionDate ? new Date(student.admissionDate).toLocaleDateString() : '', 'Student Status', student.studentStatus);
+    addTwoFields('Class Type', student.class, '', '');
+    addTwoFields('Deposited Amount', student.depositedAmount !== '' ? `PKR ${parseFloat(student.depositedAmount).toFixed(2)}` : '');
+    addTwoFields('Other Dues', student.otherDues !== '' ? `PKR ${parseFloat(student.otherDues).toFixed(2)}` : '');
+    if (showReasonField) addFullWidthField('Reason', student.reason);
+    if (student.class === 'Class') {
+      addTwoFields('Class Number', student.classNumber, 'Major Subject', student.majorSubject);
+    } else if (student.class === 'BS') {
+      addTwoFields('Degree Name', student.degreeName, 'Semester', student.semester);
+      addFullWidthField('Degree Years', degreeYearsMap[student.degreeName] || 'N/A');
+    }
+    addFullWidthField('Address', student.address);
+    addTwoFields('Fee Per Month', student.feePerMonth, '', '');
+    // Save
     doc.save(`${student.name.replace(/\s/g, '_')}_details.pdf`);
   };
+
+
 
   return (
     // Main container for the form, now a flex column with a constrained height and padding
@@ -253,25 +348,145 @@ const StudentForm = ({ editingStudent, fetchStudents, onClose, isViewMode = fals
 
       {/* Scrollable Form Content Area (takes remaining vertical space) */}
       <form onSubmit={handleSubmit} className="flex flex-col flex-grow overflow-y-auto pr-2 custom-scrollbar"> {/* pr-2 for scrollbar spacing */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6">
+          <div className="sm:col-span-2 lg:col-span-1 flex flex-col items-center">
+            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1 pr-10">
+              Profile Picture<span className="text-red-500"></span>
+            </label>
+
+            {!isViewMode ? (
+              <input
+                type="file"
+                id="profilePicture"
+                name="profilePicture"
+                onChange={handleFileChange}
+                className="inline w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+              />
+            ) : null}
+
+            <div className="mt-4 flex flex-col pr-10 items-center w-full">
+              {selectedFile ? (
+                <img
+                  src={URL.createObjectURL(selectedFile)}
+                  alt="Profile"
+                  className="h-28 w-28 object-cover rounded-full border-4 border-indigo-200 shadow-md"
+                />
+              ) : student.profilePictureUrl ? (
+                isViewMode ? (
+                  <a
+                    href={`${backendBaseUrl}${student.profilePictureUrl}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <img
+                      src={`${backendBaseUrl}${student.profilePictureUrl}`}
+                      alt="Profile"
+                      className="h-28 w-28 object-cover rounded-full border-4 border-indigo-200 shadow-md cursor-pointer"
+                      onError={(e) => { e.target.onerror = null; e.target.src = '/images/default-avatar.png'; }}
+                    />
+                  </a>
+                ) : (
+                  <img
+                    src={`${backendBaseUrl}${student.profilePictureUrl}`}
+                    alt="Profile"
+                    className="h-28 w-28 object-cover rounded-full border-4 border-indigo-200 shadow-md"
+                    onError={(e) => { e.target.onerror = null; e.target.src = '/images/default-avatar.png'; }}
+                  />
+                )
+              ) : (
+                <p className="text-gray-500 text-sm mt-2">N/A</p>
+              )}
+
+              {!isViewMode && student.profilePictureUrl && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setStudent(prev => ({ ...prev, profilePictureUrl: '' }));
+                    setSelectedFile(null);
+                  }}
+                  className="mt-3 text-red-600 hover:text-red-800 text-sm font-medium transition duration-200"
+                >
+                  Clear Image
+                </button>
+              )}
+            </div>
+          </div>
+
+
           {/* Student Name */}
-          <div>
+          {/* <div>
             <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">Student Name<span className="text-red-500">*</span></label>
             <input type="text" id="name" name="name" value={student.name} onChange={handleChange} disabled={isViewMode} className={`block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2.5 transition duration-150 ease-in-out ${fieldErrors.name ? 'border-red-500' : ''}`} />
             {fieldErrors.name && <p className="text-red-500 text-sm mt-1">{fieldErrors.name}</p>}
+          </div> */}
+
+          <div className="flex flex-col justify-center h-full">
+            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+              Student Name<span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              id="name"
+              name="name"
+              value={student.name}
+              onChange={handleChange}
+              disabled={isViewMode}
+              className={`block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2.5 transition duration-150 ease-in-out ${fieldErrors.name ? 'border-red-500' : ''}`}
+            />
+            {fieldErrors.name && (
+              <p className="text-red-500 text-sm mt-1">{fieldErrors.name}</p>
+            )}
           </div>
+
           {/* Father Name */}
-          <div>
+          {/* <div>
             <label htmlFor="fatherName" className="block text-sm font-medium text-gray-700 mb-1">Father Name<span className="text-red-500">*</span></label>
             <input type="text" id="fatherName" name="fatherName" value={student.fatherName} onChange={handleChange} disabled={isViewMode} className={`block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2.5 transition duration-150 ease-in-out ${fieldErrors.fatherName ? 'border-red-500' : ''}`} />
             {fieldErrors.fatherName && <p className="text-red-500 text-sm mt-1">{fieldErrors.fatherName}</p>}
+          </div> */}
+          <div className="flex flex-col justify-center h-full">
+            <label htmlFor="fatherName" className="block text-sm font-medium text-gray-700 mb-1">
+              Father Name<span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              id="fatherName"
+              name="fatherName"
+              value={student.fatherName}
+              onChange={handleChange}
+              disabled={isViewMode}
+              className={`block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2.5 transition duration-150 ease-in-out ${fieldErrors.fatherName ? 'border-red-500' : ''}`}
+            />
+            {fieldErrors.fatherName && (
+              <p className="text-red-500 text-sm mt-1">{fieldErrors.fatherName}</p>
+            )}
           </div>
+
           {/* CNIC */}
-          <div>
+          {/* <div>
             <label htmlFor="cnic" className="block text-sm font-medium text-gray-700 mb-1">CNIC<span className="text-red-500">*</span></label>
             <input type="text" id="cnic" name="cnic" value={student.cnic} onChange={handleChange} disabled={isViewMode} className={`block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2.5 transition duration-150 ease-in-out ${fieldErrors.cnic ? 'border-red-500' : ''}`} placeholder="XXXXX-XXXXXXX-X" />
             {fieldErrors.cnic && <p className="text-red-500 text-sm mt-1">{fieldErrors.cnic}</p>}
+          </div> */}
+          <div className="flex flex-col justify-center h-full">
+            <label htmlFor="cnic" className="block text-sm font-medium text-gray-700 mb-1">
+              CNIC<span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              id="cnic"
+              name="cnic"
+              value={student.cnic}
+              onChange={handleChange}
+              disabled={isViewMode}
+              placeholder="XXXXX-XXXXXXX-X"
+              className={`block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2.5 transition duration-150 ease-in-out ${fieldErrors.cnic ? 'border-red-500' : ''}`}
+            />
+            {fieldErrors.cnic && (
+              <p className="text-red-500 text-sm mt-1">{fieldErrors.cnic}</p>
+            )}
           </div>
+
           {/* Date of Birth */}
           <div>
             <label htmlFor="dob" className="block text-sm font-medium text-gray-700 mb-1">Date of Birth<span className="text-red-500">*</span></label>
@@ -419,48 +634,34 @@ const StudentForm = ({ editingStudent, fetchStudents, onClose, isViewMode = fals
             <input type="number" id="feePerMonth" name="feePerMonth" value={student.feePerMonth} onChange={handleChange} disabled={isViewMode} className={`block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2.5 transition duration-150 ease-in-out ${fieldErrors.feePerMonth ? 'border-red-500' : ''}`} />
             {fieldErrors.feePerMonth && <p className="text-red-500 text-sm mt-1">{fieldErrors.feePerMonth}</p>}
           </div>
-
-          {/* Profile Picture */}
-          <div className="sm:col-span-2 lg:col-span-3 flex flex-col items-center md:items-start">
-            <label htmlFor="profilePicture" className="block text-sm font-medium text-gray-700 mb-1">Profile Picture</label>
-            {!isViewMode ? (
-              <input type="file" id="profilePicture" name="profilePicture" onChange={handleFileChange} className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" />
-            ) : null}
-
-            {(student.profilePictureUrl || selectedFile) && (
-              <div className="mt-4 flex flex-col items-center md:items-start">
-                <p className="text-sm text-gray-500 mb-2">Current Picture:</p>
-                <img
-                  src={selectedFile ? URL.createObjectURL(selectedFile) : `${backendBaseUrl}${student.profilePictureUrl}`}
-                  alt="Profile"
-                  className="h-32 w-32 object-cover rounded-full border-4 border-indigo-200 shadow-md"
-                  onError={(e) => { e.target.onerror = null; e.target.src = '/images/default-avatar.png'; }}
-                />
-                {isViewMode && student.profilePictureUrl && (
-                   <a
-                    href={`${backendBaseUrl}${student.profilePictureUrl}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 hover:underline text-sm mt-3 inline-block font-medium"
-                  >
-                    View Full Image
-                  </a>
-                )}
-                {!isViewMode && student.profilePictureUrl && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setStudent(prev => ({ ...prev, profilePictureUrl: '' }));
-                      setSelectedFile(null);
-                    }}
-                    className="mt-3 text-red-600 hover:text-red-800 text-sm font-medium transition duration-200"
-                  >
-                    Clear Image
-                  </button>
-                )}
-              </div>
-            )}
+          <div>
+            <label htmlFor="depositedAmount" className="block text-sm font-medium text-gray-700">Deposited Amount (Advance)</label>
+            <input
+              type="number"
+              id="depositedAmount"
+              name="depositedAmount"
+              value={student.depositedAmount}
+              onChange={handleChange}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2"
+              disabled={isViewMode}
+            />
           </div>
+          <div>
+            <label htmlFor="otherDues" className="block text-sm font-medium text-gray-700">Other Dues (Fines, etc.)</label>
+            <input
+              type="number"
+              id="otherDues"
+              name="otherDues"
+              value={student.otherDues}
+              onChange={handleChange}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2"
+              disabled={isViewMode}
+            />
+          </div>
+          {/* --- END NEW INPUT FIELDS ---
+          </div> */}
+
+
         </div>
       </form>
 

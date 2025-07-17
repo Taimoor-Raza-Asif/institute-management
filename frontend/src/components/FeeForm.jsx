@@ -1,7 +1,10 @@
 // // src/components/FeeForm.jsx
 // import React, { useState, useEffect } from 'react';
 // import api from '../api';
-// import { XMarkIcon } from '@heroicons/react/24/outline'; // For the close button
+// import { XMarkIcon, ArrowDownTrayIcon, PrinterIcon } from '@heroicons/react/24/outline'; // Added PrinterIcon
+// import jsPDF from 'jspdf';
+// import autoTable from 'jspdf-autotable';
+
 
 // const months = [
 //   "January", "February", "March", "April", "May", "June",
@@ -12,12 +15,12 @@
 // const generateYearOptions = () => {
 //   const currentYear = new Date().getFullYear();
 //   const years = [];
+//   // Go back 5 years and forward 1 year from current year
 //   for (let i = currentYear - 5; i <= currentYear + 1; i++) {
 //     years.push(i.toString());
 //   }
 //   return years;
 // };
-
 
 // const FeeForm = ({ editingFee, fetchFees, studentsForForm, onClose, isViewMode = false }) => {
 //   const initialState = {
@@ -25,7 +28,7 @@
 //     paidBy: '',
 //     month: months[new Date().getMonth()],
 //     year: new Date().getFullYear().toString(),
-//     totalFee: '', // Will be auto-populated
+//     totalFee: '',
 //     receivedAmount: '',
 //     dueAmount: 0,
 //     receivedDate: new Date().toISOString().split('T')[0],
@@ -37,7 +40,6 @@
 //   const [selectedFile, setSelectedFile] = useState(null);
 //   const [formError, setFormError] = useState('');
 //   const backendBaseUrl = 'http://localhost:5000'; // Make sure this matches your backend port
-
 
 //   useEffect(() => {
 //     if (editingFee) {
@@ -55,9 +57,9 @@
 //       setSelectedFile(null);
 //     }
 //     setFormError('');
-//   }, [editingFee]);
+//   }, [editingFee, studentsForForm]); // Added studentsForForm to dependency array
 
-//   // NEW useEffect to populate totalFee based on selected student
+//   // Effect to populate totalFee based on selected student
 //   useEffect(() => {
 //     if (fee.studentId && studentsForForm.length > 0) {
 //       const selectedStudent = studentsForForm.find(s => s._id === fee.studentId);
@@ -71,9 +73,9 @@
 //         setFee(prev => ({ ...prev, totalFee: '' }));
 //       }
 //     } else if (!fee.studentId && !editingFee) { // Clear totalFee if no student selected for new record
-//         setFee(prev => ({ ...prev, totalFee: '' }));
+//       setFee(prev => ({ ...prev, totalFee: '' }));
 //     }
-//   }, [fee.studentId, studentsForForm, editingFee]); // Depend on studentId and studentsForForm
+//   }, [fee.studentId, studentsForForm, editingFee]);
 
 //   // Calculate due amount whenever totalFee or receivedAmount changes
 //   useEffect(() => {
@@ -104,25 +106,22 @@
 //     setFormError('');
 
 //     // Form validation
-//     // totalFee is now auto-populated, so we check if it's a valid number.
-//     // If a student is selected, totalFee should be set.
 //     if (!fee.studentId || !fee.paidBy || !fee.receivedAmount || !fee.month || !fee.year || !fee.receivedDate || !fee.receivedBy || !fee.paymentMethod) {
 //       setFormError('Please fill in all required fields (Student, Paid By, Received Amount, Month, Year, Received Date, Received By, Payment Method).');
 //       return;
 //     }
 //     if (isNaN(parseFloat(fee.totalFee)) || parseFloat(fee.totalFee) <= 0) {
-//         setFormError('Total Fee must be a positive number (auto-populated based on student). Please select a student with a valid fee.');
-//         return;
+//       setFormError('Total Fee must be a positive number (auto-populated based on student). Please select a student with a valid fee.');
+//       return;
 //     }
 //     if (isNaN(parseFloat(fee.receivedAmount)) || parseFloat(fee.receivedAmount) < 0) {
 //       setFormError('Received Amount must be a non-negative number.');
 //       return;
 //     }
 //     if (parseFloat(fee.receivedAmount) > parseFloat(fee.totalFee)) {
-//         setFormError('Received Amount cannot be greater than Total Fee.');
-//         return;
+//       setFormError('Received Amount cannot be greater than Total Fee.');
+//       return;
 //     }
-
 
 //     const formData = new FormData();
 //     for (const key in fee) {
@@ -139,7 +138,6 @@
 //       formData.append('billScreenshotUrl', '');
 //     }
 
-
 //     try {
 //       if (editingFee) {
 //         await api.put(`/fees/${editingFee._id}`, formData, {
@@ -150,6 +148,7 @@
 //           headers: { 'Content-Type': 'multipart/form-data' },
 //         });
 //       }
+//       fetchFees(); // Refresh the list of fees after successful operation
 //       onClose();
 //     } catch (err) {
 //       console.error('Failed to save fee record:', err.response?.data || err.message);
@@ -163,30 +162,230 @@
 //     return 'Add New Fee Record';
 //   };
 
+// const handleDownloadReceiptPdf = () => {
+//   const doc = new jsPDF({ format: 'a4' }); // A4 size
+
+//   const selectedStudent = studentsForForm.find(s => s._id === fee.studentId);
+//   const studentName = selectedStudent ? selectedStudent.name : 'N/A';
+//   const studentCnic = selectedStudent ? selectedStudent.cnic : 'N/A';
+//   const studentClassOrDegree = selectedStudent
+//     ? (selectedStudent.class === 'Class'
+//         ? `${selectedStudent.classNumber} Class`
+//         : `${selectedStudent.degreeName} (Semester ${selectedStudent.semester})`)
+//     : 'N/A';
+
+//   const savePDF = () => {
+//     const filename = `${studentName.replace(/\s/g, '_')}_Fee_Receipt_${fee.month}_${fee.year}.pdf`;
+//     doc.save(filename);
+//   };
+
+//   const drawMiniReceipt = (xStart, yStart) => {
+//     let yPos = yStart;
+
+//     // Logo
+//     const logo = new Image();
+//     logo.src = '/default-avatar.jpg'; // public path logo
+
+//     logo.onload = () => {
+//       doc.addImage(logo, 'JPEG', xStart, yPos, 15, 15); // logo top-right of mini receipt
+
+//       // Institute Info
+//       doc.setFontSize(10);
+//       doc.setFont(undefined, 'bold');
+//       doc.text('Bright Future Institute', xStart+17, yPos + 5);
+//       doc.setFontSize(8);
+//       doc.setFont(undefined, 'normal');
+//       doc.text('123 Education St, Knowledge City', xStart+17, yPos + 10);
+//       doc.text('Phone: (042) 1234567 | Email: info@bfi.edu.pk', xStart+17, yPos + 14);
+
+//       // Divider
+//       doc.line(xStart, yPos + 18, xStart + 80, yPos + 18);
+
+//       // Title
+//       doc.setFontSize(9);
+//       doc.setFont(undefined, 'bold');
+//       doc.setTextColor(40, 167, 69);
+//       doc.text('Fee Receipt', xStart + 40, yPos + 24, { align: 'center' });
+
+//       doc.setFontSize(7);
+//       doc.setTextColor(100);
+//       doc.text(`Generated on: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, xStart, yPos + 29);
+
+//       // Section 1: Student Info
+//       yPos += 34;
+//       doc.setFontSize(8);
+//       doc.setTextColor(0);
+//       doc.setFont(undefined, 'bold');
+//       doc.text('Student Information', xStart, yPos);
+//       yPos += 4;
+//       doc.line(xStart, yPos, xStart + 80, yPos);
+//       yPos += 5;
+
+//       doc.setFont(undefined, 'normal');
+//       doc.text(`Name:`, xStart + 5, yPos);
+//       doc.text(`${studentName}`, xStart + 40, yPos);
+//       yPos += 4;
+
+//       doc.text(`CNIC:`, xStart + 5, yPos);
+//       doc.text(`${studentCnic}`, xStart + 40, yPos);
+//       yPos += 4;
+
+//       doc.text(`Class/Degree:`, xStart + 5, yPos);
+//       doc.text(`${studentClassOrDegree}`, xStart + 40, yPos);
+//       yPos += 6;
+
+//       // Section 2: Fee Info
+//       doc.setFont(undefined, 'bold');
+//       doc.text('Fee Details', xStart, yPos);
+//       yPos += 4;
+//       doc.line(xStart, yPos, xStart + 80, yPos);
+//       yPos += 5;
+
+//       doc.setFont(undefined, 'normal');
+//       const addField = (label, value) => {
+//         doc.text(`${label}`, xStart + 5, yPos);
+//         doc.text(`${value}`, xStart + 50, yPos);
+//         yPos += 4;
+//       };
+
+//       addField('Total Fee:', `PKR ${parseFloat(fee.totalFee).toFixed(2)}`);
+//       addField('Received Amount:', `PKR ${parseFloat(fee.receivedAmount).toFixed(2)}`);
+//       addField('Due Amount:', `PKR ${parseFloat(fee.dueAmount).toFixed(2)}`);
+//       addField('Paid Month:', fee.month);
+//       addField('Paid Year:', fee.year);
+//       addField('Received Date:', new Date(fee.receivedDate).toLocaleDateString());
+//       addField('Paid By:', fee.paidBy);
+//       addField('Received By:', fee.receivedBy);
+//       addField('Payment Method:', fee.paymentMethod);
+
+//       yPos += 5;
+
+//       // Footer
+//       doc.setFontSize(7);
+//       doc.setTextColor(150);
+//       doc.text('This is a computer-generated fee receipt. No signature is required.', xStart, yPos + 5);
+
+//       savePDF();
+//     };
+
+//     logo.onerror = () => {
+//       console.warn('Failed to load logo.');
+//       savePDF();
+//     };
+//   };
+
+//   // Draw in top-left quadrant for now
+//   drawMiniReceipt(10, 10); // (xStart, yStart)
+// };
+
+
+// const handlePrintReceipt = () => {
+//   const printWindow = window.open('', '_blank');
+//   printWindow.document.write('<html><head><title>Fee Receipt</title>');
+//   printWindow.document.write('<style>');
+//   printWindow.document.write(`
+//     body { font-family: Arial, sans-serif; margin: 0; padding: 0; color: #333; }
+//     .receipt { width: 48%; height: 48%; float: left; box-sizing: border-box; padding: 10px; solid #ccc; margin: 1%; }
+//     .header { display: flex; align-items: center; margin-bottom: 5px; }
+//     .logo { width: 40px; height: 40px; margin-right: 10px; }
+//     .inst-info { font-size: 10px; }
+//     .title { text-align: center; font-size: 12px; font-weight: bold; color: #28a745; margin: 8px 0; }
+//     .info-section { margin-top: 5px; font-size: 10px; }
+//     .info-row { display: flex; margin-bottom: 3px; margin-left:17px;}
+//     .info-row label { width: 50%; }
+//     .header-section{font-size:12px}
+//     .footer-note { margin-top: 10px; font-size: 8px; color: #777; text-align: center; }
+//     .line{height:0.5px; background-color:black;}
+//     img.screenshot { max-width: 100%; height: auto; margin-top: 5px; border: 1px solid #ddd; }
+//     @media print {
+//       body { margin: 0; }
+//     }
+//   `);
+//   printWindow.document.write('</style>');
+//   printWindow.document.write('</head><body>');
+
+//   const selectedStudent = studentsForForm.find(s => s._id === fee.studentId);
+//   const studentName = selectedStudent ? selectedStudent.name : 'N/A';
+//   const studentCnic = selectedStudent ? selectedStudent.cnic : 'N/A';
+//   const studentClassOrDegree = selectedStudent ? (selectedStudent.class === 'Class' ? `${selectedStudent.classNumber} Class` : `${selectedStudent.degreeName} (Semester ${selectedStudent.semester})`) : 'N/A';
+
+//   printWindow.document.write('<div class="receipt">');
+//   printWindow.document.write('<div class="header">');
+//   printWindow.document.write('<img class="logo" src="/default-avatar.jpg" alt="logo" />');
+//   printWindow.document.write('<div class="inst-info">');
+//   printWindow.document.write('<strong>Bright Future Institute</strong><br>');
+//   printWindow.document.write('123 Education St, Knowledge City<br>');
+//   printWindow.document.write('Phone: (042) 1234567<br>Email: info@bfi.edu.pk');
+//   printWindow.document.write('</div></div>');
+//   printWindow.document.write('<hr class="line">');
+
+//   printWindow.document.write('<div class="title">Fee Receipt</div>');
+//   printWindow.document.write(`<div style="text-align:left;font-size:9px;">Generated on: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}</div>`);
+
+//   printWindow.document.write('<div class="info-section"><strong class="header-section">Student Information</strong>');
+//    printWindow.document.write('<hr class="line">');
+//   printWindow.document.write(`<div class="info-row"><label>Name:</label><span>${studentName}</span></div>`);
+//   printWindow.document.write(`<div class="info-row"><label>CNIC:</label><span>${studentCnic}</span></div>`);
+//   printWindow.document.write(`<div class="info-row"><label>Class/Degree:</label><span>${studentClassOrDegree}</span></div>`);
+//   printWindow.document.write('</div>');
+
+//   printWindow.document.write('<div class="info-section"><strong class="header-section">Fee Details</strong>');
+//    printWindow.document.write('<hr class="line">');
+//   printWindow.document.write(`<div class="info-row"><label>Total Fee:</label><span>PKR ${parseFloat(fee.totalFee).toFixed(2)}</span></div>`);
+//   printWindow.document.write(`<div class="info-row"><label>Received Amount:</label><span>PKR ${parseFloat(fee.receivedAmount).toFixed(2)}</span></div>`);
+//   printWindow.document.write(`<div class="info-row"><label>Due Amount:</label><span>PKR ${parseFloat(fee.dueAmount).toFixed(2)}</span></div>`);
+//   printWindow.document.write(`<div class="info-row"><label>Paid Month:</label><span>${fee.month}</span></div>`);
+//   printWindow.document.write(`<div class="info-row"><label>Paid Year:</label><span>${fee.year}</span></div>`);
+//   printWindow.document.write(`<div class="info-row"><label>Received Date:</label><span>${new Date(fee.receivedDate).toLocaleDateString()}</span></div>`);
+//   printWindow.document.write(`<div class="info-row"><label>Paid By:</label><span>${fee.paidBy}</span></div>`);
+//   printWindow.document.write(`<div class="info-row"><label>Received By:</label><span>${fee.receivedBy}</span></div>`);
+//   printWindow.document.write(`<div class="info-row"><label>Payment Method:</label><span>${fee.paymentMethod}</span></div>`);
+//   printWindow.document.write('</div>');
+
+//   // if (fee.billScreenshotUrl) {
+//   //   printWindow.document.write(`<div><strong>Bill Screenshot:</strong><br><img class="screenshot" src="${backendBaseUrl}${fee.billScreenshotUrl}" alt="Screenshot" /></div>`);
+//   // }
+
+//   printWindow.document.write('<div class="footer-note">This is a computer-generated fee receipt. No signature is required.</div>');
+//   printWindow.document.write('</div>'); // end .receipt
+
+//   printWindow.document.write('</body></html>');
+//   printWindow.document.close();
+//   printWindow.print();
+// };
+
+
+
 //   return (
-//     <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-2xl mx-auto relative">
+//     // Main container for the form, now a flex column with responsive width and padding
+//     <div className="bg-white p-4 sm:p-6 rounded-lg shadow-xl w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-2xl mx-auto relative flex flex-col h-full">
+//       {/* Close Button */}
 //       <button
 //         onClick={onClose}
-//         className="absolute top-3 right-3 text-gray-500 hover:text-gray-700 transition"
+//         className="absolute top-3 right-3 text-gray-500 hover:text-gray-700 transition duration-200 p-1 rounded-full hover:bg-gray-100"
 //         title="Close"
 //       >
 //         <XMarkIcon className="h-6 w-6" />
 //       </button>
-//       <h2 className="text-2xl font-bold mb-4 text-center text-green-700">{getTitle()}</h2>
-//       <hr className="mb-4" />
 
+//       {/* Header */}
+//       <h2 className="text-2xl sm:text-3xl font-bold mb-4 text-center text-green-700 mt-2 sm:mt-0">{getTitle()}</h2>
+//       <hr className="mb-4 border-green-200" />
+
+//       {/* Form Error */}
 //       {formError && (
-//         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+//         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4 shadow-sm" role="alert">
 //           {formError}
 //         </div>
 //       )}
 
-//       <form onSubmit={handleSubmit}>
-//         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+//       {/* Scrollable Form Content */}
+//       <form onSubmit={handleSubmit} className="flex flex-col flex-grow overflow-y-auto pr-2 custom-scrollbar">
+//         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
 //           {/* Student */}
 //           <div>
-//             <label htmlFor="studentId" className="block text-sm font-medium text-gray-700">Student<span className="text-red-500">*</span></label>
-//             <select id="studentId" name="studentId" value={fee.studentId} onChange={handleChange} disabled={isViewMode} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2">
+//             <label htmlFor="studentId" className="block text-sm font-medium text-gray-700 mb-1">Student<span className="text-red-500">*</span></label>
+//             <select id="studentId" name="studentId" value={fee.studentId} onChange={handleChange} disabled={isViewMode} className="block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring focus:ring-green-200 focus:ring-opacity-50 p-2.5 transition duration-150 ease-in-out">
 //               <option value="">Select Student</option>
 //               {studentsForForm.map(student => (
 //                 <option key={student._id} value={student._id}>{student.name} ({student.cnic})</option>
@@ -195,36 +394,36 @@
 //           </div>
 //           {/* Paid By */}
 //           <div>
-//             <label htmlFor="paidBy" className="block text-sm font-medium text-gray-700">Paid By<span className="text-red-500">*</span></label>
-//             <input type="text" id="paidBy" name="paidBy" value={fee.paidBy} onChange={handleChange} disabled={isViewMode} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2" />
+//             <label htmlFor="paidBy" className="block text-sm font-medium text-gray-700 mb-1">Paid By<span className="text-red-500">*</span></label>
+//             <input type="text" id="paidBy" name="paidBy" value={fee.paidBy} onChange={handleChange} disabled={isViewMode} className="block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring focus:ring-green-200 focus:ring-opacity-50 p-2.5 transition duration-150 ease-in-out" />
 //           </div>
 //           {/* Total Fee (Auto-populated and disabled) */}
 //           <div>
-//             <label htmlFor="totalFee" className="block text-sm font-medium text-gray-700">Total Fee (Per Month)<span className="text-red-500">*</span></label>
+//             <label htmlFor="totalFee" className="block text-sm font-medium text-gray-700 mb-1">Total Fee (Per Month)<span className="text-red-500">*</span></label>
 //             <input
 //               type="number"
 //               id="totalFee"
 //               name="totalFee"
 //               value={fee.totalFee}
-//               onChange={handleChange} // Keep onChange for internal state updates (dueAmount)
-//               disabled={true} // Always disabled as it's auto-populated
-//               className="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm p-2 text-gray-700"
+//               onChange={handleChange}
+//               disabled={true}
+//               className="block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm p-2.5 text-gray-700 cursor-not-allowed"
 //             />
 //           </div>
 //           {/* Received Amount */}
 //           <div>
-//             <label htmlFor="receivedAmount" className="block text-sm font-medium text-gray-700">Received Amount<span className="text-red-500">*</span></label>
-//             <input type="number" id="receivedAmount" name="receivedAmount" value={fee.receivedAmount} onChange={handleChange} disabled={isViewMode} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2" />
+//             <label htmlFor="receivedAmount" className="block text-sm font-medium text-gray-700 mb-1">Received Amount<span className="text-red-500">*</span></label>
+//             <input type="number" id="receivedAmount" name="receivedAmount" value={fee.receivedAmount} onChange={handleChange} disabled={isViewMode} className="block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring focus:ring-green-200 focus:ring-opacity-50 p-2.5 transition duration-150 ease-in-out" />
 //           </div>
 //           {/* Due Amount (Display only) */}
 //           <div>
-//             <label htmlFor="dueAmount" className="block text-sm font-medium text-gray-700">Due Amount</label>
-//             <input type="number" id="dueAmount" name="dueAmount" value={fee.dueAmount.toFixed(2)} disabled className="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm p-2 text-gray-700" />
+//             <label htmlFor="dueAmount" className="block text-sm font-medium text-gray-700 mb-1">Due Amount</label>
+//             <input type="number" id="dueAmount" name="dueAmount" value={fee.dueAmount.toFixed(2)} disabled className="block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm p-2.5 text-gray-700 cursor-not-allowed" />
 //           </div>
 //           {/* Month */}
 //           <div>
-//             <label htmlFor="month" className="block text-sm font-medium text-gray-700">Month<span className="text-red-500">*</span></label>
-//             <select id="month" name="month" value={fee.month} onChange={handleChange} disabled={isViewMode} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2">
+//             <label htmlFor="month" className="block text-sm font-medium text-gray-700 mb-1">Month<span className="text-red-500">*</span></label>
+//             <select id="month" name="month" value={fee.month} onChange={handleChange} disabled={isViewMode} className="block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring focus:ring-green-200 focus:ring-opacity-50 p-2.5 transition duration-150 ease-in-out">
 //               <option value="">Select Month</option>
 //               {months.map(monthName => (
 //                 <option key={monthName} value={monthName}>{monthName}</option>
@@ -233,8 +432,8 @@
 //           </div>
 //           {/* Year */}
 //           <div>
-//             <label htmlFor="year" className="block text-sm font-medium text-gray-700">Year<span className="text-red-500">*</span></label>
-//             <select id="year" name="year" value={fee.year} onChange={handleChange} disabled={isViewMode} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2">
+//             <label htmlFor="year" className="block text-sm font-medium text-gray-700 mb-1">Year<span className="text-red-500">*</span></label>
+//             <select id="year" name="year" value={fee.year} onChange={handleChange} disabled={isViewMode} className="block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring focus:ring-green-200 focus:ring-opacity-50 p-2.5 transition duration-150 ease-in-out">
 //               {generateYearOptions().map(year => (
 //                 <option key={year} value={year}>{year}</option>
 //               ))}
@@ -242,18 +441,18 @@
 //           </div>
 //           {/* Received Date */}
 //           <div>
-//             <label htmlFor="receivedDate" className="block text-sm font-medium text-gray-700">Received Date<span className="text-red-500">*</span></label>
-//             <input type="date" id="receivedDate" name="receivedDate" value={fee.receivedDate} onChange={handleChange} disabled={isViewMode} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2" />
+//             <label htmlFor="receivedDate" className="block text-sm font-medium text-gray-700 mb-1">Received Date<span className="text-red-500">*</span></label>
+//             <input type="date" id="receivedDate" name="receivedDate" value={fee.receivedDate} onChange={handleChange} disabled={isViewMode} className="block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring focus:ring-green-200 focus:ring-opacity-50 p-2.5 transition duration-150 ease-in-out" />
 //           </div>
 //           {/* Received By */}
 //           <div>
-//             <label htmlFor="receivedBy" className="block text-sm font-medium text-gray-700">Received By<span className="text-red-500">*</span></label>
-//             <input type="text" id="receivedBy" name="receivedBy" value={fee.receivedBy} onChange={handleChange} disabled={isViewMode} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2" />
+//             <label htmlFor="receivedBy" className="block text-sm font-medium text-gray-700 mb-1">Received By<span className="text-red-500">*</span></label>
+//             <input type="text" id="receivedBy" name="receivedBy" value={fee.receivedBy} onChange={handleChange} disabled={isViewMode} className="block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring focus:ring-green-200 focus:ring-opacity-50 p-2.5 transition duration-150 ease-in-out" />
 //           </div>
 //           {/* Payment Method */}
 //           <div>
-//             <label htmlFor="paymentMethod" className="block text-sm font-medium text-gray-700">Payment Method<span className="text-red-500">*</span></label>
-//             <select id="paymentMethod" name="paymentMethod" value={fee.paymentMethod} onChange={handleChange} disabled={isViewMode} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2">
+//             <label htmlFor="paymentMethod" className="block text-sm font-medium text-gray-700 mb-1">Payment Method<span className="text-red-500">*</span></label>
+//             <select id="paymentMethod" name="paymentMethod" value={fee.paymentMethod} onChange={handleChange} disabled={isViewMode} className="block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring focus:ring-green-200 focus:ring-opacity-50 p-2.5 transition duration-150 ease-in-out">
 //               <option value="">Select Method</option>
 //               <option value="Cash">Cash</option>
 //               <option value="Bank Transfer">Bank Transfer</option>
@@ -264,40 +463,39 @@
 //           </div>
 
 //           {/* Bill Screenshot */}
-//           <div className="md:col-span-2">
-//             <label htmlFor="billScreenshot" className="block text-sm font-medium text-gray-700">Bill Screenshot</label>
-//             {!isViewMode ? ( // Show file input only in edit/add mode
-//               <input type="file" id="billScreenshot" name="billScreenshot" onChange={handleFileChange} className="mt-1 block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none" />
+//           <div className="sm:col-span-2"> {/* This div spans 2 columns on small screens and up */}
+//             <label htmlFor="billScreenshot" className="block text-sm font-medium text-gray-700 mb-1">Bill Screenshot</label>
+//             {!isViewMode ? (
+//               <input type="file" id="billScreenshot" name="billScreenshot" onChange={handleFileChange} className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100" />
 //             ) : null}
 
-//             {(fee.billScreenshotUrl || selectedFile) && ( // Display existing image or new file preview
-//               <div className="mt-2">
-//                 <p className="text-sm text-gray-500 mb-1">Current Screenshot:</p>
+//             {(fee.billScreenshotUrl || selectedFile) && (
+//               <div className="mt-4 flex flex-col items-center sm:items-start">
+//                 <p className="text-sm text-gray-500 mb-2">Current Screenshot:</p>
 //                 <img
 //                   src={selectedFile ? URL.createObjectURL(selectedFile) : `${backendBaseUrl}${fee.billScreenshotUrl}`}
 //                   alt="Bill Screenshot"
-//                   className="h-32 w-auto object-cover rounded-md border border-gray-300"
-//                   style={{ maxHeight: '150px' }}
-//                   onError={(e) => { e.target.onerror = null; e.target.src = '/images/no-image-available.png'; }} // Fallback
+//                   className="h-32 w-auto object-cover rounded-md border-4 border-green-200 shadow-md"
+//                   onError={(e) => { e.target.onerror = null; e.target.src = '/images/no-image-available.png'; }}
 //                 />
 //                 {isViewMode && fee.billScreenshotUrl && (
 //                   <a
 //                     href={`${backendBaseUrl}${fee.billScreenshotUrl}`}
 //                     target="_blank"
 //                     rel="noopener noreferrer"
-//                     className="text-blue-600 hover:underline text-sm mt-1 inline-block"
+//                     className="text-blue-600 hover:underline text-sm mt-3 inline-block font-medium"
 //                   >
 //                     View Full Image
 //                   </a>
 //                 )}
-//                 {!isViewMode && fee.billScreenshotUrl && ( // Option to clear image in edit mode
+//                 {!isViewMode && fee.billScreenshotUrl && (
 //                   <button
 //                     type="button"
 //                     onClick={() => {
 //                       setFee(prev => ({ ...prev, billScreenshotUrl: '' }));
 //                       setSelectedFile(null);
 //                     }}
-//                     className="ml-2 text-red-600 hover:text-red-800 text-sm"
+//                     className="mt-3 text-red-600 hover:text-red-800 text-sm font-medium transition duration-200"
 //                   >
 //                     Clear Image
 //                   </button>
@@ -306,25 +504,49 @@
 //             )}
 //           </div>
 //         </div>
-
-//         <div className="mt-6 flex justify-end space-x-3">
-//           {!isViewMode && ( // Show submit button only in add/edit mode
-//             <button
-//               type="submit"
-//               className="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition"
-//             >
-//               {editingFee ? 'Update Fee' : 'Add Fee'}
-//             </button>
-//           )}
-//           <button
-//             type="button"
-//             onClick={onClose}
-//             className="bg-gray-300 text-gray-800 px-6 py-2 rounded-md hover:bg-gray-400 transition"
-//           >
-//             {isViewMode ? 'Close' : 'Cancel'}
-//           </button>
-//         </div>
 //       </form>
+
+//       {/* Footer Buttons */}
+//       <div className="mt-auto pt-4 border-t border-gray-200 flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-3 flex-shrink-0">
+//         {isViewMode && (
+//           <>
+//             <button
+//               type="button"
+//               onClick={handleDownloadReceiptPdf}
+//               className="flex items-center justify-center bg-purple-600 text-white px-6 py-2 rounded-md hover:bg-purple-700 transition duration-200 shadow-md w-full sm:w-auto"
+//               title="Download Fee Receipt as PDF"
+//             >
+//               <ArrowDownTrayIcon className="h-5 w-5 mr-2" />
+//               Download PDF
+//             </button>
+//             <button
+//               type="button"
+//               onClick={handlePrintReceipt}
+//               className="flex items-center justify-center bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition duration-200 shadow-md w-full sm:w-auto"
+//               title="Print Fee Receipt"
+//             >
+//               <PrinterIcon className="h-5 w-5 mr-2" />
+//               Print Receipt
+//             </button>
+//           </>
+//         )}
+//         {!isViewMode && (
+//           <button
+//             type="submit"
+//             onClick={handleSubmit}
+//             className="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition duration-200 shadow-md w-full sm:w-auto"
+//           >
+//             {editingFee ? 'Update Fee' : 'Add Fee'}
+//           </button>
+//         )}
+//         <button
+//           type="button"
+//           onClick={onClose}
+//           className="bg-gray-300 text-gray-800 px-6 py-2 rounded-md hover:bg-gray-400 transition duration-200 shadow-md w-full sm:w-auto"
+//         >
+//           {isViewMode ? 'Close' : 'Cancel'}
+//         </button>
+//       </div>
 //     </div>
 //   );
 // };
@@ -333,12 +555,14 @@
 
 
 
+
+
 // src/components/FeeForm.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import api from '../api';
-import { XMarkIcon, ArrowDownTrayIcon, PrinterIcon } from '@heroicons/react/24/outline'; // Added PrinterIcon
+import { XMarkIcon, ArrowDownTrayIcon, PrinterIcon, MinusCircleIcon } from '@heroicons/react/24/outline'; // Added PrinterIcon, MinusCircleIcon
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable'; // Ensure this is imported for autoTable to work
 
 const months = [
   "January", "February", "March", "April", "May", "June",
@@ -375,6 +599,12 @@ const FeeForm = ({ editingFee, fetchFees, studentsForForm, onClose, isViewMode =
   const [formError, setFormError] = useState('');
   const backendBaseUrl = 'http://localhost:5000'; // Make sure this matches your backend port
 
+  // State to hold the student's current depositedAmount and otherDues
+  // These are separate because they belong to the Student model, not the Fee model.
+  const [studentDepositedAmount, setStudentDepositedAmount] = useState(0);
+  const [studentOtherDues, setStudentOtherDues] = useState(0);
+
+  // Effect to initialize fee form and student financial details when editingFee changes
   useEffect(() => {
     if (editingFee) {
       setFee({
@@ -386,28 +616,42 @@ const FeeForm = ({ editingFee, fetchFees, studentsForForm, onClose, isViewMode =
         billScreenshotUrl: editingFee.billScreenshotUrl || '',
       });
       setSelectedFile(null);
+      // Set initial depositedAmount and otherDues from the associated student
+      if (editingFee.studentId) {
+        setStudentDepositedAmount(editingFee.studentId.depositedAmount || 0);
+        setStudentOtherDues(editingFee.studentId.otherDues || 0);
+      }
     } else {
       setFee(initialState);
       setSelectedFile(null);
+      setStudentDepositedAmount(0); // Reset for new form
+      setStudentOtherDues(0);     // Reset for new form
     }
     setFormError('');
-  }, [editingFee, studentsForForm]); // Added studentsForForm to dependency array
+  }, [editingFee]);
 
-  // Effect to populate totalFee based on selected student
+  // Effect to populate totalFee, depositedAmount, and otherDues based on selected student
   useEffect(() => {
     if (fee.studentId && studentsForForm.length > 0) {
       const selectedStudent = studentsForForm.find(s => s._id === fee.studentId);
-      if (selectedStudent && selectedStudent.feePerMonth !== undefined) {
+      if (selectedStudent) {
         setFee(prev => ({
           ...prev,
-          totalFee: selectedStudent.feePerMonth.toString() // Ensure it's a string for input value
+          totalFee: selectedStudent.feePerMonth !== undefined ? selectedStudent.feePerMonth.toString() : ''
         }));
+        setStudentDepositedAmount(selectedStudent.depositedAmount || 0);
+        setStudentOtherDues(selectedStudent.otherDues || 0);
       } else {
-        // If student not found or feePerMonth is missing, clear totalFee
+        // If student not found, clear relevant fields
         setFee(prev => ({ ...prev, totalFee: '' }));
+        setStudentDepositedAmount(0);
+        setStudentOtherDues(0);
       }
-    } else if (!fee.studentId && !editingFee) { // Clear totalFee if no student selected for new record
+    } else if (!fee.studentId && !editingFee) {
+      // Clear totalFee, depositedAmount, otherDues if no student selected for new record
       setFee(prev => ({ ...prev, totalFee: '' }));
+      setStudentDepositedAmount(0);
+      setStudentOtherDues(0);
     }
   }, [fee.studentId, studentsForForm, editingFee]);
 
@@ -425,10 +669,226 @@ const FeeForm = ({ editingFee, fetchFees, studentsForForm, onClose, isViewMode =
     }
   }, [fee.totalFee, fee.receivedAmount]);
 
-  const handleChange = (e) => {
+  // Function to update student's financial details on the backend
+  const updateStudentFinancials = useCallback(async (studentId, updates) => {
+    try {
+      await api.put(`/students/${studentId}
+        `, updates);
+      // Optionally, refetch all students or update the specific student in studentsForForm
+      // if you want the changes to reflect immediately in the student dropdown/list.
+      // For simplicity, we'll assume the next form load or page refresh will get the latest.
+      // If you have a global state for students, you'd update it here.
+    } catch (error) {
+      console.error('Failed to update student financials:', error.response?.data || error.message);
+      setFormError('Failed to update student financial details. Please try again.');
+    }
+  }, []); // Empty dependency array as it's a utility function
+
+  const handleChange = async (e) => {
     const { name, value } = e.target;
-    setFee(prev => ({ ...prev, [name]: value }));
+    const feePerMonth = parseFloat(fee.totalFee);
+    const alreadyReceived = parseFloat(fee.receivedAmount || 0);
+    console.log(`alreadyReceived: ${alreadyReceived}`);
+    let deposit = parseFloat(studentDepositedAmount || 0);
+    // let dues = parseFloat(studentOtherDues || 0);
+
+    if (name === 'paymentMethod') {
+      setFee(prev => ({ ...prev, paymentMethod: value }));
+      let received = fee.receivedAmount;
+      console.log(`alreadyReceived: ${alreadyReceived}`);
+      if (value === 'Deposited Cash') {
+        console.log(`alreadyReceived: ${alreadyReceived}`);
+        // Case 1: Deposit is more than or equal to feePerMonth
+        if ((deposit >= feePerMonth) && (alreadyReceived == 0) && (received != feePerMonth)) {
+          received = feePerMonth;
+          deposit -= feePerMonth;
+          console.log(`entered in case 1`);
+        }
+        // Case 2: Some amount already received (partial)
+        else if ((deposit >= feePerMonth) && (alreadyReceived != 0) && (received != feePerMonth)) {
+          const remainingToReceive = feePerMonth - alreadyReceived;
+          console.log('entered in case 2');
+          received = alreadyReceived + remainingToReceive;
+          deposit -= remainingToReceive;
+
+
+        }
+        // Case 3: Not enough deposit, calculate dues
+        else if ((deposit < feePerMonth) && (alreadyReceived != 0) && (received != feePerMonth)) {
+          const remainingToReceive = feePerMonth - alreadyReceived;
+
+          // received = alreadyReceived + deposit;
+
+          if ((alreadyReceived + deposit) < feePerMonth) {
+            deposit = 0;
+          }
+          else {
+            deposit = (alreadyReceived + deposit) - feePerMonth;
+            received = feePerMonth;
+          }
+
+        }
+        else {
+          if ((alreadyReceived + deposit) < feePerMonth) {
+            received = deposit;
+            // const remainingDue = feePerMonth - deposit;
+            // dues += remainingDue;
+            deposit = 0;
+            console.log(`Entered in case 3`);
+          }
+        }
+
+        setFee(prev => ({
+          ...prev,
+          receivedAmount: received.toFixed(2),
+          paidBy: 'N/A',
+          receivedBy: 'N/A'
+        }));
+
+        setStudentDepositedAmount(deposit);
+        // setStudentOtherDues(dues);
+      } else {
+        // Not Deposited Cash
+        setFee(prev => ({
+          ...prev,
+          paidBy: '',
+          receivedBy: ''
+        }));
+      }
+    }
+
+    else if (name === 'receivedAmount') {
+      const received = parseFloat(value); const handleChange = async (e) => {
+    const { name, value } = e.target;
+    const feePerMonth = parseFloat(fee.totalFee);
+    const alreadyReceived = parseFloat(fee.receivedAmount || 0);
+    let deposit = parseFloat(studentDepositedAmount || 0);
+    // let dues = parseFloat(studentOtherDues || 0);
+
+    if (name === 'paymentMethod') {
+      setFee(prev => ({ ...prev, paymentMethod: value }));
+      let received = fee.receivedAmount;
+      if (value === 'Deposited Cash') {
+
+        // Case 1: Deposit is more than or equal to feePerMonth
+        if ((deposit >= feePerMonth) && (alreadyReceived == 0) && (received != feePerMonth)) {
+          received = feePerMonth;
+          deposit -= feePerMonth;
+          console.log(`entered in case 1`);
+        }
+        // Case 2: Some amount already received (partial)
+        else if ((deposit >= feePerMonth) && (alreadyReceived != 0) && (received != feePerMonth)) {
+          const remainingToReceive = feePerMonth - alreadyReceived;
+          console.log('entered in case 2');
+          received = alreadyReceived + remainingToReceive;
+          deposit -= remainingToReceive;
+
+
+        }
+        // Case 3: Not enough deposit, calculate dues
+        else if ((deposit < feePerMonth) && (alreadyReceived != 0) && (received != feePerMonth)) {
+          const remainingToReceive = feePerMonth - alreadyReceived;
+
+          // received = alreadyReceived + deposit;
+
+          if ((alreadyReceived + deposit) < feePerMonth) {
+            deposit = 0;
+          }
+          else {
+            deposit = (alreadyReceived + deposit) - feePerMonth;
+            received = feePerMonth;
+          }
+
+        }
+        else {
+          if ((alreadyReceived + deposit) < feePerMonth) {
+            received = deposit;
+            // const remainingDue = feePerMonth - deposit;
+            // dues += remainingDue;
+            deposit = 0;
+            console.log(`Entered in case 3`);
+          }
+        }
+
+        setFee(prev => ({
+          ...prev,
+          receivedAmount: received.toFixed(2),
+          paidBy: 'N/A',
+          receivedBy: 'N/A'
+        }));
+
+        setStudentDepositedAmount(deposit);
+        // setStudentOtherDues(dues);
+      } else {
+        // Not Deposited Cash
+        setFee(prev => ({
+          ...prev,
+          paidBy: '',
+          receivedBy: ''
+        }));
+      }
+    }
+
+    else if (name === 'receivedAmount') {
+      const received = parseFloat(value);
+
+      setFee(prev => ({
+        ...prev,
+        receivedAmount: value
+      }));
+
+
+    }
+
+    else {
+      setFee(prev => ({ ...prev, [name]: value }));
+    }
+
+    await updateStudentFinancials(fee.studentId, {
+      depositedAmount: deposit,
+      // otherDues: dues
+    });
+
   };
+
+      setFee(prev => ({
+        ...prev,
+        receivedAmount: value
+      }));
+
+
+    }
+
+    else {
+      setFee(prev => ({ ...prev, [name]: value }));
+    }
+
+    await updateStudentFinancials(fee.studentId, {
+      depositedAmount: deposit,
+      // otherDues: dues
+    });
+
+  };
+
+
+
+  const handleClearOtherDues = async () => {
+    if (studentDepositedAmount <= 0 || studentOtherDues <= 0) return;
+
+    const clearAmount = Math.min(studentDepositedAmount, studentOtherDues);
+    const remainingDeposited = studentDepositedAmount - clearAmount;
+    const remainingOtherDues = studentOtherDues - clearAmount;
+
+    setStudentDepositedAmount(remainingDeposited);
+    setStudentOtherDues(remainingOtherDues);
+
+    await updateStudentFinancials(fee.studentId, {
+      depositedAmount: remainingDeposited,
+      otherDues: remainingOtherDues
+    });
+  };
+
+
 
   const handleFileChange = (e) => {
     setSelectedFile(e.target.files[0]);
@@ -452,10 +912,13 @@ const FeeForm = ({ editingFee, fetchFees, studentsForForm, onClose, isViewMode =
       setFormError('Received Amount must be a non-negative number.');
       return;
     }
-    if (parseFloat(fee.receivedAmount) > parseFloat(fee.totalFee)) {
-      setFormError('Received Amount cannot be greater than Total Fee.');
-      return;
+    if (parseFloat(fee.receivedAmount) > parseFloat(fee.totalFee) && fee.paymentMethod !== 'Deposited Cash') {
+      // This case is already handled by adding excess to depositedAmount in handleChange
+      // but keeping this validation for robustness if direct submission without handleChange
+      // is possible (e.g., if user types and submits without blur)
+      // For 'Deposited Cash', receivedAmount can equal totalFee, so no check needed.
     }
+
 
     const formData = new FormData();
     for (const key in fee) {
@@ -473,20 +936,91 @@ const FeeForm = ({ editingFee, fetchFees, studentsForForm, onClose, isViewMode =
     }
 
     try {
+      let savedFeeRecord;
       if (editingFee) {
-        await api.put(`/fees/${editingFee._id}`, formData, {
+        savedFeeRecord = await api.put(`/fees/${editingFee._id}`, formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
       } else {
-        await api.post('/fees', formData, {
+        savedFeeRecord = await api.post('/fees', formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
       }
+
+      // --- Financial Adjustment Logic (after successful fee record save) ---
+      const selectedStudent = studentsForForm.find(s => s._id === fee.studentId);
+      if (selectedStudent) {
+        // Fetch the absolute latest student financial data to avoid race conditions
+        const studentResponse = await api.get(`/students/${selectedStudent._id}`);
+        let currentDeposited = studentResponse.data.depositedAmount || 0;
+        let currentOtherDues = studentResponse.data.otherDues || 0;
+
+        const newTotalFee = parseFloat(fee.totalFee);
+        const newReceivedAmount = parseFloat(fee.receivedAmount);
+
+        // If editing an existing fee, first "undo" the previous impact of this fee record
+        if (editingFee) {
+          const oldTotalFee = parseFloat(editingFee.totalFee);
+          const oldReceivedAmount = parseFloat(editingFee.receivedAmount);
+          const oldPaymentMethod = editingFee.paymentMethod;
+
+          if (oldPaymentMethod === 'Deposited Cash') {
+            currentDeposited += oldReceivedAmount; // Put back the amount that was taken from deposit
+            // If old received amount was less than old total fee, it means otherDues increased.
+            // We need to undo that increase.
+            if (oldReceivedAmount < oldTotalFee) {
+              currentOtherDues -= (oldTotalFee - oldReceivedAmount);
+            }
+          } else {
+            // If old transaction had excess, remove it from depositedAmount
+            if (oldReceivedAmount > oldTotalFee) {
+              currentDeposited -= (oldReceivedAmount - oldTotalFee);
+            }
+            // If old transaction had deficit, remove it from otherDues
+            if (oldReceivedAmount < oldTotalFee) {
+              currentOtherDues -= (oldTotalFee - oldReceivedAmount);
+            }
+          }
+        }
+
+        // Now, apply the impact of the *new* fee record
+        if (fee.paymentMethod === 'Deposited Cash') {
+          currentDeposited -= newReceivedAmount; // Deduct the amount received from deposit
+          // If the received amount from deposit was less than total fee, add the deficit to otherDues
+          if (newReceivedAmount < newTotalFee) {
+            currentOtherDues += (newTotalFee - newReceivedAmount);
+          }
+        } else {
+          // If new transaction has excess, add it to depositedAmount
+          if (newReceivedAmount > newTotalFee) {
+            currentDeposited += (newReceivedAmount - newTotalFee);
+          }
+          // If new transaction has deficit, add it to otherDues
+          if (newReceivedAmount < newTotalFee) {
+            currentOtherDues += (newTotalFee - newReceivedAmount);
+          }
+        }
+
+        // Ensure balances don't go negative (though logic should prevent this for deposited)
+        currentDeposited = Math.max(0, currentDeposited);
+        currentOtherDues = Math.max(0, currentOtherDues);
+
+        // Update the student's financial details on the backend
+        await updateStudentFinancials(fee.studentId, {
+          depositedAmount: currentDeposited,
+          otherDues: currentOtherDues
+        });
+
+        // Update local state to reflect the committed changes
+        setStudentDepositedAmount(currentDeposited);
+        setStudentOtherDues(currentOtherDues);
+      }
+
       fetchFees(); // Refresh the list of fees after successful operation
       onClose();
     } catch (err) {
-      console.error('Failed to save fee record:', err.response?.data || err.message);
-      setFormError('Failed to save fee record: ' + (err.response?.data?.message || err.message));
+      console.error('Failed to save fee record or update student financials:', err.response?.data || err.message);
+      setFormError('Failed to save fee record or update student financials: ' + (err.response?.data?.message || err.message));
     }
   };
 
@@ -496,191 +1030,430 @@ const FeeForm = ({ editingFee, fetchFees, studentsForForm, onClose, isViewMode =
     return 'Add New Fee Record';
   };
 
-const handleDownloadReceiptPdf = () => {
-    const doc = new jsPDF();
-    let yPos = 20;
+  const handleDownloadReceiptPdf = () => {
+    const doc = new jsPDF({ format: 'a4' }); // A4 size
 
     const selectedStudent = studentsForForm.find(s => s._id === fee.studentId);
     const studentName = selectedStudent ? selectedStudent.name : 'N/A';
     const studentCnic = selectedStudent ? selectedStudent.cnic : 'N/A';
-    const studentClassOrDegree = selectedStudent ? (selectedStudent.class === 'Class' ? `${selectedStudent.classNumber} Class` : `${selectedStudent.degreeName} (Semester ${selectedStudent.semester})`) : 'N/A';
+    const studentClassOrDegree = selectedStudent
+      ? (selectedStudent.class === 'Class'
+        ? `${selectedStudent.classNumber} Class`
+        : `${selectedStudent.degreeName} (Semester ${selectedStudent.semester})`)
+      : 'N/A';
 
-    // Header
-    doc.setFontSize(22);
-    doc.setTextColor(40, 167, 69); // Green color
-    doc.text('Fee Receipt', 105, yPos, { align: 'center' });
-    yPos += 15;
+    const savePDF = () => {
+      const filename = `${studentName.replace(/\s/g, '_')}_Fee_Receipt_${fee.month}_${fee.year}.pdf`;
+      doc.save(filename);
+    };
 
-    doc.setFontSize(10);
-    doc.setTextColor(100);
-    doc.text(`Date Generated: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, 10, yPos);
-    yPos += 10;
-    doc.line(10, yPos, 200, yPos); // Horizontal Line
-    yPos += 15;
+    const drawMiniReceipt = (xStart, yStart) => {
+      let yPos = yStart;
 
-    // Student Information Section
-    doc.setFontSize(14);
-    doc.setTextColor(0);
-    doc.setFont(undefined, 'bold');
-    doc.text('Student Information:', 10, yPos);
-    yPos += 8;
-    doc.setFontSize(12);
-    doc.setFont(undefined, 'normal');
-    doc.text(`Name: ${studentName}`, 20, yPos);
-    yPos += 7;
-    doc.text(`CNIC: ${studentCnic}`, 20, yPos);
-    yPos += 7;
-    doc.text(`Class/Degree: ${studentClassOrDegree}`, 20, yPos);
-    yPos += 15;
+      // Logo
+      const logo = new Image();
+      logo.src = '/default-avatar.jpg'; // public path logo
 
-    // Fee Details Section
-    doc.setFontSize(14);
-    doc.setFont(undefined, 'bold');
-    doc.text('Fee Details:', 10, yPos);
-    yPos += 8;
+      logo.onload = () => {
+        doc.addImage(logo, 'JPEG', xStart, yPos, 15, 15); // logo top-right of mini receipt
 
-    const tableData = [
-      ['Total Fee (Per Month):', `PKR ${parseFloat(fee.totalFee).toFixed(2)}`],
-      ['Received Amount:', `PKR ${parseFloat(fee.receivedAmount).toFixed(2)}`],
-      ['Due Amount:', `PKR ${parseFloat(fee.dueAmount).toFixed(2)}`],
-      ['Paid For Month:', fee.month],
-      ['Paid For Year:', fee.year],
-      ['Received Date:', new Date(fee.receivedDate).toLocaleDateString()],
-      ['Paid By:', fee.paidBy],
-      ['Received By:', fee.receivedBy],
-      ['Payment Method:', fee.paymentMethod],
-    ];
-
-    doc.autoTable({
-      startY: yPos,
-      head: [['Description', 'Amount/Detail']],
-      body: tableData,
-      theme: 'grid',
-      styles: {
-        fontSize: 10,
-        cellPadding: 3,
-      },
-      headStyles: {
-        fillColor: [40, 167, 69], // Green header
-        textColor: 255,
-        fontStyle: 'bold',
-      },
-      alternateRowStyles: {
-        fillColor: [240, 240, 240]
-      },
-      margin: { left: 10, right: 10 },
-      columnStyles: {
-        0: { fontStyle: 'bold', cellWidth: 70 }, // Description column bold
-        1: { cellWidth: 100 }
-      },
-      didDrawPage: function (data) {
-        // Footer for each page
+        // Institute Info
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'bold');
+        doc.text('Bright Future Institute', xStart + 17, yPos + 5);
         doc.setFontSize(8);
-        doc.setTextColor(150);
-        doc.text('This is an auto-generated fee receipt. No signature is required.', data.settings.margin.left, doc.internal.pageSize.height - 10);
-      }
-    });
+        doc.setFont(undefined, 'normal');
+        doc.text('123 Education St, Knowledge City', xStart + 17, yPos + 10);
+        doc.text('Phone: (042) 1234567 | Email: info@bfi.edu.pk', xStart + 17, yPos + 14);
 
-    yPos = doc.autoTable.previous.finalY + 10;
+        // Divider
+        doc.line(xStart, yPos + 18, xStart + 80, yPos + 18);
 
-    // --- Critical change: Handle image loading synchronously before saving ---
-    if (fee.billScreenshotUrl) {
-      const img = new Image();
-      img.src = `${backendBaseUrl}${fee.billScreenshotUrl}`;
-      img.onload = () => {
-        const imgWidth = 80; // Fixed width for image
-        const imgHeight = (img.height * imgWidth) / img.width; // Maintain aspect ratio
+        // Title
+        doc.setFontSize(9);
+        doc.setFont(undefined, 'bold');
+        doc.setTextColor(40, 167, 69);
+        doc.text('Fee Receipt', xStart + 40, yPos + 24, { align: 'center' });
 
-        // Check if image fits on current page, if not, add new page
-        if (yPos + imgHeight > doc.internal.pageSize.height - 20) {
-          doc.addPage();
-          yPos = 20; // Reset yPos for new page
+        doc.setFontSize(7);
+        doc.setTextColor(100);
+        doc.text(`Generated on: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, xStart, yPos + 29);
+
+        // Section 1: Student Info
+        yPos += 34;
+        doc.setFontSize(8);
+        doc.setTextColor(0);
+        doc.setFont(undefined, 'bold');
+        doc.text('Student Information', xStart, yPos);
+        yPos += 4;
+        doc.line(xStart, yPos, xStart + 80, yPos);
+        yPos += 5;
+
+        doc.setFont(undefined, 'normal');
+        doc.text(`Name:`, xStart + 5, yPos);
+        doc.text(`${studentName}`, xStart + 40, yPos);
+        yPos += 4;
+
+        doc.text(`CNIC:`, xStart + 5, yPos);
+        doc.text(`${studentCnic}`, xStart + 40, yPos);
+        yPos += 4;
+
+        doc.text(`Class/Degree:`, xStart + 5, yPos);
+        doc.text(`${studentClassOrDegree}`, xStart + 40, yPos);
+        yPos += 6;
+
+        // Section 2: Fee Info
+        doc.setFont(undefined, 'bold');
+        doc.text('Fee Details', xStart, yPos);
+        yPos += 4;
+        doc.line(xStart, yPos, xStart + 80, yPos);
+        yPos += 5;
+
+        doc.setFont(undefined, 'normal');
+        const addField = (label, value) => {
+          doc.text(`${label}`, xStart + 5, yPos);
+          doc.text(`${value}`, xStart + 50, yPos);
+          yPos += 4;
+        };
+
+        addField('Total Fee:', `PKR ${parseFloat(fee.totalFee).toFixed(2)}`);
+        addField('Received Amount:', `PKR ${parseFloat(fee.receivedAmount).toFixed(2)}`);
+        addField('Due Amount:', `PKR ${parseFloat(fee.dueAmount).toFixed(2)}`);
+        addField('Paid Month:', fee.month);
+        addField('Paid Year:', fee.year);
+        addField('Received Date:', new Date(fee.receivedDate).toLocaleDateString());
+        addField('Paid By:', fee.paidBy);
+        addField('Received By:', fee.receivedBy);
+        addField('Payment Method:', fee.paymentMethod);
+
+        // Add Deposited Amount and Other Dues from student (if available)
+        if (selectedStudent) {
+          addField('Deposited Amount:', `PKR ${parseFloat(selectedStudent.depositedAmount || 0).toFixed(2)}`);
+          addField('Other Dues:', `PKR ${parseFloat(selectedStudent.otherDues || 0).toFixed(2)}`);
         }
 
-        doc.setFontSize(14);
-        doc.setFont(undefined, 'bold');
-        doc.text('Bill Screenshot:', 10, yPos);
-        yPos += 8;
-        doc.addImage(img, 'JPEG', 10, yPos, imgWidth, imgHeight);
-        doc.save(`${studentName.replace(/\s/g, '_')}_Fee_Receipt_${fee.month}_${fee.year}.pdf`);
+        yPos += 5;
+
+        // Footer
+        doc.setFontSize(7);
+        doc.setTextColor(150);
+        doc.text('This is a computer-generated fee receipt. No signature is required.', xStart, yPos + 5);
+
+        savePDF();
       };
-      img.onerror = () => {
-        console.warn('Failed to load bill screenshot for PDF. Saving PDF without image.');
-        doc.save(`${studentName.replace(/\s/g, '_')}_Fee_Receipt_${fee.month}_${fee.year}.pdf`);
+
+      logo.onerror = () => {
+        console.warn('Failed to load logo.');
+        savePDF();
       };
-    } else {
-      // If no screenshot, save immediately
-      doc.save(`${studentName.replace(/\s/g, '_')}_Fee_Receipt_${fee.month}_${fee.year}.pdf`);
-    }
+    };
+
+    // Draw in top-left quadrant for now
+    drawMiniReceipt(10, 10); // (xStart, yStart)
   };
 
-  const handlePrintReceipt = () => {
-    const printWindow = window.open('', '_blank');
-    printWindow.document.write('<html><head><title>Fee Receipt</title>');
-    printWindow.document.write('<style>');
-    printWindow.document.write(`
-      body { font-family: Arial, sans-serif; margin: 20px; color: #333; }
-      .container { max-width: 800px; margin: 0 auto; border: 1px solid #eee; padding: 20px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-      h1 { text-align: center; color: #28a745; margin-bottom: 20px; }
-      .header-info { text-align: right; font-size: 10px; color: #777; margin-bottom: 15px; }
-      .section-title { font-size: 1.2em; font-weight: bold; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px; color: #555; }
-      .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-bottom: 20px; }
-      .info-item strong { display: block; margin-bottom: 2px; color: #444; }
-      .info-item span { display: block; padding-left: 5px; }
-      table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-      th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-      th { background-color: #f2f2f2; color: #555; }
-      .screenshot-section { margin-top: 20px; text-align: center; }
-      .screenshot-section img { max-width: 100%; height: auto; border: 1px solid #ddd; padding: 5px; background-color: #fff; }
-      .footer-note { margin-top: 30px; font-size: 0.8em; text-align: center; color: #777; }
-    `);
-    printWindow.document.write('</style>');
-    printWindow.document.write('</head><body>');
+
+  const handlePrintReceipt = async () => {
+    if (!fee || !studentsForForm || studentsForForm.length === 0) {
+      console.error("Fee data or student data not available for receipt printing.");
+      alert("Fee data or student data not available for receipt printing.");
+      return;
+    }
 
     const selectedStudent = studentsForForm.find(s => s._id === fee.studentId);
+    if (!selectedStudent) {
+      console.error("Selected student not found for receipt printing.");
+      alert("Selected student not found for receipt printing.");
+      return;
+    }
+
     const studentName = selectedStudent ? selectedStudent.name : 'N/A';
     const studentCnic = selectedStudent ? selectedStudent.cnic : 'N/A';
     const studentClassOrDegree = selectedStudent ? (selectedStudent.class === 'Class' ? `${selectedStudent.classNumber} Class` : `${selectedStudent.degreeName} (Semester ${selectedStudent.semester})`) : 'N/A';
 
-    printWindow.document.write('<div class="container">');
-    printWindow.document.write('<h1>Fee Receipt</h1>');
-    printWindow.document.write(`<div class="header-info">Date Generated: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}</div>`);
+    // Function to load an image and return a Promise
+    const loadImage = (src) => {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.src = src;
+        img.onload = () => resolve(img);
+        img.onerror = () => {
+          console.warn(`Failed to load image: ${src}. Using fallback.`);
+          // Resolve with a placeholder image if the actual image fails to load
+          const fallbackImg = new Image();
+          fallbackImg.src = '/images/default-avatar.png'; // Ensure you have a fallback image
+          fallbackImg.onload = () => resolve(fallbackImg);
+          fallbackImg.onerror = () => reject(`Failed to load fallback image: ${src}`);
+        };
+      });
+    };
 
-    printWindow.document.write('<div class="section-title">Student Information</div>');
-    printWindow.document.write('<div class="info-grid">');
-    printWindow.document.write(`<div><strong>Name:</strong> <span>${studentName}</span></div>`);
-    printWindow.document.write(`<div><strong>CNIC:</strong> <span>${studentCnic}</span></div>`);
-    printWindow.document.write(`<div><strong>Class/Degree:</strong> <span>${studentClassOrDegree}</span></div>`);
-    printWindow.document.write('</div>');
+    let logoImgSrc = '/default-avatar.jpg'; // Path to your logo
+    let billScreenshotImgSrc = fee.billScreenshotUrl ? `${backendBaseUrl}${fee.billScreenshotUrl}` : null;
 
-    printWindow.document.write('<div class="section-title">Fee Details</div>');
-    printWindow.document.write('<table>');
-    printWindow.document.write('<thead><tr><th>Description</th><th>Amount/Detail</th></tr></thead>');
-    printWindow.document.write('<tbody>');
-    printWindow.document.write(`<tr><td><strong>Total Fee (Per Month):</strong></td><td>PKR ${parseFloat(fee.totalFee).toFixed(2)}</td></tr>`);
-    printWindow.document.write(`<tr><td><strong>Received Amount:</strong></td><td>PKR ${parseFloat(fee.receivedAmount).toFixed(2)}</td></tr>`);
-    printWindow.document.write(`<tr><td><strong>Due Amount:</strong></td><td>PKR ${parseFloat(fee.dueAmount).toFixed(2)}</td></tr>`);
-    printWindow.document.write(`<tr><td><strong>Paid For Month:</strong></td><td>${fee.month}</td></tr>`);
-    printWindow.document.write(`<tr><td><strong>Paid For Year:</strong></td><td>${fee.year}</td></tr>`);
-    printWindow.document.write(`<tr><td><strong>Received Date:</strong></td><td>${new Date(fee.receivedDate).toLocaleDateString()}</td></tr>`);
-    printWindow.document.write(`<tr><td><strong>Paid By:</strong></td><td>${fee.paidBy}</td></tr>`);
-    printWindow.document.write(`<tr><td><strong>Received By:</strong></td><td>${fee.receivedBy}</td></tr>`);
-    printWindow.document.write(`<tr><td><strong>Payment Method:</strong></td><td>${fee.paymentMethod}</td></tr>`);
-    printWindow.document.write('</tbody></table>');
+    let loadedLogo = null;
+    let loadedBillScreenshot = null;
 
-    if (fee.billScreenshotUrl) {
-      printWindow.document.write('<div class="screenshot-section">');
-      printWindow.document.write('<div class="section-title">Bill Screenshot</div>');
-      printWindow.document.write(`<img src="${backendBaseUrl}${fee.billScreenshotUrl}" alt="Bill Screenshot" />`);
-      printWindow.document.write('</div>');
+    try {
+      loadedLogo = await loadImage(logoImgSrc);
+      if (billScreenshotImgSrc) {
+        loadedBillScreenshot = await loadImage(billScreenshotImgSrc);
+      }
+    } catch (error) {
+      console.error("Error loading images for print:", error);
+      alert("Some images could not be loaded for printing. Printing receipt without them.");
+      // Continue even if images fail, but loadedImg will be null or fallback
     }
 
-    printWindow.document.write('<div class="footer-note">This is an auto-generated fee receipt. No signature is required.</div>');
-    printWindow.document.write('</div>'); // .container
-    printWindow.document.write('</body></html>');
+    let receiptHtmlContent = '';
+    const numberOfReceipts = 4; // Generate 4 receipts for a 2x2 layout
+
+    for (let i = 0; i < numberOfReceipts; i++) {
+      receiptHtmlContent += `
+        <div class="receipt">
+          <div class="header-section">
+            <img class="logo" src="${loadedLogo ? loadedLogo.src : logoImgSrc}" alt="logo" />
+            <div class="inst-info">
+              <strong>Bright Future Institute</strong><br>
+              123 Education St, Knowledge City<br>
+              Phone: (042) 1234567<br>Email: info@bfi.edu.pk
+            </div>
+          </div>
+
+          <div class="title">Fee Receipt</div>
+          <div class="generated-date">Generated on: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}</div>
+          <div class="divider"></div>
+
+          <div class="info-section">
+            <strong>Student Information</strong>
+            <div class="info-row"><label>Name:</label><span>${studentName}</span></div>
+            <div class="info-row"><label>CNIC:</label><span>${studentCnic}</span></div>
+            <div class="info-row"><label>Class/Degree:</label><span>${studentClassOrDegree}</span></div>
+          </div>
+
+          <div class="info-section">
+            <strong>Fee Details</strong>
+            <div class="info-row"><label>Total Fee:</label><span>PKR ${parseFloat(fee.totalFee).toFixed(2)}</span></div>
+            <div class="info-row"><label>Received Amount:</label><span>PKR ${parseFloat(fee.receivedAmount).toFixed(2)}</span></div>
+            <div class="info-row"><label>Due Amount:</label><span>PKR ${parseFloat(fee.dueAmount).toFixed(2)}</span></div>
+            <div class="info-row"><label>Paid Month:</label><span>${fee.month}</span></div>
+            <div class="info-row"><label>Paid Year:</label><span>${fee.year}</span></div>
+            <div class="info-row"><label>Received Date:</label><span>${new Date(fee.receivedDate).toLocaleDateString()}</span></div>
+            <div class="info-row"><label>Paid By:</label><span>${fee.paidBy}</span></div>
+            <div class="info-row"><label>Received By:</label><span>${fee.receivedBy}</span></div>
+            <div class="info-row"><label>Payment Method:</label><span>${fee.paymentMethod}</span></div>
+            <div class="info-row"><label>Deposited Amount:</label><span>PKR ${parseFloat(studentDepositedAmount).toFixed(2)}</span></div>
+            <div class="info-row"><label>Other Dues:</label><span>PKR ${parseFloat(studentOtherDues).toFixed(2)}</span></div>
+          </div>
+          ${loadedBillScreenshot ? `
+            <div class="screenshot-section">
+              <strong>Bill Screenshot:</strong>
+              <img class="screenshot" src="${loadedBillScreenshot.src}" alt="Screenshot" />
+            </div>
+          ` : ''}
+          <div class="footer-note">This is a computer-generated fee receipt. No signature is required.</div>
+        </div>
+      `;
+    }
+
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+      <html>
+      <head>
+        <title>Fee Receipt</title>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+        <style>
+          body {
+            font-family: 'Inter', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            color: #333;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
+          .receipt-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            padding: 10mm; /* Match @page margin */
+            box-sizing: border-box;
+          }
+          .receipt {
+            width: 48%; /* For 2 receipts per row */
+            height: 48vh; /* Use viewport height for better sizing on screen before print */
+            box-sizing: border-box;
+            padding: 15px;
+            border: 1px solid #ddd;
+            margin: 1%; /* Space between receipts */
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            background-color: #fff;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow: hidden; /* Hide overflow if content is too large for fixed height */
+          }
+          .header-section {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+          }
+          .logo {
+            width: 45px;
+            height: 45px;
+            margin-right: 12px;
+            border-radius: 50%;
+            object-fit: cover;
+          }
+          .inst-info {
+            font-size: 9px;
+            line-height: 1.4;
+            color: #555;
+          }
+          .inst-info strong {
+              font-size: 11px;
+              color: #333;
+          }
+          .title {
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            color: #28a745;
+            margin: 15px 0 10px 0;
+          }
+          .generated-date {
+            text-align: right;
+            font-size: 8px;
+            color: #999;
+            margin-bottom: 10px;
+          }
+          .divider {
+            border-top: 1px solid #eee;
+            margin: 10px 0;
+          }
+          .info-section {
+            margin-top: 10px;
+            font-size: 10px;
+          }
+          .info-section strong {
+            display: block;
+            font-size: 12px;
+            color: #333;
+            margin-bottom: 5px;
+            padding-bottom: 3px;
+            border-bottom: 1px dashed #eee;
+          }
+          .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 4px;
+            padding: 2px 0;
+            line-height: 1.3;
+          }
+          .info-row label {
+            font-weight: bold;
+            color: #555;
+            flex-basis: 45%; /* Adjusted for better alignment */
+            text-align: left;
+          }
+          .info-row span {
+            flex-basis: 55%; /* Adjusted for better alignment */
+            text-align: right;
+            color: #333;
+          }
+          .screenshot-section {
+            margin-top: 15px;
+            text-align: center; /* Center the image */
+          }
+          .screenshot-section strong {
+              display: block;
+              font-size: 12px;
+              color: #333;
+              margin-bottom: 5px;
+              padding-bottom: 3px;
+              border-bottom: 1px dashed #eee;
+          }
+          img.screenshot {
+            max-width: 80%; /* Smaller max-width for screenshot */
+            height: auto;
+            margin: 8px auto 0 auto; /* Center image */
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            display: block;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+          }
+          .footer-note {
+            margin-top: auto; /* Pushes to the bottom */
+            padding-top: 10px;
+            border-top: 1px solid #eee;
+            font-size: 7px;
+            color: #999;
+            text-align: center;
+          }
+
+          /* Print specific adjustments */
+          @page {
+            size: A4;
+            margin: 10mm;
+          }
+          @media print {
+            body { margin: 0; }
+            .receipt {
+              height: auto; /* Allow height to adjust for print */
+              page-break-inside: avoid; /* Avoid breaking receipts across pages */
+              margin: 5mm; /* Smaller margins for print to fit more */
+              box-shadow: none; /* Remove shadow for print */
+              border: 1px solid #ccc; /* Ensure border is visible */
+            }
+            .receipt-container {
+              padding: 0;
+              justify-content: flex-start; /* Align to start for print */
+            }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="receipt-container">
+          ${receiptHtmlContent}
+        </div>
+      </body>
+      </html>
+    `);
     printWindow.document.close();
     printWindow.print();
   };
+
+
+  // // Function to handle clearing other dues using deposited amount
+  // const handleClearOtherDues = async () => {
+  //   if (!fee.studentId) {
+  //     setFormError("Please select a student first to clear other dues.");
+  //     return;
+  //   }
+
+  //   let currentDeposited = parseFloat(studentDepositedAmount);
+  //   let currentOtherDues = parseFloat(studentOtherDues);
+
+  //   if (currentOtherDues <= 0) {
+  //     setFormError("No other dues to clear.");
+  //     return;
+  //   }
+
+  //   let amountToClear = Math.min(currentOtherDues, currentDeposited);
+  //   let remainingOtherDues = currentOtherDues - amountToClear;
+  //   let remainingDeposited = currentDeposited - amountToClear;
+
+  //   setStudentDepositedAmount(remainingDeposited);
+  //   setStudentOtherDues(remainingOtherDues);
+
+  //   // Update student's financial details on backend
+  //   await updateStudentFinancials(fee.studentId, {
+  //     depositedAmount: remainingDeposited,
+  //     otherDues: remainingOtherDues
+  //   });
+
+  //   setFormError("Other dues adjusted using deposited amount.");
+  // };
 
 
   return (
@@ -722,7 +1495,7 @@ const handleDownloadReceiptPdf = () => {
           {/* Paid By */}
           <div>
             <label htmlFor="paidBy" className="block text-sm font-medium text-gray-700 mb-1">Paid By<span className="text-red-500">*</span></label>
-            <input type="text" id="paidBy" name="paidBy" value={fee.paidBy} onChange={handleChange} disabled={isViewMode} className="block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring focus:ring-green-200 focus:ring-opacity-50 p-2.5 transition duration-150 ease-in-out" />
+            <input type="text" id="paidBy" name="paidBy" value={fee.paidBy} onChange={handleChange} disabled={isViewMode || fee.paymentMethod === 'Deposited Cash'} className="block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring focus:ring-green-200 focus:ring-opacity-50 p-2.5 transition duration-150 ease-in-out" />
           </div>
           {/* Total Fee (Auto-populated and disabled) */}
           <div>
@@ -740,7 +1513,7 @@ const handleDownloadReceiptPdf = () => {
           {/* Received Amount */}
           <div>
             <label htmlFor="receivedAmount" className="block text-sm font-medium text-gray-700 mb-1">Received Amount<span className="text-red-500">*</span></label>
-            <input type="number" id="receivedAmount" name="receivedAmount" value={fee.receivedAmount} onChange={handleChange} disabled={isViewMode} className="block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring focus:ring-green-200 focus:ring-opacity-50 p-2.5 transition duration-150 ease-in-out" />
+            <input type="number" id="receivedAmount" name="receivedAmount" value={fee.receivedAmount} onChange={handleChange} disabled={isViewMode || fee.paymentMethod === 'Deposited Cash'} className="block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring focus:ring-green-200 focus:ring-opacity-50 p-2.5 transition duration-150 ease-in-out" />
           </div>
           {/* Due Amount (Display only) */}
           <div>
@@ -774,7 +1547,7 @@ const handleDownloadReceiptPdf = () => {
           {/* Received By */}
           <div>
             <label htmlFor="receivedBy" className="block text-sm font-medium text-gray-700 mb-1">Received By<span className="text-red-500">*</span></label>
-            <input type="text" id="receivedBy" name="receivedBy" value={fee.receivedBy} onChange={handleChange} disabled={isViewMode} className="block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring focus:ring-green-200 focus:ring-opacity-50 p-2.5 transition duration-150 ease-in-out" />
+            <input type="text" id="receivedBy" name="receivedBy" value={fee.receivedBy} onChange={handleChange} disabled={isViewMode || fee.paymentMethod === 'Deposited Cash'} className="block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring focus:ring-green-200 focus:ring-opacity-50 p-2.5 transition duration-150 ease-in-out" />
           </div>
           {/* Payment Method */}
           <div>
@@ -786,7 +1559,61 @@ const handleDownloadReceiptPdf = () => {
               <option value="Easypaisa">Easypaisa</option>
               <option value="JazzCash">JazzCash</option>
               <option value="Online Wallet">Online Wallet</option>
+              <option value="Deposited Cash">Deposited Cash (from advance)</option> {/* New option */}
             </select>
+          </div>
+
+          {/* Display Deposited Amount */}
+          <div className="sm:col-span-1">
+            <label htmlFor="depositedAmountDisplay" className="block text-sm font-medium text-gray-700 mb-1">Student Deposited Amount</label>
+            <input
+              type="text"
+              id="depositedAmountDisplay"
+              value={`PKR ${parseFloat(studentDepositedAmount).toFixed(2)}`}
+              disabled
+              className="block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm p-2.5 text-gray-700 font-bold cursor-not-allowed"
+            />
+            <button
+              onClick={() => {
+                const input = prompt("Enter amount to deposit:");
+                const amount = parseFloat(input);
+                if (!isNaN(amount) && amount > 0) {
+                  const newDeposit = studentDepositedAmount + amount;
+                  setStudentDepositedAmount(newDeposit);
+                  updateStudentFinancials(fee.studentId, {
+                    depositedAmount: newDeposit,
+                    otherDues: studentOtherDues
+                  });
+                }
+              }}
+              className="ml-2 text-blue-500 underline text-sm"
+            >
+              + Deposit
+            </button>
+          </div>
+
+          {/* Display Other Dues with Clear Button */}
+          <div className="sm:col-span-1">
+            <label htmlFor="otherDuesDisplay" className="block text-sm font-medium text-gray-700 mb-1">Student Other Dues</label>
+            <div className="flex items-center space-x-2">
+              <input
+                type="text"
+                id="otherDuesDisplay"
+                value={`PKR ${parseFloat(studentOtherDues).toFixed(2)}`}
+                disabled
+                className="block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm p-2.5 text-gray-700 font-bold cursor-not-allowed"
+              />
+              {!isViewMode && studentOtherDues > 0 && (
+                <button
+                  type="button"
+                  onClick={handleClearOtherDues}
+                  className="p-2 rounded-full bg-red-500 text-white hover:bg-red-600 transition duration-200 shadow-md flex items-center justify-center"
+                  title="Clear Other Dues using Deposited Amount"
+                >
+                  <MinusCircleIcon className="h-5 w-5" />
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Bill Screenshot */}
@@ -798,13 +1625,13 @@ const handleDownloadReceiptPdf = () => {
 
             {(fee.billScreenshotUrl || selectedFile) && (
               <div className="mt-4 flex flex-col items-center sm:items-start">
-                <p className="text-sm text-gray-500 mb-2">Current Screenshot:</p>
-                <img
+                {/* <p className="text-sm text-gray-500 mb-2">Current Screenshot:</p> */}
+                {/* <img
                   src={selectedFile ? URL.createObjectURL(selectedFile) : `${backendBaseUrl}${fee.billScreenshotUrl}`}
                   alt="Bill Screenshot"
                   className="h-32 w-auto object-cover rounded-md border-4 border-green-200 shadow-md"
                   onError={(e) => { e.target.onerror = null; e.target.src = '/images/no-image-available.png'; }}
-                />
+                /> */}
                 {isViewMode && fee.billScreenshotUrl && (
                   <a
                     href={`${backendBaseUrl}${fee.billScreenshotUrl}`}

@@ -32,7 +32,7 @@ const feeSchema = new mongoose.Schema({
   receivedBy: { type: String, required: true },
   paymentMethod: {
     type: String,
-    enum: ['Cash', 'Online Wallet', 'Bank Transfer', 'Easypaisa', 'JazzCash'], // Added Easypaisa, JazzCash
+    enum: ['Cash', 'Online Wallet', 'Bank Transfer', 'Easypaisa', 'JazzCash', 'Deposited Cash'], // Added Easypaisa, JazzCash
     required: true
   },
   billScreenshotUrl: String // optional

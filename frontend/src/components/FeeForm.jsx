@@ -1,586 +1,24 @@
-// // src/components/FeeForm.jsx
-// import React, { useState, useEffect } from 'react';
-// import api from '../api';
-// import { XMarkIcon, ArrowDownTrayIcon, PrinterIcon } from '@heroicons/react/24/outline'; // Added PrinterIcon
-// import jsPDF from 'jspdf';
-// import autoTable from 'jspdf-autotable';
-
-
-// const months = [
-//   "January", "February", "March", "April", "May", "June",
-//   "July", "August", "September", "October", "November", "December"
-// ];
-
-// // Helper function to generate year options
-// const generateYearOptions = () => {
-//   const currentYear = new Date().getFullYear();
-//   const years = [];
-//   // Go back 5 years and forward 1 year from current year
-//   for (let i = currentYear - 5; i <= currentYear + 1; i++) {
-//     years.push(i.toString());
-//   }
-//   return years;
-// };
-
-// const FeeForm = ({ editingFee, fetchFees, studentsForForm, onClose, isViewMode = false }) => {
-//   const initialState = {
-//     studentId: '',
-//     paidBy: '',
-//     month: months[new Date().getMonth()],
-//     year: new Date().getFullYear().toString(),
-//     totalFee: '',
-//     receivedAmount: '',
-//     dueAmount: 0,
-//     receivedDate: new Date().toISOString().split('T')[0],
-//     receivedBy: '',
-//     paymentMethod: '',
-//     billScreenshotUrl: '',
-//   };
-//   const [fee, setFee] = useState(initialState);
-//   const [selectedFile, setSelectedFile] = useState(null);
-//   const [formError, setFormError] = useState('');
-//   const backendBaseUrl = 'http://localhost:5000'; // Make sure this matches your backend port
-
-//   useEffect(() => {
-//     if (editingFee) {
-//       setFee({
-//         ...editingFee,
-//         studentId: editingFee.studentId?._id || '',
-//         receivedDate: editingFee.receivedDate ? new Date(editingFee.receivedDate).toISOString().split('T')[0] : '',
-//         month: editingFee.month || months[new Date().getMonth()],
-//         year: editingFee.year?.toString() || new Date().getFullYear().toString(),
-//         billScreenshotUrl: editingFee.billScreenshotUrl || '',
-//       });
-//       setSelectedFile(null);
-//     } else {
-//       setFee(initialState);
-//       setSelectedFile(null);
-//     }
-//     setFormError('');
-//   }, [editingFee, studentsForForm]); // Added studentsForForm to dependency array
-
-//   // Effect to populate totalFee based on selected student
-//   useEffect(() => {
-//     if (fee.studentId && studentsForForm.length > 0) {
-//       const selectedStudent = studentsForForm.find(s => s._id === fee.studentId);
-//       if (selectedStudent && selectedStudent.feePerMonth !== undefined) {
-//         setFee(prev => ({
-//           ...prev,
-//           totalFee: selectedStudent.feePerMonth.toString() // Ensure it's a string for input value
-//         }));
-//       } else {
-//         // If student not found or feePerMonth is missing, clear totalFee
-//         setFee(prev => ({ ...prev, totalFee: '' }));
-//       }
-//     } else if (!fee.studentId && !editingFee) { // Clear totalFee if no student selected for new record
-//       setFee(prev => ({ ...prev, totalFee: '' }));
-//     }
-//   }, [fee.studentId, studentsForForm, editingFee]);
-
-//   // Calculate due amount whenever totalFee or receivedAmount changes
-//   useEffect(() => {
-//     const total = parseFloat(fee.totalFee);
-//     const received = parseFloat(fee.receivedAmount);
-//     if (!isNaN(total) && !isNaN(received)) {
-//       setFee(prev => ({
-//         ...prev,
-//         dueAmount: Math.max(0, total - received)
-//       }));
-//     } else {
-//       setFee(prev => ({ ...prev, dueAmount: 0 }));
-//     }
-//   }, [fee.totalFee, fee.receivedAmount]);
-
-//   const handleChange = (e) => {
-//     const { name, value } = e.target;
-//     setFee(prev => ({ ...prev, [name]: value }));
-//   };
-
-//   const handleFileChange = (e) => {
-//     setSelectedFile(e.target.files[0]);
-//     setFee(prev => ({ ...prev, billScreenshotUrl: '' }));
-//   };
-
-//   const handleSubmit = async (e) => {
-//     e.preventDefault();
-//     setFormError('');
-
-//     // Form validation
-//     if (!fee.studentId || !fee.paidBy || !fee.receivedAmount || !fee.month || !fee.year || !fee.receivedDate || !fee.receivedBy || !fee.paymentMethod) {
-//       setFormError('Please fill in all required fields (Student, Paid By, Received Amount, Month, Year, Received Date, Received By, Payment Method).');
-//       return;
-//     }
-//     if (isNaN(parseFloat(fee.totalFee)) || parseFloat(fee.totalFee) <= 0) {
-//       setFormError('Total Fee must be a positive number (auto-populated based on student). Please select a student with a valid fee.');
-//       return;
-//     }
-//     if (isNaN(parseFloat(fee.receivedAmount)) || parseFloat(fee.receivedAmount) < 0) {
-//       setFormError('Received Amount must be a non-negative number.');
-//       return;
-//     }
-//     if (parseFloat(fee.receivedAmount) > parseFloat(fee.totalFee)) {
-//       setFormError('Received Amount cannot be greater than Total Fee.');
-//       return;
-//     }
-
-//     const formData = new FormData();
-//     for (const key in fee) {
-//       if (key !== 'billScreenshotUrl' && fee[key] !== null) {
-//         formData.append(key, fee[key]);
-//       }
-//     }
-
-//     if (selectedFile) {
-//       formData.append('billScreenshot', selectedFile);
-//     } else if (fee.billScreenshotUrl) {
-//       formData.append('billScreenshotUrl', fee.billScreenshotUrl);
-//     } else {
-//       formData.append('billScreenshotUrl', '');
-//     }
-
-//     try {
-//       if (editingFee) {
-//         await api.put(`/fees/${editingFee._id}`, formData, {
-//           headers: { 'Content-Type': 'multipart/form-data' },
-//         });
-//       } else {
-//         await api.post('/fees', formData, {
-//           headers: { 'Content-Type': 'multipart/form-data' },
-//         });
-//       }
-//       fetchFees(); // Refresh the list of fees after successful operation
-//       onClose();
-//     } catch (err) {
-//       console.error('Failed to save fee record:', err.response?.data || err.message);
-//       setFormError('Failed to save fee record: ' + (err.response?.data?.message || err.message));
-//     }
-//   };
-
-//   const getTitle = () => {
-//     if (isViewMode) return 'Fee Details (Receipt)';
-//     if (editingFee) return 'Edit Fee Record';
-//     return 'Add New Fee Record';
-//   };
-
-// const handleDownloadReceiptPdf = () => {
-//   const doc = new jsPDF({ format: 'a4' }); // A4 size
-
-//   const selectedStudent = studentsForForm.find(s => s._id === fee.studentId);
-//   const studentName = selectedStudent ? selectedStudent.name : 'N/A';
-//   const studentCnic = selectedStudent ? selectedStudent.cnic : 'N/A';
-//   const studentClassOrDegree = selectedStudent
-//     ? (selectedStudent.class === 'Class'
-//         ? `${selectedStudent.classNumber} Class`
-//         : `${selectedStudent.degreeName} (Semester ${selectedStudent.semester})`)
-//     : 'N/A';
-
-//   const savePDF = () => {
-//     const filename = `${studentName.replace(/\s/g, '_')}_Fee_Receipt_${fee.month}_${fee.year}.pdf`;
-//     doc.save(filename);
-//   };
-
-//   const drawMiniReceipt = (xStart, yStart) => {
-//     let yPos = yStart;
-
-//     // Logo
-//     const logo = new Image();
-//     logo.src = '/default-avatar.jpg'; // public path logo
-
-//     logo.onload = () => {
-//       doc.addImage(logo, 'JPEG', xStart, yPos, 15, 15); // logo top-right of mini receipt
-
-//       // Institute Info
-//       doc.setFontSize(10);
-//       doc.setFont(undefined, 'bold');
-//       doc.text('Bright Future Institute', xStart+17, yPos + 5);
-//       doc.setFontSize(8);
-//       doc.setFont(undefined, 'normal');
-//       doc.text('123 Education St, Knowledge City', xStart+17, yPos + 10);
-//       doc.text('Phone: (042) 1234567 | Email: info@bfi.edu.pk', xStart+17, yPos + 14);
-
-//       // Divider
-//       doc.line(xStart, yPos + 18, xStart + 80, yPos + 18);
-
-//       // Title
-//       doc.setFontSize(9);
-//       doc.setFont(undefined, 'bold');
-//       doc.setTextColor(40, 167, 69);
-//       doc.text('Fee Receipt', xStart + 40, yPos + 24, { align: 'center' });
-
-//       doc.setFontSize(7);
-//       doc.setTextColor(100);
-//       doc.text(`Generated on: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, xStart, yPos + 29);
-
-//       // Section 1: Student Info
-//       yPos += 34;
-//       doc.setFontSize(8);
-//       doc.setTextColor(0);
-//       doc.setFont(undefined, 'bold');
-//       doc.text('Student Information', xStart, yPos);
-//       yPos += 4;
-//       doc.line(xStart, yPos, xStart + 80, yPos);
-//       yPos += 5;
-
-//       doc.setFont(undefined, 'normal');
-//       doc.text(`Name:`, xStart + 5, yPos);
-//       doc.text(`${studentName}`, xStart + 40, yPos);
-//       yPos += 4;
-
-//       doc.text(`CNIC:`, xStart + 5, yPos);
-//       doc.text(`${studentCnic}`, xStart + 40, yPos);
-//       yPos += 4;
-
-//       doc.text(`Class/Degree:`, xStart + 5, yPos);
-//       doc.text(`${studentClassOrDegree}`, xStart + 40, yPos);
-//       yPos += 6;
-
-//       // Section 2: Fee Info
-//       doc.setFont(undefined, 'bold');
-//       doc.text('Fee Details', xStart, yPos);
-//       yPos += 4;
-//       doc.line(xStart, yPos, xStart + 80, yPos);
-//       yPos += 5;
-
-//       doc.setFont(undefined, 'normal');
-//       const addField = (label, value) => {
-//         doc.text(`${label}`, xStart + 5, yPos);
-//         doc.text(`${value}`, xStart + 50, yPos);
-//         yPos += 4;
-//       };
-
-//       addField('Total Fee:', `PKR ${parseFloat(fee.totalFee).toFixed(2)}`);
-//       addField('Received Amount:', `PKR ${parseFloat(fee.receivedAmount).toFixed(2)}`);
-//       addField('Due Amount:', `PKR ${parseFloat(fee.dueAmount).toFixed(2)}`);
-//       addField('Paid Month:', fee.month);
-//       addField('Paid Year:', fee.year);
-//       addField('Received Date:', new Date(fee.receivedDate).toLocaleDateString());
-//       addField('Paid By:', fee.paidBy);
-//       addField('Received By:', fee.receivedBy);
-//       addField('Payment Method:', fee.paymentMethod);
-
-//       yPos += 5;
-
-//       // Footer
-//       doc.setFontSize(7);
-//       doc.setTextColor(150);
-//       doc.text('This is a computer-generated fee receipt. No signature is required.', xStart, yPos + 5);
-
-//       savePDF();
-//     };
-
-//     logo.onerror = () => {
-//       console.warn('Failed to load logo.');
-//       savePDF();
-//     };
-//   };
-
-//   // Draw in top-left quadrant for now
-//   drawMiniReceipt(10, 10); // (xStart, yStart)
-// };
-
-
-// const handlePrintReceipt = () => {
-//   const printWindow = window.open('', '_blank');
-//   printWindow.document.write('<html><head><title>Fee Receipt</title>');
-//   printWindow.document.write('<style>');
-//   printWindow.document.write(`
-//     body { font-family: Arial, sans-serif; margin: 0; padding: 0; color: #333; }
-//     .receipt { width: 48%; height: 48%; float: left; box-sizing: border-box; padding: 10px; solid #ccc; margin: 1%; }
-//     .header { display: flex; align-items: center; margin-bottom: 5px; }
-//     .logo { width: 40px; height: 40px; margin-right: 10px; }
-//     .inst-info { font-size: 10px; }
-//     .title { text-align: center; font-size: 12px; font-weight: bold; color: #28a745; margin: 8px 0; }
-//     .info-section { margin-top: 5px; font-size: 10px; }
-//     .info-row { display: flex; margin-bottom: 3px; margin-left:17px;}
-//     .info-row label { width: 50%; }
-//     .header-section{font-size:12px}
-//     .footer-note { margin-top: 10px; font-size: 8px; color: #777; text-align: center; }
-//     .line{height:0.5px; background-color:black;}
-//     img.screenshot { max-width: 100%; height: auto; margin-top: 5px; border: 1px solid #ddd; }
-//     @media print {
-//       body { margin: 0; }
-//     }
-//   `);
-//   printWindow.document.write('</style>');
-//   printWindow.document.write('</head><body>');
-
-//   const selectedStudent = studentsForForm.find(s => s._id === fee.studentId);
-//   const studentName = selectedStudent ? selectedStudent.name : 'N/A';
-//   const studentCnic = selectedStudent ? selectedStudent.cnic : 'N/A';
-//   const studentClassOrDegree = selectedStudent ? (selectedStudent.class === 'Class' ? `${selectedStudent.classNumber} Class` : `${selectedStudent.degreeName} (Semester ${selectedStudent.semester})`) : 'N/A';
-
-//   printWindow.document.write('<div class="receipt">');
-//   printWindow.document.write('<div class="header">');
-//   printWindow.document.write('<img class="logo" src="/default-avatar.jpg" alt="logo" />');
-//   printWindow.document.write('<div class="inst-info">');
-//   printWindow.document.write('<strong>Bright Future Institute</strong><br>');
-//   printWindow.document.write('123 Education St, Knowledge City<br>');
-//   printWindow.document.write('Phone: (042) 1234567<br>Email: info@bfi.edu.pk');
-//   printWindow.document.write('</div></div>');
-//   printWindow.document.write('<hr class="line">');
-
-//   printWindow.document.write('<div class="title">Fee Receipt</div>');
-//   printWindow.document.write(`<div style="text-align:left;font-size:9px;">Generated on: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}</div>`);
-
-//   printWindow.document.write('<div class="info-section"><strong class="header-section">Student Information</strong>');
-//    printWindow.document.write('<hr class="line">');
-//   printWindow.document.write(`<div class="info-row"><label>Name:</label><span>${studentName}</span></div>`);
-//   printWindow.document.write(`<div class="info-row"><label>CNIC:</label><span>${studentCnic}</span></div>`);
-//   printWindow.document.write(`<div class="info-row"><label>Class/Degree:</label><span>${studentClassOrDegree}</span></div>`);
-//   printWindow.document.write('</div>');
-
-//   printWindow.document.write('<div class="info-section"><strong class="header-section">Fee Details</strong>');
-//    printWindow.document.write('<hr class="line">');
-//   printWindow.document.write(`<div class="info-row"><label>Total Fee:</label><span>PKR ${parseFloat(fee.totalFee).toFixed(2)}</span></div>`);
-//   printWindow.document.write(`<div class="info-row"><label>Received Amount:</label><span>PKR ${parseFloat(fee.receivedAmount).toFixed(2)}</span></div>`);
-//   printWindow.document.write(`<div class="info-row"><label>Due Amount:</label><span>PKR ${parseFloat(fee.dueAmount).toFixed(2)}</span></div>`);
-//   printWindow.document.write(`<div class="info-row"><label>Paid Month:</label><span>${fee.month}</span></div>`);
-//   printWindow.document.write(`<div class="info-row"><label>Paid Year:</label><span>${fee.year}</span></div>`);
-//   printWindow.document.write(`<div class="info-row"><label>Received Date:</label><span>${new Date(fee.receivedDate).toLocaleDateString()}</span></div>`);
-//   printWindow.document.write(`<div class="info-row"><label>Paid By:</label><span>${fee.paidBy}</span></div>`);
-//   printWindow.document.write(`<div class="info-row"><label>Received By:</label><span>${fee.receivedBy}</span></div>`);
-//   printWindow.document.write(`<div class="info-row"><label>Payment Method:</label><span>${fee.paymentMethod}</span></div>`);
-//   printWindow.document.write('</div>');
-
-//   // if (fee.billScreenshotUrl) {
-//   //   printWindow.document.write(`<div><strong>Bill Screenshot:</strong><br><img class="screenshot" src="${backendBaseUrl}${fee.billScreenshotUrl}" alt="Screenshot" /></div>`);
-//   // }
-
-//   printWindow.document.write('<div class="footer-note">This is a computer-generated fee receipt. No signature is required.</div>');
-//   printWindow.document.write('</div>'); // end .receipt
-
-//   printWindow.document.write('</body></html>');
-//   printWindow.document.close();
-//   printWindow.print();
-// };
-
-
-
-//   return (
-//     // Main container for the form, now a flex column with responsive width and padding
-//     <div className="bg-white p-4 sm:p-6 rounded-lg shadow-xl w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-2xl mx-auto relative flex flex-col h-full">
-//       {/* Close Button */}
-//       <button
-//         onClick={onClose}
-//         className="absolute top-3 right-3 text-gray-500 hover:text-gray-700 transition duration-200 p-1 rounded-full hover:bg-gray-100"
-//         title="Close"
-//       >
-//         <XMarkIcon className="h-6 w-6" />
-//       </button>
-
-//       {/* Header */}
-//       <h2 className="text-2xl sm:text-3xl font-bold mb-4 text-center text-green-700 mt-2 sm:mt-0">{getTitle()}</h2>
-//       <hr className="mb-4 border-green-200" />
-
-//       {/* Form Error */}
-//       {formError && (
-//         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4 shadow-sm" role="alert">
-//           {formError}
-//         </div>
-//       )}
-
-//       {/* Scrollable Form Content */}
-//       <form onSubmit={handleSubmit} className="flex flex-col flex-grow overflow-y-auto pr-2 custom-scrollbar">
-//         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-//           {/* Student */}
-//           <div>
-//             <label htmlFor="studentId" className="block text-sm font-medium text-gray-700 mb-1">Student<span className="text-red-500">*</span></label>
-//             <select id="studentId" name="studentId" value={fee.studentId} onChange={handleChange} disabled={isViewMode} className="block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring focus:ring-green-200 focus:ring-opacity-50 p-2.5 transition duration-150 ease-in-out">
-//               <option value="">Select Student</option>
-//               {studentsForForm.map(student => (
-//                 <option key={student._id} value={student._id}>{student.name} ({student.cnic})</option>
-//               ))}
-//             </select>
-//           </div>
-//           {/* Paid By */}
-//           <div>
-//             <label htmlFor="paidBy" className="block text-sm font-medium text-gray-700 mb-1">Paid By<span className="text-red-500">*</span></label>
-//             <input type="text" id="paidBy" name="paidBy" value={fee.paidBy} onChange={handleChange} disabled={isViewMode} className="block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring focus:ring-green-200 focus:ring-opacity-50 p-2.5 transition duration-150 ease-in-out" />
-//           </div>
-//           {/* Total Fee (Auto-populated and disabled) */}
-//           <div>
-//             <label htmlFor="totalFee" className="block text-sm font-medium text-gray-700 mb-1">Total Fee (Per Month)<span className="text-red-500">*</span></label>
-//             <input
-//               type="number"
-//               id="totalFee"
-//               name="totalFee"
-//               value={fee.totalFee}
-//               onChange={handleChange}
-//               disabled={true}
-//               className="block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm p-2.5 text-gray-700 cursor-not-allowed"
-//             />
-//           </div>
-//           {/* Received Amount */}
-//           <div>
-//             <label htmlFor="receivedAmount" className="block text-sm font-medium text-gray-700 mb-1">Received Amount<span className="text-red-500">*</span></label>
-//             <input type="number" id="receivedAmount" name="receivedAmount" value={fee.receivedAmount} onChange={handleChange} disabled={isViewMode} className="block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring focus:ring-green-200 focus:ring-opacity-50 p-2.5 transition duration-150 ease-in-out" />
-//           </div>
-//           {/* Due Amount (Display only) */}
-//           <div>
-//             <label htmlFor="dueAmount" className="block text-sm font-medium text-gray-700 mb-1">Due Amount</label>
-//             <input type="number" id="dueAmount" name="dueAmount" value={fee.dueAmount.toFixed(2)} disabled className="block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm p-2.5 text-gray-700 cursor-not-allowed" />
-//           </div>
-//           {/* Month */}
-//           <div>
-//             <label htmlFor="month" className="block text-sm font-medium text-gray-700 mb-1">Month<span className="text-red-500">*</span></label>
-//             <select id="month" name="month" value={fee.month} onChange={handleChange} disabled={isViewMode} className="block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring focus:ring-green-200 focus:ring-opacity-50 p-2.5 transition duration-150 ease-in-out">
-//               <option value="">Select Month</option>
-//               {months.map(monthName => (
-//                 <option key={monthName} value={monthName}>{monthName}</option>
-//               ))}
-//             </select>
-//           </div>
-//           {/* Year */}
-//           <div>
-//             <label htmlFor="year" className="block text-sm font-medium text-gray-700 mb-1">Year<span className="text-red-500">*</span></label>
-//             <select id="year" name="year" value={fee.year} onChange={handleChange} disabled={isViewMode} className="block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring focus:ring-green-200 focus:ring-opacity-50 p-2.5 transition duration-150 ease-in-out">
-//               {generateYearOptions().map(year => (
-//                 <option key={year} value={year}>{year}</option>
-//               ))}
-//             </select>
-//           </div>
-//           {/* Received Date */}
-//           <div>
-//             <label htmlFor="receivedDate" className="block text-sm font-medium text-gray-700 mb-1">Received Date<span className="text-red-500">*</span></label>
-//             <input type="date" id="receivedDate" name="receivedDate" value={fee.receivedDate} onChange={handleChange} disabled={isViewMode} className="block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring focus:ring-green-200 focus:ring-opacity-50 p-2.5 transition duration-150 ease-in-out" />
-//           </div>
-//           {/* Received By */}
-//           <div>
-//             <label htmlFor="receivedBy" className="block text-sm font-medium text-gray-700 mb-1">Received By<span className="text-red-500">*</span></label>
-//             <input type="text" id="receivedBy" name="receivedBy" value={fee.receivedBy} onChange={handleChange} disabled={isViewMode} className="block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring focus:ring-green-200 focus:ring-opacity-50 p-2.5 transition duration-150 ease-in-out" />
-//           </div>
-//           {/* Payment Method */}
-//           <div>
-//             <label htmlFor="paymentMethod" className="block text-sm font-medium text-gray-700 mb-1">Payment Method<span className="text-red-500">*</span></label>
-//             <select id="paymentMethod" name="paymentMethod" value={fee.paymentMethod} onChange={handleChange} disabled={isViewMode} className="block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring focus:ring-green-200 focus:ring-opacity-50 p-2.5 transition duration-150 ease-in-out">
-//               <option value="">Select Method</option>
-//               <option value="Cash">Cash</option>
-//               <option value="Bank Transfer">Bank Transfer</option>
-//               <option value="Easypaisa">Easypaisa</option>
-//               <option value="JazzCash">JazzCash</option>
-//               <option value="Online Wallet">Online Wallet</option>
-//             </select>
-//           </div>
-
-//           {/* Bill Screenshot */}
-//           <div className="sm:col-span-2"> {/* This div spans 2 columns on small screens and up */}
-//             <label htmlFor="billScreenshot" className="block text-sm font-medium text-gray-700 mb-1">Bill Screenshot</label>
-//             {!isViewMode ? (
-//               <input type="file" id="billScreenshot" name="billScreenshot" onChange={handleFileChange} className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100" />
-//             ) : null}
-
-//             {(fee.billScreenshotUrl || selectedFile) && (
-//               <div className="mt-4 flex flex-col items-center sm:items-start">
-//                 <p className="text-sm text-gray-500 mb-2">Current Screenshot:</p>
-//                 <img
-//                   src={selectedFile ? URL.createObjectURL(selectedFile) : `${backendBaseUrl}${fee.billScreenshotUrl}`}
-//                   alt="Bill Screenshot"
-//                   className="h-32 w-auto object-cover rounded-md border-4 border-green-200 shadow-md"
-//                   onError={(e) => { e.target.onerror = null; e.target.src = '/images/no-image-available.png'; }}
-//                 />
-//                 {isViewMode && fee.billScreenshotUrl && (
-//                   <a
-//                     href={`${backendBaseUrl}${fee.billScreenshotUrl}`}
-//                     target="_blank"
-//                     rel="noopener noreferrer"
-//                     className="text-blue-600 hover:underline text-sm mt-3 inline-block font-medium"
-//                   >
-//                     View Full Image
-//                   </a>
-//                 )}
-//                 {!isViewMode && fee.billScreenshotUrl && (
-//                   <button
-//                     type="button"
-//                     onClick={() => {
-//                       setFee(prev => ({ ...prev, billScreenshotUrl: '' }));
-//                       setSelectedFile(null);
-//                     }}
-//                     className="mt-3 text-red-600 hover:text-red-800 text-sm font-medium transition duration-200"
-//                   >
-//                     Clear Image
-//                   </button>
-//                 )}
-//               </div>
-//             )}
-//           </div>
-//         </div>
-//       </form>
-
-//       {/* Footer Buttons */}
-//       <div className="mt-auto pt-4 border-t border-gray-200 flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-3 flex-shrink-0">
-//         {isViewMode && (
-//           <>
-//             <button
-//               type="button"
-//               onClick={handleDownloadReceiptPdf}
-//               className="flex items-center justify-center bg-purple-600 text-white px-6 py-2 rounded-md hover:bg-purple-700 transition duration-200 shadow-md w-full sm:w-auto"
-//               title="Download Fee Receipt as PDF"
-//             >
-//               <ArrowDownTrayIcon className="h-5 w-5 mr-2" />
-//               Download PDF
-//             </button>
-//             <button
-//               type="button"
-//               onClick={handlePrintReceipt}
-//               className="flex items-center justify-center bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition duration-200 shadow-md w-full sm:w-auto"
-//               title="Print Fee Receipt"
-//             >
-//               <PrinterIcon className="h-5 w-5 mr-2" />
-//               Print Receipt
-//             </button>
-//           </>
-//         )}
-//         {!isViewMode && (
-//           <button
-//             type="submit"
-//             onClick={handleSubmit}
-//             className="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition duration-200 shadow-md w-full sm:w-auto"
-//           >
-//             {editingFee ? 'Update Fee' : 'Add Fee'}
-//           </button>
-//         )}
-//         <button
-//           type="button"
-//           onClick={onClose}
-//           className="bg-gray-300 text-gray-800 px-6 py-2 rounded-md hover:bg-gray-400 transition duration-200 shadow-md w-full sm:w-auto"
-//         >
-//           {isViewMode ? 'Close' : 'Cancel'}
-//         </button>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default FeeForm;
-
-
-
-
-
 // src/components/FeeForm.jsx
 import React, { useState, useEffect, useCallback } from 'react';
 import api from '../api';
-import { XMarkIcon, ArrowDownTrayIcon, PrinterIcon, MinusCircleIcon } from '@heroicons/react/24/outline'; // Added PrinterIcon, MinusCircleIcon
+import { XMarkIcon, ArrowDownTrayIcon, PrinterIcon, MinusCircleIcon } from '@heroicons/react/24/outline';
 import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable'; // Ensure this is imported for autoTable to work
 
 const months = [
   "January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December"
 ];
 
-// Helper function to generate year options
 const generateYearOptions = () => {
   const currentYear = new Date().getFullYear();
   const years = [];
-  // Go back 5 years and forward 1 year from current year
-  for (let i = currentYear - 5; i <= currentYear + 1; i++) {
+  for (let i = currentYear - 5; i <= currentYear + 5; i++) {
     years.push(i.toString());
   }
   return years;
 };
 
-const FeeForm = ({ editingFee, fetchFees, studentsForForm, onClose, isViewMode = false }) => {
+const FeeForm = ({ editingFee, fetchFees, studentsForForm, onClose, isViewMode = false, fetchStudents }) => {
   const initialState = {
     studentId: '',
     paidBy: '',
@@ -597,10 +35,8 @@ const FeeForm = ({ editingFee, fetchFees, studentsForForm, onClose, isViewMode =
   const [fee, setFee] = useState(initialState);
   const [selectedFile, setSelectedFile] = useState(null);
   const [formError, setFormError] = useState('');
-  const backendBaseUrl = 'http://localhost:5000'; // Make sure this matches your backend port
+  const backendBaseUrl = 'http://localhost:5000';
 
-  // State to hold the student's current depositedAmount and otherDues
-  // These are separate because they belong to the Student model, not the Fee model.
   const [studentDepositedAmount, setStudentDepositedAmount] = useState(0);
   const [studentOtherDues, setStudentOtherDues] = useState(0);
 
@@ -616,7 +52,6 @@ const FeeForm = ({ editingFee, fetchFees, studentsForForm, onClose, isViewMode =
         billScreenshotUrl: editingFee.billScreenshotUrl || '',
       });
       setSelectedFile(null);
-      // Set initial depositedAmount and otherDues from the associated student
       if (editingFee.studentId) {
         setStudentDepositedAmount(editingFee.studentId.depositedAmount || 0);
         setStudentOtherDues(editingFee.studentId.otherDues || 0);
@@ -624,8 +59,8 @@ const FeeForm = ({ editingFee, fetchFees, studentsForForm, onClose, isViewMode =
     } else {
       setFee(initialState);
       setSelectedFile(null);
-      setStudentDepositedAmount(0); // Reset for new form
-      setStudentOtherDues(0);     // Reset for new form
+      setStudentDepositedAmount(0);
+      setStudentOtherDues(0);
     }
     setFormError('');
   }, [editingFee]);
@@ -642,13 +77,11 @@ const FeeForm = ({ editingFee, fetchFees, studentsForForm, onClose, isViewMode =
         setStudentDepositedAmount(selectedStudent.depositedAmount || 0);
         setStudentOtherDues(selectedStudent.otherDues || 0);
       } else {
-        // If student not found, clear relevant fields
         setFee(prev => ({ ...prev, totalFee: '' }));
         setStudentDepositedAmount(0);
         setStudentOtherDues(0);
       }
     } else if (!fee.studentId && !editingFee) {
-      // Clear totalFee, depositedAmount, otherDues if no student selected for new record
       setFee(prev => ({ ...prev, totalFee: '' }));
       setStudentDepositedAmount(0);
       setStudentOtherDues(0);
@@ -672,228 +105,75 @@ const FeeForm = ({ editingFee, fetchFees, studentsForForm, onClose, isViewMode =
   // Function to update student's financial details on the backend
   const updateStudentFinancials = useCallback(async (studentId, updates) => {
     try {
-      await api.put(`/students/${studentId}
-        `, updates);
-      // Optionally, refetch all students or update the specific student in studentsForForm
-      // if you want the changes to reflect immediately in the student dropdown/list.
-      // For simplicity, we'll assume the next form load or page refresh will get the latest.
-      // If you have a global state for students, you'd update it here.
+      await api.put(`/students/${studentId}`, updates); // Using the main student update endpoint
     } catch (error) {
       console.error('Failed to update student financials:', error.response?.data || error.message);
-      setFormError('Failed to update student financial details. Please try again.');
+      if (error.response && error.response.data && error.response.data.message && typeof error.response.data.message === 'string') {
+        setFormError('Failed to update student financial details: ' + error.response.data.message);
+      } else if (error.response && error.response.data && typeof error.response.data === 'object' && error.response.data.message) {
+        const validationErrors = Object.values(error.response.data.message).map(error => error.message).join(', ');
+        setFormError('Failed to update student financial details: Validation failed: ' + validationErrors);
+      } else {
+        setFormError('Failed to update student financial details: ' + (error.message || 'Unknown error'));
+      }
+      throw error; // Re-throw to stop handleSubmit if financial update fails
     }
-  }, []); // Empty dependency array as it's a utility function
+  }, []);
 
-  const handleChange = async (e) => {
+  const handleChange = (e) => {
     const { name, value } = e.target;
-    const feePerMonth = parseFloat(fee.totalFee);
-    const alreadyReceived = parseFloat(fee.receivedAmount || 0);
-    console.log(`alreadyReceived: ${alreadyReceived}`);
-    let deposit = parseFloat(studentDepositedAmount || 0);
-    // let dues = parseFloat(studentOtherDues || 0);
 
     if (name === 'paymentMethod') {
-      setFee(prev => ({ ...prev, paymentMethod: value }));
-      let received = fee.receivedAmount;
-      console.log(`alreadyReceived: ${alreadyReceived}`);
+      setFee(prev => ({ ...prev, [name]: value }));
+
       if (value === 'Deposited Cash') {
-        console.log(`alreadyReceived: ${alreadyReceived}`);
-        // Case 1: Deposit is more than or equal to feePerMonth
-        if ((deposit >= feePerMonth) && (alreadyReceived == 0) && (received != feePerMonth)) {
-          received = feePerMonth;
-          deposit -= feePerMonth;
-          console.log(`entered in case 1`);
-        }
-        // Case 2: Some amount already received (partial)
-        else if ((deposit >= feePerMonth) && (alreadyReceived != 0) && (received != feePerMonth)) {
-          const remainingToReceive = feePerMonth - alreadyReceived;
-          console.log('entered in case 2');
-          received = alreadyReceived + remainingToReceive;
-          deposit -= remainingToReceive;
+        const totalFee = parseFloat(fee.totalFee);
+        const currentDeposited = parseFloat(studentDepositedAmount);
 
-
-        }
-        // Case 3: Not enough deposit, calculate dues
-        else if ((deposit < feePerMonth) && (alreadyReceived != 0) && (received != feePerMonth)) {
-          const remainingToReceive = feePerMonth - alreadyReceived;
-
-          // received = alreadyReceived + deposit;
-
-          if ((alreadyReceived + deposit) < feePerMonth) {
-            deposit = 0;
+        let calculatedReceivedAmount = 0;
+        if (!isNaN(totalFee) && totalFee > 0) {
+          // calculatedReceivedAmount = Math.min(totalFee, currentDeposited);
+          if (totalFee <= currentDeposited) {
+            calculatedReceivedAmount = totalFee;
+          }
+          else if (totalFee > currentDeposited) {
+            console.log(`Entered in case totalFee > currentDeposited`);
+            if (editingFee.dueAmount >= currentDeposited) {
+              calculatedReceivedAmount = editingFee.receivedAmount + currentDeposited;
+              // console.log(`Entered in editing.dueAmout >= `)
+            }
+            // else{
+            //   calculatedReceivedAmount = editingFee.receivedAmount + currentDeposited;
+            // }
           }
           else {
-            deposit = (alreadyReceived + deposit) - feePerMonth;
-            received = feePerMonth;
-          }
-
-        }
-        else {
-          if ((alreadyReceived + deposit) < feePerMonth) {
-            received = deposit;
-            // const remainingDue = feePerMonth - deposit;
-            // dues += remainingDue;
-            deposit = 0;
-            console.log(`Entered in case 3`);
+            calculatedReceivedAmount = currentDeposited;
           }
         }
 
         setFee(prev => ({
           ...prev,
-          receivedAmount: received.toFixed(2),
-          paidBy: 'N/A',
-          receivedBy: 'N/A'
+          receivedAmount: calculatedReceivedAmount.toFixed(2),
+          paidBy: '-',
+          receivedBy: '-',
         }));
-
-        setStudentDepositedAmount(deposit);
-        // setStudentOtherDues(dues);
       } else {
-        // Not Deposited Cash
-        setFee(prev => ({
-          ...prev,
-          paidBy: '',
-          receivedBy: ''
-        }));
+        // Reset Paid By and Received By if they were - from Deposited Cash
+        if (fee.paidBy === '-' || fee.receivedBy === '-') {
+          setFee(prev => ({ ...prev, paidBy: '', receivedBy: '' }));
+        }
       }
-    }
-
-    else if (name === 'receivedAmount') {
-      const received = parseFloat(value); const handleChange = async (e) => {
-    const { name, value } = e.target;
-    const feePerMonth = parseFloat(fee.totalFee);
-    const alreadyReceived = parseFloat(fee.receivedAmount || 0);
-    let deposit = parseFloat(studentDepositedAmount || 0);
-    // let dues = parseFloat(studentOtherDues || 0);
-
-    if (name === 'paymentMethod') {
-      setFee(prev => ({ ...prev, paymentMethod: value }));
-      let received = fee.receivedAmount;
-      if (value === 'Deposited Cash') {
-
-        // Case 1: Deposit is more than or equal to feePerMonth
-        if ((deposit >= feePerMonth) && (alreadyReceived == 0) && (received != feePerMonth)) {
-          received = feePerMonth;
-          deposit -= feePerMonth;
-          console.log(`entered in case 1`);
-        }
-        // Case 2: Some amount already received (partial)
-        else if ((deposit >= feePerMonth) && (alreadyReceived != 0) && (received != feePerMonth)) {
-          const remainingToReceive = feePerMonth - alreadyReceived;
-          console.log('entered in case 2');
-          received = alreadyReceived + remainingToReceive;
-          deposit -= remainingToReceive;
-
-
-        }
-        // Case 3: Not enough deposit, calculate dues
-        else if ((deposit < feePerMonth) && (alreadyReceived != 0) && (received != feePerMonth)) {
-          const remainingToReceive = feePerMonth - alreadyReceived;
-
-          // received = alreadyReceived + deposit;
-
-          if ((alreadyReceived + deposit) < feePerMonth) {
-            deposit = 0;
-          }
-          else {
-            deposit = (alreadyReceived + deposit) - feePerMonth;
-            received = feePerMonth;
-          }
-
-        }
-        else {
-          if ((alreadyReceived + deposit) < feePerMonth) {
-            received = deposit;
-            // const remainingDue = feePerMonth - deposit;
-            // dues += remainingDue;
-            deposit = 0;
-            console.log(`Entered in case 3`);
-          }
-        }
-
-        setFee(prev => ({
-          ...prev,
-          receivedAmount: received.toFixed(2),
-          paidBy: 'N/A',
-          receivedBy: 'N/A'
-        }));
-
-        setStudentDepositedAmount(deposit);
-        // setStudentOtherDues(dues);
-      } else {
-        // Not Deposited Cash
-        setFee(prev => ({
-          ...prev,
-          paidBy: '',
-          receivedBy: ''
-        }));
-      }
-    }
-
-    else if (name === 'receivedAmount') {
-      const received = parseFloat(value);
-
-      setFee(prev => ({
-        ...prev,
-        receivedAmount: value
-      }));
-
-
-    }
-
-    else {
+    } else {
       setFee(prev => ({ ...prev, [name]: value }));
     }
 
-    await updateStudentFinancials(fee.studentId, {
-      depositedAmount: deposit,
-      // otherDues: dues
-    });
-
   };
-
-      setFee(prev => ({
-        ...prev,
-        receivedAmount: value
-      }));
-
-
-    }
-
-    else {
-      setFee(prev => ({ ...prev, [name]: value }));
-    }
-
-    await updateStudentFinancials(fee.studentId, {
-      depositedAmount: deposit,
-      // otherDues: dues
-    });
-
-  };
-
-
-
-  const handleClearOtherDues = async () => {
-    if (studentDepositedAmount <= 0 || studentOtherDues <= 0) return;
-
-    const clearAmount = Math.min(studentDepositedAmount, studentOtherDues);
-    const remainingDeposited = studentDepositedAmount - clearAmount;
-    const remainingOtherDues = studentOtherDues - clearAmount;
-
-    setStudentDepositedAmount(remainingDeposited);
-    setStudentOtherDues(remainingOtherDues);
-
-    await updateStudentFinancials(fee.studentId, {
-      depositedAmount: remainingDeposited,
-      otherDues: remainingOtherDues
-    });
-  };
-
-
 
   const handleFileChange = (e) => {
     setSelectedFile(e.target.files[0]);
     setFee(prev => ({ ...prev, billScreenshotUrl: '' }));
   };
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -912,11 +192,10 @@ const FeeForm = ({ editingFee, fetchFees, studentsForForm, onClose, isViewMode =
       setFormError('Received Amount must be a non-negative number.');
       return;
     }
-    if (parseFloat(fee.receivedAmount) > parseFloat(fee.totalFee) && fee.paymentMethod !== 'Deposited Cash') {
-      // This case is already handled by adding excess to depositedAmount in handleChange
-      // but keeping this validation for robustness if direct submission without handleChange
-      // is possible (e.g., if user types and submits without blur)
-      // For 'Deposited Cash', receivedAmount can equal totalFee, so no check needed.
+    // Validation: Prevent receivedAmount from exceeding totalFee for non-Deposited Cash methods
+    if (fee.paymentMethod !== 'Deposited Cash' && parseFloat(fee.receivedAmount) > parseFloat(fee.totalFee)) {
+      setFormError('Received Amount cannot be greater than Total Fee for this payment method.');
+      return;
     }
 
 
@@ -952,56 +231,55 @@ const FeeForm = ({ editingFee, fetchFees, studentsForForm, onClose, isViewMode =
       if (selectedStudent) {
         // Fetch the absolute latest student financial data to avoid race conditions
         const studentResponse = await api.get(`/students/${selectedStudent._id}`);
-        let currentDeposited = studentResponse.data.depositedAmount || 0;
-        let currentOtherDues = studentResponse.data.otherDues || 0;
-
+        let currentDeposited = parseFloat(studentResponse.data.depositedAmount || 0);
+        let currentOtherDues = parseFloat(studentResponse.data.otherDues || 0);
         const newTotalFee = parseFloat(fee.totalFee);
-        const newReceivedAmount = parseFloat(fee.receivedAmount);
+        const newReceivedAmount = parseFloat(fee.receivedAmount); // This is the final received amount for THIS fee record
 
-        // If editing an existing fee, first "undo" the previous impact of this fee record
+        // Determine the actual due amount for the NEW fee record
+        const newFeeRecordDueAmount = Math.max(0, newTotalFee - newReceivedAmount);
+        let due_Amount = parseFloat(editingFee.dueAmount);
+        // --- 1. UNDO the financial impact of the ORIGINAL fee record if editing ---
         if (editingFee) {
-          const oldTotalFee = parseFloat(editingFee.totalFee);
-          const oldReceivedAmount = parseFloat(editingFee.receivedAmount);
+          const oldTotalFee = parseFloat(editingFee.totalFee || 0);
+          const oldReceivedAmount = parseFloat(editingFee.receivedAmount || 0);
           const oldPaymentMethod = editingFee.paymentMethod;
+          const oldDueAmount = Math.max(0, oldTotalFee - oldReceivedAmount);
 
+          // If old fee was paid via Deposited Cash, return the received amount to deposit
           if (oldPaymentMethod === 'Deposited Cash') {
-            currentDeposited += oldReceivedAmount; // Put back the amount that was taken from deposit
-            // If old received amount was less than old total fee, it means otherDues increased.
-            // We need to undo that increase.
-            if (oldReceivedAmount < oldTotalFee) {
-              currentOtherDues -= (oldTotalFee - oldReceivedAmount);
-            }
-          } else {
-            // If old transaction had excess, remove it from depositedAmount
-            if (oldReceivedAmount > oldTotalFee) {
-              currentDeposited -= (oldReceivedAmount - oldTotalFee);
-            }
-            // If old transaction had deficit, remove it from otherDues
-            if (oldReceivedAmount < oldTotalFee) {
-              currentOtherDues -= (oldTotalFee - oldReceivedAmount);
-            }
+            // currentDeposited += oldReceivedAmount;
+
+          }
+          // If old fee had a due amount, reduce otherDues by that amount (it was added to otherDues before)
+          if (oldDueAmount > 0) {
+            currentOtherDues -= due_Amount;
+          }
+
+          if (oldPaymentMethod !== 'Deposited Cash' && oldReceivedAmount > oldTotalFee) {
+            currentDeposited -= (oldReceivedAmount - oldTotalFee);
+
           }
         }
 
-        // Now, apply the impact of the *new* fee record
         if (fee.paymentMethod === 'Deposited Cash') {
-          currentDeposited -= newReceivedAmount; // Deduct the amount received from deposit
-          // If the received amount from deposit was less than total fee, add the deficit to otherDues
-          if (newReceivedAmount < newTotalFee) {
-            currentOtherDues += (newTotalFee - newReceivedAmount);
-          }
-        } else {
-          // If new transaction has excess, add it to depositedAmount
-          if (newReceivedAmount > newTotalFee) {
-            currentDeposited += (newReceivedAmount - newTotalFee);
-          }
-          // If new transaction has deficit, add it to otherDues
-          if (newReceivedAmount < newTotalFee) {
-            currentOtherDues += (newTotalFee - newReceivedAmount);
+          // The `newReceivedAmount` (for this fee record) was drawn from deposit.
+          // So, here we just ensure the student's actual deposit is updated correctly by deducting it.eding
+          if (editingFee.receivedAmount > 0) {
+            //  if(currentDeposited > editingFee.feePerMonth){
+            currentDeposited -= due_Amount;
+            //  }
+            //  else if(currentDeposited < editingFee.feePerMonth){
+            //   const remainingFee =  
           }
         }
+        // For ALL payment methods (including Deposited Cash, if it still has a due)
+        if (newFeeRecordDueAmount > 0) {
+          // currentOtherDues += newFeeRecordDueAmount;
 
-        // Ensure balances don't go negative (though logic should prevent this for deposited)
+        }
+
+        // --- Final Safeguard: Ensure balances don't go negative ---
         currentDeposited = Math.max(0, currentDeposited);
         currentOtherDues = Math.max(0, currentOtherDues);
 
@@ -1017,10 +295,18 @@ const FeeForm = ({ editingFee, fetchFees, studentsForForm, onClose, isViewMode =
       }
 
       fetchFees(); // Refresh the list of fees after successful operation
+      fetchStudents(); // CRITICAL: Refresh students data to update dropdown/displays in parent
       onClose();
     } catch (err) {
       console.error('Failed to save fee record or update student financials:', err.response?.data || err.message);
-      setFormError('Failed to save fee record or update student financials: ' + (err.response?.data?.message || err.message));
+      if (err.response && err.response.data && err.response.data.message && typeof err.response.data.message === 'string') {
+        setFormError('Failed to save fee record or update student financials: ' + err.response.data.message);
+      } else if (err.response && err.response.data && typeof err.response.data === 'object' && err.response.data.message) {
+        const validationErrors = Object.values(err.response.data.message).map(error => error.message).join(', ');
+        setFormError('Failed to save fee record or update student financials: Validation failed: ' + validationErrors);
+      } else {
+        setFormError('Failed to save fee record or update student financials: ' + (err.message || 'Unknown error'));
+      }
     }
   };
 
@@ -1034,13 +320,13 @@ const FeeForm = ({ editingFee, fetchFees, studentsForForm, onClose, isViewMode =
     const doc = new jsPDF({ format: 'a4' }); // A4 size
 
     const selectedStudent = studentsForForm.find(s => s._id === fee.studentId);
-    const studentName = selectedStudent ? selectedStudent.name : 'N/A';
-    const studentCnic = selectedStudent ? selectedStudent.cnic : 'N/A';
+    const studentName = selectedStudent ? selectedStudent.name : '-';
+    const studentCnic = selectedStudent ? selectedStudent.cnic : '-';
     const studentClassOrDegree = selectedStudent
       ? (selectedStudent.class === 'Class'
         ? `${selectedStudent.classNumber} Class`
         : `${selectedStudent.degreeName} (Semester ${selectedStudent.semester})`)
-      : 'N/A';
+      : '-';
 
     const savePDF = () => {
       const filename = `${studentName.replace(/\s/g, '_')}_Fee_Receipt_${fee.month}_${fee.year}.pdf`;
@@ -1167,9 +453,9 @@ const FeeForm = ({ editingFee, fetchFees, studentsForForm, onClose, isViewMode =
       return;
     }
 
-    const studentName = selectedStudent ? selectedStudent.name : 'N/A';
-    const studentCnic = selectedStudent ? selectedStudent.cnic : 'N/A';
-    const studentClassOrDegree = selectedStudent ? (selectedStudent.class === 'Class' ? `${selectedStudent.classNumber} Class` : `${selectedStudent.degreeName} (Semester ${selectedStudent.semester})`) : 'N/A';
+    const studentName = selectedStudent ? selectedStudent.name : '-';
+    const studentCnic = selectedStudent ? selectedStudent.cnic : '-';
+    const studentClassOrDegree = selectedStudent ? (selectedStudent.class === 'Class' ? `${selectedStudent.classNumber} Class` : `${selectedStudent.degreeName} (Semester ${selectedStudent.semester})`) : '-';
 
     // Function to load an image and return a Promise
     const loadImage = (src) => {
@@ -1424,36 +710,40 @@ const FeeForm = ({ editingFee, fetchFees, studentsForForm, onClose, isViewMode =
   };
 
 
-  // // Function to handle clearing other dues using deposited amount
-  // const handleClearOtherDues = async () => {
-  //   if (!fee.studentId) {
-  //     setFormError("Please select a student first to clear other dues.");
-  //     return;
-  //   }
+  // Function to handle clearing other dues using deposited amount
+  const handleClearOtherDues = async () => {
+    if (!fee.studentId) {
+      setFormError("Please select a student first to clear other dues.");
+      return;
+    }
 
-  //   let currentDeposited = parseFloat(studentDepositedAmount);
-  //   let currentOtherDues = parseFloat(studentOtherDues);
+    let currentDeposited = parseFloat(studentDepositedAmount);
+    let currentOtherDues = parseFloat(studentOtherDues);
 
-  //   if (currentOtherDues <= 0) {
-  //     setFormError("No other dues to clear.");
-  //     return;
-  //   }
+    if (currentOtherDues <= 0) {
+      setFormError("No other dues to clear.");
+      return;
+    }
 
-  //   let amountToClear = Math.min(currentOtherDues, currentDeposited);
-  //   let remainingOtherDues = currentOtherDues - amountToClear;
-  //   let remainingDeposited = currentDeposited - amountToClear;
+    let amountToClear = Math.min(currentOtherDues, currentDeposited);
+    let remainingOtherDues = currentOtherDues - amountToClear;
+    let remainingDeposited = currentDeposited - amountToClear;
 
-  //   setStudentDepositedAmount(remainingDeposited);
-  //   setStudentOtherDues(remainingOtherDues);
+    setStudentDepositedAmount(remainingDeposited);
+    setStudentOtherDues(remainingOtherDues);
 
-  //   // Update student's financial details on backend
-  //   await updateStudentFinancials(fee.studentId, {
-  //     depositedAmount: remainingDeposited,
-  //     otherDues: remainingOtherDues
-  //   });
-
-  //   setFormError("Other dues adjusted using deposited amount.");
-  // };
+    // Update student's financial details on backend
+    try {
+      await updateStudentFinancials(fee.studentId, {
+        depositedAmount: remainingDeposited,
+        otherDues: remainingOtherDues
+      });
+      setFormError("Other dues adjusted using deposited amount.");
+      fetchStudents(); // Refresh students data to update displays
+    } catch (error) {
+      // Error message will be set by updateStudentFinancials
+    }
+  };
 
 
   return (
@@ -1590,6 +880,7 @@ const FeeForm = ({ editingFee, fetchFees, studentsForForm, onClose, isViewMode =
             >
               + Deposit
             </button>
+
           </div>
 
           {/* Display Other Dues with Clear Button */}
@@ -1625,13 +916,13 @@ const FeeForm = ({ editingFee, fetchFees, studentsForForm, onClose, isViewMode =
 
             {(fee.billScreenshotUrl || selectedFile) && (
               <div className="mt-4 flex flex-col items-center sm:items-start">
-                {/* <p className="text-sm text-gray-500 mb-2">Current Screenshot:</p> */}
-                {/* <img
+                <p className="text-sm text-gray-500 mb-2">Current Screenshot:</p>
+                <img
                   src={selectedFile ? URL.createObjectURL(selectedFile) : `${backendBaseUrl}${fee.billScreenshotUrl}`}
                   alt="Bill Screenshot"
                   className="h-32 w-auto object-cover rounded-md border-4 border-green-200 shadow-md"
                   onError={(e) => { e.target.onerror = null; e.target.src = '/images/no-image-available.png'; }}
-                /> */}
+                />
                 {isViewMode && fee.billScreenshotUrl && (
                   <a
                     href={`${backendBaseUrl}${fee.billScreenshotUrl}`}

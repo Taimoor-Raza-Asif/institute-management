@@ -26,7 +26,6 @@ const studentSchema = new mongoose.Schema({
   degreeName: { type: String, default: '-', trim: true },
   semester: { type: Number, default: null },
   feePerMonth: { type: Number, required: true },
-  siblings: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Student' }],
   feeStatus: { type: String, enum: ['Paid', 'Unpaid', 'Partial Paid'], default: 'Unpaid' },
   studentStatus: {
     type: String,
@@ -35,7 +34,15 @@ const studentSchema = new mongoose.Schema({
   },
   reason: { type: String, trim: true, default: '' },
   depositedAmount: { type: Number, default: 0 },
-  otherDues: { type: Number, default: 0 },     
+  otherDues: { type: Number, default: 0 },
+
+  cnicFrontUrl: { type: String, default: '' },
+  cnicBackUrl: { type: String, default: '' },
+  bFormUrl: { type: String, default: '' },
+  characterCertificateUrl: { type: String, default: '' },
+  previousClassResultUrl: { type: String, default: '' },
+  class10ResultUrl: { type: String, default: '' },
+  class12ResultUrl: { type: String, default: '' },
 }, { timestamps: true });
 
 export default mongoose.model('Student', studentSchema);

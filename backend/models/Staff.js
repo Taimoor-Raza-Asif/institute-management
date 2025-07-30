@@ -17,16 +17,16 @@ const attendanceSchema = new mongoose.Schema({
     note: { type: String, trim: true, default: '' },
 });
 
-const leaveRequestSchema = new mongoose.Schema({
-    type: { type: String, enum: ['Casual', 'Sick', 'Annual', 'Maternity', 'Paternity', 'Other'], required: true },
-    startDate: { type: Date, required: true },
-    endDate: { type: Date, required: true },
-    reason: { type: String, required: true, trim: true },
-    status: { type: String, enum: ['Pending', 'Approved', 'Rejected'], default: 'Pending' },
-    requestedAt: { type: Date, default: Date.now },
-    approvedRejectedAt: { type: Date },
-    approvedRejectedBy: { type: String, trim: true }, // e.g., Admin's name
-});
+// const leaveRequestSchema = new mongoose.Schema({
+//     type: { type: String, enum: ['Casual', 'Sick', 'Annual', 'Maternity', 'Paternity', 'Other'], required: true },
+//     startDate: { type: Date, required: true },
+//     endDate: { type: Date, required: true },
+//     reason: { type: String, required: true, trim: true },
+//     status: { type: String, enum: ['Pending', 'Approved', 'Rejected'], default: 'Pending' },
+//     requestedAt: { type: Date, default: Date.now },
+//     approvedRejectedAt: { type: Date },
+//     approvedRejectedBy: { type: String, trim: true }, // e.g., Admin's name
+// });
 
 const staffSchema = new mongoose.Schema({
     name: { type: String, required: true, trim: true },
@@ -63,7 +63,7 @@ const staffSchema = new mongoose.Schema({
 
     // Attendance & Leave
     attendanceRecords: [attendanceSchema],
-    leaveRequests: [leaveRequestSchema],
+    // leaveRequests: [leaveRequestSchema],
 
     // QR Code for attendance (secret key for each staff member)
     qrCodeSecret: { type: String, unique: true, sparse: true }, // Will be generated on creation

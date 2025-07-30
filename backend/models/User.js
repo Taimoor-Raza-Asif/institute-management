@@ -32,7 +32,7 @@ const userSchema = new mongoose.Schema({
       return this.role !== 'admin';
     },
     enum: {
-      values: ['Student', 'Staff'],
+      values: ['student', 'staff'],
       message: 'Role mapping must be either Student or Staff for non-admin roles.'
     }
   },

@@ -241,7 +241,7 @@ import {
   UserCircleIcon, Cog6ToothIcon, BriefcaseIcon, AcademicCapIcon,
   BanknotesIcon, ChartBarIcon, PowerIcon, HomeIcon,
   ClipboardDocumentListIcon, CalendarDaysIcon, BookOpenIcon,
-  Bars3Icon, XMarkIcon // Import Bars3Icon (hamburger) and XMarkIcon (close)
+  Bars3Icon, XMarkIcon, ClockIcon
 } from '@heroicons/react/24/outline';
 
 const Layout = ({ children, currentUser, onLogout }) => {
@@ -326,17 +326,17 @@ const Layout = ({ children, currentUser, onLogout }) => {
                   </li>
                   <li className="mb-2">
                     <Link to="/students" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
-                      <AcademicCapIcon className="h-5 w-5 mr-3" /> Students
+                      <AcademicCapIcon className="h-5 w-5 mr-3" /> Student Management
                     </Link>
                   </li>
                   <li className="mb-2">
                     <Link to="/staff" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
-                      <BriefcaseIcon className="h-5 w-5 mr-3" /> Staff
+                      <BriefcaseIcon className="h-5 w-5 mr-3" /> Staff Management
                     </Link>
                   </li>
                   <li className="mb-2">
                     <Link to="/fees" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
-                      <BanknotesIcon className="h-5 w-5 mr-3" /> Fees
+                      <BanknotesIcon className="h-5 w-5 mr-3" /> Fees Management
                     </Link>
                   </li>
                   <li className="mb-2">
@@ -350,8 +350,13 @@ const Layout = ({ children, currentUser, onLogout }) => {
                     </Link>
                   </li>
                   <li className="mb-2">
-                    <Link to="/admin/manage-leaves" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
-                      <ClipboardDocumentListIcon className="h-5 w-5 mr-3" /> Manage All Leaves
+                    <Link to="/admin/student-leaves" className="flex items-center p-2 rounded-md hover:bg-gray-700 transition duration-200">
+                      <CalendarDaysIcon className="h-5 w-5 mr-3" /> Student Leaves
+                    </Link>
+                  </li>
+                  <li className="mb-2">
+                    <Link to="/admin/staff-leaves" className="flex items-center p-2 rounded-md hover:bg-gray-700 transition duration-200">
+                      <ClockIcon className="h-5 w-5 mr-3" /> Staff Leaves
                     </Link>
                   </li>
                   {/* Add other admin modules here */}
@@ -381,6 +386,11 @@ const Layout = ({ children, currentUser, onLogout }) => {
                       <CalendarDaysIcon className="h-5 w-5 mr-3" /> My Attendance
                     </Link>
                   </li>
+                  <li className="mb-2">
+                    <Link to="/student/student-leaves" className="flex items-center p-2 rounded-md hover:bg-gray-700 transition duration-200">
+                      <CalendarDaysIcon className="h-5 w-5 mr-3" /> My Leave Request
+                    </Link>
+                  </li>
                 </>
               )}
 
@@ -388,8 +398,8 @@ const Layout = ({ children, currentUser, onLogout }) => {
               {currentUser.role === 'teacher' && (
                 <>
                   <li className="mb-2">
-                    <Link to="/staff/dashboard" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
-                      <HomeIcon className="h-5 w-5 mr-3" /> Staff Dashboard
+                    <Link to="/teacher/dashboard" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+                      <HomeIcon className="h-5 w-5 mr-3" /> Teacher Dashboard
                     </Link>
                   </li>
                   <li className="mb-2">
@@ -410,6 +420,16 @@ const Layout = ({ children, currentUser, onLogout }) => {
                   <li className="mb-2">
                     <Link to="/staff/my-data" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
                       <CalendarDaysIcon className="h-5 w-5 mr-3" /> My Attendance
+                    </Link>
+                  </li>
+                  <li className="mb-2">
+                    <Link to="/staff/staff-leaves" className="flex items-center p-2 rounded-md hover:bg-gray-700 transition duration-200">
+                      <ClockIcon className="h-5 w-5 mr-3" /> My Leave Request
+                    </Link>
+                  </li>
+                  <li className="mb-2">
+                    <Link to="/teacher/student-leaves" className="flex items-center p-2 rounded-md hover:bg-gray-700 transition duration-200">
+                      <CalendarDaysIcon className="h-5 w-5 mr-3" /> Student Leave Requests
                     </Link>
                   </li>
                 </>
@@ -448,6 +468,11 @@ const Layout = ({ children, currentUser, onLogout }) => {
                       <ChartBarIcon className="h-5 w-5 mr-3" /> Financial Reports
                     </Link>
                   </li>
+                  <li className="mb-2">
+                    <Link to="/staff/staff-leaves" className="flex items-center p-2 rounded-md hover:bg-gray-700 transition duration-200">
+                      <ClockIcon className="h-5 w-5 mr-3" /> My Leave Request
+                    </Link>
+                  </li>
                 </>
               )}
 
@@ -462,6 +487,11 @@ const Layout = ({ children, currentUser, onLogout }) => {
                   <li className="mb-2">
                     <Link to="/staff/my-data" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
                       <CalendarDaysIcon className="h-5 w-5 mr-3" /> My Attendance
+                    </Link>
+                  </li>
+                  <li className="mb-2">
+                    <Link to="/staff/staff-leaves" className="flex items-center p-2 rounded-md hover:bg-gray-700 transition duration-200">
+                      <ClockIcon className="h-5 w-5 mr-3" /> {currentUser.role === 'cook' ? 'Cook Leave Request' : 'Cleaner Leave Request'}
                     </Link>
                   </li>
                 </>

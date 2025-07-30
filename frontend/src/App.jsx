@@ -256,7 +256,8 @@ import StudentForm from './components/StudentForm';
 import StaffList from './components/StaffList';
 import StaffForm from './components/StaffForm';
 import FeeList from './components/FeeList';
-
+import LeaveList from './components/LeaveList';
+import StaffLeaveList from './components/StaffLeaveList';
 export const UserContext = createContext(null);
 
 const App = () => {
@@ -329,18 +330,23 @@ const App = () => {
           <Route path="/admin/dashboard" element={<PrivateRoute roles={['admin']}><AdminDashboard /></PrivateRoute>} />
           <Route path="/admin/users" element={<PrivateRoute roles={['admin']}><UserManagement /></PrivateRoute>} />
           <Route path="/admin/access-control" element={<PrivateRoute roles={['admin']}><AccessControlPanel /></PrivateRoute>} />
-          <Route path="/admin/manage-leaves" element={<PrivateRoute roles={['admin']}><StaffList /></PrivateRoute>} />
+          <Route path="/admin/student-leaves" element={<PrivateRoute roles={['admin']}><LeaveList /></PrivateRoute>} />
+          <Route path="/admin/staff-leaves" element={<PrivateRoute roles={['admin']}><StaffLeaveList /></PrivateRoute>} />
+
 
           {/* Student Module */}
           <Route path="/student/dashboard" element={<PrivateRoute roles={['student']}><StudentDashboard /></PrivateRoute>} />
           <Route path="/students/my-data" element={<PrivateRoute roles={['student']}><StudentForm isViewMode={true} /></PrivateRoute>} />
           <Route path="/student/attendance" element={<PrivateRoute roles={['student']}><p className="text-center py-8">Student Attendance Coming Soon!</p></PrivateRoute>} />
+          <Route path="/student/student-leaves" element={<PrivateRoute roles={['student']}><LeaveList /></PrivateRoute>} />
 
           {/* Teacher Module */}
           <Route path="/teacher/dashboard" element={<PrivateRoute roles={['teacher']}><TeacherDashboard /></PrivateRoute>} />
           <Route path="/staff/my-data" element={<PrivateRoute roles={['teacher', 'cook', 'cleaner', 'accountant']}><StaffForm isViewMode={true} /></PrivateRoute>} />
           <Route path="/students" element={<PrivateRoute roles={['admin', 'teacher']}><StudentList /></PrivateRoute>} />
           <Route path="/teacher/subjects" element={<PrivateRoute roles={['teacher']}><p className="text-center py-8">Teacher Subjects Management Coming Soon!</p></PrivateRoute>} />
+          <Route path="/staff/staff-leaves" element={<PrivateRoute roles={['admin', 'teacher', 'cook', 'cleaner', 'accountant']}><StaffLeaveList /></PrivateRoute>} />
+          <Route path="/teacher/student-leaves" element={<PrivateRoute roles={['teacher']}><LeaveList /></PrivateRoute>} />
 
           {/* Staff Module (Cook, Cleaner) */}
           <Route path="/staff/dashboard" element={<PrivateRoute roles={['cook', 'cleaner']}><StaffDashboard /></PrivateRoute>} />

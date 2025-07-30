@@ -1194,15 +1194,15 @@ export const getAllStudents = async (req, res) => {
     const filter = {};
 
     // Apply teacher-specific filtering if the user is a teacher
-    if (req.user.role === 'teacher') {
-      const teacherProfile = await Staff.findById(req.user.profileId);
-      if (!teacherProfile || !teacherProfile.subjectsTaught || teacherProfile.subjectsTaught.length === 0) {
-        // If teacher has no subjects, they see no students
-        return res.json([]);
-      }
-      // Filter students by subjects the teacher teaches
-      filter.majorSubject = { $in: teacherProfile.subjectsTaught };
-    }
+    // if (req.user.role === 'teacher') {
+    //   const teacherProfile = await Staff.findById(req.user.profileId);
+    //   if (!teacherProfile || !teacherProfile.subjectsTaught || teacherProfile.subjectsTaught.length === 0) {
+    //     // If teacher has no subjects, they see no students
+    //     return res.json([]);
+    //   }
+    //   // Filter students by subjects the teacher teaches
+    //   filter.majorSubject = { $in: teacherProfile.subjectsTaught };
+    // }
 
 
     if (searchTerm) {

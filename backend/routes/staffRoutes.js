@@ -118,10 +118,10 @@ router.delete('/:id', protect, authorizeRoles('admin'), deleteStaff);
 router.post('/attendance', protect, authorizeRoles('admin', 'teacher', 'accountant', 'cook', 'cleaner'), recordAttendance); // All staff can record attendance
 router.get('/:id/attendance', protect, authorizeRoles('admin', 'teacher', 'accountant', 'cook', 'cleaner'), getStaffAttendance); // Staff can view their own attendance, Admin can view any
 
-// Leave request routes
-router.post('/:id/leave-requests', protect, authorizeRoles('teacher', 'accountant', 'cook', 'cleaner'), requestLeave); // Staff submit leave request
-router.patch('/:staffId/leave-requests/:requestId', protect, authorizeRoles('admin'), updateLeaveStatus); // Admin updates leave status
-router.get('/leave-requests', protect, authorizeRoles('admin'), getAllLeaveRequests); // Admin views all leave requests
+// // Leave request routes
+// router.post('/:id/leave-requests', protect, authorizeRoles('teacher', 'accountant', 'cook', 'cleaner'), requestLeave); // Staff submit leave request
+// router.patch('/:staffId/leave-requests/:requestId', protect, authorizeRoles('admin'), updateLeaveStatus); // Admin updates leave status
+// router.get('/leave-requests', protect, authorizeRoles('admin'), getAllLeaveRequests); // Admin views all leave requests
 
 export default router;
 

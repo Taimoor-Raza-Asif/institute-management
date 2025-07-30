@@ -13,48 +13,6 @@ const __dirname = path.dirname(__filename);
 // Load environment variables from .env file
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
-
-// const protect = asyncHandler(async (req, res, next) => {
-//   let token;
-
-//   // Check if Authorization header exists and starts with 'Bearer'
-//   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-//     try {
-//       // Get token from header
-//       token = req.headers.authorization.split(' ')[1];
-//       console.log('Received token:', token);
-
-//       // Verify token
-//       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-//       console.log('Decoded token:', decoded);
-
-//       // Find user by ID from the token payload and attach to request object
-//       // .select('-password') excludes the password field from the fetched user object
-//       req.user = await User.findById(decoded.id).select('-password');
-
-//       // If user is not found, throw an error
-//       if (!req.user) {
-//         res.status(401);
-//         throw new Error('Not authorized, user not found');
-//       }
-
-//       next(); // Proceed to the next middleware/route handler
-//     } catch (error) {
-//       console.error('Token verification failed:', error.message);
-//       res.status(401);
-//       throw new Error('Not authorized, token failed');
-//     }
-//   }
-
-//   // If no token is found
-//   if (!token) {
-//     res.status(401);
-//     throw new Error('Not authorized, no token');
-//   }
-// });
-
-
-
 const protect = asyncHandler(async (req, res, next) => {
   let token;
 

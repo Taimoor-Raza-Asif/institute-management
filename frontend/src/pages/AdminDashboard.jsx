@@ -3,7 +3,7 @@ import React, { useContext } from 'react';
 import { UserContext } from '../App';
 import { Link } from 'react-router-dom';
 import { AcademicCapIcon, BriefcaseIcon, BanknotesIcon, UserCircleIcon, Cog6ToothIcon, ChartBarIcon } from '@heroicons/react/24/outline';
-
+import LeaveList from '../components/LeaveList';
 const AdminDashboard = () => {
   const { currentUser } = useContext(UserContext);
 

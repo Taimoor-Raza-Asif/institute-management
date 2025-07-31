@@ -105,6 +105,8 @@ const router = express.Router();
 
 // Get staff member's own data (for staff roles)
 router.get('/my-data/:id', protect, authorizeRoles('teacher', 'accountant', 'cook', 'cleaner'), getStaffById); // Ensure getStaffById handles req.user.profileId
+router.get('/profile/:id', protect, authorizeRoles('admin', 'teacher', 'accountant', 'cook', 'cleaner'), getStaffById);
+
 
 // CRUD operations for Staff (Admin only for full CRUD)
 router.post('/', upload.single('profilePicture'), createStaff);

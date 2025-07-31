@@ -12,7 +12,7 @@ import { protect, authorizeRoles } from '../middleware/authMiddleware.js'; // As
 const router = express.Router();
 
 // Create a leave request (Student can create for themselves, Admin/Teacher can create for others)
-router.post('/', protect, authorizeRoles('student', 'admin', 'teacher'), createLeaveRequest);
+router.post('/', protect, authorizeRoles('student', 'admin', 'teacher', 'accountant', 'cook', 'cleaner'), createLeaveRequest);
 
 // Get all leave requests (Admin can see all, Teacher might see relevant, Student sees own)
 router.get('/', protect, authorizeRoles('admin', 'teacher', 'student'), getAllLeaveRequests);

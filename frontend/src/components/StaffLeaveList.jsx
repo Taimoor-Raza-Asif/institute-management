@@ -560,7 +560,7 @@ const StaffLeaveList = () => {
                   Staff Name
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Employee ID
+                  CNIC
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Staff Type
@@ -595,7 +595,7 @@ const StaffLeaveList = () => {
                 leaveRequests.map((leave) => (
                   <tr key={leave._id}>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{leave.staffName}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{leave.employeeId}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{leave.staff.cnic}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{leave.staffType}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(leave.startDate).toLocaleDateString()}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(leave.endDate).toLocaleDateString()}</td>
@@ -624,12 +624,12 @@ const StaffLeaveList = () => {
                         <button onClick={(e) => { e.stopPropagation(); handleView(leave); }} className="text-gray-600 hover:text-gray-800 transition-colors duration-200 p-1 rounded-md hover:bg-gray-100" title="View Leave Details">
                           <EyeIcon className="h-5 w-5" />
                         </button>
-                        {(isAdmin || (isStaff && leave.status === 'Pending' && leave.staff._id === user.profileId)) && (
+                        {(isAdmin && (isStaff && leave.status === 'Pending' && leave.staff._id === user.profileId)) && (
                           <button onClick={(e) => { e.stopPropagation(); handleEdit(leave); }} className="text-blue-600 hover:text-blue-800 transition-colors duration-200 p-1 rounded-md hover:bg-blue-100" title="Edit Leave">
                             <PencilIcon className="h-5 w-5" />
                           </button>
                         )}
-                        {(isAdmin || (isStaff && leave.status === 'Pending' && leave.staff._id === user.profileId)) && (
+                        {(isAdmin && (isStaff && leave.status === 'Pending' && leave.staff._id === user.profileId)) && (
                           <button onClick={(e) => { e.stopPropagation(); handleDelete(leave._id); }} className="text-red-600 hover:text-red-800 transition-colors duration-200 p-1 rounded-md hover:bg-red-100" title="Delete Leave">
                             <TrashIcon className="h-5 w-5" />
                           </button>

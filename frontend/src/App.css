@@ -23,3 +23,40 @@
   scrollbar-width: thin; /* "auto" or "thin" */
   scrollbar-color: #888 #f1f1f1; /* thumb and track color */
 }
+
+/* Keyframes for the bouncing animation */
+@keyframes bounce {
+  0%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-15px); /* Adjust bounce height */
+  }
+}
+
+/* Base styles for dots */
+.dot {
+  animation: bounce 1.2s infinite ease-in-out;
+}
+
+/* Delay for each dot to create a staggered effect */
+.animate-bounce-delay-1 {
+  animation-delay: -0.32s; /* Adjust delay as needed */
+}
+
+.animate-bounce-delay-2 {
+  animation-delay: -0.16s; /* Adjust delay as needed */
+}
+
+.animate-bounce-delay-3 {
+  animation-delay: 0s; /* No delay for the last dot */
+}
+
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out forwards;
+}

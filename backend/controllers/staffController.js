@@ -435,6 +435,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import QRCode from 'qrcode';
 import { createInternalUser } from './userController.js'; 
+import asyncHandler from 'express-async-handler';
 
 // Helper to get __dirname in ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -669,22 +670,52 @@ export const getAllStaff = async (req, res) => {
   }
 };
 
-// --- GET STAFF BY ID ---
-export const getStaffById = async (req, res) => {
-  try {
-    const staff = await Staff.findById(req.params.id);
-    if (!staff) return res.status(404).json({ message: 'Staff not found' });
+// // --- GET STAFF BY ID ---
+// export const getStaffById = async (req, res) => {
+//   try {
+//     const staff = await Staff.findById(req.params.id);
+//     if (!staff) return res.status(404).json({ message: 'Staff not found' });
 
-    // Restrict access: Non-admin staff can only view their own profile
-    if (req.user.role !== 'admin' && req.user.profileId.toString() !== staff._id.toString()) {
-      return res.status(403).json({ message: 'Not authorized to view this staff profile.' });
+//     // Restrict access: Non-admin staff can only view their own profile
+//     if (req.user.role !== 'admin' && req.user.profileId.toString() !== staff._id.toString()) {
+//       return res.status(403).json({ message: 'Not authorized to view this staff profile.' });
+//     }
+
+//     res.json(staff);
+//   } catch (err) {
+//     res.status(500).json({ message: err.message });
+//   }
+// };
+
+// @desc    Get a single staff by ID
+// @route   GET /api/staff/:id
+// @access  Private (Admin can view any; Staff can view their own)
+export const getStaffById = asyncHandler(async (req, res) => {
+  const { id } = req.params; // ID of the staff profile being requested
+  const loggedInUserId = req.user.id;
+  const loggedInUserRole = req.user.role;
+  const loggedInUserProfileId = req.user.profileId?.toString();
+
+  let staff;
+
+  if (loggedInUserRole !== 'admin') { // For non-admins (teacher, accountant, cook, cleaner)
+    if (!loggedInUserProfileId || loggedInUserProfileId !== id) {
+      res.status(403);
+      throw new Error('You can only view your own profile.');
     }
-
-    res.json(staff);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+    staff = await Staff.findById(id);
+  } else {
+    // Admin can view any staff profile
+    staff = await Staff.findById(id);
   }
-};
+
+  if (staff) {
+    res.json(staff);
+  } else {
+    res.status(404);
+    throw new Error('Staff not found');
+  }
+});
 
 // --- UPDATE STAFF ---
 export const updateStaff = async (req, res) => {

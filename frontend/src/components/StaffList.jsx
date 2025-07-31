@@ -368,8 +368,8 @@ import api from '../api'; // Assuming you have an api.js setup for axios
 import Modal from './Modal'; // Reusing your existing Modal component
 import StaffForm from './StaffForm';
 import AttendanceModal from './AttendanceModal';
-import LeaveRequestModal from './LeaveRequestModal';
-import ManageLeaveModal from './ManageLeaveModal';
+// import LeaveRequestModal from './LeaveRequestModal';
+// import ManageLeaveModal from './ManageLeaveModal';
 import {
   PencilIcon, TrashIcon, PlusIcon, FunnelIcon, XMarkIcon,
   MagnifyingGlassIcon, EyeIcon, QrCodeIcon, CalendarDaysIcon,
@@ -387,8 +387,8 @@ const StaffList = () => {
 
   // Modals for specific actions
   const [attendanceModalOpen, setAttendanceModalOpen] = useState(false);
-  const [leaveRequestModalOpen, setLeaveRequestModalOpen] = useState(false);
-  const [manageLeaveModalOpen, setManageLeaveModalOpen] = useState(false);
+  // const [leaveRequestModalOpen, setLeaveRequestModalOpen] = useState(false);
+  // const [manageLeaveModalOpen, setManageLeaveModalOpen] = useState(false);
   const [selectedStaffForAttendanceOrLeave, setSelectedStaffForAttendanceOrLeave] = useState(null);
 
   // --- Filter States ---
@@ -490,20 +490,20 @@ const StaffList = () => {
     setAttendanceModalOpen(true);
   };
 
-  const handleOpenLeaveRequestModal = (staffMember) => {
-    setSelectedStaffForAttendanceOrLeave(staffMember);
-    setLeaveRequestModalOpen(true);
-  };
+  // const handleOpenLeaveRequestModal = (staffMember) => {
+  //   setSelectedStaffForAttendanceOrLeave(staffMember);
+  //   setLeaveRequestModalOpen(true);
+  // };
 
-  const handleOpenManageLeaveModal = () => {
-    setManageLeaveModalOpen(true);
-  };
+  // const handleOpenManageLeaveModal = () => {
+  //   setManageLeaveModalOpen(true);
+  // };
 
   const handleCloseModal = () => {
     setModalOpen(false);
     setAttendanceModalOpen(false);
-    setLeaveRequestModalOpen(false);
-    setManageLeaveModalOpen(false);
+    // setLeaveRequestModalOpen(false);
+    // setManageLeaveModalOpen(false);
     setEditingStaff(null);
     setSelectedStaffForAttendanceOrLeave(null);
     setIsViewMode(false); // Reset view mode on close
@@ -543,7 +543,7 @@ const StaffList = () => {
             {showAdvancedFilters ? 'Hide Filters' : 'Advanced Filters'}
           </button>
           {/* {canManageLeave &&  */}
-          {(
+          {/* {(
             <button
               onClick={handleOpenManageLeaveModal}
               className="flex items-center justify-center bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition duration-200 shadow-md w-full sm:w-auto"
@@ -552,7 +552,7 @@ const StaffList = () => {
               <ClipboardDocumentListIcon className="h-5 w-5 mr-2" />
               Manage Leaves
             </button>
-          )}
+          )} */}
 
           {/* {canAddStaff &&  */}
           {(
@@ -680,9 +680,9 @@ const StaffList = () => {
                         <button onClick={(e) => { e.stopPropagation(); handleOpenAttendanceModal(s); }} className="text-green-600 hover:text-green-800 transition-colors duration-200 p-1 rounded-md hover:bg-green-100" title="Mark Attendance">
                           <QrCodeIcon className="h-5 w-5" />
                         </button>
-                        <button onClick={(e) => { e.stopPropagation(); handleOpenLeaveRequestModal(s); }} className="text-orange-600 hover:text-orange-800 transition-colors duration-200 p-1 rounded-md hover:bg-orange-100" title="Request Leave">
+                        {/* <button onClick={(e) => { e.stopPropagation(); handleOpenLeaveRequestModal(s); }} className="text-orange-600 hover:text-orange-800 transition-colors duration-200 p-1 rounded-md hover:bg-orange-100" title="Request Leave">
                           <CalendarDaysIcon className="h-5 w-5" />
-                        </button>
+                        </button> */}
                       </>
                     )}
                   </td>
@@ -716,22 +716,22 @@ const StaffList = () => {
         />
       </Modal>
 
-      {/* Leave Request Modal */}
+      {/* Leave Request Modal
       <Modal isOpen={leaveRequestModalOpen} onClose={handleCloseModal}>
         <LeaveRequestModal
           staffMember={selectedStaffForAttendanceOrLeave}
           onClose={handleCloseModal}
           fetchStaff={fetchStaff} // To refresh list after leave request
         />
-      </Modal>
+      </Modal> */}
 
       {/* Manage Leave Modal (Admin View) */}
-      <Modal isOpen={manageLeaveModalOpen} onClose={handleCloseModal}>
+      {/* <Modal isOpen={manageLeaveModalOpen} onClose={handleCloseModal}>
         <ManageLeaveModal
           onClose={handleCloseModal}
           fetchStaff={fetchStaff} // To refresh staff data after leave approval/rejection
         />
-      </Modal>
+      </Modal> */}
     </div>
   );
 };

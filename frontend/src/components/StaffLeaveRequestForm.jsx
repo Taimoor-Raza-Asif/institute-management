@@ -18,7 +18,7 @@ const StaffLeaveRequestForm = ({ editingLeave, fetchLeaves, staffMembersForForm,
     pickerCnicNumber: '',
     leaveTime: '',
     expectedReturnTime: '',
-    status: 'Pending', // Default for staff, admin can set 'Approved' directly
+    status: 'Pending', 
     actualReturnTime: '',
   };
 
@@ -33,10 +33,13 @@ const StaffLeaveRequestForm = ({ editingLeave, fetchLeaves, staffMembersForForm,
         staffId: editingLeave.staff?._id || '',
         startDate: editingLeave.startDate ? new Date(editingLeave.startDate).toISOString().split('T')[0] : '',
         endDate: editingLeave.endDate ? new Date(editingLeave.endDate).toISOString().split('T')[0] : '',
-        leaveTime: editingLeave.leaveTime ? new Date(editingLeave.leaveTime).toISOString().slice(0, 16) : '',
-        expectedReturnTime: editingLeave.expectedReturnTime ? new Date(editingLeave.expectedReturnTime).toISOString().slice(0, 16) : '',
+        leaveTime: editingLeave.leaveTime || '',
+        expectedReturnTime: editingLeave.expectedReturnTime || '',
         actualReturnTime: editingLeave.actualReturnTime ? new Date(editingLeave.actualReturnTime).toISOString().slice(0, 16) : '',
         status: editingLeave.status || 'Pending',
+        staffName: editingLeave.staffName || '',
+        staffType: editingLeave.staffType || '',
+        
       });
     } else {
       // If adding, and it's a staff member applying for themselves, pre-fill staffId
@@ -66,8 +69,8 @@ const StaffLeaveRequestForm = ({ editingLeave, fetchLeaves, staffMembersForForm,
     if (!leave.expectedReturnTime) errors.expectedReturnTime = 'Expected Return Time is required.';
 
     // Picker details are optional for staff, but validate if provided
-    if (leave.pickerPhoneNumber && !/^\d{11}$/.test(leave.pickerPhoneNumber)) errors.pickerPhoneNumber = 'Valid 11-digit Phone Number is required.';
-    if (leave.pickerCnicNumber && !/^\d{13}$/.test(leave.pickerCnicNumber)) errors.pickerCnicNumber = 'Valid 13-digit CNIC is required.';
+    // if (leave.pickerPhoneNumber && !/^\d{11}$/.test(leave.pickerPhoneNumber)) errors.pickerPhoneNumber = 'Valid 11-digit Phone Number is required.';
+    // if (leave.pickerCnicNumber && !/^\d{13}$/.test(leave.pickerCnicNumber)) errors.pickerCnicNumber = 'Valid 13-digit CNIC is required.';
 
     setFieldErrors(errors);
     return Object.keys(errors).length === 0;
@@ -87,16 +90,17 @@ const StaffLeaveRequestForm = ({ editingLeave, fetchLeaves, staffMembersForForm,
         ...leave,
         startDate: leave.startDate ? new Date(leave.startDate).toISOString() : '',
         endDate: leave.endDate ? new Date(leave.endDate).toISOString() : '',
-        leaveTime: leave.leaveTime ? new Date(leave.leaveTime).toISOString() : null,
-        expectedReturnTime: leave.expectedReturnTime ? new Date(leave.expectedReturnTime).toISOString() : '',
+        leaveTime: leave.leaveTime || '',
+        expectedReturnTime: leave.expectedReturnTime || '',
         actualReturnTime: isStaffMode && leave.actualReturnTime ? new Date(leave.actualReturnTime).toISOString() : null,
       };
 
       if (editingLeave) {
         // Only admin can update existing staff leaves, including status and return time
         await api.put(`/staff-leave/${editingLeave._id}`, {
-            status: payload.status,
-            actualReturnTime: payload.actualReturnTime // This can be null to unset
+            // status: payload.status,
+            // actualReturnTime: payload.actualReturnTime // This can be null to unset
+            ...payload,
         });
       } else {
         await api.post('/staff-leave', payload);
@@ -135,14 +139,14 @@ const StaffLeaveRequestForm = ({ editingLeave, fetchLeaves, staffMembersForForm,
               name="staffId"
               value={leave.staffId}
               onChange={handleChange}
-              disabled={isViewMode || editingLeave} // Staff cannot change for existing, admin can't change staff ID either
+              disabled={isViewMode} // Staff cannot change for existing, admin can't change staff ID either
               className={`mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm ${fieldErrors.staffId ? 'border-red-500' : ''} ${isViewMode || editingLeave ? 'bg-gray-50' : ''}`}
               required
             >
               <option value="">Select Staff</option>
               {staffMembersForForm.map(staffMember => (
                 <option key={staffMember._id} value={staffMember._id}>
-                  {staffMember.name} ({staffMember.employeeId})
+                  {staffMember.name} ({staffMember.cnic})
                 </option>
               ))}
             </select>
@@ -155,9 +159,9 @@ const StaffLeaveRequestForm = ({ editingLeave, fetchLeaves, staffMembersForForm,
         {isViewMode && editingLeave?.staff && ( // Display staff details in view mode
           <div className="bg-gray-50 p-4 rounded-md border border-gray-200">
             <h3 className="text-lg font-semibold text-gray-800 mb-2">Staff Details</h3>
-            <p><span className="font-medium">Name:</span> {editingLeave.staff.name}</p>
-            <p><span className="font-medium">Employee ID:</span> {editingLeave.staff.employeeId}</p>
-            <p><span className="font-medium">Staff Type:</span> {editingLeave.staff.staffType}</p>
+            <p><span className="font-medium">Name:</span> {editingLeave.staffName}</p>
+            <p><span className="font-medium">Staff Type:</span> {editingLeave.staffType}</p>
+            <p><span className="font-medium">CNIC:</span> {editingLeave.staff.cnic}</p>
           </div>
         )}
 
@@ -195,7 +199,7 @@ const StaffLeaveRequestForm = ({ editingLeave, fetchLeaves, staffMembersForForm,
             {fieldErrors.endDate && <p className="text-red-500 text-xs mt-1">{fieldErrors.endDate}</p>}
           </div>
           <div>
-            <label htmlFor="leaveTime" className="block text-sm font-medium text-gray-700 mb-1">
+            {/* <label htmlFor="leaveTime" className="block text-sm font-medium text-gray-700 mb-1">
               Leave Time (Optional, if specific time)
             </label>
             <input
@@ -206,10 +210,22 @@ const StaffLeaveRequestForm = ({ editingLeave, fetchLeaves, staffMembersForForm,
               onChange={handleChange}
               disabled={isViewMode || (!isStaffMode && editingLeave)}
               className={`mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm ${isViewMode || (!isStaffMode && editingLeave) ? 'bg-gray-50' : ''}`}
-            />
+            /> */}
+             <label htmlFor="leaveTime" className="block text-sm font-medium text-gray-700 mb-1">
+                Leave Time (on Start Date)
+              </label>
+              <input
+                type="time"
+                id="leaveTime"
+                name="leaveTime"
+                value={leave.leaveTime}
+                onChange={handleChange}
+              disabled={isViewMode || (!isStaffMode && editingLeave)}
+              className={`mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm ${isViewMode || (!isStaffMode && editingLeave) ? 'bg-gray-50' : ''}`}
+              />
           </div>
           <div>
-            <label htmlFor="expectedReturnTime" className="block text-sm font-medium text-gray-700 mb-1">
+            {/* <label htmlFor="expectedReturnTime" className="block text-sm font-medium text-gray-700 mb-1">
               Expected Return Time <span className="text-red-500">*</span>
             </label>
             <input
@@ -221,7 +237,19 @@ const StaffLeaveRequestForm = ({ editingLeave, fetchLeaves, staffMembersForForm,
               disabled={isViewMode || (!isStaffMode && editingLeave)}
               className={`mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm ${fieldErrors.expectedReturnTime ? 'border-red-500' : ''} ${isViewMode || (!isStaffMode && editingLeave) ? 'bg-gray-50' : ''}`}
               required
-            />
+            /> */}
+            <label htmlFor="expectedReturnTime" className="block text-sm font-medium text-gray-700 mb-1">
+                Expected Return Time (on End Date)
+              </label>
+              <input
+                type="time"
+                id="expectedReturnTime"
+                name="expectedReturnTime"
+                value={leave.expectedReturnTime}
+                onChange={handleChange}
+               disabled={isViewMode || (!isStaffMode && editingLeave)}
+              className={`mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm ${isViewMode || (!isStaffMode && editingLeave) ? 'bg-gray-50' : ''}`}
+              />
             {fieldErrors.expectedReturnTime && <p className="text-red-500 text-xs mt-1">{fieldErrors.expectedReturnTime}</p>}
           </div>
         </div>

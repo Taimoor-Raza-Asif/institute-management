@@ -250,7 +250,7 @@ import AccountantDashboard from './pages/AccountantDashboard';
 import UserManagement from './pages/UserManagement';
 import AccessControlPanel from './pages/AccessControlPanel';
 import Unauthorized from './pages/Unauthorized';
-import Layout from './components/Layout'; // The layout component
+import Layout from './components/Layout';
 import StudentList from './components/StudentList';
 import StudentForm from './components/StudentForm';
 import StaffList from './components/StaffList';
@@ -258,6 +258,10 @@ import StaffForm from './components/StaffForm';
 import FeeList from './components/FeeList';
 import LeaveList from './components/LeaveList';
 import StaffLeaveList from './components/StaffLeaveList';
+import ProfileScreen from './components/ProfileScreen';
+import AttendanceMarking from './components/AttendanceMarking';
+import MyAttendance from './components/MyAttendance';
+import AllAttendanceRecords from './components/AllAttendanceRecords';
 export const UserContext = createContext(null);
 
 const App = () => {
@@ -325,6 +329,11 @@ const App = () => {
 
           {/* Protected Routes - Wrapped by PrivateRoute which includes Layout */}
           <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+          <Route path="/profile/:role/:id" element={<PrivateRoute><ProfileScreen /> </PrivateRoute>} />
+
+          <Route path="/attendance/mark" element={<PrivateRoute><AttendanceMarking /></PrivateRoute>} />
+          <Route path="/attendance/my/:id" element={<PrivateRoute><MyAttendance /></PrivateRoute>} /> 
+          <Route path="/attendance/all" element={<PrivateRoute><AllAttendanceRecords /></PrivateRoute>} />
 
           {/* Admin Routes */}
           <Route path="/admin/dashboard" element={<PrivateRoute roles={['admin']}><AdminDashboard /></PrivateRoute>} />

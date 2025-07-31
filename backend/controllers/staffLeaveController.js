@@ -245,7 +245,9 @@ export const createStaffLeaveRequest = asyncHandler(async (req, res) => {
 
   // Determine the staff member for whom the leave is being created
   let targetStaffId = staffId;
+  let requestedByType = 'admin';
   if (requestedByUserRole !== 'admin') {
+    requestedByType = 'teacher';
     // If not admin, the staffId must match the logged-in user's profileId
     if (!req.user.profileId || req.user.profileId.toString() !== staffId) {
       res.status(403);
@@ -270,15 +272,20 @@ export const createStaffLeaveRequest = asyncHandler(async (req, res) => {
     res.status(400);
     throw new Error('End date cannot be before start date.');
   }
-  if (leaveTime && expectedReturn && new Date(`2000-01-01T${leaveTime}`) > new Date(`2000-01-01T${expectedReturn}`)) {
-    res.status(400);
-    throw new Error('Expected return time cannot be before leave time on the same day.');
-  }
+  // if (leaveTime && expectedReturn && new Date(`2000-01-01T${leaveTime}`) > new Date(`2000-01-01T${expectedReturn}`)) {
+  //   res.status(400);
+  //   throw new Error('Expected return time cannot be before leave time on the same day.');
+  // }
+
+  let initialStatus = 'Pending';
+    // If an Admin or Teacher creates the request, it's auto-approved by them
+  if (requestedByType === 'admin') {
+    initialStatus = 'Approved';}
 
   const staffLeaveRequest = await StaffLeaveRequest.create({
     staff: staffMember._id,
     staffName: staffMember.name,
-    employeeId: staffMember.employeeId,
+    cnic: staffMember.cnic,
     staffType: staffMember.staffType,
     startDate,
     endDate,
@@ -290,7 +297,7 @@ export const createStaffLeaveRequest = asyncHandler(async (req, res) => {
     pickerCnicNumber,
     leaveTime,
     expectedReturnTime,
-    status: 'Pending', // Default status
+    status: initialStatus, // Default status
     requestedBy: requestedByUserId, // Link to the User _id who made the request
     requestedByType: requestedByUserRole, // Store the role of the requester
   });

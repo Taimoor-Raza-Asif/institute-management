@@ -485,12 +485,12 @@ const LeaveRequestForm = ({ editingLeave, fetchLeaves, studentsForForm, onClose,
   // Determine if the current user is a student
   const isStudentUser = user?.role === 'student';
 
-  const [viewStudentDetails, setViewStudentDetails] = useState(null); 
+  const [viewStudentDetails, setViewStudentDetails] = useState(null);
 
   useEffect(() => {
     if (editingLeave) {
 
- const foundStudent = studentsForForm.find(
+      const foundStudent = studentsForForm.find(
         (s) => s._id === (editingLeave.student?._id || editingLeave.studentId)
       );
       setViewStudentDetails(foundStudent); // Set the full student details
@@ -520,7 +520,7 @@ const LeaveRequestForm = ({ editingLeave, fetchLeaves, studentsForForm, onClose,
       if (isStudentUser && user?.profileId) {
         setLeave(prev => ({ ...prev, studentId: user.profileId }));
       }
-       setViewStudentDetails(null); 
+      setViewStudentDetails(null);
     }
     setFormError('');
     setFieldErrors({});
@@ -636,23 +636,23 @@ const LeaveRequestForm = ({ editingLeave, fetchLeaves, studentsForForm, onClose,
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
-             {isViewMode && editingLeave && ( // Changed editingLeave.student to just editingLeave as top-level fields are used
-        <div className="bg-gray-50 p-4 rounded-md border border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-800 mb-2">Student Details</h3>
-          {/* Use the top-level properties directly from editingLeave */}
-          <p><span className="font-medium">Name:</span> {editingLeave.studentName}</p>
-          <p><span className="font-medium">Father Name:</span> {editingLeave.fatherName}</p>
-          <p><span className="font-medium">CNIC:</span> {editingLeave.student?.cnic}</p> {/* Keep student?.cnic as CNIC is in the nested student object */}
-          <p><span className="font-medium">Class:</span>
-            {viewStudentDetails
-              ? (viewStudentDetails.class === 'Class'
-                ? `Class ${viewStudentDetails.classNumber}`
-                : `BS Sem ${viewStudentDetails.semester}`)
-              : editingLeave.studentClass // Fallback to editingLeave.studentClass if full details not found
-            }
-          </p>
-        </div>
-      )}
+        {isViewMode && editingLeave && ( // Changed editingLeave.student to just editingLeave as top-level fields are used
+          <div className="bg-gray-50 p-4 rounded-md border border-gray-200">
+            <h3 className="text-lg font-semibold text-gray-800 mb-2">Student Details</h3>
+            {/* Use the top-level properties directly from editingLeave */}
+            <p><span className="font-medium">Name:</span> {editingLeave.studentName}</p>
+            <p><span className="font-medium">Father Name:</span> {editingLeave.fatherName}</p>
+            <p><span className="font-medium">CNIC:</span> {editingLeave.student?.cnic}</p> {/* Keep student?.cnic as CNIC is in the nested student object */}
+            <p><span className="font-medium">Class:</span>
+              {viewStudentDetails
+                ? (viewStudentDetails.class === 'Class'
+                  ? `Class ${viewStudentDetails.classNumber}`
+                  : `BS Sem ${viewStudentDetails.semester}`)
+                : editingLeave.studentClass // Fallback to editingLeave.studentClass if full details not found
+              }
+            </p>
+          </div>
+        )}
         {/* Student Selection (for Admin/Teacher) or Display (for Student) */}
         <div className="border border-gray-200 p-4 rounded-md bg-gray-50 mb-6">
           <label htmlFor="studentId" className="block text-sm font-medium text-gray-700 mb-1">
@@ -679,8 +679,8 @@ const LeaveRequestForm = ({ editingLeave, fetchLeaves, studentsForForm, onClose,
             //   {editingLeave?.student?.name || user?.name || 'N/A'} (CNIC: {editingLeave?.student?.cnic || user?.cnic || 'N/A'})
             // </p>
             <p className={`mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm sm:text-sm bg-gray-100`}>
-            {editingLeave?.studentName || user?.name || 'N/A'} (CNIC: {editingLeave?.student?.cnic || user?.cnic || 'N/A'})
-          </p>
+              {editingLeave?.studentName || user?.name || 'N/A'} (CNIC: {editingLeave?.student?.cnic || user?.cnic || 'N/A'})
+            </p>
           )}
           {fieldErrors.studentId && <p className="text-red-500 text-xs mt-1">{fieldErrors.studentId}</p>}
         </div>

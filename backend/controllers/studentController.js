@@ -996,6 +996,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { createInternalUser } from './userController.js';
+import asyncHandler from 'express-async-handler';
 
 // Helper to get __dirname in ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -1248,28 +1249,65 @@ export const getAllStudents = async (req, res) => {
   }
 };
 
-// --- GET STUDENT BY ID ---
-export const getStudentById = async (req, res) => {
-  try {
-    const student = await Student.findById(req.params.id);
+// // --- GET STUDENT BY ID ---
+// export const getStudentById = async (req, res) => {
+//   try {
+//     const student = await Student.findById(req.params.id);
 
-    if (!student) {
-      return res.status(404).json({ message: 'Student not found' });
+//     if (!student) {
+//       return res.status(404).json({ message: 'Student not found' });
+//     }
+
+//     // A student can only view their own profile
+//     if (req.user.role === 'student' && req.user.profileId.toString() !== student._id.toString()) {
+//       return res.status(403).json({ message: 'Not authorized to view this student profile.' });
+//     }
+//     // Teachers can view any student (filtered by subject in getAllStudents)
+//     // Admin can view any student
+
+//     res.json(student);
+//   } catch (err) {
+//     console.error("Error getting student by ID:", err);
+//     res.status(500).json({ message: err.message });
+//   }
+// };
+
+// @desc    Get a single student by ID
+// @route   GET /api/students/:id
+// @access  Private (Admin, Teacher, Accountant can view any; Student can view their own)
+export const getStudentById = asyncHandler(async (req, res) => {
+  const { id } = req.params; // ID of the student profile being requested
+  const loggedInUserId = req.user.id; // ID of the logged-in User document
+  const loggedInUserRole = req.user.role;
+  const loggedInUserProfileId = req.user.profileId?.toString(); // Profile ID of the logged-in user
+
+  let student;
+
+  // If the logged-in user is a student, they can ONLY view their own profile.
+  // The 'id' in params must match their profileId.
+  if (loggedInUserRole === 'student') {
+    if (!loggedInUserProfileId || loggedInUserProfileId !== id) {
+      res.status(403); // Forbidden
+      throw new Error('Students can only view their own profile.');
     }
-
-    // A student can only view their own profile
-    if (req.user.role === 'student' && req.user.profileId.toString() !== student._id.toString()) {
-      return res.status(403).json({ message: 'Not authorized to view this student profile.' });
-    }
-    // Teachers can view any student (filtered by subject in getAllStudents)
-    // Admin can view any student
-
-    res.json(student);
-  } catch (err) {
-    console.error("Error getting student by ID:", err);
-    res.status(500).json({ message: err.message });
+    student = await Student.findById(id);
+  } else if (['admin', 'teacher', 'accountant'].includes(loggedInUserRole)) {
+    // Admin, Teacher, Accountant can view any student profile
+    student = await Student.findById(id);
+  } else {
+    res.status(403); // Forbidden if role is not allowed
+    throw new Error('Not authorized to view student profiles.');
   }
-};
+
+  if (student) {
+    res.json(student);
+  } else {
+    res.status(404);
+    throw new Error('Student not found');
+  }
+});
+
+
 
 // // --- CREATE STUDENT ---
 // export const createStudent = async (req, res) => {

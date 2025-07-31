@@ -15,7 +15,7 @@ const staffLeaveRequestSchema = new mongoose.Schema(
     },
     employeeId: { // Storing for easier display, can be populated
       type: String,
-      required: true,
+      // required: true,
       trim: true
     },
     staffType: { // Storing for easier display, can be populated
@@ -61,13 +61,19 @@ const staffLeaveRequestSchema = new mongoose.Schema(
       trim: true,
       match: [/^(\d{13})?$/, 'Please enter a valid 13-digit CNIC number or leave empty'] // Optional, but validate if present
     },
-    leaveTime: { // Specific time on the start date when staff leaves
-      type: Date,
-      default: null // Optional
+    // leaveTime: { // Specific time on the start date when staff leaves
+    //   type: Date,
+    //   default: null // Optional
+    // },
+    // expectedReturnTime: { // Specific time on the end date when staff is expected to return
+    //   type: Date,
+    //   required: [true, 'Expected return time is required'],
+    // },
+    leaveTime: { // Time student leaves on startDate
+      type: String, // HH:MM format
     },
-    expectedReturnTime: { // Specific time on the end date when staff is expected to return
-      type: Date,
-      required: [true, 'Expected return time is required'],
+    expectedReturnTime: { // Time student returns on endDate
+      type: String, // HH:MM format
     },
     actualReturnTime: { // Actual time staff returned, updated by admin
       type: Date,
@@ -99,7 +105,7 @@ const staffLeaveRequestSchema = new mongoose.Schema(
 );
 
 // Add a pre-save hook to ensure expectedReturnTime is after startDate
-staffLeaveRequestSchema.pre('save', function(next) {
+staffLeaveRequestSchema.pre('save', function (next) {
   if (this.startDate && this.expectedReturnTime && new Date(this.startDate) > new Date(this.expectedReturnTime)) {
     next(new Error('Expected return time must be after the start date.'));
   }
@@ -107,7 +113,7 @@ staffLeaveRequestSchema.pre('save', function(next) {
 });
 
 // A virtual property for 'isPastDue' for display purposes (red status)
-staffLeaveRequestSchema.virtual('isPastDue').get(function() {
+staffLeaveRequestSchema.virtual('isPastDue').get(function () {
   if (this.isReturned) return false; // Already returned, not past due
   return this.status === 'Approved' && this.expectedReturnTime && this.expectedReturnTime < new Date();
 });

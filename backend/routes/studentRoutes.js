@@ -231,6 +231,9 @@ const studentUploadFields = upload.fields([
 // Get student's own data (for student role)
 router.get('/my-data/:id', protect, authorizeRoles('student', 'admin', 'teacher', 'accountant'), getStudentById); // Ensure getStudentById handles req.user.profileId
 
+router.get('/profile/:id', protect, authorizeRoles('student', 'admin', 'teacher', 'accountant'), getStudentById);
+
+
 // Admin and Teacher can view all students (Teacher can only view their subjects students - logic in controller)
 router.get('/', protect, authorizeRoles('admin', 'teacher', 'accountant'), getAllStudents);
 

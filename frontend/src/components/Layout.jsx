@@ -241,7 +241,7 @@ import {
   UserCircleIcon, Cog6ToothIcon, BriefcaseIcon, AcademicCapIcon,
   BanknotesIcon, ChartBarIcon, PowerIcon, HomeIcon,
   ClipboardDocumentListIcon, CalendarDaysIcon, BookOpenIcon,
-  Bars3Icon, XMarkIcon, ClockIcon
+  Bars3Icon, XMarkIcon, ClockIcon, ClipboardDocumentCheckIcon
 } from '@heroicons/react/24/outline';
 
 const Layout = ({ children, currentUser, onLogout }) => {
@@ -251,6 +251,20 @@ const Layout = ({ children, currentUser, onLogout }) => {
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
+
+
+  const getMyProfileLink = () => {
+    if (!currentUser || !currentUser.profileId) return null; // No profile for admin or if profileId is missing
+
+    if (currentUser.role === 'student') {
+      return `/profile/student/${currentUser.profileId}`;
+    } else if (['admin', 'teacher', 'accountant', 'cook', 'cleaner'].includes(currentUser.role)) {
+      return `/profile/staff/${currentUser.profileId}`;
+    }
+    return null; // For admin or other roles not meant to have a 'My Profile' link
+  };
+
+  const myProfileLink = getMyProfileLink();
 
   return (
     <div className="flex h-screen bg-gray-100 font-inter">
@@ -316,6 +330,14 @@ const Layout = ({ children, currentUser, onLogout }) => {
           </div>
           <nav className="flex-grow pt-12">
             <ul>
+              {myProfileLink && (
+                <li className="mb-2">
+                  <Link to={myProfileLink} className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+                    <UserCircleIcon className="h-5 w-5 mr-3" /> My Profile
+                  </Link>
+                </li>
+              )}
+
               {/* Admin Links */}
               {currentUser.role === 'admin' && (
                 <>
@@ -359,7 +381,16 @@ const Layout = ({ children, currentUser, onLogout }) => {
                       <ClockIcon className="h-5 w-5 mr-3" /> Staff Leaves
                     </Link>
                   </li>
-                  {/* Add other admin modules here */}
+                  <li className="mb-2">
+                    <Link to="/attendance/mark" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+                      <ClipboardDocumentCheckIcon className="h-5 w-5 mr-3" /> Mark Attendance
+                    </Link>
+                  </li>
+                  <li className="mb-2">
+                    <Link to="/attendance/all" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+                      <ChartBarIcon className="h-5 w-5 mr-3" /> All Attendance Records
+                    </Link>
+                  </li>
                 </>
               )}
 
@@ -371,18 +402,18 @@ const Layout = ({ children, currentUser, onLogout }) => {
                       <HomeIcon className="h-5 w-5 mr-3" /> Student Dashboard
                     </Link>
                   </li>
-                  <li className="mb-2">
+                  {/* <li className="mb-2">
                     <Link to="/students/my-data" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
                       <UserCircleIcon className="h-5 w-5 mr-3" /> My Profile
                     </Link>
-                  </li>
+                  </li> */}
                   <li className="mb-2">
                     <Link to="/fees" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
                       <BanknotesIcon className="h-5 w-5 mr-3" /> My Fees
                     </Link>
                   </li>
                   <li className="mb-2">
-                    <Link to="/student/attendance" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+                    <Link to={`/attendance/my/${currentUser.profileId}`} className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
                       <CalendarDaysIcon className="h-5 w-5 mr-3" /> My Attendance
                     </Link>
                   </li>
@@ -402,11 +433,11 @@ const Layout = ({ children, currentUser, onLogout }) => {
                       <HomeIcon className="h-5 w-5 mr-3" /> Teacher Dashboard
                     </Link>
                   </li>
-                  <li className="mb-2">
+                  {/* <li className="mb-2">
                     <Link to="/staff/my-data" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
                       <UserCircleIcon className="h-5 w-5 mr-3" /> My Profile
                     </Link>
-                  </li>
+                  </li> */}
                   <li className="mb-2">
                     <Link to="/students" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
                       <AcademicCapIcon className="h-5 w-5 mr-3" /> My Students
@@ -418,7 +449,17 @@ const Layout = ({ children, currentUser, onLogout }) => {
                     </Link>
                   </li>
                   <li className="mb-2">
-                    <Link to="/staff/my-data" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+                    <Link to="/attendance/mark" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+                      <ClipboardDocumentCheckIcon className="h-5 w-5 mr-3" /> Mark Attendance
+                    </Link>
+                  </li>
+                  <li className="mb-2">
+                    <Link to="/attendance/all" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+                      <ChartBarIcon className="h-5 w-5 mr-3" /> All Attendance Records
+                    </Link>
+                  </li>
+                  <li className="mb-2">
+                    <Link to={`/attendance/my/${currentUser.profileId}`} className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
                       <CalendarDaysIcon className="h-5 w-5 mr-3" /> My Attendance
                     </Link>
                   </li>
@@ -448,9 +489,14 @@ const Layout = ({ children, currentUser, onLogout }) => {
                       <BanknotesIcon className="h-5 w-5 mr-3" /> Fees Management
                     </Link>
                   </li>
-                  <li className="mb-2">
+                  {/* <li className="mb-2">
                     <Link to="/staff/my-data" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
                       <UserCircleIcon className="h-5 w-5 mr-3" /> My Profile
+                    </Link>
+                  </li> */}
+                  <li className="mb-2">
+                    <Link to={`/attendance/my/${currentUser.profileId}`} className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+                      <CalendarDaysIcon className="h-5 w-5 mr-3" /> My Attendance
                     </Link>
                   </li>
                   <li className="mb-2">
@@ -479,19 +525,19 @@ const Layout = ({ children, currentUser, onLogout }) => {
               {/* Cook/Cleaner Links */}
               {(currentUser.role === 'cook' || currentUser.role === 'cleaner') && (
                 <>
-                  <li className="mb-2">
+                  {/* <li className="mb-2">
                     <Link to="/staff/my-data" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
                       <UserCircleIcon className="h-5 w-5 mr-3" /> My Profile
                     </Link>
-                  </li>
+                  </li> */}
                   <li className="mb-2">
-                    <Link to="/staff/my-data" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+                    <Link to={`/attendance/my/${currentUser.profileId}`} className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
                       <CalendarDaysIcon className="h-5 w-5 mr-3" /> My Attendance
                     </Link>
                   </li>
                   <li className="mb-2">
                     <Link to="/staff/staff-leaves" className="flex items-center p-2 rounded-md hover:bg-gray-700 transition duration-200">
-                      <ClockIcon className="h-5 w-5 mr-3" /> {currentUser.role === 'cook' ? 'Cook Leave Request' : 'Cleaner Leave Request'}
+                      <ClockIcon className="h-5 w-5 mr-3" /> {currentUser.role === 'cook' ? 'My Leave Request' : 'My Leave Request'}
                     </Link>
                   </li>
                 </>

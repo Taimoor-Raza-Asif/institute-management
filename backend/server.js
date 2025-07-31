@@ -50,6 +50,7 @@ import staffRoutes from './routes/staffRoutes.js';
 import userRoutes from './routes/userRoutes.js'; // <--- NEW: Import user routes
 import leaveRoutes from './routes/leaveRoutes.js'; // Import the new routes
 import staffLeaveRoutes from './routes/staffLeaveRoutes.js';
+import attendanceRoutes from './routes/attendanceRoutes.js';
 
 // Helper to get __filename and __dirname in ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -75,7 +76,7 @@ app.use('/api/staff', staffRoutes);     // Staff management routes
 app.use('/api/users', userRoutes);      // <--- NEW: User management routes
 app.use('/api/leave', leaveRoutes);
 app.use('/api/staff-leave', staffLeaveRoutes); 
-
+app.use('/api/attendance', attendanceRoutes);
 // Define the port for the server
 const PORT = process.env.PORT || 5000;
 

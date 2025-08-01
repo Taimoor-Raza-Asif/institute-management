@@ -590,7 +590,7 @@ const AttendanceMarking = () => {
                     className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                   >
                     <option value="">All</option>
-                    {[...Array(7).keys()].map(i => (
+                    {[...Array(8).keys()].map(i => (
                       <option key={i + 1} value={i + 1}>{i + 1}</option>
                     ))}
                   </select>
@@ -696,7 +696,7 @@ const AttendanceMarking = () => {
                     </td>
                     {attendanceType === 'Student' && (
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {member.class === 'Class' ? `Class ${member.classNumber}` : `${member.degreeName} Sem ${member.semester}`}
+                        {member.class === 'Class' ? `Class ${member.classNumber}` : `BS ${member.degreeName} Sem ${member.semester}`}
                       </td>
                     )}
                     {attendanceType === 'Staff' && (

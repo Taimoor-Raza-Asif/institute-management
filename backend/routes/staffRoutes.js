@@ -74,6 +74,7 @@ import {
   requestLeave,
   updateLeaveStatus,
   getAllLeaveRequests,
+  assignClasses
 } from '../controllers/staffController.js';
 import multer from 'multer';
 import path from 'path';
@@ -119,6 +120,8 @@ router.delete('/:id', protect, authorizeRoles('admin'), deleteStaff);
 // Attendance routes
 router.post('/attendance', protect, authorizeRoles('admin', 'teacher', 'accountant', 'cook', 'cleaner'), recordAttendance); // All staff can record attendance
 router.get('/:id/attendance', protect, authorizeRoles('admin', 'teacher', 'accountant', 'cook', 'cleaner'), getStaffAttendance); // Staff can view their own attendance, Admin can view any
+
+router.put('/:id/assign-classes', protect, authorizeRoles('admin'), assignClasses);
 
 // // Leave request routes
 // router.post('/:id/leave-requests', protect, authorizeRoles('teacher', 'accountant', 'cook', 'cleaner'), requestLeave); // Staff submit leave request

@@ -5,7 +5,7 @@ import { UserContext } from '../App';
 import Loader from '../components/Loader';
 import Message from '../components/Message';
 import {
-  CalendarDaysIcon, UserGroupIcon, FunnelIcon, ChartBarIcon, CheckCircleIcon,  XCircleIcon 
+  CalendarDaysIcon, UserGroupIcon, FunnelIcon, ChartBarIcon, CheckCircleIcon, XCircleIcon
 } from '@heroicons/react/24/outline';
 
 const AllAttendanceRecords = () => {
@@ -42,7 +42,7 @@ const AllAttendanceRecords = () => {
   }, [filterType, filterStatus, filterStartDate, filterEndDate]);
 
   useEffect(() => {
-    if (user?.role === 'admin') {
+    if (user?.role === 'admin' || user?.role === 'teacher') {
       fetchAllAttendance();
     } else {
       setError('You are not authorized to view all attendance records.');
@@ -81,7 +81,7 @@ const AllAttendanceRecords = () => {
 
       {error && <Message type="error">{error}</Message>}
 
-      {user?.role === 'admin' && (
+      {((user?.role === 'teacher')  || user?.role === 'admin') && (
         <div className="bg-gray-50 p-4 rounded-md shadow-inner mb-6">
           <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
             <FunnelIcon className="h-5 w-5 mr-2 text-indigo-600" /> Filters
@@ -95,9 +95,9 @@ const AllAttendanceRecords = () => {
                 onChange={(e) => setFilterType(e.target.value)}
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
               >
-                <option value="">All</option>
+                {user?.role === 'admin' && (<option value="">All</option>)}
                 <option value="Student">Student</option>
-                <option value="Staff">Staff</option>
+                {user?.role === 'admin' && (<option value="Staff">Staff</option>)}
               </select>
             </div>
             <div>
@@ -194,6 +194,8 @@ const AllAttendanceRecords = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {record.user?.cnic || 'N/A'}
+
+                    {console.log(record)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
                     <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(record.status)} flex items-center`}>
@@ -201,7 +203,7 @@ const AllAttendanceRecords = () => {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {record.markedBy?.name || 'N/A'}
+                    {record.markedBy?.role || 'N/A'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {new Date(record.markedAt).toLocaleString()}

@@ -17,16 +17,6 @@ const attendanceSchema = new mongoose.Schema({
     note: { type: String, trim: true, default: '' },
 });
 
-// const leaveRequestSchema = new mongoose.Schema({
-//     type: { type: String, enum: ['Casual', 'Sick', 'Annual', 'Maternity', 'Paternity', 'Other'], required: true },
-//     startDate: { type: Date, required: true },
-//     endDate: { type: Date, required: true },
-//     reason: { type: String, required: true, trim: true },
-//     status: { type: String, enum: ['Pending', 'Approved', 'Rejected'], default: 'Pending' },
-//     requestedAt: { type: Date, default: Date.now },
-//     approvedRejectedAt: { type: Date },
-//     approvedRejectedBy: { type: String, trim: true }, // e.g., Admin's name
-// });
 
 const staffSchema = new mongoose.Schema({
     name: { type: String, required: true, trim: true },
@@ -75,6 +65,7 @@ const staffSchema = new mongoose.Schema({
         accountNumber: { type: String, trim: true, default: '' },
         iban: { type: String, trim: true, default: '' },
     },
+    assignClasses: { type: [String], default: [] },
 
 }, { timestamps: true }); // Adds createdAt and updatedAt timestamps
 

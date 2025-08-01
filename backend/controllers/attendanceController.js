@@ -211,7 +211,7 @@ const markAttendance = asyncHandler(async (req, res) => {
           onModel: type,
           date: new Date(date).setHours(0, 0, 0, 0),
           status: record.status,
-          markedBy: req.user._id,
+          markedBy: req.user.id,
           reason: record.reason,
           // If marking for student, include student-specific details
           ...(type === 'Student' && {
@@ -255,7 +255,7 @@ const getAttendance = asyncHandler(async (req, res) => {
 
   const attendance = await Attendance.find(query)
     .populate('user', 'name cnic')
-    .populate('markedBy', 'name');
+    .populate('markedBy', 'role');
 
   res.json(attendance);
 });

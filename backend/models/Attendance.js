@@ -38,7 +38,7 @@ const attendanceSchema = new mongoose.Schema({
   // Optional: Who marked the attendance
   markedBy: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Staff', // Assuming only staff (teachers, admins) can mark attendance
+    ref: 'User', // Assuming only staff (teachers, admins) can mark attendance
   },
   markedAt: {
     type: Date,

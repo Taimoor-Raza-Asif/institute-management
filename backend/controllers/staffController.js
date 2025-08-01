@@ -434,7 +434,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import QRCode from 'qrcode';
-import { createInternalUser } from './userController.js'; 
+import { createInternalUser } from './userController.js';
 import asyncHandler from 'express-async-handler';
 
 // Helper to get __dirname in ES modules
@@ -542,7 +542,7 @@ export const createStaff = async (req, res) => {
   try {
     const {
       name, staffType, contactNumber, email, address, dateOfJoining, salary,
-      highestEducationLevel, degrees, subjectsTaught, emergencyContact, bankAccountDetails, cnic
+      highestEducationLevel, degrees, subjectsTaught, emergencyContact, bankAccountDetails, cnic, assignClasses
     } = req.body;
 
     let profilePictureUrl = '';
@@ -569,6 +569,7 @@ export const createStaff = async (req, res) => {
       qrCodeSecret,
       emergencyContact,
       bankAccountDetails: bankAccountDetails ? JSON.parse(bankAccountDetails) : {},
+      assignClasses: assignClasses ? JSON.parse(assignClasses) : [],
     });
 
     const savedStaff = await newStaff.save();
@@ -723,7 +724,7 @@ export const updateStaff = async (req, res) => {
     const { id } = req.params;
     const {
       name, staffType, contactNumber, email, address, dateOfJoining, salary,
-      highestEducationLevel, degrees, subjectsTaught, emergencyContact, bankAccountDetails, cnic,
+      highestEducationLevel, degrees, subjectsTaught, emergencyContact, bankAccountDetails, cnic, assignClasses,
       profilePictureUrl: existingProfilePictureUrl
     } = req.body;
 
@@ -765,6 +766,7 @@ export const updateStaff = async (req, res) => {
     if (subjectsTaught !== undefined) updateFields.subjectsTaught = JSON.parse(subjectsTaught);
     if (emergencyContact !== undefined) updateFields.emergencyContact = emergencyContact;
     if (bankAccountDetails !== undefined) updateFields.bankAccountDetails = JSON.parse(bankAccountDetails);
+    if (assignClasses !== undefined) updateFields.assignClasses = JSON.parse(assignClasses);
 
     updateFields.profilePictureUrl = handleProfilePictureUpload(req.file, existingProfilePictureUrl, currentStaff.profilePictureUrl);
 
@@ -820,6 +822,35 @@ export const deleteStaff = async (req, res) => {
   } catch (err) {
     console.error("Error deleting staff:", err);
     res.status(500).json({ message: err.message });
+  }
+};
+
+
+// --- NEW FUNCTION TO ASSIGN CLASSES ---
+export const assignClasses = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { assignClasses } = req.body;
+
+    const staff = await Staff.findById(id);
+    if (!staff) {
+      return res.status(404).json({ message: 'Staff not found' });
+    }
+
+    if (staff.staffType !== 'Teacher' && staff.staffType !== 'Admin') {
+      return res.status(403).json({ message: 'Cannot assign classes to this staff type.' });
+    }
+
+    if (!Array.isArray(assignClasses)) {
+      return res.status(400).json({ message: 'assignClasses must be an array.' });
+    }
+
+    staff.assignClasses = assignClasses;
+    await staff.save();
+    res.json({ message: 'Classes assigned successfully', staff: staff });
+  } catch (err) {
+    console.error("Error assigning classes:", err);
+    res.status(500).json({ message: 'Failed to assign classes: ' + err.message });
   }
 };
 

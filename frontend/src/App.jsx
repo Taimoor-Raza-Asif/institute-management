@@ -25,8 +25,10 @@ import MyAttendance from './components/MyAttendance';
 import AllAttendanceRecords from './components/AllAttendanceRecords';
 import SalaryForm from './components/SalaryForm';
 import StaffSalaryList from './components/StaffSalaryList';
-import AssignClasses from './pages/AssignClasses'; 
+import AssignClasses from './pages/AssignClasses';
 import MyStudents from './pages/MyStudents';
+import DonationManagement from './components/DonationManagement';
+import BillingManagement from './components/BillingManagement';
 export const UserContext = createContext(null);
 
 const App = () => {
@@ -108,9 +110,12 @@ const App = () => {
           <Route path="/admin/staff-leaves" element={<PrivateRoute roles={['admin']}><StaffLeaveList /></PrivateRoute>} />
           <Route path="/assign-classes" element={<PrivateRoute roles={['admin']}><AssignClasses /></PrivateRoute>} />
 
-          <Route path="/admin/salaries" element={<PrivateRoute roles={['admin']}><StaffSalaryList /></PrivateRoute>} />
-          <Route path="/admin/salary/add" element={<PrivateRoute roles={['admin']}><SalaryForm /></PrivateRoute>} />
-          <Route path="/admin/salary/edit/:id" element={<PrivateRoute roles={['admin']}><SalaryForm /></PrivateRoute>} />
+          <Route path="/salaries" element={<PrivateRoute roles={['admin', 'accountant']}><StaffSalaryList /></PrivateRoute>} />
+          <Route path="/salary/add" element={<PrivateRoute roles={['admin', 'accountant']}><SalaryForm /></PrivateRoute>} />
+          <Route path="/salary/edit/:id" element={<PrivateRoute roles={['admin', 'accountant']}><SalaryForm /></PrivateRoute>} />
+
+          <Route path="/donations" element={<PrivateRoute roles={['admin', 'accountant']}><DonationManagement /></PrivateRoute>} />
+          <Route path="/billing" element={<PrivateRoute roles={['admin', 'accountant']}><BillingManagement /></PrivateRoute>} />
 
           {/* Staff-specific route */}
           <Route path="/my-salaries" element={<PrivateRoute><StaffSalaryList /></PrivateRoute>} />

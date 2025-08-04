@@ -80,7 +80,7 @@
 //           {isAdmin ? 'All Staff Salaries' : 'My Salary History'}
 //         </h2>
 //         {isAdmin && (
-//           <Link to="/admin/salary/add" className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition duration-200 shadow-sm flex items-center">
+//           <Link to="/salary/add" className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition duration-200 shadow-sm flex items-center">
 //             <PlusCircleIcon className="h-5 w-5 mr-2" /> Add Salary
 //           </Link>
 //         )}
@@ -150,7 +150,7 @@
 //                     </td>
 //                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
 //                       {isAdmin && (
-//                         <Link to={`/admin/salary/edit/${salary._id}`} className="text-indigo-600 hover:text-indigo-900 mr-4">
+//                         <Link to={`/salary/edit/${salary._id}`} className="text-indigo-600 hover:text-indigo-900 mr-4">
 //                           <PencilSquareIcon className="h-5 w-5 inline" />
 //                         </Link>
 //                       )}
@@ -324,7 +324,7 @@
 //           {isAdmin ? 'All Staff Salaries' : 'My Salary History'}
 //         </h2>
 //         {isAdmin && (
-//           <Link to="/admin/salary/add" className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition duration-200 shadow-sm flex items-center">
+//           <Link to="/salary/add" className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition duration-200 shadow-sm flex items-center">
 //             <PlusCircleIcon className="h-5 w-5 mr-2" /> Add Salary
 //           </Link>
 //         )}
@@ -514,7 +514,7 @@ const StaffSalaryList = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedSalary, setSelectedSalary] = useState(null);
 
-  const isAdmin = user?.role === 'admin';
+  const isAdmin = user?.role === 'admin' || user?.role === 'accountant';
   const canEditOrDelete = isAdmin;
 
   const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
@@ -661,7 +661,7 @@ const StaffSalaryList = () => {
   };
 
   const handleEdit = (salaryId) => {
-    navigate(`/admin/salary/edit/${salaryId}`);
+    navigate(`/salary/edit/${salaryId}`);
   };
 
   const handleDelete = (salaryId) => {
@@ -677,7 +677,7 @@ const StaffSalaryList = () => {
           {isAdmin ? 'All Staff Salaries' : 'My Salary History'}
         </h2>
         {isAdmin && (
-          <Link to="/admin/salary/add" className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition duration-200 shadow-sm flex items-center">
+          <Link to="/salary/add" className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition duration-200 shadow-sm flex items-center">
             <PlusCircleIcon className="h-5 w-5 mr-2" /> Add Salary
           </Link>
         )}

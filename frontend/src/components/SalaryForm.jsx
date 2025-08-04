@@ -91,7 +91,7 @@
 
 //       await api.post('/salary', salaryData);
 //       setSuccess('Salary record created/updated successfully!');
-//       setTimeout(() => navigate('/admin/salaries'), 2000);
+//       setTimeout(() => navigate('/salaries'), 2000);
 //     } catch (err) {
 //       setError(err.response?.data?.message || 'Failed to save salary record.');
 //     } finally {
@@ -373,7 +373,7 @@
 
 //   await api.post('/salary', salaryData);
 //   setSuccess('Salary record created/updated successfully!');
-//   setTimeout(() => navigate('/admin/salaries'), 2000);
+//   setTimeout(() => navigate('/salaries'), 2000);
 // } catch (err) {
 //   setError(err.response?.data?.message || 'Failed to save salary record.');
 // } finally {
@@ -558,7 +558,7 @@ import api from '../api';
 import Message from './Message';
 import Loader from './Loader';
 import { CurrencyDollarIcon, UserIcon, CalendarDaysIcon, ClockIcon, XMarkIcon } from '@heroicons/react/24/outline';
-
+import { UserContext } from '../App';
 const SalaryForm = () => {
     const { id } = useParams();
     const navigate = useNavigate();
@@ -653,14 +653,14 @@ const SalaryForm = () => {
 
             await api.post('/salary', salaryData);
             setSuccess('Salary record created/updated successfully!');
-            setTimeout(() => navigate('/admin/salaries'), 2000);
+            setTimeout(() => navigate('/salaries'), 2000);
         } catch (err) {
             setError(err.response?.data?.message || 'Failed to save salary record.');
         } finally {
             setLoading(false);
         }
 
-        //   setTimeout(() => navigate('/admin/salaries'), 2000);
+        //   setTimeout(() => navigate('/salaries'), 2000);
         // } catch (err) {
         //   setError(err.response?.data?.message || 'Failed to save salary record.');
         // } finally {
@@ -669,7 +669,7 @@ const SalaryForm = () => {
     };
 
     const handleCancel = () => {
-        navigate('/admin/salaries');
+        navigate('/salaries');
     };
 
     return (

@@ -316,127 +316,127 @@
 //     return 'Add New Fee Record';
 //   };
 
-  // const handleDownloadReceiptPdf = () => {
-  //   const doc = new jsPDF({ format: 'a4' }); // A4 size
+//   const handleDownloadReceiptPdf = () => {
+//     const doc = new jsPDF({ format: 'a4' }); // A4 size
 
-  //   const selectedStudent = studentsForForm.find(s => s._id === fee.studentId);
-  //   const studentName = selectedStudent ? selectedStudent.name : '-';
-  //   const studentCnic = selectedStudent ? selectedStudent.cnic : '-';
-  //   const studentClassOrDegree = selectedStudent
-  //     ? (selectedStudent.class === 'Class'
-  //       ? `${selectedStudent.classNumber} Class`
-  //       : `${selectedStudent.degreeName} (Semester ${selectedStudent.semester})`)
-  //     : '-';
+//     const selectedStudent = studentsForForm.find(s => s._id === fee.studentId);
+//     const studentName = selectedStudent ? selectedStudent.name : '-';
+//     const studentCnic = selectedStudent ? selectedStudent.cnic : '-';
+//     const studentClassOrDegree = selectedStudent
+//       ? (selectedStudent.class === 'Class'
+//         ? `${selectedStudent.classNumber} Class`
+//         : `${selectedStudent.degreeName} (Semester ${selectedStudent.semester})`)
+//       : '-';
 
-  //   const savePDF = () => {
-  //     const filename = `${studentName.replace(/\s/g, '_')}_Fee_Receipt_${fee.month}_${fee.year}.pdf`;
-  //     doc.save(filename);
-  //   };
+//     const savePDF = () => {
+//       const filename = `${studentName.replace(/\s/g, '_')}_Fee_Receipt_${fee.month}_${fee.year}.pdf`;
+//       doc.save(filename);
+//     };
 
-  //   const drawMiniReceipt = (xStart, yStart) => {
-  //     let yPos = yStart;
+//     const drawMiniReceipt = (xStart, yStart) => {
+//       let yPos = yStart;
 
-  //     // Logo
-  //     const logo = new Image();
-  //     logo.src = '/default-avatar.jpg'; // public path logo
+//       // Logo
+//       const logo = new Image();
+//       logo.src = '/default-avatar.jpg'; // public path logo
 
-  //     logo.onload = () => {
-  //       doc.addImage(logo, 'JPEG', xStart, yPos, 15, 15); // logo top-right of mini receipt
+//       logo.onload = () => {
+//         doc.addImage(logo, 'JPEG', xStart, yPos, 15, 15); // logo top-right of mini receipt
 
-  //       // Institute Info
-  //       doc.setFontSize(10);
-  //       doc.setFont(undefined, 'bold');
-  //       doc.text('Bright Future Institute', xStart + 17, yPos + 5);
-  //       doc.setFontSize(8);
-  //       doc.setFont(undefined, 'normal');
-  //       doc.text('123 Education St, Knowledge City', xStart + 17, yPos + 10);
-  //       doc.text('Phone: (042) 1234567 | Email: info@bfi.edu.pk', xStart + 17, yPos + 14);
+//         // Institute Info
+//         doc.setFontSize(10);
+//         doc.setFont(undefined, 'bold');
+//         doc.text('Bright Future Institute', xStart + 17, yPos + 5);
+//         doc.setFontSize(8);
+//         doc.setFont(undefined, 'normal');
+//         doc.text('123 Education St, Knowledge City', xStart + 17, yPos + 10);
+//         doc.text('Phone: (042) 1234567 | Email: info@bfi.edu.pk', xStart + 17, yPos + 14);
 
-  //       // Divider
-  //       doc.line(xStart, yPos + 18, xStart + 80, yPos + 18);
+//         // Divider
+//         doc.line(xStart, yPos + 18, xStart + 80, yPos + 18);
 
-  //       // Title
-  //       doc.setFontSize(9);
-  //       doc.setFont(undefined, 'bold');
-  //       doc.setTextColor(40, 167, 69);
-  //       doc.text('Fee Receipt', xStart + 40, yPos + 24, { align: 'center' });
+//         // Title
+//         doc.setFontSize(9);
+//         doc.setFont(undefined, 'bold');
+//         doc.setTextColor(40, 167, 69);
+//         doc.text('Fee Receipt', xStart + 40, yPos + 24, { align: 'center' });
 
-  //       doc.setFontSize(7);
-  //       doc.setTextColor(100);
-  //       doc.text(`Generated on: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, xStart, yPos + 29);
+//         doc.setFontSize(7);
+//         doc.setTextColor(100);
+//         doc.text(`Generated on: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, xStart, yPos + 29);
 
-  //       // Section 1: Student Info
-  //       yPos += 34;
-  //       doc.setFontSize(8);
-  //       doc.setTextColor(0);
-  //       doc.setFont(undefined, 'bold');
-  //       doc.text('Student Information', xStart, yPos);
-  //       yPos += 4;
-  //       doc.line(xStart, yPos, xStart + 80, yPos);
-  //       yPos += 5;
+//         // Section 1: Student Info
+//         yPos += 34;
+//         doc.setFontSize(8);
+//         doc.setTextColor(0);
+//         doc.setFont(undefined, 'bold');
+//         doc.text('Student Information', xStart, yPos);
+//         yPos += 4;
+//         doc.line(xStart, yPos, xStart + 80, yPos);
+//         yPos += 5;
 
-  //       doc.setFont(undefined, 'normal');
-  //       doc.text(`Name:`, xStart + 5, yPos);
-  //       doc.text(`${studentName}`, xStart + 40, yPos);
-  //       yPos += 4;
+//         doc.setFont(undefined, 'normal');
+//         doc.text(`Name:`, xStart + 5, yPos);
+//         doc.text(`${studentName}`, xStart + 40, yPos);
+//         yPos += 4;
 
-  //       doc.text(`CNIC:`, xStart + 5, yPos);
-  //       doc.text(`${studentCnic}`, xStart + 40, yPos);
-  //       yPos += 4;
+//         doc.text(`CNIC:`, xStart + 5, yPos);
+//         doc.text(`${studentCnic}`, xStart + 40, yPos);
+//         yPos += 4;
 
-  //       doc.text(`Class/Degree:`, xStart + 5, yPos);
-  //       doc.text(`${studentClassOrDegree}`, xStart + 40, yPos);
-  //       yPos += 6;
+//         doc.text(`Class/Degree:`, xStart + 5, yPos);
+//         doc.text(`${studentClassOrDegree}`, xStart + 40, yPos);
+//         yPos += 6;
 
-  //       // Section 2: Fee Info
-  //       doc.setFont(undefined, 'bold');
-  //       doc.text('Fee Details', xStart, yPos);
-  //       yPos += 4;
-  //       doc.line(xStart, yPos, xStart + 80, yPos);
-  //       yPos += 5;
+//         // Section 2: Fee Info
+//         doc.setFont(undefined, 'bold');
+//         doc.text('Fee Details', xStart, yPos);
+//         yPos += 4;
+//         doc.line(xStart, yPos, xStart + 80, yPos);
+//         yPos += 5;
 
-  //       doc.setFont(undefined, 'normal');
-  //       const addField = (label, value) => {
-  //         doc.text(`${label}`, xStart + 5, yPos);
-  //         doc.text(`${value}`, xStart + 50, yPos);
-  //         yPos += 4;
-  //       };
+//         doc.setFont(undefined, 'normal');
+//         const addField = (label, value) => {
+//           doc.text(`${label}`, xStart + 5, yPos);
+//           doc.text(`${value}`, xStart + 50, yPos);
+//           yPos += 4;
+//         };
 
-  //       addField('Total Fee:', `PKR ${parseFloat(fee.totalFee).toFixed(2)}`);
-  //       addField('Received Amount:', `PKR ${parseFloat(fee.receivedAmount).toFixed(2)}`);
-  //       addField('Due Amount:', `PKR ${parseFloat(fee.dueAmount).toFixed(2)}`);
-  //       addField('Paid Month:', fee.month);
-  //       addField('Paid Year:', fee.year);
-  //       addField('Received Date:', new Date(fee.receivedDate).toLocaleDateString());
-  //       addField('Paid By:', fee.paidBy);
-  //       addField('Received By:', fee.receivedBy);
-  //       addField('Payment Method:', fee.paymentMethod);
+//         addField('Total Fee:', `PKR ${parseFloat(fee.totalFee).toFixed(2)}`);
+//         addField('Received Amount:', `PKR ${parseFloat(fee.receivedAmount).toFixed(2)}`);
+//         addField('Due Amount:', `PKR ${parseFloat(fee.dueAmount).toFixed(2)}`);
+//         addField('Paid Month:', fee.month);
+//         addField('Paid Year:', fee.year);
+//         addField('Received Date:', new Date(fee.receivedDate).toLocaleDateString());
+//         addField('Paid By:', fee.paidBy);
+//         addField('Received By:', fee.receivedBy);
+//         addField('Payment Method:', fee.paymentMethod);
 
-  //       // Add Deposited Amount and Other Dues from student (if available)
-  //       if (selectedStudent) {
-  //         addField('Deposited Amount:', `PKR ${parseFloat(selectedStudent.depositedAmount || 0).toFixed(2)}`);
-  //         addField('Other Dues:', `PKR ${parseFloat(selectedStudent.otherDues || 0).toFixed(2)}`);
-  //       }
+//         // Add Deposited Amount and Other Dues from student (if available)
+//         if (selectedStudent) {
+//           addField('Deposited Amount:', `PKR ${parseFloat(selectedStudent.depositedAmount || 0).toFixed(2)}`);
+//           addField('Other Dues:', `PKR ${parseFloat(selectedStudent.otherDues || 0).toFixed(2)}`);
+//         }
 
-  //       yPos += 5;
+//         yPos += 5;
 
-  //       // Footer
-  //       doc.setFontSize(7);
-  //       doc.setTextColor(150);
-  //       doc.text('This is a computer-generated fee receipt. No signature is required.', xStart, yPos + 5);
+//         // Footer
+//         doc.setFontSize(7);
+//         doc.setTextColor(150);
+//         doc.text('This is a computer-generated fee receipt. No signature is required.', xStart, yPos + 5);
 
-  //       savePDF();
-  //     };
+//         savePDF();
+//       };
 
-  //     logo.onerror = () => {
-  //       console.warn('Failed to load logo.');
-  //       savePDF();
-  //     };
-  //   };
+//       logo.onerror = () => {
+//         console.warn('Failed to load logo.');
+//         savePDF();
+//       };
+//     };
 
-  //   // Draw in top-left quadrant for now
-  //   drawMiniReceipt(10, 10); // (xStart, yStart)
-  // };
+//     // Draw in top-left quadrant for now
+//     drawMiniReceipt(10, 10); // (xStart, yStart)
+//   };
 
 
 //   const handlePrintReceipt = async () => {

@@ -52,6 +52,8 @@ import leaveRoutes from './routes/leaveRoutes.js'; // Import the new routes
 import staffLeaveRoutes from './routes/staffLeaveRoutes.js';
 import attendanceRoutes from './routes/attendanceRoutes.js';
 import salaryRoutes from './routes/salaryRoutes.js';
+import donationRoutes from './routes/donationRoutes.js'; // Import the new routes
+import billingRoutes from './routes/billingRoutes.js'; 
 
 // Helper to get __filename and __dirname in ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -69,6 +71,7 @@ app.use(express.json()); // Parse JSON request bodies
 // Serve static files from the 'uploads' directory
 // This makes files in 'uploads/' accessible via '/uploads/' URL path
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads/donation_receipts', express.static(path.join(__dirname, 'uploads/donation_receipts')));
 
 // API Routes
 app.use('/api/students', studentRoutes); // Student management routes
@@ -79,6 +82,8 @@ app.use('/api/leave', leaveRoutes);
 app.use('/api/staff-leave', staffLeaveRoutes); 
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/salary', salaryRoutes);
+app.use('/api/donations', donationRoutes);
+app.use('/api/billing', billingRoutes); 
 
 // Define the port for the server
 const PORT = process.env.PORT || 5000;

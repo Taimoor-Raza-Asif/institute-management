@@ -146,7 +146,7 @@ const getSalaryById = asyncHandler(async (req, res) => {
   if (salary) {
     // Check if user is an admin OR the staff member to whom the salary belongs
     const staff = await Staff.findOne({ user: req.user._id });
-    if (req.user.role === 'admin' || (staff && salary.staff.equals(staff._id))) {
+    if ((req.user.role === 'admin') || (req.user.role === 'accountant') || (staff && salary.staff.equals(staff._id))) {
       res.json(salary);
     } else {
       res.status(403);

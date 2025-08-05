@@ -849,7 +849,7 @@ export const assignClasses = async (req, res) => {
     await staff.save();
     res.json({ message: 'Classes assigned successfully', staff: staff });
   } catch (err) {
-    console.error("Error assigning classes:", err);
+    console.error("Error assigning classes:", err);y
     res.status(500).json({ message: 'Failed to assign classes: ' + err.message });
   }
 };

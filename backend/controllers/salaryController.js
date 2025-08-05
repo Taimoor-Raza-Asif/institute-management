@@ -158,10 +158,68 @@ const getSalaryById = asyncHandler(async (req, res) => {
   }
 });
 
+
+
+// @desc    Get aggregated salary reports
+// @route   GET /api/salary/reports
+// @access  Private/Admin & Accountant
+const getSalaryReports = asyncHandler(async (req, res) => {
+  const { year } = req.query;
+  const matchFilter = { paidAt: { $ne: null } };
+
+  if (year) {
+    matchFilter.$expr = { $eq: [{ $year: "$paidAt" }, parseInt(year)] };
+  }
+
+  try {
+    const monthlyReport = await Salary.aggregate([
+      {
+        $match: matchFilter
+      },
+      {
+        $group: {
+          _id: { year: { $year: "$paidAt" }, month: { $month: "$paidAt" } },
+          totalPaid: { $sum: "$paidAmount" },
+          totalBonus: { $sum: "$bonus" },
+          totalOvertime: { $sum: "$overtime" }
+        }
+      },
+      {
+        $sort: { "_id.year": 1, "_id.month": 1 }
+      }
+    ]);
+
+    const roleReport = await Salary.aggregate([
+      {
+        $match: matchFilter
+      },
+      {
+        $group: {
+          _id: "$staffRole",
+          totalPaid: { $sum: "$paidAmount" }
+        }
+      },
+      {
+        $project: {
+          _id: 0,
+          role: "$_id",
+          totalPaid: 1
+        }
+      }
+    ]);
+
+    res.status(200).json({ monthlyReport, roleReport });
+  } catch (error) {
+    console.error("Error fetching salary reports:", error);
+    res.status(500).json({ message: 'Failed to fetch salary reports', error: error.message });
+  }
+});
+
 export {
   getStaffForSalary,
   createOrUpdateSalary,
   getAllSalaries,
   getMySalaries,
   getSalaryById,
+  getSalaryReports,
 };

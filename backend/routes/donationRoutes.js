@@ -7,7 +7,8 @@ import {
   updateDonation,
   deleteDonation,
   downloadReceipt,
-  upload // Import the multer middleware
+  getDonationReports,
+  upload 
 } from '../controllers/donationController.js';
 
 const router = express.Router();
@@ -20,6 +21,11 @@ router.route('/')
   .post(protect, authorizeRoles(...allowedRoles), upload, addDonation)
   .get(protect, authorizeRoles(...allowedRoles), getDonations);
 
+
+router.route('/reports')
+  .get(protect, authorizeRoles('admin', 'accountant'), getDonationReports);
+
+  
 router.route('/:id')
   .get(protect, authorizeRoles(...allowedRoles), getDonationById)
   .put(protect, authorizeRoles(...allowedRoles), updateDonation)

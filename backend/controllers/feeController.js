@@ -602,6 +602,8 @@ import Student from '../models/Student.js'; // Import the Student model
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
+import asyncHandler from 'express-async-handler';
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -642,7 +644,7 @@ export const createFeeRecord = async (req, res) => {
   try {
     const {
       studentId, paidBy, month, year, totalFee, receivedAmount,
-      receivedDate, receivedBy, paymentMethod, billScreenshotUrl: existingBillScreenshotUrl
+      receivedDate, receivedBy, paymentMethod, billScreenshotUrl: existingBillScreenshotUrl,admissionFee
     } = req.body;
 
     let billScreenshotUrl = '';
@@ -652,7 +654,8 @@ export const createFeeRecord = async (req, res) => {
       billScreenshotUrl = existingBillScreenshotUrl;
     }
 
-    const total = parseFloat(totalFee);
+    // const total = parseFloat(totalFee);
+    const total = parseFloat(totalFee) + (parseFloat(admissionFee) || 0);
     const received = parseFloat(receivedAmount);
     const dueAmount = Math.max(0, total - received);
 
@@ -668,12 +671,20 @@ export const createFeeRecord = async (req, res) => {
       receivedBy,
       paymentMethod,
       billScreenshotUrl,
+      admissionFee: parseFloat(admissionFee) || 0,
     });
 
     const savedFeeRecord = await newFeeRecord.save();
 
-    // --- Update Student's Fee Status and Financials ---
+        // --- NEW LOGIC: UPDATE STUDENT'S ADMISSION FEE STATUS ---
     const student = await Student.findById(studentId);
+    if (student && admissionFee && parseFloat(admissionFee) > 0) { // Check if admission fee was paid
+      student.admissionFeeStatus = true; // Set status to paid
+      await student.save({ validateBeforeSave: false }); // Save without re-running full student validation
+    }
+
+    // --- Update Student's Fee Status and Financials ---
+    // const student = await Student.findById(studentId);
     if (student) {
       // Re-evaluate student's overall fee status based on all their fees
       const allStudentFees = await FeeRecord.find({ studentId: student._id });
@@ -693,14 +704,8 @@ export const createFeeRecord = async (req, res) => {
       let newOtherDues = parseFloat(student.otherDues || 0);
 
       if (paymentMethod === 'Deposited Cash') {
-        // If paid via deposited cash, it means the receivedAmount for this fee record
-        // was drawn from the student's deposited amount.
-        // So, we need to subtract it from the student's depositedAmount.
         newDepositedAmount -= received;
-      } else if (dueAmount > 0) {
-        // If there's a due amount for this fee record, add it to student's otherDues
-        newOtherDues += dueAmount;
-      }
+      } 
 
       // Ensure amounts don't go negative
       newDepositedAmount = Math.max(0, newDepositedAmount);
@@ -876,9 +881,10 @@ export const updateFeeRecord = async (req, res) => {
       // Then, apply the impact of the new record
       if (paymentMethod === 'Deposited Cash') {
         netDepositedChange -= received; // Deduct new received amount from deposit
-      } else if (dueAmount > 0) {
-        netOtherDuesChange += dueAmount; // Add new due to otherDues
-      }
+        }
+      // } else if (dueAmount > 0) {
+      //   netOtherDuesChange += dueAmount; // Add new due to otherDues
+      // }
 
       let newDepositedAmount = parseFloat(student.depositedAmount || 0) + netDepositedChange;
       let newOtherDues = parseFloat(student.otherDues || 0) + netOtherDuesChange;
@@ -977,3 +983,174 @@ export const deleteFeeRecord = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+
+
+// // @desc    Get aggregated fee reports
+// // @route   GET /api/fees/reports
+// // @access  Private/Admin & Accountant
+// export const getFeeReports = async (req, res) => {
+//   try {
+//     const monthlyReport = await FeeRecord.aggregate([
+//       {
+//         $group: {
+//           _id: { year: { $year: "$receivedDate" }, month: { $month: "$receivedDate" } },
+//           totalCollected: { $sum: "$receivedAmount" },
+//           totalDue: { $sum: "$dueAmount" }
+//         }
+//       },
+//       {
+//         $sort: { "_id.year": 1, "_id.month": 1 }
+//       }
+//     ]);
+
+//     const paymentMethodReport = await FeeRecord.aggregate([
+//       {
+//         $group: {
+//           _id: "$paymentMethod",
+//           totalAmount: { $sum: "$receivedAmount" }
+//         }
+//       }
+//     ]);
+
+//     res.status(200).json({ monthlyReport, paymentMethodReport });
+//   } catch (error) {
+//     console.error("Error fetching fee reports:", error);
+//     res.status(500).json({ message: 'Failed to fetch fee reports', error: error.message });
+//   }
+// };
+
+
+
+
+
+// // @desc    Get aggregated fee reports
+// // @route   GET /api/fees/reports
+// // @access  Private/Admin & Accountant
+// export const getFeeReports = asyncHandler(async (req, res) => {
+//   const { year } = req.query;
+//   const matchFilter = {};
+
+//   if (year) {
+//     matchFilter.year = parseInt(year);
+//   }
+
+//   try {
+//     const monthlyReport = await FeeRecord.aggregate([
+//       {
+//         $match: matchFilter // Use the filter here
+//       },
+//       {
+//         $group: {
+//           _id: { year: "$year", month: "$month" },
+//           totalCollected: { $sum: "$receivedAmount" },
+//           totalDue: { $sum: "$dueAmount" }
+//         }
+//       },
+//       {
+//         $sort: { "_id.year": 1, "_id.month": 1 }
+//       }
+//     ]);
+
+//     const paymentMethodReport = await FeeRecord.aggregate([
+//       {
+//         $match: { ...matchFilter, paymentMethod: { $ne: null } }
+//       },
+//       {
+//         $group: {
+//           _id: "$paymentMethod",
+//           totalAmount: { $sum: "$receivedAmount" }
+//         }
+//       },
+//       {
+//         $project: {
+//           _id: 0,
+//           paymentMethod: "$_id",
+//           totalAmount: 1
+//         }
+//       }
+//     ]);
+
+//     res.status(200).json({ monthlyReport, paymentMethodReport });
+//   } catch (error) {
+//     console.error("Error fetching fee reports:", error);
+//     res.status(500).json({ message: 'Failed to fetch fee reports', error: error.message });
+//   }
+// });
+
+
+
+
+
+// @desc    Get aggregated fee reports
+// @route   GET /api/fees/reports
+// @access  Private/Admin & Accountant
+export const getFeeReports = asyncHandler(async (req, res) => {
+  const { year } = req.query;
+  const matchFilter = {};
+
+  if (year) {
+    matchFilter.year = parseInt(year);
+  }
+
+  try {
+    const monthlyReport = await FeeRecord.aggregate([
+      {
+        $match: matchFilter
+      },
+      {
+        $group: {
+          _id: { year: "$year", month: "$month" },
+          totalCollected: { $sum: "$receivedAmount" },
+          totalDue: { $sum: "$dueAmount" }
+        }
+      },
+      {
+        $sort: { "_id.year": 1, "_id.month": 1 }
+      }
+    ]);
+
+    const paymentMethodReport = await FeeRecord.aggregate([
+      {
+        $match: { ...matchFilter, paymentMethod: { $ne: null } }
+      },
+      {
+        $group: {
+          _id: "$paymentMethod",
+          totalAmount: { $sum: "$receivedAmount" }
+        }
+      },
+      {
+        $project: {
+          _id: 0,
+          paymentMethod: "$_id",
+          totalAmount: 1
+        }
+      }
+    ]);
+
+    // NEW/OPTIMIZED ADMISSION FEE REPORT
+    const admissionFeeReport = await FeeRecord.aggregate([
+      {
+        $match: {
+          ...matchFilter,
+          admissionFee: { $gt: 0 } // Only include records where admissionFee is greater than 0
+        }
+      },
+      {
+        $group: {
+          _id: { year: "$year", month: "$month" },
+          totalAdmissionFee: { $sum: "$admissionFee" } // Sum the 'admissionFee' field directly
+        }
+      },
+      {
+        $sort: { "_id.year": 1, "_id.month": 1 }
+      }
+    ]);
+    
+    res.status(200).json({ monthlyReport, paymentMethodReport, admissionFeeReport });
+  } catch (error) {
+    console.error("Error fetching fee reports:", error);
+    res.status(500).json({ message: 'Failed to fetch fee reports', error: error.message });
+  }
+});

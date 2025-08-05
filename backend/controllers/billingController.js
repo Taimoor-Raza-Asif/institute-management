@@ -242,4 +242,60 @@ const downloadReceipt = asyncHandler(async (req, res) => {
   res.send(Buffer.from(pdfBuffer));
 });
 
-export { addBill, getBills, getBillById, updateBill, deleteBill, downloadReceipt, upload };
+
+
+
+// @desc    Get aggregated billing reports
+// @route   GET /api/billing/reports
+// @access  Private/Admin & Accountant
+export const getBillReports = asyncHandler(async (req, res) => {
+  const { year } = req.query;
+  const matchFilter = { paymentDate: { $ne: null } };
+
+  if (year) {
+    matchFilter.$expr = { $eq: [{ $year: "$paymentDate" }, parseInt(year)] };
+  }
+
+  try {
+    const monthlyReport = await Bill.aggregate([
+      {
+        $match: matchFilter
+      },
+      {
+        $group: {
+          _id: { year: { $year: "$paymentDate" }, month: { $month: "$paymentDate" } },
+          totalPaid: { $sum: "$amount" }
+        }
+      },
+      {
+        $sort: { "_id.year": 1, "_id.month": 1 }
+      }
+    ]);
+
+    const categoryReport = await Bill.aggregate([
+      {
+        $match: matchFilter
+      },
+      {
+        $group: {
+          _id: "$category",
+          totalAmount: { $sum: "$amount" }
+        }
+      },
+      {
+        $project: {
+          _id: 0,
+          category: "$_id",
+          totalAmount: 1
+        }
+      }
+    ]);
+
+    res.status(200).json({ monthlyReport, categoryReport });
+  } catch (error) {
+    console.error("Error fetching bill reports:", error);
+    res.status(500).json({ message: 'Failed to fetch bill reports', error: error.message });
+  }
+});
+
+export { addBill, getBills, getBillById, updateBill, deleteBill, downloadReceipt, upload};

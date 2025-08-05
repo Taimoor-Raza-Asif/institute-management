@@ -976,7 +976,8 @@ const Layout = ({ children, currentUser, onLogout }) => {
       {currentUser && (
         <aside
           className={`
-            fixed top-0 left-0 h-full bg-gray-700 text-white flex flex-col p-4 shadow-lg z-30
+            fixed top-0 left-0 h-full 
+            bg-gradient-to-r from-gray-700 to-gray-900 text-white flex flex-col p-4 shadow-lg z-30
             sidebar-transition
             ${isSidebarOpen ? 'w-64 translate-x-0' : 'w-0 -translate-x-full'}
             md:relative md:w-72 md:translate-x-0
@@ -1108,6 +1109,12 @@ const Layout = ({ children, currentUser, onLogout }) => {
                             <BanknotesIcon className="h-5 w-5 mr-3" /> Bills Management
                           </Link>
                         </li>
+                        <li>
+                          <Link to="/financial-reports" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gray-800 transition duration-200" onClick={toggleSidebar}>
+                            <ChartBarIcon className="h-5 w-5 mr-3" /> Financial Reports
+                          </Link>
+                        </li>
+
                       </ul>
                     )}
                   </li>

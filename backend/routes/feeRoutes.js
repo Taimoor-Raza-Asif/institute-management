@@ -45,7 +45,8 @@ import {
   getFeesByStudent,
   createFeeRecord,
   updateFeeRecord,
-  deleteFeeRecord
+  deleteFeeRecord,
+  getFeeReports
 } from '../controllers/feeController.js';
 import multer from 'multer';
 import path from 'path';
@@ -79,11 +80,16 @@ router.get('/', protect, authorizeRoles('admin', 'accountant'), getAllFees);
 // Get fees for a specific student (Admin, Accountant, or the Student themselves)
 router.get('/student/:studentId', protect, authorizeRoles('admin', 'accountant', 'student'), getFeesByStudent);
 
+router
+  .route('/reports') // <-- New route
+  .get(protect, authorizeRoles('admin', 'accountant'), getFeeReports);
+
 // Create a new fee record (Admin, Accountant)
 router.post('/', protect, authorizeRoles('admin', 'accountant'), upload.single('billScreenshot'), createFeeRecord);
 
 // Update an existing fee record (Admin, Accountant)
 router.put('/:id', protect, authorizeRoles('admin', 'accountant'), upload.single('billScreenshot'), updateFeeRecord);
+
 
 // Delete a fee record (Admin, Accountant)
 router.delete('/:id', protect, authorizeRoles('admin', 'accountant'), deleteFeeRecord);

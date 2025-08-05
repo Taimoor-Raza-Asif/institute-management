@@ -154,7 +154,7 @@
 
 //   return (
 //     <div className="container mx-auto p-4 sm:p-6 lg:p-8">
-//       <h1 className="text-3xl sm:text-4xl font-bold text-center text-purple-800 mb-8">Staff Management</h1>
+//       <h1 className="text-3xl sm:text-4xl font-bold text-center text-green-800 mb-8">Staff Management</h1>
 
 //       {/* Action Buttons and Filters */}
 //       <div className="bg-white rounded-lg shadow-md p-4 mb-6">
@@ -166,7 +166,7 @@
 //               placeholder="Search by name, email, contact, ID..."
 //               value={searchTerm}
 //               onChange={(e) => setSearchTerm(e.target.value)}
-//               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+//               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
 //             />
 //             <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
 //           </div>
@@ -175,7 +175,7 @@
 //             {/* Add New Staff Button */}
 //             <button
 //               onClick={handleAddStaff}
-//               className="flex items-center justify-center bg-purple-600 text-white px-5 py-2 rounded-lg hover:bg-purple-700 transition duration-200 shadow-md w-full sm:w-auto"
+//               className="flex items-center justify-center bg-green-600 text-white px-5 py-2 rounded-lg hover:bg-green-700 transition duration-200 shadow-md w-full sm:w-auto"
 //             >
 //               <PlusIcon className="h-5 w-5 mr-2" /> Add New Staff
 //             </button>
@@ -209,7 +209,7 @@
 //                 id="filterStaffType"
 //                 value={filterStaffType}
 //                 onChange={(e) => setFilterStaffType(e.target.value)}
-//                 className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+//                 className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
 //               >
 //                 <option value="">All Types</option>
 //                 {staffTypes.map(type => (
@@ -224,7 +224,7 @@
 //                 id="filterEducationLevel"
 //                 value={filterEducationLevel}
 //                 onChange={(e) => setFilterEducationLevel(e.target.value)}
-//                 className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+//                 className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
 //               >
 //                 <option value="">All Levels</option>
 //                 {educationLevels.map(level => (
@@ -241,7 +241,7 @@
 //                   id="filterSubject"
 //                   value={filterSubject}
 //                   onChange={(e) => setFilterSubject(e.target.value)}
-//                   className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+//                   className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
 //                   placeholder="e.g., Math"
 //                 />
 //               </div>
@@ -527,7 +527,7 @@ const StaffList = () => {
           <input
             type="text"
             placeholder="Search by name, ID, or contact..."
-            className="p-2 pl-10 border border-gray-300 rounded-md w-full focus:ring-purple-500 focus:border-purple-500"
+            className="p-2 pl-10 border border-gray-300 rounded-md w-full focus:ring-green-500 focus:border-green-500"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -558,7 +558,7 @@ const StaffList = () => {
           {(
             <button
               onClick={handleAddStaff}
-              className="flex items-center justify-center bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition duration-200 shadow-md w-full sm:w-auto"
+              className="flex items-center justify-center bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition duration-200 shadow-md w-full sm:w-auto"
             >
               <PlusIcon className="h-5 w-5 mr-2" />
               Add Staff
@@ -574,7 +574,7 @@ const StaffList = () => {
             <select
               id="filterStaffType"
               name="filterStaffType"
-              className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+              className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm"
               value={filterStaffType}
               onChange={(e) => setFilterStaffType(e.target.value)}
             >
@@ -591,7 +591,7 @@ const StaffList = () => {
             <select
               id="filterEducationLevel"
               name="filterEducationLevel"
-              className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+              className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm"
               value={filterEducationLevel}
               onChange={(e) => setFilterEducationLevel(e.target.value)}
             >

@@ -30,6 +30,7 @@ const feeSchema = new mongoose.Schema({
   dueAmount: { type: Number, default: 0 }, // Calculated: totalFee - receivedAmount
   receivedDate: { type: Date, required: true },
   receivedBy: { type: String, required: true },
+  admissionFee: { type: Number } ,
   paymentMethod: {
     type: String,
     enum: ['Cash', 'Online Wallet', 'Bank Transfer', 'Easypaisa', 'JazzCash', 'Deposited Cash'], // Added Easypaisa, JazzCash

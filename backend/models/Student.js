@@ -43,6 +43,7 @@ const studentSchema = new mongoose.Schema({
   previousClassResultUrl: { type: String, default: '' },
   class10ResultUrl: { type: String, default: '' },
   class12ResultUrl: { type: String, default: '' },
+  admissionFeeStatus: { type: Boolean, default: false },
 }, { timestamps: true });
 
 export default mongoose.model('Student', studentSchema);

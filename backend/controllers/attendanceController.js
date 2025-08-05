@@ -369,6 +369,130 @@ const getStaffForAttendance = asyncHandler(async (req, res) => {
   res.json(staff);
 });
 
+// @desc    Get attendance records for a single day
+// @route   GET /api/attendance/:date
+// @access  Private/Admin & Teacher
+const getAttendanceByDate = asyncHandler(async (req, res) => {
+  const { date } = req.params;
+  const startOfDay = new Date(date);
+  startOfDay.setHours(0, 0, 0, 0);
+
+  const endOfDay = new Date(date);
+  endOfDay.setHours(23, 59, 59, 999);
+
+  const attendanceRecords = await Attendance.find({
+    date: { $gte: startOfDay, $lte: endOfDay }
+  })
+    .populate('user');
+
+  res.json(attendanceRecords);
+});
+
+// @desc    Get aggregated attendance reports
+// @route   GET /api/attendance/reports
+// @access  Private/Admin & Accountant
+export const getAttendanceReports = asyncHandler(async (req, res) => {
+  const { type, startDate, endDate } = req.query;
+  const matchFilter = {};
+
+  if (type) {
+    matchFilter.onModel = type;
+  }
+  
+  if (startDate || endDate) {
+    matchFilter.date = {};
+    if (startDate) {
+      matchFilter.date.$gte = new Date(startDate);
+    }
+    if (endDate) {
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+      matchFilter.date.$lte = end;
+    }
+  }
+
+  try {
+    const monthlySummary = await Attendance.aggregate([
+      {
+        $match: matchFilter
+      },
+      {
+        $group: {
+          _id: { year: { $year: "$date" }, month: { $month: "$date" }, onModel: "$onModel" },
+          statuses: { $push: "$status" }
+        }
+      },
+      {
+        $unwind: "$statuses"
+      },
+      {
+        $group: {
+          _id: { year: "$_id.year", month: "$_id.month", onModel: "$_id.onModel", status: "$statuses" },
+          count: { $sum: 1 }
+        }
+      },
+      {
+        $group: {
+          _id: { year: "$_id.year", month: "$_id.month", onModel: "$_id.onModel" },
+          statuses: {
+            $push: {
+              status: "$_id.status",
+              count: "$count"
+            }
+          }
+        }
+      },
+      {
+        $sort: { "_id.year": 1, "_id.month": 1 }
+      }
+    ]);
+
+    const dailySummary = await Attendance.aggregate([
+      {
+        $match: matchFilter
+      },
+      {
+        $group: {
+          _id: { date: "$date", onModel: "$onModel" },
+          statuses: { $push: "$status" }
+        }
+      },
+      {
+        $unwind: "$statuses"
+      },
+      {
+        $group: {
+          _id: { date: "$_id.date", onModel: "$_id.onModel", status: "$statuses" },
+          count: { $sum: 1 }
+        }
+      },
+      {
+        $group: {
+          _id: { date: "$_id.date", onModel: "$_id.onModel" },
+          statuses: {
+            $push: {
+              status: "$_id.status",
+              count: "$count"
+            }
+          }
+        }
+      },
+      {
+        $sort: { "_id.date": -1 }
+      },
+      {
+        $limit: 30
+      }
+    ]);
+
+    res.status(200).json({ monthlySummary, dailySummary });
+  } catch (error) {
+    console.error("Error fetching attendance reports:", error);
+    res.status(500).json({ message: 'Failed to fetch attendance reports', error: error.message });
+  }
+});
+
+
 export {
   markAttendance,
   getAttendance,
@@ -376,4 +500,5 @@ export {
   getStaffAttendance,
   getStudentsForAttendance,
   getStaffForAttendance,
+  getAttendanceByDate,
 };

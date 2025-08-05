@@ -181,7 +181,15 @@ import {
   deleteStudent,
   updateStudentFeeStatus,
   promoteStudents, // Import promoteStudents
-  increaseFee // Import increaseFee
+  increaseFee, // Import increaseFee
+  promoteStudent, // ADD THIS LINE
+  demoteStudent, // ADD THIS LINE
+  promoteClass,  // ADD THIS LINE
+  demoteClass,
+  promoteStudentSemester, // ADD THIS LINE
+  demoteStudentSemester, // ADD THIS LINE
+  promoteSemester,       // ADD THIS LINE
+  demoteSemester
 } from '../controllers/studentController.js';
 import multer from 'multer';
 import path from 'path';
@@ -228,6 +236,13 @@ const studentUploadFields = upload.fields([
 
 // --- PROTECTED ROUTES ---
 
+
+router.put('/promote-semester',protect, authorizeRoles('admin', 'teacher'), promoteSemester);           // ADD THIS LINE
+router.put('/demote-semester',protect, authorizeRoles('admin', 'teacher'), demoteSemester);  // ADD THIS LINE
+router.put('/promote-class', protect, authorizeRoles('admin', 'teacher'), promoteClass); // ADD THIS LINE
+router.put('/demote-class', protect, authorizeRoles('admin', 'teacher'), demoteClass);
+
+
 // Get student's own data (for student role)
 router.get('/my-data/:id', protect, authorizeRoles('student', 'admin', 'teacher', 'accountant'), getStudentById); // Ensure getStudentById handles req.user.profileId
 
@@ -248,6 +263,22 @@ router.put('/:id', protect, authorizeRoles('admin', 'teacher', 'accountant'), st
 
 // Admin can delete students
 router.delete('/:id', protect, authorizeRoles('admin'), deleteStudent);
+
+
+
+
+
+// New routes for student promotion/demotion
+router.put('/:id/promote', protect, authorizeRoles('admin', 'teacher'), promoteStudent); // ADD THIS LINE
+router.put('/:id/demote', protect, authorizeRoles('admin', 'teacher'), demoteStudent);   // ADD THIS LINE
+
+
+// Routes for promotion/demotion for semesters (NEW)
+router.put('/:id/promote-semester',protect, authorizeRoles('admin', 'teacher'), promoteStudentSemester); // ADD THIS LINE
+router.put('/:id/demote-semester',protect, authorizeRoles('admin', 'teacher'), demoteStudentSemester);   // ADD THIS LINE
+
+
+
 
 // Admin specific actions
 router.patch('/promote', protect, authorizeRoles('admin'), promoteStudents); // Changed to patch for partial update

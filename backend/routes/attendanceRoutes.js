@@ -8,6 +8,8 @@ import {
   getStaffAttendance,
   getStudentsForAttendance,
   getStaffForAttendance,
+  getAttendanceReports,
+  getAttendanceByDate
 } from '../controllers/attendanceController.js';
 
 const router = express.Router();
@@ -28,6 +30,13 @@ router.get('/', protect, authorizeRoles('admin', 'teacher'), getAttendance);
 // THIS ROUTE MUST BE DEFINED BEFORE THE /student/:id ROUTE
 router.get('/students', protect, authorizeRoles('admin', 'teacher'), getStudentsForAttendance);
 
+
+router
+  .route('/reports')
+  .get(protect, authorizeRoles('admin', 'teacher'), getAttendanceReports);
+
+
+
 // @desc    Get list of staff for attendance marking (Admin)
 // @route   GET /api/attendance/staff
 // @access  Private/Admin
@@ -43,5 +52,9 @@ router.get('/student/:id', protect, authorizeRoles('admin', 'teacher', 'student'
 // @route   GET /api/attendance/staff/:id
 // @access  Private/Staff, Admin
 router.get('/staff/:id', protect, authorizeRoles('admin', 'teacher', 'accountant', 'cook', 'cleaner'), getStaffAttendance);
+
+router
+  .route('/:date')
+  .get(protect, authorizeRoles('admin', 'teacher'), getAttendanceByDate);
 
 export default router;

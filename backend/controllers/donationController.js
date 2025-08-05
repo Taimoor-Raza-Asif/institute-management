@@ -157,4 +157,59 @@ const downloadReceipt = asyncHandler(async (req, res) => {
   }
 });
 
-export { addDonation, getDonations, getDonationById, updateDonation, deleteDonation, downloadReceipt, upload };
+
+
+// @desc    Get aggregated donation reports
+// @route   GET /api/donations/reports
+// @access  Private/Admin & Accountant
+export const getDonationReports = asyncHandler(async (req, res) => {
+  const { year } = req.query;
+  const matchFilter = { donationDate: { $ne: null } };
+
+  if (year) {
+    matchFilter.$expr = { $eq: [{ $year: "$donationDate" }, parseInt(year)] };
+  }
+
+  try {
+    const monthlyReport = await Donation.aggregate([
+      {
+        $match: matchFilter
+      },
+      {
+        $group: {
+          _id: { year: { $year: "$donationDate" }, month: { $month: "$donationDate" } },
+          totalDonations: { $sum: "$donationAmount" }
+        }
+      },
+      {
+        $sort: { "_id.year": 1, "_id.month": 1 }
+      }
+    ]);
+
+    const purposeReport = await Donation.aggregate([
+      {
+        $match: matchFilter
+      },
+      {
+        $group: {
+          _id: "$donationPurpose",
+          totalAmount: { $sum: "$donationAmount" }
+        }
+      },
+      {
+        $project: {
+          _id: 0,
+          purpose: "$_id",
+          totalAmount: 1
+        }
+      }
+    ]);
+
+    res.status(200).json({ monthlyReport, purposeReport });
+  } catch (error) {
+    console.error("Error fetching donation reports:", error);
+    res.status(500).json({ message: 'Failed to fetch donation reports', error: error.message });
+  }
+});
+
+export { addDonation, getDonations, getDonationById, updateDonation, deleteDonation, downloadReceipt, upload};

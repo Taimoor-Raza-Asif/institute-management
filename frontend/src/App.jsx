@@ -29,6 +29,7 @@ import AssignClasses from './pages/AssignClasses';
 import MyStudents from './pages/MyStudents';
 import DonationManagement from './components/DonationManagement';
 import BillingManagement from './components/BillingManagement';
+import Reports from './pages/Reports';
 export const UserContext = createContext(null);
 
 const App = () => {
@@ -116,7 +117,7 @@ const App = () => {
 
           <Route path="/donations" element={<PrivateRoute roles={['admin', 'accountant']}><DonationManagement /></PrivateRoute>} />
           <Route path="/billing" element={<PrivateRoute roles={['admin', 'accountant']}><BillingManagement /></PrivateRoute>} />
-
+          <Route path="/financial-reports" element={<PrivateRoute roles={['admin', 'accountant']}><Reports /></PrivateRoute>} />
           {/* Staff-specific route */}
           <Route path="/my-salaries" element={<PrivateRoute><StaffSalaryList /></PrivateRoute>} />
 

@@ -7,6 +7,7 @@ import {
   updateBill,
   deleteBill,
   downloadReceipt,
+  getBillReports,
   upload
 } from '../controllers/billingController.js';
 
@@ -17,6 +18,10 @@ const allowedRoles = ['admin', 'accountant'];
 router.route('/')
   .post(protect, authorizeRoles(...allowedRoles), upload, addBill)
   .get(protect, authorizeRoles(...allowedRoles), getBills);
+
+router
+  .route('/reports')
+  .get(protect, authorizeRoles('admin', 'accountant'), getBillReports);
 
 router.route('/:id')
   .get(protect, authorizeRoles(...allowedRoles), getBillById)

@@ -17,6 +17,33 @@ const getStaffForSalary = asyncHandler(async (req, res) => {
   res.json(staff);
 });
 
+
+// @desc    Get all salary records with search and filtering
+// @route   GET /api/salary/all
+// @access  Private (Admin, Accountant)
+const getSalaries = asyncHandler(async (req, res) => {
+  const { searchTerm, role, month, year, status } = req.query;
+  const query = {};
+
+  if (role) query.staffRole = role;
+  if (month) query.month = parseInt(month);
+  if (year) query.year = parseInt(year);
+  if (status) query.status = status;
+
+  let salaries = await Salary.find(query).sort({ year: -1, month: -1 });
+
+  if (searchTerm) {
+    const searchTermRegex = new RegExp(search, 'i');
+    salaries = salaries.filter(salary =>
+      searchTermRegex.test(salary.staffName) ||
+      searchTermRegex.test(salary.staffCnic)
+    );
+  }
+
+  res.status(200).json(salaries);
+});
+
+
 // @desc    Create or update a staff salary record
 // @route   POST /api/salary
 // @access  Private/Admin
@@ -90,7 +117,7 @@ const createOrUpdateSalary = asyncHandler(async (req, res) => {
 // @route   GET /api/salary/all
 // @access  Private/Admin
 const getAllSalaries = asyncHandler(async (req, res) => {
-  const { role, month, year, status } = req.query;
+  const { role, month, year, status, search } = req.query;
 
   let filter = {};
   if (role) filter.staffRole = role;
@@ -98,9 +125,18 @@ const getAllSalaries = asyncHandler(async (req, res) => {
   if (year) filter.year = year;
   if (status) filter.status = status;
 
+  if (search) {
+    const searchRegex = new RegExp(search, 'i');
+    filter.$or = [
+      { staffName: { $regex: searchRegex } },
+      { staffCnic: { $regex: searchRegex } }
+    ];
+  }
+
   const salaries = await Salary.find(filter).sort({ createdAt: -1 }).lean();
   res.json(salaries);
 });
+
 
 // // @desc    Get a single staff member's salary records
 // // @route   GET /api/salary/my-salaries
@@ -215,11 +251,29 @@ const getSalaryReports = asyncHandler(async (req, res) => {
   }
 });
 
+// @desc    Delete a salary record
+// @route   DELETE /api/salary/:id
+// @access  Private/Admin
+const deleteSalary = asyncHandler(async (req, res) => {
+  const salary = await Salary.findById(req.params.id);
+
+  if (!salary) {
+    res.status(404);
+    throw new Error('Salary record not found');
+  }
+
+  await salary.deleteOne();
+  res.status(200).json({ message: 'Salary record deleted successfully' });
+});
+
+
 export {
   getStaffForSalary,
   createOrUpdateSalary,
   getAllSalaries,
   getMySalaries,
   getSalaryById,
+  getSalaries,
   getSalaryReports,
+  deleteSalary,
 };

@@ -523,7 +523,7 @@ const Reports = () => {
 
   return (
     <div className="container mx-auto p-4 sm:p-6 md:p-8 bg-gray-100 min-h-screen">
-      <h1 className="text-3xl sm:text-4xl font-bold text-gray-800 mb-6">Financial & Performance Reports</h1>
+      <h1 className="text-3xl text-center sm:text-4xl font-bold text-green-800 mb-6">Financial & Performance Reports</h1>
       
       {/* Tab Navigation */}
       <div className="flex flex-wrap gap-2 mb-6 border-b border-gray-200">

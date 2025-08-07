@@ -285,7 +285,7 @@ const getStudentAttendance = asyncHandler(async (req, res) => {
     date: { $gte: startDate, $lte: endDate },
   }).sort({ date: -1 });
 
-  const totalDays = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+  const totalDays = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
   const presentDays = attendance.filter(record => record.status === 'Present').length;
   const absentDays = attendance.filter(record => record.status === 'Absent').length;
   const leaveDays = attendance.filter(record => record.status === 'Leave').length;

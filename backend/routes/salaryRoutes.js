@@ -7,7 +7,8 @@ import {
   getMySalaries,
   getSalaryById,
   getStaffForSalary,
-  getSalaryReports
+  getSalaryReports,
+  deleteSalary
 } from '../controllers/salaryController.js';
 
 const router = express.Router();
@@ -21,6 +22,7 @@ router.get('/all', protect, authorizeRoles('admin', 'accountant'), getAllSalarie
 // Get a single staff member's salary records
 router.get('/my-salaries', protect, authorizeRoles('admin', 'accountant', 'teacher', 'cook', 'cleaner'), getMySalaries);
 
+
 // New route for salary reports
 router.get('/reports', protect, authorizeRoles('admin', 'accountant'), getSalaryReports);
 
@@ -29,5 +31,7 @@ router.post('/', protect, authorizeRoles('admin', 'accountant'), createOrUpdateS
 
 // Get a single salary record by ID (Admin or the specific staff member)
 router.get('/:id', protect, authorizeRoles('admin', 'accountant', 'teacher', 'cook', 'cleaner'), getSalaryById);
+
+router.delete('/:id', protect, authorizeRoles('admin', 'accountant'), deleteSalary);
 
 export default router;

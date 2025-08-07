@@ -339,7 +339,7 @@ const FeeList = () => {
                     </div> */}
 
                     {(currentUser.role === 'admin' || currentUser.role === 'accountant') && (
-                        <div className="relative w-full sm:w-1/2 lg:w-1/3">
+                        <div className="relative w-full sm:w-1/2 lg:w-2/3">
                             <input
                                 type="text"
                                 placeholder="Search by student name or CNIC..."

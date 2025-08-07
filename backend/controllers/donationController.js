@@ -61,7 +61,18 @@ const addDonation = asyncHandler(async (req, res) => {
   });
 
   const createdDonation = await newDonation.save();
-  res.status(201).json(createdDonation);
+
+// Populate markedBy → profileId → name
+const populatedDonation = await Donation.findById(createdDonation._id).populate({
+  path: 'markedBy',
+  populate: {
+    path: 'profileId',
+    model: 'Staff', 
+    select: 'name'
+  }
+})
+
+  res.status(201).json(populatedDonation);
 });
 
 // @desc    Get all donations with filters
@@ -79,7 +90,14 @@ const getDonations = asyncHandler(async (req, res) => {
     if (endDate) query.donationDate.$lte = new Date(endDate);
   }
 
-  const donations = await Donation.find(query).populate('markedBy', 'cnic role');
+  const donations = await Donation.find(query).populate({
+  path: 'markedBy',
+  populate: {
+    path: 'profileId',
+    model: 'Staff', 
+    select: 'name'
+  }
+})
   res.json(donations);
 });
 
@@ -87,8 +105,14 @@ const getDonations = asyncHandler(async (req, res) => {
 // @route   GET /api/donations/:id
 // @access  Private/Admin & Accountant
 const getDonationById = asyncHandler(async (req, res) => {
-  const donation = await Donation.findById(req.params.id).populate('markedBy', 'cnic role');
-
+  const donation = await Donation.findById(req.params.id).populate({
+  path: 'markedBy',
+  populate: {
+    path: 'profileId',
+    model: 'Staff', 
+    select: 'name'
+  }
+})
   if (donation) {
     res.json(donation);
   } else {
@@ -212,4 +236,4 @@ export const getDonationReports = asyncHandler(async (req, res) => {
   }
 });
 
-export { addDonation, getDonations, getDonationById, updateDonation, deleteDonation, downloadReceipt, upload};
+export { addDonation, getDonations, getDonationById, updateDonation, deleteDonation, downloadReceipt, upload };

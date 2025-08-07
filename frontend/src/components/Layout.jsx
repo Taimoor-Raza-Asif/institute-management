@@ -96,7 +96,7 @@
 //             <ul>
 //               {myProfileLink && (
 //                 <li className="mb-2">
-//                   <Link to={myProfileLink} className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                   <Link to={myProfileLink} className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                     <UserCircleIcon className="h-5 w-5 mr-3" /> My Profile
 //                   </Link>
 //                 </li>
@@ -106,72 +106,72 @@
 //               {currentUser.role === 'admin' && (
 //                 <>
 //                   <li className="mb-2">
-//                     <Link to="/admin/dashboard" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                     <Link to="/admin/dashboard" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                       <HomeIcon className="h-5 w-5 mr-3" /> Admin Dashboard
 //                     </Link>
 //                   </li>
 //                   <li className="mb-2">
-//                     <Link to="/students" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                     <Link to="/students" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                       <AcademicCapIcon className="h-5 w-5 mr-3" /> Student Management
 //                     </Link>
 //                   </li>
 //                   <li className="mb-2">
-//                     <Link to="/staff" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                     <Link to="/staff" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                       <BriefcaseIcon className="h-5 w-5 mr-3" /> Staff Management
 //                     </Link>
 //                   </li>
 //                   <li className="mb-2">
-//                     <Link to="/assign-classes" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                     <Link to="/assign-classes" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                       <BookOpenIcon className="h-5 w-5 mr-3" /> Assign Classes
 //                     </Link>
 //                   </li>
 //                   <li className="mb-2">
-//                     <Link to="/salaries" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                     <Link to="/salaries" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                       <BanknotesIcon className="h-5 w-5 mr-3" /> Salary Management
 //                     </Link>
 //                   </li>
 //                   <li className="mb-2">
-//                     <Link to="/fees" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                     <Link to="/fees" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                       <BanknotesIcon className="h-5 w-5 mr-3" /> Fees Management
 //                     </Link>
 //                   </li>
 //                   <li className="mb-2">
-//                     <Link to="/admin/users" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                     <Link to="/admin/users" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                       <UserCircleIcon className="h-5 w-5 mr-3" /> User Management
 //                     </Link>
 //                   </li>
 //                   <li className="mb-2">
-//                     <Link to="/admin/access-control" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                     <Link to="/admin/access-control" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                       <Cog6ToothIcon className="h-5 w-5 mr-3" /> Access Control
 //                     </Link>
 //                   </li>
 //                   <li className="mb-2">
-//                     <Link to="/admin/student-leaves" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                     <Link to="/admin/student-leaves" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                       <CalendarDaysIcon className="h-5 w-5 mr-3" /> Student Leaves
 //                     </Link>
 //                   </li>
 //                   <li className="mb-2">
-//                     <Link to="/admin/staff-leaves" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                     <Link to="/admin/staff-leaves" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                       <ClockIcon className="h-5 w-5 mr-3" /> Staff Leaves
 //                     </Link>
 //                   </li>
 //                   <li className="mb-2">
-//                     <Link to="/attendance/mark" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                     <Link to="/attendance/mark" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                       <ClipboardDocumentCheckIcon className="h-5 w-5 mr-3" /> Mark Attendance
 //                     </Link>
 //                   </li>
 //                   <li className="mb-2">
-//                     <Link to="/attendance/all" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                     <Link to="/attendance/all" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                       <ChartBarIcon className="h-5 w-5 mr-3" /> All Attendance Records
 //                     </Link>
 //                   </li>
 //                   <li className="mb-2">
-//                     <Link to="/donations" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                     <Link to="/donations" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                       <BanknotesIcon className="h-5 w-5 mr-3" /> Donation Management
 //                     </Link>
 //                   </li>
 //                   <li className="mb-2">
-//                     <Link to="/billing" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                     <Link to="/billing" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                       <BanknotesIcon className="h-5 w-5 mr-3" /> Bills Management
 //                     </Link>
 //                   </li>
@@ -182,27 +182,27 @@
 //               {currentUser.role === 'student' && (
 //                 <>
 //                   <li className="mb-2">
-//                     <Link to="/student/dashboard" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                     <Link to="/student/dashboard" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                       <HomeIcon className="h-5 w-5 mr-3" /> Student Dashboard
 //                     </Link>
 //                   </li>
 //                   {/* <li className="mb-2">
-//                     <Link to="/students/my-data" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                     <Link to="/students/my-data" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                       <UserCircleIcon className="h-5 w-5 mr-3" /> My Profile
 //                     </Link>
 //                   </li> */}
 //                   <li className="mb-2">
-//                     <Link to="/fees" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                     <Link to="/fees" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                       <BanknotesIcon className="h-5 w-5 mr-3" /> My Fees
 //                     </Link>
 //                   </li>
 //                   <li className="mb-2">
-//                     <Link to={`/attendance/my/${currentUser.profileId}`} className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                     <Link to={`/attendance/my/${currentUser.profileId}`} className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                       <CalendarDaysIcon className="h-5 w-5 mr-3" /> My Attendance
 //                     </Link>
 //                   </li>
 //                   <li className="mb-2">
-//                     <Link to="/student/student-leaves" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                     <Link to="/student/student-leaves" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                       <CalendarDaysIcon className="h-5 w-5 mr-3" /> My Leave Request
 //                     </Link>
 //                   </li>
@@ -213,52 +213,52 @@
 //               {currentUser.role === 'teacher' && (
 //                 <>
 //                   <li className="mb-2">
-//                     <Link to="/teacher/dashboard" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                     <Link to="/teacher/dashboard" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                       <HomeIcon className="h-5 w-5 mr-3" /> Teacher Dashboard
 //                     </Link>
 //                   </li>
 //                   {/* <li className="mb-2">
-//                     <Link to="/staff/my-data" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                     <Link to="/staff/my-data" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                       <UserCircleIcon className="h-5 w-5 mr-3" /> My Profile
 //                     </Link>
 //                   </li> */}
 //                   <li className="mb-2">
-//                     <Link to="/teacher/my-students" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                     <Link to="/teacher/my-students" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                       <UserGroupIcon className="h-5 w-5 mr-3" /> My Students
 //                     </Link>
 //                   </li>
 //                   <li className="mb-2">
-//                     <Link to="/teacher/subjects" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                     <Link to="/teacher/subjects" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                       <BookOpenIcon className="h-5 w-5 mr-3" /> My Subjects
 //                     </Link>
 //                   </li>
 //                   <li className="mb-2">
-//                     <Link to="/attendance/mark" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                     <Link to="/attendance/mark" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                       <ClipboardDocumentCheckIcon className="h-5 w-5 mr-3" /> Mark Attendance
 //                     </Link>
 //                   </li>
 //                   <li className="mb-2">
-//                     <Link to="/attendance/all" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                     <Link to="/attendance/all" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                       <ChartBarIcon className="h-5 w-5 mr-3" /> All Attendance Records
 //                     </Link>
 //                   </li>
 //                   <li className="mb-2">
-//                     <Link to={`/attendance/my/${currentUser.profileId}`} className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                     <Link to={`/attendance/my/${currentUser.profileId}`} className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                       <CalendarDaysIcon className="h-5 w-5 mr-3" /> My Attendance
 //                     </Link>
 //                   </li>
 //                   <li className="mb-2">
-//                     <Link to="/my-salaries" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                     <Link to="/my-salaries" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                       <BanknotesIcon className="h-5 w-5 mr-3" /> My Salaries
 //                     </Link>
 //                   </li>
 //                   <li className="mb-2">
-//                     <Link to="/staff/staff-leaves" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                     <Link to="/staff/staff-leaves" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                       <ClockIcon className="h-5 w-5 mr-3" /> My Leave Request
 //                     </Link>
 //                   </li>
 //                   <li className="mb-2">
-//                     <Link to="/teacher/student-leaves" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                     <Link to="/teacher/student-leaves" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                       <CalendarDaysIcon className="h-5 w-5 mr-3" /> Student Leave Requests
 //                     </Link>
 //                   </li>
@@ -272,7 +272,7 @@
 //               {currentUser.role === 'accountant' && (
 //                 <>
 //                   <li className="mb-2">
-//                     <Link to="/accountant/dashboard" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                     <Link to="/accountant/dashboard" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                       <HomeIcon className="h-5 w-5 mr-3" /> Accountant Dashboard
 //                     </Link>
 //                   </li>
@@ -282,47 +282,47 @@
 //                     </Link>
 //                   </li>
 //                   {/* <li className="mb-2">
-//                     <Link to="/staff/my-data" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                     <Link to="/staff/my-data" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                       <UserCircleIcon className="h-5 w-5 mr-3" /> My Profile
 //                     </Link>
 //                   </li> */}
 //                   <li className="mb-2">
-//                     <Link to={`/attendance/my/${currentUser.profileId}`} className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                     <Link to={`/attendance/my/${currentUser.profileId}`} className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                       <CalendarDaysIcon className="h-5 w-5 mr-3" /> My Attendance
 //                     </Link>
 //                   </li>
 //                   {/* <li className="mb-2">
-//                     <Link to="/my-salaries" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                     <Link to="/my-salaries" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                       <BanknotesIcon className="h-5 w-5 mr-3" /> My Salaries
 //                     </Link>
 //                   </li> */}
 //                   <li className="mb-2">
-//                     <Link to="/salaries" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                     <Link to="/salaries" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                       <BanknotesIcon className="h-5 w-5 mr-3" /> Salary Management
 //                     </Link>
 //                   </li>
 //                   <li className="mb-2">
-//                     <Link to="/bills" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                     <Link to="/bills" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                       <BanknotesIcon className="h-5 w-5 mr-3" /> Bill Management
 //                     </Link>
 //                   </li>
 //                   <li className="mb-2">
-//                     <Link to="/donations" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                     <Link to="/donations" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                       <BanknotesIcon className="h-5 w-5 mr-3" /> Donation Management
 //                     </Link>
 //                   </li>
 //                   <li className="mb-2">
-//                     <Link to="/billing" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                     <Link to="/billing" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                       <BanknotesIcon className="h-5 w-5 mr-3" /> Bills Management
 //                     </Link>
 //                   </li>
 //                   <li className="mb-2">
-//                     <Link to="/financial-reports" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                     <Link to="/financial-reports" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                       <ChartBarIcon className="h-5 w-5 mr-3" /> Financial Reports
 //                     </Link>
 //                   </li>
 //                   <li className="mb-2">
-//                     <Link to="/staff/staff-leaves" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                     <Link to="/staff/staff-leaves" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                       <ClockIcon className="h-5 w-5 mr-3" /> My Leave Request
 //                     </Link>
 //                   </li>
@@ -333,22 +333,22 @@
 //               {(currentUser.role === 'cook' || currentUser.role === 'cleaner') && (
 //                 <>
 //                   {/* <li className="mb-2">
-//                     <Link to="/staff/my-data" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                     <Link to="/staff/my-data" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                       <UserCircleIcon className="h-5 w-5 mr-3" /> My Profile
 //                     </Link>
 //                   </li> */}
 //                   <li className="mb-2">
-//                     <Link to={`/attendance/my/${currentUser.profileId}`} className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                     <Link to={`/attendance/my/${currentUser.profileId}`} className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                       <CalendarDaysIcon className="h-5 w-5 mr-3" /> My Attendance
 //                     </Link>
 //                   </li>
 //                   <li className="mb-2">
-//                     <Link to="/my-salaries" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                     <Link to="/my-salaries" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                       <BanknotesIcon className="h-5 w-5 mr-3" /> My Salaries
 //                     </Link>
 //                   </li>
 //                   <li className="mb-2">
-//                     <Link to="/staff/staff-leaves" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                     <Link to="/staff/staff-leaves" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                       <ClockIcon className="h-5 w-5 mr-3" /> {currentUser.role === 'cook' ? 'My Leave Request' : 'My Leave Request'}
 //                     </Link>
 //                   </li>
@@ -511,28 +511,28 @@
 //             <ul>
 //               {currentUser.role === 'admin' && (
 //                 <li className="mb-2">
-//                   <Link to="/admin/dashboard" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                   <Link to="/admin/dashboard" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                     <HomeIcon className="h-5 w-5 mr-3" /> Admin Dashboard
 //                   </Link>
 //                 </li>
 //               )}
 //               {currentUser.role === 'student' && (
 //                 <li className="mb-2">
-//                   <Link to="/student/dashboard" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                   <Link to="/student/dashboard" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                     <HomeIcon className="h-5 w-5 mr-3" /> Student Dashboard
 //                   </Link>
 //                 </li>
 //               )}
 //               {currentUser.role === 'teacher' && (
 //                 <li className="mb-2">
-//                   <Link to="/teacher/dashboard" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                   <Link to="/teacher/dashboard" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                     <HomeIcon className="h-5 w-5 mr-3" /> Teacher Dashboard
 //                   </Link>
 //                 </li>
 //               )}
 //               {currentUser.role === 'accountant' && (
 //                 <li className="mb-2">
-//                   <Link to="/accountant/dashboard" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                   <Link to="/accountant/dashboard" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                     <HomeIcon className="h-5 w-5 mr-3" /> Accountant Dashboard
 //                   </Link>
 //                 </li>
@@ -540,7 +540,7 @@
 
 //               {myProfileLink && (
 //                 <li className="mb-2">
-//                   <Link to={myProfileLink} className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                   <Link to={myProfileLink} className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                     <UserCircleIcon className="h-5 w-5 mr-3" /> My Profile
 //                   </Link>
 //                 </li>
@@ -552,7 +552,7 @@
 //                   <li className="mb-2">
 //                     <div
 //                       onClick={() => toggleDropdown('user-management')}
-//                       className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200 cursor-pointer"
+//                       className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200 cursor-pointer"
 //                     >
 //                       <UserGroupIcon className="h-5 w-5 mr-3" />
 //                       Users Management
@@ -565,22 +565,22 @@
 //                     {openDropdowns['user-management'] && (
 //                       <ul className="mt-1 ml-4 border-l border-gray-500">
 //                         <li>
-//                           <Link to="/students" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                           <Link to="/students" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                             <AcademicCapIcon className="h-5 w-5 mr-3" /> Student Management
 //                           </Link>
 //                         </li>
 //                         <li>
-//                           <Link to="/staff" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                           <Link to="/staff" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                             <BriefcaseIcon className="h-5 w-5 mr-3" /> Staff Management
 //                           </Link>
 //                         </li>
 //                         <li>
-//                           <Link to="/admin/users" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                           <Link to="/admin/users" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                             <UserCircleIcon className="h-5 w-5 mr-3" /> User Management
 //                           </Link>
 //                         </li>
 //                         <li>
-//                           <Link to="/admin/access-control" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                           <Link to="/admin/access-control" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                             <Cog6ToothIcon className="h-5 w-5 mr-3" /> Access Control
 //                           </Link>
 //                         </li>
@@ -591,7 +591,7 @@
 //                   <li className="mb-2">
 //                     <div
 //                       onClick={() => toggleDropdown('financial-management')}
-//                       className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200 cursor-pointer"
+//                       className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200 cursor-pointer"
 //                     >
 //                       <WalletIcon className="h-5 w-5 mr-3" />
 //                       Financial Management
@@ -602,22 +602,22 @@
 //                     {openDropdowns['financial-management'] && (
 //                       <ul className="mt-1 ml-4 border-l border-gray-500">
 //                         <li>
-//                           <Link to="/fees" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                           <Link to="/fees" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                             <BanknotesIcon className="h-5 w-5 mr-3" /> Fees Management
 //                           </Link>
 //                         </li>
 //                         <li>
-//                           <Link to="/salaries" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                           <Link to="/salaries" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                             <BanknotesIcon className="h-5 w-5 mr-3" /> Salary Management
 //                           </Link>
 //                         </li>
 //                         <li>
-//                           <Link to="/donations" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                           <Link to="/donations" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                             <BanknotesIcon className="h-5 w-5 mr-3" /> Donation Management
 //                           </Link>
 //                         </li>
 //                         <li>
-//                           <Link to="/billing" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                           <Link to="/billing" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                             <BanknotesIcon className="h-5 w-5 mr-3" /> Bills Management
 //                           </Link>
 //                         </li>
@@ -628,7 +628,7 @@
 //                   <li className="mb-2">
 //                     <div
 //                       onClick={() => toggleDropdown('academic-management')}
-//                       className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200 cursor-pointer"
+//                       className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200 cursor-pointer"
 //                     >
 //                       <BookOpenIcon className="h-5 w-5 mr-3" />
 //                       Academic & Attendance
@@ -639,27 +639,27 @@
 //                     {openDropdowns['academic-management'] && (
 //                       <ul className="mt-1 ml-4 border-l border-gray-500">
 //                         <li>
-//                           <Link to="/assign-classes" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                           <Link to="/assign-classes" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                             <BookOpenIcon className="h-5 w-5 mr-3" /> Assign Classes
 //                           </Link>
 //                         </li>
 //                         <li>
-//                           <Link to="/attendance/mark" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                           <Link to="/attendance/mark" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                             <ClipboardDocumentCheckIcon className="h-5 w-5 mr-3" /> Mark Attendance
 //                           </Link>
 //                         </li>
 //                         <li>
-//                           <Link to="/attendance/all" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                           <Link to="/attendance/all" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                             <ChartBarIcon className="h-5 w-5 mr-3" /> All Attendance Records
 //                           </Link>
 //                         </li>
 //                         <li>
-//                           <Link to="/admin/student-leaves" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                           <Link to="/admin/student-leaves" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                             <CalendarDaysIcon className="h-5 w-5 mr-3" /> Student Leaves
 //                           </Link>
 //                         </li>
 //                         <li>
-//                           <Link to="/admin/staff-leaves" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                           <Link to="/admin/staff-leaves" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                             <ClockIcon className="h-5 w-5 mr-3" /> Staff Leaves
 //                           </Link>
 //                         </li>
@@ -673,17 +673,17 @@
 //               {currentUser.role === 'student' && (
 //                 <>
 //                   <li className="mb-2">
-//                     <Link to="/fees" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                     <Link to="/fees" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                       <BanknotesIcon className="h-5 w-5 mr-3" /> My Fees
 //                     </Link>
 //                   </li>
 //                   <li className="mb-2">
-//                     <Link to={`/attendance/my/${currentUser.profileId}`} className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                     <Link to={`/attendance/my/${currentUser.profileId}`} className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                       <CalendarDaysIcon className="h-5 w-5 mr-3" /> My Attendance
 //                     </Link>
 //                   </li>
 //                   <li className="mb-2">
-//                     <Link to="/student/student-leaves" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                     <Link to="/student/student-leaves" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                       <ClockIcon className="h-5 w-5 mr-3" /> My Leave Request
 //                     </Link>
 //                   </li>
@@ -696,7 +696,7 @@
 //                   <li className="mb-2">
 //                     <div
 //                       onClick={() => toggleDropdown('teacher-classes')}
-//                       className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200 cursor-pointer"
+//                       className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200 cursor-pointer"
 //                     >
 //                       <AcademicCapIcon className="h-5 w-5 mr-3" />
 //                       My Classes
@@ -707,12 +707,12 @@
 //                     {openDropdowns['teacher-classes'] && (
 //                       <ul className="mt-1 ml-4 border-l border-gray-500">
 //                         <li>
-//                           <Link to="/teacher/my-students" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                           <Link to="/teacher/my-students" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                             <UserGroupIcon className="h-5 w-5 mr-3" /> My Students
 //                           </Link>
 //                         </li>
 //                         <li>
-//                           <Link to="/teacher/subjects" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                           <Link to="/teacher/subjects" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                             <BookOpenIcon className="h-5 w-5 mr-3" /> My Subjects
 //                           </Link>
 //                         </li>
@@ -723,7 +723,7 @@
 //                   <li className="mb-2">
 //                     <div
 //                       onClick={() => toggleDropdown('teacher-attendance')}
-//                       className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200 cursor-pointer"
+//                       className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200 cursor-pointer"
 //                     >
 //                       <ClipboardDocumentListIcon className="h-5 w-5 mr-3" />
 //                       Attendance & Leaves
@@ -734,27 +734,27 @@
 //                     {openDropdowns['teacher-attendance'] && (
 //                       <ul className="mt-1 ml-4 border-l border-gray-500">
 //                         <li>
-//                           <Link to="/attendance/mark" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                           <Link to="/attendance/mark" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                             <ClipboardDocumentCheckIcon className="h-5 w-5 mr-3" /> Mark Attendance
 //                           </Link>
 //                         </li>
 //                         <li>
-//                           <Link to="/attendance/all" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                           <Link to="/attendance/all" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                             <ChartBarIcon className="h-5 w-5 mr-3" /> All Attendance Records
 //                           </Link>
 //                         </li>
 //                         <li>
-//                           <Link to={`/attendance/my/${currentUser.profileId}`} className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                           <Link to={`/attendance/my/${currentUser.profileId}`} className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                             <CalendarDaysIcon className="h-5 w-5 mr-3" /> My Attendance
 //                           </Link>
 //                         </li>
 //                         <li>
-//                           <Link to="/teacher/student-leaves" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                           <Link to="/teacher/student-leaves" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                             <CalendarDaysIcon className="h-5 w-5 mr-3" /> Student Leave Requests
 //                           </Link>
 //                         </li>
 //                         <li>
-//                           <Link to="/staff/staff-leaves" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                           <Link to="/staff/staff-leaves" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                             <ClockIcon className="h-5 w-5 mr-3" /> My Leave Request
 //                           </Link>
 //                         </li>
@@ -762,7 +762,7 @@
 //                     )}
 //                   </li>
 //                   <li className="mb-2">
-//                     <Link to="/my-salaries" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                     <Link to="/my-salaries" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                       <BanknotesIcon className="h-5 w-5 mr-3" /> My Salaries
 //                     </Link>
 //                   </li>
@@ -775,7 +775,7 @@
 //                   <li className="mb-2">
 //                     <div
 //                       onClick={() => toggleDropdown('accountant-finance')}
-//                       className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200 cursor-pointer"
+//                       className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200 cursor-pointer"
 //                     >
 //                       <WalletIcon className="h-5 w-5 mr-3" />
 //                       Financial Management
@@ -786,27 +786,27 @@
 //                     {openDropdowns['accountant-finance'] && (
 //                       <ul className="mt-1 ml-4 border-l border-gray-500">
 //                         <li>
-//                           <Link to="/fees" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                           <Link to="/fees" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                             <BanknotesIcon className="h-5 w-5 mr-3" /> Fees Management
 //                           </Link>
 //                         </li>
 //                         <li>
-//                           <Link to="/salaries" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                           <Link to="/salaries" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                             <BanknotesIcon className="h-5 w-5 mr-3" /> Salary Management
 //                           </Link>
 //                         </li>
 //                         <li>
-//                           <Link to="/bills" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                           <Link to="/bills" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                             <BanknotesIcon className="h-5 w-5 mr-3" /> Bill Management
 //                           </Link>
 //                         </li>
 //                         <li>
-//                           <Link to="/donations" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                           <Link to="/donations" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                             <BanknotesIcon className="h-5 w-5 mr-3" /> Donation Management
 //                           </Link>
 //                         </li>
 //                         <li>
-//                           <Link to="/financial-reports" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                           <Link to="/financial-reports" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                             <ChartBarIcon className="h-5 w-5 mr-3" /> Financial Reports
 //                           </Link>
 //                         </li>
@@ -814,12 +814,12 @@
 //                     )}
 //                   </li>
 //                   <li className="mb-2">
-//                     <Link to={`/attendance/my/${currentUser.profileId}`} className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                     <Link to={`/attendance/my/${currentUser.profileId}`} className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                       <CalendarDaysIcon className="h-5 w-5 mr-3" /> My Attendance
 //                     </Link>
 //                   </li>
 //                   <li className="mb-2">
-//                     <Link to="/staff/staff-leaves" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                     <Link to="/staff/staff-leaves" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                       <ClockIcon className="h-5 w-5 mr-3" /> My Leave Request
 //                     </Link>
 //                   </li>
@@ -830,17 +830,17 @@
 //               {(currentUser.role === 'cook' || currentUser.role === 'cleaner') && (
 //                 <>
 //                   <li className="mb-2">
-//                     <Link to={`/attendance/my/${currentUser.profileId}`} className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                     <Link to={`/attendance/my/${currentUser.profileId}`} className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                       <CalendarDaysIcon className="h-5 w-5 mr-3" /> My Attendance
 //                     </Link>
 //                   </li>
 //                   <li className="mb-2">
-//                     <Link to="/my-salaries" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                     <Link to="/my-salaries" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                       <BanknotesIcon className="h-5 w-5 mr-3" /> My Salaries
 //                     </Link>
 //                   </li>
 //                   <li className="mb-2">
-//                     <Link to="/staff/staff-leaves" className="flex items-center p-2 rounded-md hover:bg-gray-800 transition duration-200">
+//                     <Link to="/staff/staff-leaves" className="flex items-center p-2 rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200">
 //                       <ClockIcon className="h-5 w-5 mr-3" /> My Leave Request
 //                     </Link>
 //                   </li>
@@ -1001,28 +1001,28 @@ const Layout = ({ children, currentUser, onLogout }) => {
               {/* Dashboard and My Profile links get the new text-sm class and onClick */}
               {currentUser.role === 'admin' && (
                 <li className="mb-2">
-                  <Link to="/admin/dashboard" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gray-800 transition duration-200" onClick={toggleSidebar}>
+                  <Link to="/admin/dashboard" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200" onClick={toggleSidebar}>
                     <HomeIcon className="h-5 w-5 mr-3" /> Admin Dashboard
                   </Link>
                 </li>
               )}
               {currentUser.role === 'student' && (
                 <li className="mb-2">
-                  <Link to="/student/dashboard" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gray-800 transition duration-200" onClick={toggleSidebar}>
+                  <Link to="/student/dashboard" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200" onClick={toggleSidebar}>
                     <HomeIcon className="h-5 w-5 mr-3" /> Student Dashboard
                   </Link>
                 </li>
               )}
               {currentUser.role === 'teacher' && (
                 <li className="mb-2">
-                  <Link to="/teacher/dashboard" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gray-800 transition duration-200" onClick={toggleSidebar}>
+                  <Link to="/teacher/dashboard" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200" onClick={toggleSidebar}>
                     <HomeIcon className="h-5 w-5 mr-3" /> Teacher Dashboard
                   </Link>
                 </li>
               )}
               {currentUser.role === 'accountant' && (
                 <li className="mb-2">
-                  <Link to="/accountant/dashboard" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gray-800 transition duration-200" onClick={toggleSidebar}>
+                  <Link to="/accountant/dashboard" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200" onClick={toggleSidebar}>
                     <HomeIcon className="h-5 w-5 mr-3" /> Accountant Dashboard
                   </Link>
                 </li>
@@ -1030,7 +1030,7 @@ const Layout = ({ children, currentUser, onLogout }) => {
 
               {myProfileLink && (
                 <li className="mb-2">
-                  <Link to={myProfileLink} className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gray-800 transition duration-200" onClick={toggleSidebar}>
+                  <Link to={myProfileLink} className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200" onClick={toggleSidebar}>
                     <UserCircleIcon className="h-5 w-5 mr-3" /> My Profile
                   </Link>
                 </li>
@@ -1042,7 +1042,7 @@ const Layout = ({ children, currentUser, onLogout }) => {
                   <li className="mb-2">
                     <div
                       onClick={() => toggleDropdown('user-management')}
-                      className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gray-800 transition duration-200 cursor-pointer"
+                      className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200 cursor-pointer"
                     >
                       <UserGroupIcon className="h-5 w-5 mr-3" />
                       Users Management
@@ -1053,22 +1053,22 @@ const Layout = ({ children, currentUser, onLogout }) => {
                     {openDropdowns['user-management'] && (
                       <ul className="mt-1 ml-4 border-l border-gray-500">
                         <li>
-                          <Link to="/students" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gray-800 transition duration-200" onClick={toggleSidebar}>
+                          <Link to="/students" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200" onClick={toggleSidebar}>
                             <AcademicCapIcon className="h-5 w-5 mr-3" /> Student Management
                           </Link>
                         </li>
                         <li>
-                          <Link to="/staff" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gray-800 transition duration-200" onClick={toggleSidebar}>
+                          <Link to="/staff" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200" onClick={toggleSidebar}>
                             <BriefcaseIcon className="h-5 w-5 mr-3" /> Staff Management
                           </Link>
                         </li>
                         <li>
-                          <Link to="/admin/users" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gray-800 transition duration-200" onClick={toggleSidebar}>
+                          <Link to="/admin/users" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200" onClick={toggleSidebar}>
                             <UserCircleIcon className="h-5 w-5 mr-3" /> User Management
                           </Link>
                         </li>
                         <li>
-                          <Link to="/admin/access-control" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gray-800 transition duration-200" onClick={toggleSidebar}>
+                          <Link to="/admin/access-control" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200" onClick={toggleSidebar}>
                             <Cog6ToothIcon className="h-5 w-5 mr-3" /> Access Control
                           </Link>
                         </li>
@@ -1079,7 +1079,7 @@ const Layout = ({ children, currentUser, onLogout }) => {
                   <li className="mb-2">
                     <div
                       onClick={() => toggleDropdown('financial-management')}
-                      className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gray-800 transition duration-200 cursor-pointer"
+                      className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200 cursor-pointer"
                     >
                       <WalletIcon className="h-5 w-5 mr-3" />
                       Financial Management
@@ -1090,27 +1090,27 @@ const Layout = ({ children, currentUser, onLogout }) => {
                     {openDropdowns['financial-management'] && (
                       <ul className="mt-1 ml-4 border-l border-gray-500">
                         <li>
-                          <Link to="/fees" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gray-800 transition duration-200" onClick={toggleSidebar}>
+                          <Link to="/fees" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200" onClick={toggleSidebar}>
                             <BanknotesIcon className="h-5 w-5 mr-3" /> Fees Management
                           </Link>
                         </li>
                         <li>
-                          <Link to="/salaries" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gray-800 transition duration-200" onClick={toggleSidebar}>
+                          <Link to="/salaries" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200" onClick={toggleSidebar}>
                             <BanknotesIcon className="h-5 w-5 mr-3" /> Salary Management
                           </Link>
                         </li>
                         <li>
-                          <Link to="/donations" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gray-800 transition duration-200" onClick={toggleSidebar}>
+                          <Link to="/donations" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200" onClick={toggleSidebar}>
                             <BanknotesIcon className="h-5 w-5 mr-3" /> Donation Management
                           </Link>
                         </li>
                         <li>
-                          <Link to="/billing" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gray-800 transition duration-200" onClick={toggleSidebar}>
+                          <Link to="/billing" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200" onClick={toggleSidebar}>
                             <BanknotesIcon className="h-5 w-5 mr-3" /> Bills Management
                           </Link>
                         </li>
                         <li>
-                          <Link to="/financial-reports" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gray-800 transition duration-200" onClick={toggleSidebar}>
+                          <Link to="/financial-reports" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200" onClick={toggleSidebar}>
                             <ChartBarIcon className="h-5 w-5 mr-3" /> Financial Reports
                           </Link>
                         </li>
@@ -1122,7 +1122,7 @@ const Layout = ({ children, currentUser, onLogout }) => {
                   <li className="mb-2">
                     <div
                       onClick={() => toggleDropdown('academic-management')}
-                      className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gray-800 transition duration-200 cursor-pointer"
+                      className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200 cursor-pointer"
                     >
                       <BookOpenIcon className="h-5 w-5 mr-3" />
                       Academic & Attendance
@@ -1133,27 +1133,27 @@ const Layout = ({ children, currentUser, onLogout }) => {
                     {openDropdowns['academic-management'] && (
                       <ul className="mt-1 ml-4 border-l border-gray-500">
                         <li>
-                          <Link to="/assign-classes" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gray-800 transition duration-200" onClick={toggleSidebar}>
+                          <Link to="/assign-classes" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200" onClick={toggleSidebar}>
                             <BookOpenIcon className="h-5 w-5 mr-3" /> Assign Classes
                           </Link>
                         </li>
                         <li>
-                          <Link to="/attendance/mark" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gray-800 transition duration-200" onClick={toggleSidebar}>
+                          <Link to="/attendance/mark" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200" onClick={toggleSidebar}>
                             <ClipboardDocumentCheckIcon className="h-5 w-5 mr-3" /> Mark Attendance
                           </Link>
                         </li>
                         <li>
-                          <Link to="/attendance/all" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gray-800 transition duration-200" onClick={toggleSidebar}>
+                          <Link to="/attendance/all" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200" onClick={toggleSidebar}>
                             <ChartBarIcon className="h-5 w-5 mr-3" /> All Attendance Records
                           </Link>
                         </li>
                         <li>
-                          <Link to="/admin/student-leaves" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gray-800 transition duration-200" onClick={toggleSidebar}>
+                          <Link to="/admin/student-leaves" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200" onClick={toggleSidebar}>
                             <CalendarDaysIcon className="h-5 w-5 mr-3" /> Student Leaves
                           </Link>
                         </li>
                         <li>
-                          <Link to="/admin/staff-leaves" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gray-800 transition duration-200" onClick={toggleSidebar}>
+                          <Link to="/admin/staff-leaves" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200" onClick={toggleSidebar}>
                             <ClockIcon className="h-5 w-5 mr-3" /> Staff Leaves
                           </Link>
                         </li>
@@ -1167,17 +1167,17 @@ const Layout = ({ children, currentUser, onLogout }) => {
               {currentUser.role === 'student' && (
                 <>
                   <li className="mb-2">
-                    <Link to="/fees" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gray-800 transition duration-200" onClick={toggleSidebar}>
+                    <Link to="/fees" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200" onClick={toggleSidebar}>
                       <BanknotesIcon className="h-5 w-5 mr-3" /> My Fees
                     </Link>
                   </li>
                   <li className="mb-2">
-                    <Link to={`/attendance/my/${currentUser.profileId}`} className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gray-800 transition duration-200" onClick={toggleSidebar}>
+                    <Link to={`/attendance/my/${currentUser.profileId}`} className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200" onClick={toggleSidebar}>
                       <CalendarDaysIcon className="h-5 w-5 mr-3" /> My Attendance
                     </Link>
                   </li>
                   <li className="mb-2">
-                    <Link to="/student/student-leaves" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gray-800 transition duration-200" onClick={toggleSidebar}>
+                    <Link to="/student/student-leaves" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200" onClick={toggleSidebar}>
                       <ClockIcon className="h-5 w-5 mr-3" /> My Leave Request
                     </Link>
                   </li>
@@ -1190,7 +1190,7 @@ const Layout = ({ children, currentUser, onLogout }) => {
                   <li className="mb-2">
                     <div
                       onClick={() => toggleDropdown('teacher-classes')}
-                      className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gray-800 transition duration-200 cursor-pointer"
+                      className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200 cursor-pointer"
                     >
                       <AcademicCapIcon className="h-5 w-5 mr-3" />
                       My Classes
@@ -1201,12 +1201,12 @@ const Layout = ({ children, currentUser, onLogout }) => {
                     {openDropdowns['teacher-classes'] && (
                       <ul className="mt-1 ml-4 border-l border-gray-500">
                         <li>
-                          <Link to="/teacher/my-students" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gray-800 transition duration-200" onClick={toggleSidebar}>
+                          <Link to="/teacher/my-students" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200" onClick={toggleSidebar}>
                             <UserGroupIcon className="h-5 w-5 mr-3" /> My Students
                           </Link>
                         </li>
                         <li>
-                          <Link to="/teacher/subjects" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gray-800 transition duration-200" onClick={toggleSidebar}>
+                          <Link to="/teacher/subjects" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200" onClick={toggleSidebar}>
                             <BookOpenIcon className="h-5 w-5 mr-3" /> My Subjects
                           </Link>
                         </li>
@@ -1217,7 +1217,7 @@ const Layout = ({ children, currentUser, onLogout }) => {
                   <li className="mb-2">
                     <div
                       onClick={() => toggleDropdown('teacher-attendance')}
-                      className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gray-800 transition duration-200 cursor-pointer"
+                      className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200 cursor-pointer"
                     >
                       <ClipboardDocumentListIcon className="h-5 w-5 mr-3" />
                       Attendance & Leaves
@@ -1228,27 +1228,27 @@ const Layout = ({ children, currentUser, onLogout }) => {
                     {openDropdowns['teacher-attendance'] && (
                       <ul className="mt-1 ml-4 border-l border-gray-500">
                         <li>
-                          <Link to="/attendance/mark" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gray-800 transition duration-200" onClick={toggleSidebar}>
+                          <Link to="/attendance/mark" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200" onClick={toggleSidebar}>
                             <ClipboardDocumentCheckIcon className="h-5 w-5 mr-3" /> Mark Attendance
                           </Link>
                         </li>
                         <li>
-                          <Link to="/attendance/all" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gray-800 transition duration-200" onClick={toggleSidebar}>
+                          <Link to="/attendance/all" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200" onClick={toggleSidebar}>
                             <ChartBarIcon className="h-5 w-5 mr-3" /> All Attendance Records
                           </Link>
                         </li>
                         <li>
-                          <Link to={`/attendance/my/${currentUser.profileId}`} className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gray-800 transition duration-200" onClick={toggleSidebar}>
+                          <Link to={`/attendance/my/${currentUser.profileId}`} className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200" onClick={toggleSidebar}>
                             <CalendarDaysIcon className="h-5 w-5 mr-3" /> My Attendance
                           </Link>
                         </li>
                         <li>
-                          <Link to="/teacher/student-leaves" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gray-800 transition duration-200" onClick={toggleSidebar}>
+                          <Link to="/teacher/student-leaves" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200" onClick={toggleSidebar}>
                             <CalendarDaysIcon className="h-5 w-5 mr-3" /> Student Leave Requests
                           </Link>
                         </li>
                         <li>
-                          <Link to="/staff/staff-leaves" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gray-800 transition duration-200" onClick={toggleSidebar}>
+                          <Link to="/staff/staff-leaves" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200" onClick={toggleSidebar}>
                             <ClockIcon className="h-5 w-5 mr-3" /> My Leave Request
                           </Link>
                         </li>
@@ -1256,7 +1256,7 @@ const Layout = ({ children, currentUser, onLogout }) => {
                     )}
                   </li>
                   <li className="mb-2">
-                    <Link to="/my-salaries" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gray-800 transition duration-200" onClick={toggleSidebar}>
+                    <Link to="/my-salaries" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200" onClick={toggleSidebar}>
                       <BanknotesIcon className="h-5 w-5 mr-3" /> My Salaries
                     </Link>
                   </li>
@@ -1269,7 +1269,7 @@ const Layout = ({ children, currentUser, onLogout }) => {
                   <li className="mb-2">
                     <div
                       onClick={() => toggleDropdown('accountant-finance')}
-                      className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gray-800 transition duration-200 cursor-pointer"
+                      className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200 cursor-pointer"
                     >
                       <WalletIcon className="h-5 w-5 mr-3" />
                       Financial Management
@@ -1280,27 +1280,27 @@ const Layout = ({ children, currentUser, onLogout }) => {
                     {openDropdowns['accountant-finance'] && (
                       <ul className="mt-1 ml-4 border-l border-gray-500">
                         <li>
-                          <Link to="/fees" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gray-800 transition duration-200" onClick={toggleSidebar}>
+                          <Link to="/fees" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200" onClick={toggleSidebar}>
                             <BanknotesIcon className="h-5 w-5 mr-3" /> Fees Management
                           </Link>
                         </li>
                         <li>
-                          <Link to="/salaries" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gray-800 transition duration-200" onClick={toggleSidebar}>
+                          <Link to="/salaries" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200" onClick={toggleSidebar}>
                             <BanknotesIcon className="h-5 w-5 mr-3" /> Salary Management
                           </Link>
                         </li>
                         <li>
-                          <Link to="/billing" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gray-800 transition duration-200" onClick={toggleSidebar}>
+                          <Link to="/billing" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200" onClick={toggleSidebar}>
                             <BanknotesIcon className="h-5 w-5 mr-3" /> Bill Management
                           </Link>
                         </li>
                         <li>
-                          <Link to="/donations" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gray-800 transition duration-200" onClick={toggleSidebar}>
+                          <Link to="/donations" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200" onClick={toggleSidebar}>
                             <BanknotesIcon className="h-5 w-5 mr-3" /> Donation Management
                           </Link>
                         </li>
                         <li>
-                          <Link to="/financial-reports" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gray-800 transition duration-200" onClick={toggleSidebar}>
+                          <Link to="/financial-reports" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200" onClick={toggleSidebar}>
                             <ChartBarIcon className="h-5 w-5 mr-3" /> Financial Reports
                           </Link>
                         </li>
@@ -1308,12 +1308,12 @@ const Layout = ({ children, currentUser, onLogout }) => {
                     )}
                   </li>
                   <li className="mb-2">
-                    <Link to={`/attendance/my/${currentUser.profileId}`} className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gray-800 transition duration-200" onClick={toggleSidebar}>
+                    <Link to={`/attendance/my/${currentUser.profileId}`} className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200" onClick={toggleSidebar}>
                       <CalendarDaysIcon className="h-5 w-5 mr-3" /> My Attendance
                     </Link>
                   </li>
                   <li className="mb-2">
-                    <Link to="/staff/staff-leaves" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gray-800 transition duration-200" onClick={toggleSidebar}>
+                    <Link to="/staff/staff-leaves" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200" onClick={toggleSidebar}>
                       <ClockIcon className="h-5 w-5 mr-3" /> My Leave Request
                     </Link>
                   </li>
@@ -1324,17 +1324,17 @@ const Layout = ({ children, currentUser, onLogout }) => {
               {(currentUser.role === 'cook' || currentUser.role === 'cleaner') && (
                 <>
                   <li className="mb-2">
-                    <Link to={`/attendance/my/${currentUser.profileId}`} className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gray-800 transition duration-200" onClick={toggleSidebar}>
+                    <Link to={`/attendance/my/${currentUser.profileId}`} className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200" onClick={toggleSidebar}>
                       <CalendarDaysIcon className="h-5 w-5 mr-3" /> My Attendance
                     </Link>
                   </li>
                   <li className="mb-2">
-                    <Link to="/my-salaries" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gray-800 transition duration-200" onClick={toggleSidebar}>
+                    <Link to="/my-salaries" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200" onClick={toggleSidebar}>
                       <BanknotesIcon className="h-5 w-5 mr-3" /> My Salaries
                     </Link>
                   </li>
                   <li className="mb-2">
-                    <Link to="/staff/staff-leaves" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gray-800 transition duration-200" onClick={toggleSidebar}>
+                    <Link to="/staff/staff-leaves" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200" onClick={toggleSidebar}>
                       <ClockIcon className="h-5 w-5 mr-3" /> My Leave Request
                     </Link>
                   </li>

@@ -398,8 +398,8 @@ const StudentList = () => {
   }
 
   return (
-    <div className=" p-4 sm:p-6 lg:p-4">
- <h1 className="text-3xl sm:text-4xl font-bold text-center text-green-800 mb-14">Students Management</h1>
+    <div className="container mx-auto p-4 sm:p-6 lg:p-4">
+      <h1 className="text-3xl sm:text-4xl font-bold text-center text-green-800 mb-14">Students Management</h1>
       <div className="mb-6 p-4 bg-gray-50 rounded-lg shadow-sm border border-gray-200">
         {/* <div className="flex items-center space-x-3 mb-3"> */}
         <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-3">
@@ -645,172 +645,174 @@ const StudentList = () => {
           </div>
         )}
 
-        <table className="min-w-full table-fixed border-separate border-spacing-y-2 shadow-lg rounded-lg"> {/* Changed to table-fixed */}
-          <thead className="bg-green-600 text-white rounded-md">
-            <tr>
-              {/* Fixed widths for all columns */}
-              <th className="p-2 border border-white w-44">Student Name</th>
-              <th className="p-2 border border-white w-44">Father Name</th>
-              <th className="p-2 border border-white w-32">CNIC</th>
-              {/* <th className="p-2 border border-white w-48">Address</th> */}
-              <th className="p-2 border border-white w-36">Guardian Contact</th>
-              <th className="p-2 border border-white w-14">Class</th>
-              <th className="p-2 border border-white w-36">Major/Degree</th>
-              <th className="p-2 border border-white w-14">Semester</th>
-              <th className="p-2 border border-white w-32">Fee Per Month</th>
-              {/* <th className="p-2 border border-white w-32">Fee Status</th> */}
-              <th className="p-2 border border-white">Fee Status ({filterFeeMonth || 'Selected'} {filterFeeYear || 'Year'})</th>
-              {(canEditStudent || canDeleteStudent) && (
-                <th className="p-2 border border-white w-36">Actions</th>
-              )}
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? ( // Show skeleton rows when loading
-              [...Array(5)].map((_, i) => <SkeletonRow key={i} columns={17} />)
-            ) : Array.isArray(displayedStudents) && displayedStudents.length > 0 ? (
-              displayedStudents.map((s, index) => (
-                <tr
-                  key={s._id}
-                  className={`text-center ${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'} py-4 cursor-pointer hover:bg-gray-200 transition-colors duration-150`}
-                >
-                  <td className="border border-white p-2 w-40 overflow-hidden whitespace-nowrap text-ellipsis  text-base text-black-500" title={s.name}>{s.name}</td>
-                  <td className="border border-white p-2 w-40 overflow-hidden whitespace-nowrap text-ellipsis  text-base text-gray-500" title={s.fatherName}>{s.fatherName}</td>
-                  <td className="border border-white p-2 w-32 overflow-hidden whitespace-nowrap text-ellipsis  text-base text-gray-500" title={s.cnic}>{s.cnic || '-'}</td>
-                  {/* <td className="border border-white p-2 w-28 overflow-hidden whitespace-nowrap text-ellipsis" title={s.address}>{s.address || '-'}</td> */}
-                  {/* <td
+        <div className="bg-white rounded-lg shadow-md overflow-x-auto">
+          <table className="min-w-full table-auto border-separate border-spacing-y-2 border-white shadow-lg rounded-lg overflow-auto">
+            <thead className="bg-green-600 text-white rounded-md">
+              <tr>
+                {/* Fixed widths for all columns */}
+                <th className="p-2 border border-white w-44">Student Name</th>
+                <th className="p-2 border border-white w-44">Father Name</th>
+                <th className="p-2 border border-white w-32">CNIC</th>
+                {/* <th className="p-2 border border-white w-48">Address</th> */}
+                <th className="p-2 border border-white w-36">Guardian Contact</th>
+                <th className="p-2 border border-white w-14">Class</th>
+                <th className="p-2 border border-white w-36">Major/Degree</th>
+                <th className="p-2 border border-white w-14">Semester</th>
+                <th className="p-2 border border-white w-32">Fee Per Month</th>
+                {/* <th className="p-2 border border-white w-32">Fee Status</th> */}
+                <th className="p-2 border border-white">Fee Status ({filterFeeMonth || 'Selected'} {filterFeeYear || 'Year'})</th>
+                {(canEditStudent || canDeleteStudent) && (
+                  <th className="p-2 border border-white w-36">Actions</th>
+                )}
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? ( // Show skeleton rows when loading
+                [...Array(5)].map((_, i) => <SkeletonRow key={i} columns={17} />)
+              ) : Array.isArray(displayedStudents) && displayedStudents.length > 0 ? (
+                displayedStudents.map((s, index) => (
+                  <tr
+                    key={s._id}
+                    className={`text-center ${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'} py-4 cursor-pointer hover:bg-gray-200 transition-colors duration-150`}
+                  >
+                    <td className="border border-white p-2 w-40 overflow-hidden whitespace-nowrap text-ellipsis  text-base text-black-500" title={s.name}>{s.name}</td>
+                    <td className="border border-white p-2 w-40 overflow-hidden whitespace-nowrap text-ellipsis  text-base text-gray-500" title={s.fatherName}>{s.fatherName}</td>
+                    <td className="border border-white p-2 w-32 overflow-hidden whitespace-nowrap text-ellipsis  text-base text-gray-500" title={s.cnic}>{s.cnic || '-'}</td>
+                    {/* <td className="border border-white p-2 w-28 overflow-hidden whitespace-nowrap text-ellipsis" title={s.address}>{s.address || '-'}</td> */}
+                    {/* <td
                     className="p-2 w-48 overflow-hidden break-words whitespace-nowrap ext-ellipsis line-clamp-1"
                     title={s.address}
                   >
                     {s.address || '-'}
                   </td> */}
 
-                  <td className="border border-white p-2 w-36 overflow-hidden whitespace-nowrap text-ellipsis  text-base text-gray-500" title={s.guardianContact}>{s.guardianContact}</td>
-                  <td className="border border-white p-2 w-28  text-base text-gray-500">
-                    {s.class === 'Class' ? s.classNumber || '-' : s.class}
-                    {/* {console.log('Student Class:', s.class, 'Class Number:', s.classNumber)} */}
-                  </td>
-                  <td className="border border-white p-2 w-36 overflow-hidden whitespace-nowrap text-ellipsis  text-base text-gray-500" title={s.class === 'BS' ? s.degreeName : s.majorSubject}>
-                    {s.class === 'BS' ? s.degreeName || '-' : s.majorSubject || '-'}
-                  </td>
-                  <td className="border border-white p-2 w-28 text-base text-gray-500">
-                    {s.class === 'BS' ? s.semester || '-' : '-'}
-                  </td>
-                  <td className="border border-white p-2 w-32  text-base text-gray-500">{s.feePerMonth || '-'}</td>
-                  <td className={`border border-white p-2 w-32 font-semibold
+                    <td className="border border-white p-2 w-36 overflow-hidden whitespace-nowrap text-ellipsis  text-base text-gray-500" title={s.guardianContact}>{s.guardianContact}</td>
+                    <td className="border border-white p-2 w-28  text-base text-gray-500">
+                      {s.class === 'Class' ? s.classNumber || '-' : s.class}
+                      {/* {console.log('Student Class:', s.class, 'Class Number:', s.classNumber)} */}
+                    </td>
+                    <td className="border border-white p-2 w-36 overflow-hidden whitespace-nowrap text-ellipsis  text-base text-gray-500" title={s.class === 'BS' ? s.degreeName : s.majorSubject}>
+                      {s.class === 'BS' ? s.degreeName || '-' : s.majorSubject || '-'}
+                    </td>
+                    <td className="border border-white p-2 w-28 text-base text-gray-500">
+                      {s.class === 'BS' ? s.semester || '-' : '-'}
+                    </td>
+                    <td className="border border-white p-2 w-32  text-base text-gray-500">{s.feePerMonth || '-'}</td>
+                    <td className={`border border-white p-2 w-32 font-semibold
                       ${s.feeStatus === 'Paid' ? 'bg-green-300 text-black' :
-                      s.feeStatus === 'Partial Paid' ? 'bg-orange-500 text-white' :
-                        'bg-red-500 text-white'}
+                        s.feeStatus === 'Partial Paid' ? 'bg-orange-500 text-white' :
+                          'bg-red-500 text-white'}
                   `}>
-                    {s.feeStatus}
-                  </td>
-                  <td className="border border-white p-2 w-36 space-x-2 flex justify-center items-center">
-                    <button onClick={(e) => { e.stopPropagation(); handleViewStudentDetails(s); }} className="text-gray-600 hover:text-gray-800 transition-colors duration-200 p-1 rounded-md hover:bg-gray-100" title="View Student Details">
-                      <EyeIcon className="h-5 w-5" />
-                    </button>
-                    {/* Action Dropdown Menu */}
-                    <Menu as="div" className="relative inline-block text-left ml-2">
-                      <div>
-                        <MenuButton className="flex items-center text-gray-400 hover:text-gray-600">
-                          <EllipsisVerticalIcon className="h-5 w-5" aria-hidden="true" />
-                        </MenuButton>
-                      </div>
-                      <MenuItems className="absolute right-0 z-50 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
-                        <div className="py-1">
-                          {/* Class Promotion/Demotion Buttons */}
-                          {currentUser?.role === 'admin' && s.class === 'Class' && s.classNumber >= 1 && s.classNumber <= 12 && (
-                            <>
-                              <MenuItem>
-                                {({ focus }) => (
-                                  <button
-                                    onClick={() => handlePromoteStudent(s._id)}
-                                    className={`${focus ? 'bg-gray-100 text-gray-900' : 'text-gray-700'} group flex w-full items-center px-4 py-2 text-sm`}
-                                  >
-                                    <ArrowPathIcon className="mr-3 h-5 w-5 text-green-600 group-hover:text-green-900" aria-hidden="true" />
-                                    Promote Class
-                                  </button>
-                                )}
-                              </MenuItem>
-                              <MenuItem>
-                                {({ focus }) => (
-                                  <button
-                                    onClick={() => handleDemoteStudent(s._id)}
-                                    className={`${focus ? 'bg-gray-100 text-gray-900' : 'text-gray-700'} group flex w-full items-center px-4 py-2 text-sm`}
-                                  >
-                                    <ArrowUturnLeftIcon className="mr-3 h-5 w-5 text-red-600 group-hover:text-red-900" aria-hidden="true" />
-                                    Demote Class
-                                  </button>
-                                )}
-                              </MenuItem>
-                            </>
-                          )}
-                          {/* Semester Promotion/Demotion Buttons */}
-                          {currentUser?.role === 'admin' && s.class === 'BS' && s.semester >= 1 && s.semester <= 8 && (
-                            <>
-                              <MenuItem>
-                                {({ focus }) => (
-                                  <button
-                                    onClick={() => handlePromoteStudentSemester(s._id)}
-                                    className={`${focus ? 'bg-gray-100 text-gray-900' : 'text-gray-700'} group flex w-full items-center px-4 py-2 text-sm`}
-                                  >
-                                    <ArrowPathIcon className="mr-3 h-5 w-5 text-green-600 group-hover:text-green-900" aria-hidden="true" />
-                                    Promote Semester
-                                  </button>
-                                )}
-                              </MenuItem>
-                              <MenuItem>
-                                {({ focus }) => (
-                                  <button
-                                    onClick={() => handleDemoteStudentSemester(s._id)}
-                                    className={`${focus ? 'bg-gray-100 text-gray-900' : 'text-gray-700'} group flex w-full items-center px-4 py-2 text-sm`}
-                                  >
-                                    <ArrowUturnLeftIcon className="mr-3 h-5 w-5 text-red-600 group-hover:text-red-900" aria-hidden="true" />
-                                    Demote Semester
-                                  </button>
-                                )}
-                              </MenuItem>
-                            </>
-                          )}
-                          {/* Edit and Delete Buttons */}
-                          {currentUser?.role === 'admin' && (
-                            <>
-                              <MenuItem>
-                                {({ focus }) => (
-                                  <button
-                                    onClick={() => handleEdit(s)}
-                                    className={`${focus ? 'bg-gray-100 text-gray-900' : 'text-gray-700'} group flex w-full items-center px-4 py-2 text-sm`}
-                                  >
-                                    <PencilIcon className="mr-3 h-5 w-5 text-yellow-600 group-hover:text-yellow-900" aria-hidden="true" />
-                                    Edit
-                                  </button>
-                                )}
-                              </MenuItem>
-                              <MenuItem>
-                                {({ focus }) => (
-                                  <button
-                                    onClick={() => handleDelete(s._id)}
-                                    className={`${focus ? 'bg-gray-100 text-gray-900' : 'text-gray-700'} group flex w-full items-center px-4 py-2 text-sm`}
-                                  >
-                                    <TrashIcon className="mr-3 h-5 w-5 text-red-600 group-hover:text-red-900" aria-hidden="true" />
-                                    Delete
-                                  </button>
-                                )}
-                              </MenuItem>
-                            </>
-                          )}
+                      {s.feeStatus}
+                    </td>
+                    <td className="border border-white p-2 w-36 space-x-2 flex justify-center items-center">
+                      <button onClick={(e) => { e.stopPropagation(); handleViewStudentDetails(s); }} className="text-gray-600 hover:text-gray-800 transition-colors duration-200 p-1 rounded-md hover:bg-gray-100" title="View Student Details">
+                        <EyeIcon className="h-5 w-5" />
+                      </button>
+                      {/* Action Dropdown Menu */}
+                      <Menu as="div" className="relative inline-block text-left ml-2">
+                        <div>
+                          <MenuButton className="flex items-center text-gray-400 hover:text-gray-600">
+                            <EllipsisVerticalIcon className="h-5 w-5" aria-hidden="true" />
+                          </MenuButton>
                         </div>
-                      </MenuItems>
-                    </Menu>
-                  </td>
+                        <MenuItems className="absolute right-0 z-50 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                          <div className="py-1">
+                            {/* Class Promotion/Demotion Buttons */}
+                            {currentUser?.role === 'admin' && s.class === 'Class' && s.classNumber >= 1 && s.classNumber <= 12 && (
+                              <>
+                                <MenuItem>
+                                  {({ focus }) => (
+                                    <button
+                                      onClick={() => handlePromoteStudent(s._id)}
+                                      className={`${focus ? 'bg-gray-100 text-gray-900' : 'text-gray-700'} group flex w-full items-center px-4 py-2 text-sm`}
+                                    >
+                                      <ArrowPathIcon className="mr-3 h-5 w-5 text-green-600 group-hover:text-green-900" aria-hidden="true" />
+                                      Promote Class
+                                    </button>
+                                  )}
+                                </MenuItem>
+                                <MenuItem>
+                                  {({ focus }) => (
+                                    <button
+                                      onClick={() => handleDemoteStudent(s._id)}
+                                      className={`${focus ? 'bg-gray-100 text-gray-900' : 'text-gray-700'} group flex w-full items-center px-4 py-2 text-sm`}
+                                    >
+                                      <ArrowUturnLeftIcon className="mr-3 h-5 w-5 text-red-600 group-hover:text-red-900" aria-hidden="true" />
+                                      Demote Class
+                                    </button>
+                                  )}
+                                </MenuItem>
+                              </>
+                            )}
+                            {/* Semester Promotion/Demotion Buttons */}
+                            {currentUser?.role === 'admin' && s.class === 'BS' && s.semester >= 1 && s.semester <= 8 && (
+                              <>
+                                <MenuItem>
+                                  {({ focus }) => (
+                                    <button
+                                      onClick={() => handlePromoteStudentSemester(s._id)}
+                                      className={`${focus ? 'bg-gray-100 text-gray-900' : 'text-gray-700'} group flex w-full items-center px-4 py-2 text-sm`}
+                                    >
+                                      <ArrowPathIcon className="mr-3 h-5 w-5 text-green-600 group-hover:text-green-900" aria-hidden="true" />
+                                      Promote Semester
+                                    </button>
+                                  )}
+                                </MenuItem>
+                                <MenuItem>
+                                  {({ focus }) => (
+                                    <button
+                                      onClick={() => handleDemoteStudentSemester(s._id)}
+                                      className={`${focus ? 'bg-gray-100 text-gray-900' : 'text-gray-700'} group flex w-full items-center px-4 py-2 text-sm`}
+                                    >
+                                      <ArrowUturnLeftIcon className="mr-3 h-5 w-5 text-red-600 group-hover:text-red-900" aria-hidden="true" />
+                                      Demote Semester
+                                    </button>
+                                  )}
+                                </MenuItem>
+                              </>
+                            )}
+                            {/* Edit and Delete Buttons */}
+                            {currentUser?.role === 'admin' && (
+                              <>
+                                <MenuItem>
+                                  {({ focus }) => (
+                                    <button
+                                      onClick={() => handleEdit(s)}
+                                      className={`${focus ? 'bg-gray-100 text-gray-900' : 'text-gray-700'} group flex w-full items-center px-4 py-2 text-sm`}
+                                    >
+                                      <PencilIcon className="mr-3 h-5 w-5 text-yellow-600 group-hover:text-yellow-900" aria-hidden="true" />
+                                      Edit
+                                    </button>
+                                  )}
+                                </MenuItem>
+                                <MenuItem>
+                                  {({ focus }) => (
+                                    <button
+                                      onClick={() => handleDelete(s._id)}
+                                      className={`${focus ? 'bg-gray-100 text-gray-900' : 'text-gray-700'} group flex w-full items-center px-4 py-2 text-sm`}
+                                    >
+                                      <TrashIcon className="mr-3 h-5 w-5 text-red-600 group-hover:text-red-900" aria-hidden="true" />
+                                      Delete
+                                    </button>
+                                  )}
+                                </MenuItem>
+                              </>
+                            )}
+                          </div>
+                        </MenuItems>
+                      </Menu>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="17" className="text-center p-4 text-gray-500">No students found. Add a new student!</td>
                 </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="17" className="text-center p-4 text-gray-500">No students found. Add a new student!</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
       <Modal isOpen={modalOpen} onClose={handleCloseModal}>
         <StudentForm

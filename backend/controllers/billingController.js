@@ -62,24 +62,68 @@ const addBill = asyncHandler(async (req, res) => {
   res.status(201).json(createdBill);
 });
 
-// @desc    Get all bills with filters
+// // @desc    Get all bills with filters
+// // @route   GET /api/billing
+// // @access  Private/Admin & Accountant
+// const getBills = asyncHandler(async (req, res) => {
+//   const { category, status, startDate, endDate } = req.query;
+//   const query = {};
+
+//   if (category) query.category = category;
+//   if (status) query.status = status;
+//   if (startDate || endDate) {
+//     query.billDate = {};
+//     if (startDate) query.billDate.$gte = new Date(startDate);
+//     if (endDate) query.billDate.$lte = new Date(endDate);
+//   }
+
+//   const bills = await Bill.find(query).populate('markedBy', 'cnic name role');
+//   res.json(bills);
+// });
+
+
+
+
+// @desc    Get all bills with search and filtering
 // @route   GET /api/billing
-// @access  Private/Admin & Accountant
+// @access  Private (Admin, Accountant)
 const getBills = asyncHandler(async (req, res) => {
-  const { category, status, startDate, endDate } = req.query;
+  const { search, category, status, month, year } = req.query;
   const query = {};
 
-  if (category) query.category = category;
-  if (status) query.status = status;
-  if (startDate || endDate) {
-    query.billDate = {};
-    if (startDate) query.billDate.$gte = new Date(startDate);
-    if (endDate) query.billDate.$lte = new Date(endDate);
+  // Search by title or paidTo
+  if (search) {
+    query.$or = [
+      { title: { $regex: search, $options: 'i' } },
+      { paidTo: { $regex: search, $options: 'i' } },
+    ];
   }
 
-  const bills = await Bill.find(query).populate('markedBy', 'cnic name role');
-  res.json(bills);
+  // Filter by category
+  if (category) {
+    query.category = category;
+  }
+
+  // Filter by status
+  if (status) {
+    query.status = status;
+  }
+
+  // Filter by month and year
+  if (month && year) {
+    const startOfMonth = new Date(year, month - 1, 1);
+    const endOfMonth = new Date(year, month, 0);
+    query.billDate = {
+      $gte: startOfMonth,
+      $lte: endOfMonth,
+    };
+  }
+
+  const bills = await Bill.find(query).sort({ createdAt: -1 });
+  res.status(200).json(bills);
 });
+
+
 
 // @desc    Get a single bill by ID
 // @route   GET /api/billing/:id
@@ -150,16 +194,29 @@ const deleteBill = asyncHandler(async (req, res) => {
   }
 });
 
-// @desc    Download a bill receipt/summary
-// @route   GET /api/billing/:id/receipt
-// @access  Private/Admin & Accountant
+
+import Staff from '../models/Staff.js'; // <-- import Staff model if not already
+
 const downloadReceipt = asyncHandler(async (req, res) => {
-  const bill = await Bill.findById(req.params.id).populate('markedBy', 'cnic name role');
+  const bill = await Bill.findById(req.params.id).populate('markedBy', 'cnic role profileId');
+
   if (!bill) {
     res.status(404);
     throw new Error('Bill not found');
   }
 
+  // Default to CNIC or fallback if no user is found
+  let enteredBy = bill.markedBy?.cnic || 'N/A';
+
+  // Try to get the staff name from markedBy.profileId
+  if (bill.markedBy?.profileId) {
+    const staffProfile = await Staff.findById(bill.markedBy.profileId);
+    if (staffProfile?.name) {
+      enteredBy = staffProfile.name;
+    }
+  }
+
+  // Generate the PDF
   const doc = new jsPDF({ format: 'a4' });
   const filename = `${bill.title.replace(/\s/g, '_')}_Bill_Summary_${new Date(bill.billDate).toLocaleDateString()}.pdf`;
 
@@ -225,7 +282,7 @@ const downloadReceipt = asyncHandler(async (req, res) => {
 
     doc.setFontSize(10);
     doc.setFont(undefined, 'normal');
-    addField('Entered By', bill.markedBy?.name || bill.markedBy?.cnic || 'N/A');
+    addField('Entered By', enteredBy);
     addField('Created At', new Date(bill.createdAt).toLocaleString());
     yPos += padding;
 
@@ -233,7 +290,7 @@ const downloadReceipt = asyncHandler(async (req, res) => {
     doc.setTextColor(150);
     doc.text('This is a computer-generated summary. No signature is required.', pageMargin, doc.internal.pageSize.getHeight() - 15);
   };
-  
+
   drawBillSummary(0, 20);
 
   const pdfBuffer = doc.output('arraybuffer');
@@ -241,7 +298,6 @@ const downloadReceipt = asyncHandler(async (req, res) => {
   res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
   res.send(Buffer.from(pdfBuffer));
 });
-
 
 
 

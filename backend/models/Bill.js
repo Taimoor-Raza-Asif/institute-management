@@ -9,7 +9,7 @@ const BillSchema = new mongoose.Schema({
   category: {
     type: String,
     required: true,
-    enum: ['Utilities', 'Salary', 'Vendor Payment', 'Repairs', 'Other'],
+    enum: ['Utilities', 'Kitchen', 'Vendor Payment', 'Repairs', 'Other'],
     default: 'Other',
   },
   amount: {

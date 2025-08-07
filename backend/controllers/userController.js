@@ -373,3 +373,10 @@ export const toggleEditMode = asyncHandler(async (req, res) => {
     throw new Error('User not found.');
   }
 });
+
+
+// controllers/userController.js
+const getUsers = asyncHandler(async (req, res) => {
+  const users = await User.find().populate('profileId', 'name'); // Only populate the `name` from staff
+  res.json(users);
+});

@@ -18,8 +18,17 @@ const attendanceSchema = new mongoose.Schema({
 });
 
 
+const assignClassSchema = new mongoose.Schema({
+  type: { type: String, enum: ['Class', 'BS'], required: true },
+  classNumber: { type: String, default: null }, // Only for "Class"
+  degreeName: { type: String, default: null },  // Only for "BS"
+  semester: { type: Number, default: null },    // Only for "BS"
+  subjects: [{ type: String, required: true }]
+});
+
 const staffSchema = new mongoose.Schema({
     name: { type: String, required: true, trim: true },
+    fatherName: { type: String, required: true, trim: true },
     cnic: { type: String, required: true, unique: true },
     staffType: {
         type: String,
@@ -65,7 +74,11 @@ const staffSchema = new mongoose.Schema({
         accountNumber: { type: String, trim: true, default: '' },
         iban: { type: String, trim: true, default: '' },
     },
-    assignClasses: { type: [String], default: [] },
+    // assignClasses: { type: [String], default: [] },
+
+    assignClasses: [assignClassSchema],
+
+    isDeleted: { type: Boolean, default: false }, // Soft delete
 
 }, { timestamps: true }); // Adds createdAt and updatedAt timestamps
 

@@ -2531,6 +2531,7 @@ const StudentForm = ({ editingStudent, fetchStudents, onClose, isViewMode = fals
         previousClassResultUrl: '', // For Class >= 9
         class10ResultUrl: '',       // For BS students
         class12ResultUrl: '',       // For BS students
+        rollNumber: '',
     };
     const [student, setStudent] = useState(initialState);
     const [profilePictureFile, setProfilePictureFile] = useState(null);
@@ -2570,6 +2571,7 @@ const StudentForm = ({ editingStudent, fetchStudents, onClose, isViewMode = fals
                 previousClassResultUrl: editingStudent.previousClassResultUrl || '',
                 class10ResultUrl: editingStudent.class10ResultUrl || '',
                 class12ResultUrl: editingStudent.class12ResultUrl || '',
+                rollNumber: editingStudent.rollNumber || '',
             });
             // Clear file inputs when editing an existing student, as URLs are used
             setProfilePictureFile(null);
@@ -3159,6 +3161,19 @@ const StudentForm = ({ editingStudent, fetchStudents, onClose, isViewMode = fals
                             <input type="text" id="cnic" name="cnic" value={student.cnic} onChange={handleChange} readOnly={isViewMode} className={`mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm ${isViewMode ? 'bg-gray-50' : ''}`} />
                             {fieldErrors.cnic && <p className="mt-1 text-sm text-red-600">{fieldErrors.cnic}</p>}
                         </div>
+                        <div className="col-span-1">
+              <label htmlFor="rollNumber" className="block text-sm font-medium text-gray-700">Roll Number</label>
+              <input
+                type="text"
+                id="rollNumber"
+                name="rollNumber"
+                value={student.rollNumber}
+                onChange={handleChange}
+                readOnly={isViewMode}
+                required
+                className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              />
+            </div>
                         {/* DOB */}
                         <div>
                             <label htmlFor="dob" className="block text-sm font-medium text-gray-700">Date of Birth</label>

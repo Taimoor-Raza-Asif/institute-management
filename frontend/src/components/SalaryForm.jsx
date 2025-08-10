@@ -345,6 +345,9 @@ const SalaryForm = ({ salaryToEdit, isViewMode, onAdd, onEdit, onClose }) => {
     const [bonus, setBonus] = useState(0);
     const [overtime, setOvertime] = useState(0);
 
+    const [advancedSalary, setAdvancedSalary] = useState(0);
+    const [deduction, setDeduction] = useState(0);
+
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
@@ -389,6 +392,8 @@ const SalaryForm = ({ salaryToEdit, isViewMode, onAdd, onEdit, onClose }) => {
                     setPaidAs(data.paidAs);
                     setBonus(data.bonus);
                     setOvertime(data.overtime);
+                    setAdvancedSalary(data.advancedSalary);
+                    setDeduction(data.deduction);
                 } catch (err) {
                     setError(err.response?.data?.message || 'Failed to fetch salary details.');
                 } finally {
@@ -407,6 +412,7 @@ const SalaryForm = ({ salaryToEdit, isViewMode, onAdd, onEdit, onClose }) => {
             setPaidAs(salaryToEdit.paidAs);
             setBonus(salaryToEdit.bonus);
             setOvertime(salaryToEdit.overtime);
+            setAdvancedSalary(salaryToEdit.advancedSalary);
         }
     }, [id, salaryToEdit]);
 
@@ -445,6 +451,7 @@ const SalaryForm = ({ salaryToEdit, isViewMode, onAdd, onEdit, onClose }) => {
                 paidAs,
                 bonus,
                 overtime,
+                advancedSalary: parseFloat(advancedSalary),
             };
             try {
                 const { data: allSalaries } = await api.get('/salary/all', {
@@ -541,7 +548,30 @@ const SalaryForm = ({ salaryToEdit, isViewMode, onAdd, onEdit, onClose }) => {
                         />
                     </div>
                 </div>
-
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Advanced Salary */}
+                    <div>
+                        <label htmlFor="advancedSalary" className="block text-sm font-medium text-gray-700">Advanced Salary</label>
+                        <input
+                            type="number"
+                            id="advancedSalary"
+                            value={advancedSalary}
+                            onChange={(e) => setAdvancedSalary(e.target.value)}
+                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                        />
+                    </div>
+                    {/* Deduction (Display only) */}
+                    <div>
+                        <label htmlFor="deduction" className="block text-sm font-medium text-gray-700">Deduction</label>
+                        <input
+                            type="number"
+                            id="deduction"
+                            value={deduction}
+                            readOnly
+                            className="mt-1 block w-full border border-gray-300 bg-gray-100 rounded-md shadow-sm py-2 px-3 sm:text-sm"
+                        />
+                    </div>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div>
                         <label htmlFor="month" className="block text-sm font-medium text-gray-700">

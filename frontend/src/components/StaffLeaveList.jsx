@@ -624,12 +624,12 @@ const StaffLeaveList = () => {
                         <button onClick={(e) => { e.stopPropagation(); handleView(leave); }} className="text-gray-600 hover:text-gray-800 transition-colors duration-200 p-1 rounded-md hover:bg-gray-100" title="View Leave Details">
                           <EyeIcon className="h-5 w-5" />
                         </button>
-                        {(isAdmin && (isStaff && leave.status === 'Pending' && leave.staff._id === user.profileId)) && (
+                        {(isAdmin) && (
                           <button onClick={(e) => { e.stopPropagation(); handleEdit(leave); }} className="text-blue-600 hover:text-blue-800 transition-colors duration-200 p-1 rounded-md hover:bg-blue-100" title="Edit Leave">
                             <PencilIcon className="h-5 w-5" />
                           </button>
                         )}
-                        {(isAdmin && (isStaff && leave.status === 'Pending' && leave.staff._id === user.profileId)) && (
+                        {(isAdmin) && (
                           <button onClick={(e) => { e.stopPropagation(); handleDelete(leave._id); }} className="text-red-600 hover:text-red-800 transition-colors duration-200 p-1 rounded-md hover:bg-red-100" title="Delete Leave">
                             <TrashIcon className="h-5 w-5" />
                           </button>

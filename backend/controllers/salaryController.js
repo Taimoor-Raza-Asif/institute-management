@@ -56,7 +56,8 @@ const createOrUpdateSalary = asyncHandler(async (req, res) => {
     paidAmount,
     paidAs,
     bonus,
-    overtime
+    overtime,
+    advancedSalary
   } = req.body;
 
   if (!staffId || !month || !year) {
@@ -74,6 +75,9 @@ const createOrUpdateSalary = asyncHandler(async (req, res) => {
   // Find the user who is making the request (the admin)
   const paidBy = await User.findById(req.user._id).select('name').lean();
 
+
+  // status: status || 'Unpaid',
+
   // Use the salary from the staffMember record
   const salaryDetails = {
     staff: staffId,
@@ -83,7 +87,6 @@ const createOrUpdateSalary = asyncHandler(async (req, res) => {
     salaryPerMonth: staffMember.salary, // Use the salary from the staff record
     month,
     year,
-    status: status || 'Unpaid',
     paidAmount: paidAmount || 0,
     paidAs: paidAs || 'Cash',
     paidBy: req.user._id,
@@ -91,6 +94,9 @@ const createOrUpdateSalary = asyncHandler(async (req, res) => {
     bonus: bonus || 0,
     overtime: overtime || 0,
     paidAt: Date.now(),
+     advancedSalary: advancedSalary || 0,
+    status: (paidAmount || 0) === staffMember.salary ? 'Paid' : (paidAmount || 0) > 0 ? 'Partial Paid' : 'Unpaid',
+    deduction: (staffMember.salary - (paidAmount || 0)) + (advancedSalary || 0)
   };
 
   const existingSalary = await Salary.findOne({ staff: staffId, month, year });
@@ -159,9 +165,9 @@ const getAllSalaries = asyncHandler(async (req, res) => {
 // @route   GET /api/salary/my-salaries
 // @access  Private/Staff
 const getMySalaries = asyncHandler(async (req, res) => {
-// const currentUserAttached = req.user.profileId;
-// console.log(`currentUserAttached ${currentUserAttached}`);
-// console.log(`currentUser ${req.user._id}`);
+  // const currentUserAttached = req.user.profileId;
+  // console.log(`currentUserAttached ${currentUserAttached}`);
+  // console.log(`currentUser ${req.user._id}`);
   const staff = req.user.profileId;
   if (!staff) {
     res.status(404);

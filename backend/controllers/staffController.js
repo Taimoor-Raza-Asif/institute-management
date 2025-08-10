@@ -541,7 +541,7 @@ const handleProfilePictureUpload = (file, existingUrlFromReqBody, oldUrlFromDb) 
 export const createStaff = async (req, res) => {
   try {
     const {
-      name, staffType, contactNumber, email, address, dateOfJoining, salary,
+      name, fatherName, staffType, contactNumber, email, address, dateOfJoining, salary,
       highestEducationLevel, degrees, subjectsTaught, emergencyContact, bankAccountDetails, cnic, assignClasses
     } = req.body;
 
@@ -555,6 +555,7 @@ export const createStaff = async (req, res) => {
     // 1. Create the Staff record first
     const newStaff = new Staff({
       name,
+      fatherName,
       staffType,
       cnic, // Include cnic
       contactNumber,
@@ -723,7 +724,7 @@ export const updateStaff = async (req, res) => {
   try {
     const { id } = req.params;
     const {
-      name, staffType, contactNumber, email, address, dateOfJoining, salary,
+      name, fatherName, staffType, contactNumber, email, address, dateOfJoining, salary,
       highestEducationLevel, degrees, subjectsTaught, emergencyContact, bankAccountDetails, cnic, assignClasses,
       profilePictureUrl: existingProfilePictureUrl
     } = req.body;
@@ -754,6 +755,7 @@ export const updateStaff = async (req, res) => {
     const updateFields = {};
 
     if (name !== undefined) updateFields.name = name;
+    if (fatherName !== undefined) updateFields.fatherName = fatherName;
     if (staffType !== undefined) updateFields.staffType = staffType;
     if (cnic !== undefined) updateFields.cnic = cnic; // Allow updating cnic
     if (contactNumber !== undefined) updateFields.contactNumber = contactNumber;
@@ -762,11 +764,11 @@ export const updateStaff = async (req, res) => {
     if (dateOfJoining !== undefined) updateFields.dateOfJoining = new Date(dateOfJoining);
     if (salary !== undefined) updateFields.salary = parseFloat(salary);
     if (highestEducationLevel !== undefined) updateFields.highestEducationLevel = highestEducationLevel;
-    if (degrees !== undefined) updateFields.degrees = JSON.parse(degrees);
-    if (subjectsTaught !== undefined) updateFields.subjectsTaught = JSON.parse(subjectsTaught);
+    if (degrees !== undefined) updateFields.degrees = degrees ? JSON.parse(degrees) : [];
+    if (subjectsTaught !== undefined) updateFields.subjectsTaught = subjectsTaught ? JSON.parse(subjectsTaught) : [];
     if (emergencyContact !== undefined) updateFields.emergencyContact = emergencyContact;
     if (bankAccountDetails !== undefined) updateFields.bankAccountDetails = JSON.parse(bankAccountDetails);
-    if (assignClasses !== undefined) updateFields.assignClasses = JSON.parse(assignClasses);
+    if (assignClasses !== undefined) updateFields.assignClasses = assignClasses ? JSON.parse(assignClasses) : [];
 
     updateFields.profilePictureUrl = handleProfilePictureUpload(req.file, existingProfilePictureUrl, currentStaff.profilePictureUrl);
 
@@ -826,31 +828,74 @@ export const deleteStaff = async (req, res) => {
 };
 
 
-// --- NEW FUNCTION TO ASSIGN CLASSES ---
-export const assignClasses = async (req, res) => {
+// // --- NEW FUNCTION TO ASSIGN CLASSES ---
+// export const assignClasses = async (req, res) => {
+//   try {
+//     const { id } = req.params;
+//     const { assignClasses } = req.body;
+
+//     const staff = await Staff.findById(id);
+//     if (!staff) {
+//       return res.status(404).json({ message: 'Staff not found' });
+//     }
+
+//     if (staff.staffType !== 'Teacher' && staff.staffType !== 'Admin') {
+//       return res.status(403).json({ message: 'Cannot assign classes to this staff type.' });
+//     }
+
+//     if (!Array.isArray(assignClasses)) {
+//       return res.status(400).json({ message: 'assignClasses must be an array.' });
+//     }
+
+//     staff.assignClasses = assignClasses;
+//     await staff.save();
+//     res.json({ message: 'Classes assigned successfully', staff: staff });
+//   } catch (err) {
+//     console.error("Error assigning classes:", err);y
+//     res.status(500).json({ message: 'Failed to assign classes: ' + err.message });
+//   }
+// };
+
+
+
+export const updateAssignedClasses = async (req, res) => {
   try {
-    const { id } = req.params;
     const { assignClasses } = req.body;
 
-    const staff = await Staff.findById(id);
-    if (!staff) {
-      return res.status(404).json({ message: 'Staff not found' });
-    }
-
-    if (staff.staffType !== 'Teacher' && staff.staffType !== 'Admin') {
-      return res.status(403).json({ message: 'Cannot assign classes to this staff type.' });
-    }
-
     if (!Array.isArray(assignClasses)) {
-      return res.status(400).json({ message: 'assignClasses must be an array.' });
+      return res.status(400).json({ error: 'assignClasses must be an array' });
     }
 
-    staff.assignClasses = assignClasses;
-    await staff.save();
-    res.json({ message: 'Classes assigned successfully', staff: staff });
-  } catch (err) {
-    console.error("Error assigning classes:", err);y
-    res.status(500).json({ message: 'Failed to assign classes: ' + err.message });
+    // Validate each entry
+    for (const cls of assignClasses) {
+      if (!cls.type || !['Class', 'BS'].includes(cls.type)) {
+        return res.status(400).json({ error: 'Each class must have a valid type (Class or BS)' });
+      }
+      if (cls.type === 'Class' && !cls.classNumber) {
+        return res.status(400).json({ error: 'Class type must have classNumber' });
+      }
+      if (cls.type === 'BS' && (!cls.degreeName || !cls.semester)) {
+        return res.status(400).json({ error: 'BS type must have degreeName and semester' });
+      }
+      if (!Array.isArray(cls.subjects) || cls.subjects.length === 0) {
+        return res.status(400).json({ error: 'Each class must have at least one subject' });
+      }
+    }
+
+    const updatedStaff = await Staff.findByIdAndUpdate(
+      req.params.id,
+      { assignClasses },
+      { new: true }
+    );
+
+    if (!updatedStaff) {
+      return res.status(404).json({ error: 'Staff not found' });
+    }
+
+    res.json(updatedStaff);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Server error' });
   }
 };
 

@@ -136,6 +136,7 @@ const App = () => {
           <Route path="/staff/staff-leaves" element={<PrivateRoute roles={['admin', 'teacher', 'cook', 'cleaner', 'accountant']}><StaffLeaveList /></PrivateRoute>} />
           <Route path="/teacher/student-leaves" element={<PrivateRoute roles={['teacher']}><LeaveList /></PrivateRoute>} />
           <Route path="/teacher/my-students" element={<PrivateRoute roles={['teacher']}><MyStudents currentUser={currentUser} /></PrivateRoute>} />
+           <Route path="/attendance/students/assigned" element={<PrivateRoute roles={['teacher']}><AttendanceMarking /></PrivateRoute>} />
           {/* Staff Module (Cook, Cleaner) */}
           <Route path="/staff/dashboard" element={<PrivateRoute roles={['cook', 'cleaner']}><StaffDashboard /></PrivateRoute>} />
 

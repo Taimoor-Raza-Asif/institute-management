@@ -403,7 +403,7 @@ const FeeList = () => {
                                 id="filterMonth"
                                 value={filterMonth}
                                 onChange={(e) => setFilterMonth(e.target.value)}
-                                className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                             >
                                 <option value="">All Months</option>
                                 {months.map(month => (
@@ -418,7 +418,7 @@ const FeeList = () => {
                                 id="filterYear"
                                 value={filterYear}
                                 onChange={(e) => setFilterYear(e.target.value)}
-                                className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                             >
                                 {generateYearOptions().map(year => (
                                     <option key={year} value={year}>{year}</option>
@@ -433,7 +433,7 @@ const FeeList = () => {
                                 id="filterReceivedBy"
                                 value={filterReceivedBy}
                                 onChange={(e) => setFilterReceivedBy(e.target.value)}
-                                className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                                 placeholder="e.g., John Doe"
                             />
                         </div>
@@ -444,7 +444,7 @@ const FeeList = () => {
                                 id="filterPaymentMethod"
                                 value={filterPaymentMethod}
                                 onChange={(e) => setFilterPaymentMethod(e.target.value)}
-                                className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                             >
                                 <option value="">All Methods</option>
                                 <option value="Cash">Cash</option>
@@ -462,7 +462,7 @@ const FeeList = () => {
                                 id="filterDueStatus"
                                 value={filterDueStatus}
                                 onChange={(e) => setFilterDueStatus(e.target.value)}
-                                className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                             >
                                 <option value="">All</option>
                                 <option value="dueRemaining">Due Remaining</option>
@@ -497,16 +497,16 @@ const FeeList = () => {
                                     key={fee._id}
                                     className={`text-center ${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'} py-4 cursor-pointer hover:bg-gray-200 transition-colors duration-150`}>
                                     {/* Ensure no whitespace immediately after <td> or between </td> and <td> */}
-                                    <td className="border border-white p-2">{fee.studentId?.name || '-'}</td>
-                                    <td className="border border-white p-2">{fee.month || '-'} {fee.year || ''}</td> {/* Added || '-' for safety */}
-                                    <td className="border border-white p-2">{fee.totalFee || '0'}</td> {/* Added || '0' for safety */}
-                                    <td className="border border-white p-2">{fee.receivedAmount || '0'}</td> {/* Added || '0' for safety */}
-                                    <td className="border border-white p-2">{fee.receivedDate ? new Date(fee.receivedDate).toLocaleDateString() : '-'}</td>
-                                    <td className="border border-white p-2">{fee.paidBy || '-'}</td> {/* Added || '-' for safety */}
-                                    <td className="border border-white p-2">{fee.receivedBy || '-'}</td>
-                                    <td className="border border-white p-2">{fee.paymentMethod || '-'}</td>
-                                    <td className={`border border-white p-2 ${fee.dueAmount > 0 ? 'bg-red-600 text-white' : ''}`}>{fee.dueAmount || '0'}</td> {/* Added || '0' for safety */}
-                                    <td className="border border-white p-2">
+                                    <td className="border border-white text-base  p-2">{fee.studentId?.name || '-'}</td>
+                                    <td className="border border-white text-base text-gray-500 p-2">{fee.month || '-'} {fee.year || ''}</td> {/* Added || '-' for safety */}
+                                    <td className="border border-white text-base text-gray-500 p-2">{fee.totalFee || '0'}</td> {/* Added || '0' for safety */}
+                                    <td className="border border-white text-base text-gray-500 p-2">{fee.receivedAmount || '0'}</td> {/* Added || '0' for safety */}
+                                    <td className="border border-white text-base text-gray-500 p-2">{fee.receivedDate ? new Date(fee.receivedDate).toLocaleDateString() : '-'}</td>
+                                    <td className="border border-white text-base text-gray-500 p-2">{fee.paidBy || '-'}</td> {/* Added || '-' for safety */}
+                                    <td className="border border-white text-base text-gray-500 p-2">{fee.receivedBy || '-'}</td>
+                                    <td className="border border-white text-base text-gray-500 p-2">{fee.paymentMethod || '-'}</td>
+                                    <td className={`border border-white text-base text-gray-500 p-2 ${fee.dueAmount > 0 ? 'bg-red-600 text-white' : ''}`}>{fee.dueAmount || '0'}</td> {/* Added || '0' for safety */}
+                                    <td className="border border-white text-base text-gray-500 p-2">
                                         {fee.billScreenshotUrl ? (
                                             <a
                                                 href={`http://localhost:5000${fee.billScreenshotUrl}`}

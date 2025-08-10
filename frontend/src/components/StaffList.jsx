@@ -636,7 +636,7 @@ const inputRef = useRef(null);
         )}
       </div>
 
-      <div className="bg-white shadow overflow-auto rounded-lg">
+      <div className="bg-white shadow md:overflow-visible lg:overflow-visible sm:overflow-auto rounded-lg">
         <table className="min-w-full table-auto border-separate border-spacing-y-2 border-white shadow-lg rounded-lg overflow-auto">
           <thead className="bg-green-600 text-white rounded-md">
             <tr>

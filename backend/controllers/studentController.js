@@ -50,7 +50,7 @@ export const updateStudent = async (req, res) => {
   try {
     const { id } = req.params;
     const {
-      name, fatherName, cnic, address, guardianContact, additionalContact,
+      name, fatherName, rollNumber, cnic, address, guardianContact, additionalContact,
       dob, gender, email, admissionDate, class: studentClass, classNumber,
       majorSubject, degreeName, semester, feePerMonth, studentStatus, depositedAmount, otherDues,
       reason,
@@ -81,6 +81,7 @@ export const updateStudent = async (req, res) => {
     // --- Basic Info Fields ---
     if (name !== undefined) updateFields.name = name;
     if (fatherName !== undefined) updateFields.fatherName = fatherName;
+    if (rollNumber !== undefined) updateFields.rollNumber = rollNumber;
     if (cnic !== undefined) updateFields.cnic = cnic;
     if (address !== undefined) updateFields.address = address;
     if (guardianContact !== undefined) updateFields.guardianContact = guardianContact;
@@ -418,7 +419,7 @@ export const getStudentById = asyncHandler(async (req, res) => {
 export const createStudent = async (req, res) => {
   try {
     const {
-      name, fatherName, cnic, address, guardianContact, additionalContact,
+      name, fatherName, rollNumber, cnic, address, guardianContact, additionalContact,
       dob, gender, email, admissionDate, class: studentClass, classNumber,
       majorSubject, degreeName, semester, feePerMonth, studentStatus, depositedAmount, otherDues,
       reason
@@ -451,6 +452,7 @@ export const createStudent = async (req, res) => {
       name,
       fatherName,
       cnic,
+      rollNumber,
       address,
       guardianContact,
       additionalContact,

@@ -1228,7 +1228,7 @@ const Layout = ({ children, currentUser, onLogout }) => {
                     {openDropdowns['teacher-attendance'] && (
                       <ul className="mt-1 ml-4 border-l border-gray-500">
                         <li>
-                          <Link to="/attendance/mark" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200" onClick={toggleSidebar}>
+                          <Link to="/attendance/students/assigned" className="flex items-center p-2 text-sm md:text-base rounded-md hover:bg-gradient-to-r from-gray-800 to-white transition duration-200" onClick={toggleSidebar}>
                             <ClipboardDocumentCheckIcon className="h-5 w-5 mr-3" /> Mark Attendance
                           </Link>
                         </li>

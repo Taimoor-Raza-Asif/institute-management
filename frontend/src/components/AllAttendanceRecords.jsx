@@ -5,7 +5,7 @@ import { UserContext } from '../App';
 import Loader from '../components/Loader';
 import Message from '../components/Message';
 import {
-  CalendarDaysIcon, UserGroupIcon, FunnelIcon, ChartBarIcon, CheckCircleIcon, XCircleIcon
+  CalendarDaysIcon, UserGroupIcon, FunnelIcon, ChartBarIcon, CheckCircleIcon, XCircleIcon, ClockIcon, UserIcon
 } from '@heroicons/react/24/outline';
 
 const AllAttendanceRecords = () => {
@@ -195,7 +195,6 @@ const AllAttendanceRecords = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {record.user?.cnic || 'N/A'}
 
-                    {console.log(record)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
                     <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(record.status)} flex items-center`}>

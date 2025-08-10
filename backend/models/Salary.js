@@ -72,6 +72,16 @@ const salarySchema = new mongoose.Schema({
     default: 0,
     min: 0,
   },
+    deduction: {
+    type: Number,
+    default: 0,
+    min: 0,
+  },
+  advancedSalary: {
+    type: Number,
+    default: 0,
+    min: 0,
+  },
 }, {
   timestamps: true,
 });

@@ -16,7 +16,6 @@
 //     throw new Error('Invalid attendance data. Please provide date, type, and an array of records.');
 //   }
 
-//   // To prevent duplicate entries, we'll upsert or simply create a record per entry
 //   const bulkOps = attendanceRecords.map(record => ({
 //     updateOne: {
 //       filter: { user: record.userId, date: new Date(date).setHours(0, 0, 0, 0) },
@@ -26,7 +25,7 @@
 //           onModel: type,
 //           date: new Date(date).setHours(0, 0, 0, 0),
 //           status: record.status,
-//           markedBy: req.user._id || req.user.cnic,
+//           markedBy: req.user.id,
 //           reason: record.reason,
 //           // If marking for student, include student-specific details
 //           ...(type === 'Student' && {
@@ -40,7 +39,7 @@
 //           }),
 //         },
 //       },
-//       upsert: true, // This is key. It will create a new document if one doesn't exist.
+//       upsert: true,
 //     },
 //   }));
 
@@ -70,7 +69,7 @@
 
 //   const attendance = await Attendance.find(query)
 //     .populate('user', 'name cnic')
-//     .populate('markedBy', 'name cnic');
+//     .populate('markedBy', 'role');
 
 //   res.json(attendance);
 // });
@@ -146,32 +145,190 @@
 //   });
 // });
 
-// // @desc    Get a list of students for attendance marking
+// // @desc    Get a list of students for attendance marking (Admin, Teacher)
 // // @route   GET /api/attendance/students
 // // @access  Private/Admin & Teacher
 // const getStudentsForAttendance = asyncHandler(async (req, res) => {
 //   const { classType, classNumber, degreeName, semester, majorSubject } = req.query;
 
+//   console.log('Received student filter query:', req.query);
+
 //   const filters = {};
 //   if (classType) filters.class = classType;
 //   if (classNumber) filters.classNumber = classNumber;
 //   if (degreeName) filters.degreeName = degreeName;
-//   if (semester) filters.semester = semester;
+//   if (semester) filters.semester = parseInt(semester, 10); // Ensure semester is an integer
 //   if (majorSubject) filters.majorSubject = majorSubject;
 
-//   // Teachers can only see students in classes they teach (you'd need to add a check here)
-//   // For now, this will return all students based on filters
+//   console.log('Constructed student filter object:', filters);
+
 //   const students = await Student.find(filters).select('_id name cnic class classNumber semester degreeName majorSubject');
 //   res.json(students);
 // });
 
-// // @desc    Get a list of staff for attendance marking
+// // @desc    Get a list of staff for attendance marking (Admin)
 // // @route   GET /api/attendance/staff
 // // @access  Private/Admin
 // const getStaffForAttendance = asyncHandler(async (req, res) => {
-//   const staff = await Staff.find({}).select('_id name cnic designation');
+//   const { role } = req.query;
+
+//   console.log('Received staff filter query:', req.query);
+
+//   const filters = {};
+//   if (role) filters.role = role;
+
+//   console.log('Constructed staff filter object:', filters);
+
+//   const staff = await Staff.find(filters).select('_id name cnic designation role');
 //   res.json(staff);
 // });
+
+// // @desc    Get attendance records for a single day
+// // @route   GET /api/attendance/:date
+// // @access  Private/Admin & Teacher
+// const getAttendanceByDate = asyncHandler(async (req, res) => {
+//   const { date } = req.params;
+//   const startOfDay = new Date(date);
+//   startOfDay.setHours(0, 0, 0, 0);
+
+//   const endOfDay = new Date(date);
+//   endOfDay.setHours(23, 59, 59, 999);
+
+//   const attendanceRecords = await Attendance.find({
+//     date: { $gte: startOfDay, $lte: endOfDay }
+//   })
+//     .populate('user');
+
+//   res.json(attendanceRecords);
+// });
+
+// // @desc    Get aggregated attendance reports
+// // @route   GET /api/attendance/reports
+// // @access  Private/Admin & Accountant
+// export const getAttendanceReports = asyncHandler(async (req, res) => {
+//   const { type, startDate, endDate } = req.query;
+//   const matchFilter = {};
+
+//   if (type) {
+//     matchFilter.onModel = type;
+//   }
+  
+//   if (startDate || endDate) {
+//     matchFilter.date = {};
+//     if (startDate) {
+//       matchFilter.date.$gte = new Date(startDate);
+//     }
+//     if (endDate) {
+//       const end = new Date(endDate);
+//       end.setHours(23, 59, 59, 999);
+//       matchFilter.date.$lte = end;
+//     }
+//   }
+
+//   try {
+//     const monthlySummary = await Attendance.aggregate([
+//       {
+//         $match: matchFilter
+//       },
+//       {
+//         $group: {
+//           _id: { year: { $year: "$date" }, month: { $month: "$date" }, onModel: "$onModel" },
+//           statuses: { $push: "$status" }
+//         }
+//       },
+//       {
+//         $unwind: "$statuses"
+//       },
+//       {
+//         $group: {
+//           _id: { year: "$_id.year", month: "$_id.month", onModel: "$_id.onModel", status: "$statuses" },
+//           count: { $sum: 1 }
+//         }
+//       },
+//       {
+//         $group: {
+//           _id: { year: "$_id.year", month: "$_id.month", onModel: "$_id.onModel" },
+//           statuses: {
+//             $push: {
+//               status: "$_id.status",
+//               count: "$count"
+//             }
+//           }
+//         }
+//       },
+//       {
+//         $sort: { "_id.year": 1, "_id.month": 1 }
+//       }
+//     ]);
+
+//     const dailySummary = await Attendance.aggregate([
+//       {
+//         $match: matchFilter
+//       },
+//       {
+//         $group: {
+//           _id: { date: "$date", onModel: "$onModel" },
+//           statuses: { $push: "$status" }
+//         }
+//       },
+//       {
+//         $unwind: "$statuses"
+//       },
+//       {
+//         $group: {
+//           _id: { date: "$_id.date", onModel: "$_id.onModel", status: "$statuses" },
+//           count: { $sum: 1 }
+//         }
+//       },
+//       {
+//         $group: {
+//           _id: { date: "$_id.date", onModel: "$_id.onModel" },
+//           statuses: {
+//             $push: {
+//               status: "$_id.status",
+//               count: "$count"
+//             }
+//           }
+//         }
+//       },
+//       {
+//         $sort: { "_id.date": -1 }
+//       },
+//       {
+//         $limit: 30
+//       }
+//     ]);
+
+//     res.status(200).json({ monthlySummary, dailySummary });
+//   } catch (error) {
+//     console.error("Error fetching attendance reports:", error);
+//     res.status(500).json({ message: 'Failed to fetch attendance reports', error: error.message });
+//   }
+// });
+
+
+// // @desc    Get students for a teacher's assigned classes
+// // @route   GET /api/attendance/students/assigned
+// // @access  Private/Teacher
+// export const getAssignedStudents = async (req, res) => {
+//     try {
+//         // req.staff is populated from your authentication middleware
+//         const teacher = await Staff.findById(req.staff._id);
+
+//         if (!teacher || teacher.staffType !== 'Teacher') {
+//             return res.status(403).json({ message: 'Access denied. Only teachers can view this data.' });
+//         }
+
+//         const assignedClassNames = teacher.assignedClasses.map(assignment => assignment.className);
+
+//         const students = await Student.find({ class: { $in: assignedClassNames } }).select('-password');
+        
+//         res.status(200).json(students);
+//     } catch (error) {
+//         res.status(500).json({ message: 'Server error', error: error.message });
+//     }
+// };
+
 
 // export {
 //   markAttendance,
@@ -180,6 +337,7 @@
 //   getStaffAttendance,
 //   getStudentsForAttendance,
 //   getStaffForAttendance,
+//   getAttendanceByDate,
 // };
 
 
@@ -202,6 +360,34 @@ const markAttendance = asyncHandler(async (req, res) => {
     throw new Error('Invalid attendance data. Please provide date, type, and an array of records.');
   }
 
+  // Role-based validation
+  const user = req.user;
+  if (user.role === 'teacher' && type === 'Student') {
+    const teacher = await Staff.findById(user.profileId).select('assignClasses').lean();
+    if (!teacher) {
+      res.status(404);
+      throw new Error('Teacher not found.');
+    }
+    
+    // Check if the teacher is authorized to mark for these classes/semesters
+    const assignedClasses = teacher.assignClasses || [];
+    const isAuthorized = attendanceRecords.every(record => {
+      if (record.studentClassNumber) {
+        // Class-based assignment
+        return assignedClasses.some(ac => ac.type === 'Class' && ac.classNumber === record.studentClassNumber);
+      } else if (record.studentDegreeName && record.studentSemester) {
+        // BS degree-based assignment
+        return assignedClasses.some(ac => ac.type === 'BS' && ac.degreeName === record.studentDegreeName && ac.semester === record.studentSemester);
+      }
+      return false;
+    });
+
+    if (!isAuthorized) {
+      res.status(403);
+      throw new Error('You are not authorized to mark attendance for one or more of these classes.');
+    }
+  }
+
   const bulkOps = attendanceRecords.map(record => ({
     updateOne: {
       filter: { user: record.userId, date: new Date(date).setHours(0, 0, 0, 0) },
@@ -213,14 +399,13 @@ const markAttendance = asyncHandler(async (req, res) => {
           status: record.status,
           markedBy: req.user.id,
           reason: record.reason,
-          // If marking for student, include student-specific details
           ...(type === 'Student' && {
             studentDetails: {
               class: record.studentClass,
               classNumber: record.studentClassNumber,
               semester: record.studentSemester,
               degreeName: record.studentDegreeName,
-              majorSubject: record.studentMajorSubject,
+              majorSubject: record.majorSubject,
             }
           }),
         },
@@ -331,22 +516,18 @@ const getStaffAttendance = asyncHandler(async (req, res) => {
   });
 });
 
-// @desc    Get a list of students for attendance marking (Admin, Teacher)
+// @desc    Get a list of students for attendance marking (Admin only)
 // @route   GET /api/attendance/students
-// @access  Private/Admin & Teacher
+// @access  Private/Admin
 const getStudentsForAttendance = asyncHandler(async (req, res) => {
   const { classType, classNumber, degreeName, semester, majorSubject } = req.query;
-
-  console.log('Received student filter query:', req.query);
 
   const filters = {};
   if (classType) filters.class = classType;
   if (classNumber) filters.classNumber = classNumber;
   if (degreeName) filters.degreeName = degreeName;
-  if (semester) filters.semester = parseInt(semester, 10); // Ensure semester is an integer
+  if (semester) filters.semester = parseInt(semester, 10);
   if (majorSubject) filters.majorSubject = majorSubject;
-
-  console.log('Constructed student filter object:', filters);
 
   const students = await Student.find(filters).select('_id name cnic class classNumber semester degreeName majorSubject');
   res.json(students);
@@ -358,12 +539,8 @@ const getStudentsForAttendance = asyncHandler(async (req, res) => {
 const getStaffForAttendance = asyncHandler(async (req, res) => {
   const { role } = req.query;
 
-  console.log('Received staff filter query:', req.query);
-
   const filters = {};
   if (role) filters.role = role;
-
-  console.log('Constructed staff filter object:', filters);
 
   const staff = await Staff.find(filters).select('_id name cnic designation role');
   res.json(staff);
@@ -490,6 +667,41 @@ export const getAttendanceReports = asyncHandler(async (req, res) => {
     console.error("Error fetching attendance reports:", error);
     res.status(500).json({ message: 'Failed to fetch attendance reports', error: error.message });
   }
+});
+
+
+// @desc    Get students for a teacher's assigned classes
+// @route   GET /api/attendance/students/assigned
+// @access  Private/Teacher
+export const getAssignedStudents = asyncHandler(async (req, res) => {
+    try {
+        const teacher = await Staff.findById(req.user.profileId).select('assignClasses').lean();
+        console.log('Requesting teacher ID:', req.user.profileId);
+        console.log('Teacher is :', teacher);
+        if (!teacher) {
+            return res.status(403).json({ message: 'Access denied. Only teachers can view this data.' });
+        }
+
+        const assignedClasses = teacher.assignClasses || [];
+        const orConditions = assignedClasses.map(assignment => {
+          if (assignment.type === 'Class' && assignment.classNumber) {
+            return { classNumber: assignment.classNumber };
+          } else if (assignment.type === 'BS' && assignment.degreeName && assignment.semester) {
+            return { degreeName: assignment.degreeName, semester: assignment.semester };
+          }
+          return null; // Should not happen with validation
+        }).filter(Boolean);
+
+        if (orConditions.length === 0) {
+            return res.status(200).json([]);
+        }
+        
+        const students = await Student.find({ $or: orConditions }).select('_id name cnic class classNumber semester degreeName majorSubject');
+        
+        res.status(200).json(students);
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
 });
 
 

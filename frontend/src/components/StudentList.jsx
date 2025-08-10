@@ -645,7 +645,7 @@ const StudentList = () => {
           </div>
         )}
 
-        <div className="bg-white rounded-lg shadow-md overflow-x-auto">
+        <div className="bg-white rounded-lg shadow-md md:overflow-visible lg:overflow-visible sm:overflow-x-auto">
           <table className="min-w-full table-auto border-separate border-spacing-y-2 border-white shadow-lg rounded-lg overflow-auto">
             <thead className="bg-green-600 text-white rounded-md">
               <tr>
@@ -710,7 +710,7 @@ const StudentList = () => {
                         <EyeIcon className="h-5 w-5" />
                       </button>
                       {/* Action Dropdown Menu */}
-                      <Menu as="div" className="relative inline-block text-left ml-2">
+                      <Menu as="div" className="relative z-50 inline-block text-left ml-2">
                         <div>
                           <MenuButton className="flex items-center text-gray-400 hover:text-gray-600">
                             <EllipsisVerticalIcon className="h-5 w-5" aria-hidden="true" />

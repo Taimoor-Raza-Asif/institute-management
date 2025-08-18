@@ -277,6 +277,52 @@ export const getLeaveRequestById = asyncHandler(async (req, res) => {
 });
 
 
+// @desc    Update a leave request status
+// @route   PATCH /api/leave/:id/status
+// @access  Private (Admin, Teacher)
+export const updateLeaveStatus = asyncHandler(async (req, res) => {
+    const { status } = req.body;
+    const userRole = req.user.role;
+    const userId = req.user.id;
+    const userProfileId = req.user.profileId;
+
+    if (!['Approved', 'Rejected'].includes(status)) {
+        res.status(400);
+        throw new Error('Invalid status provided.');
+    }
+
+    // Only admin and teacher can change a student's leave status
+    if (userRole !== 'admin' && userRole !== 'teacher') {
+        res.status(403);
+        throw new Error('Not authorized to update leave status.');
+    }
+
+    const leaveRequest = await LeaveRequest.findById(req.params.id);
+
+    if (!leaveRequest) {
+        res.status(404);
+        throw new Error('Leave request not found.');
+    }
+
+    if (leaveRequest.status !== 'Pending') {
+        res.status(400);
+        throw new Error('Cannot change the status of a non-pending leave request.');
+    }
+
+    leaveRequest.status = status;
+    leaveRequest.approvedBy = {
+        _id: userId,
+        name: await getProfileName(userId, userRole, userProfileId, 'staff'),
+        role: userRole,
+    };
+    leaveRequest.approvedRejectedAt = new Date();
+
+    const updatedLeaveRequest = await leaveRequest.save();
+
+    res.json(updatedLeaveRequest);
+});
+
+
 
 
 // @desc    Update a leave request (Admin/Teacher only for status/return, Student for some fields if pending)

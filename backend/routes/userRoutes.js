@@ -7,7 +7,8 @@ import {
   getUserById,
   updateUser,
   deleteUser,
-  toggleEditMode
+  toggleEditMode,
+  registerAdminUser
 } from '../controllers/userController.js';
 import { protect, authorizeRoles } from '../middleware/authMiddleware.js';
 
@@ -17,7 +18,7 @@ const router = express.Router();
 router.post('/login', authUser); // Login endpoint
 // router.post('/register', registerUser); // Typically, registration might be public or admin-only
 
-
+router.post('/register-admin', registerAdminUser);
 
 // Admin-only routes for user management
 // For simplicity, we'll make registerUser admin-only here to control user creation

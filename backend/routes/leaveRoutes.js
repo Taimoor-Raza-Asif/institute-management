@@ -5,7 +5,8 @@ import {
   getAllLeaveRequests,
   getLeaveRequestById,
   updateLeaveRequest,
-  deleteLeaveRequest
+  deleteLeaveRequest,
+  updateLeaveStatus
 } from '../controllers/leaveController.js';
 import { protect, authorizeRoles } from '../middleware/authMiddleware.js'; // Assuming you have these
 
@@ -22,6 +23,9 @@ router.get('/:id', protect, authorizeRoles('admin', 'teacher', 'student'), getLe
 
 // Update leave request (approve/reject status, actual return time) - Admin/Teacher only
 router.put('/:id', protect, authorizeRoles('admin', 'teacher'), updateLeaveRequest);
+
+// New route for approving/rejecting leave requests (Admin/Teacher only)
+router.patch('/:id/status', protect, authorizeRoles('admin', 'teacher'), updateLeaveStatus);
 
 // Delete leave request - Admin only, or student can delete own pending request
 router.delete('/:id', protect, authorizeRoles('admin', 'student'), deleteLeaveRequest);

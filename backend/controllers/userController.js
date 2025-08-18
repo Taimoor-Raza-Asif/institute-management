@@ -380,3 +380,56 @@ const getUsers = asyncHandler(async (req, res) => {
   const users = await User.find().populate('profileId', 'name'); // Only populate the `name` from staff
   res.json(users);
 });
+
+
+
+// @desc    Register the first admin user
+// @route   POST /api/users/register-admin
+// @access  Public (unrestricted for first time setup)
+export const registerAdminUser = asyncHandler(async (req, res) => {
+  const { name, cnic, password, contactNumber, email } = req.body;
+
+  if (!name || !cnic || !password || !contactNumber || !email) {
+    res.status(400);
+    throw new Error('Please enter all required fields: name, cnic, password, contactNumber, and email.');
+  }
+
+  // Check if any admin user already exists to prevent misuse
+  const adminExists = await User.findOne({ role: 'admin' });
+  if (adminExists) {
+    res.status(400);
+    throw new Error('An admin user already exists. Cannot register a new one via this endpoint.');
+  }
+
+  // Create a staff member for the admin user
+  const newStaff = await Staff.create({
+    name,
+    cnic,
+    staffType: 'admin',
+    contactNumber,
+    email,
+    salary: 0,
+    dateOfJoining: new Date(),
+  });
+
+  // Create the admin user linked to the new staff member
+  const user = await User.create({
+    cnic,
+    password,
+    role: 'admin',
+    profileId: newStaff._id,
+  });
+
+  if (user) {
+    res.status(201).json({
+      _id: user._id,
+      cnic: user.cnic,
+      role: user.role,
+      profileId: user.profileId,
+      token: generateToken(user._id, user.role),
+    });
+  } else {
+    res.status(400);
+    throw new Error('Invalid user data');
+  }
+});

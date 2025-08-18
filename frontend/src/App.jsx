@@ -27,6 +27,9 @@ import SalaryForm from './components/SalaryForm';
 import StaffSalaryList from './components/StaffSalaryList';
 import AssignClasses from './pages/AssignClasses';
 import MyStudents from './pages/MyStudents';
+import MySubjects from './components/MySubjects'; // New Import
+import MarksList from './components/MarksList'; // New Import
+import MarkingForm from './components/MarkingForm';
 import DonationManagement from './components/DonationManagement';
 import BillingManagement from './components/BillingManagement';
 import Reports from './pages/Reports';
@@ -110,6 +113,7 @@ const App = () => {
           <Route path="/admin/student-leaves" element={<PrivateRoute roles={['admin']}><LeaveList /></PrivateRoute>} />
           <Route path="/admin/staff-leaves" element={<PrivateRoute roles={['admin']}><StaffLeaveList /></PrivateRoute>} />
           <Route path="/assign-classes" element={<PrivateRoute roles={['admin']}><AssignClasses /></PrivateRoute>} />
+           <Route path="/admin/marks" element={<PrivateRoute roles={['admin']}><MarksList /></PrivateRoute>} /> {/* New Route */}
 
           <Route path="/salaries" element={<PrivateRoute roles={['admin', 'accountant']}><StaffSalaryList /></PrivateRoute>} />
           <Route path="/salary/add" element={<PrivateRoute roles={['admin', 'accountant']}><SalaryForm /></PrivateRoute>} />
@@ -127,6 +131,7 @@ const App = () => {
           <Route path="/students/my-data" element={<PrivateRoute roles={['student']}><StudentForm isViewMode={true} /></PrivateRoute>} />
           <Route path="/student/attendance" element={<PrivateRoute roles={['student']}><p className="text-center py-8">Student Attendance Coming Soon!</p></PrivateRoute>} />
           <Route path="/student/student-leaves" element={<PrivateRoute roles={['student']}><LeaveList /></PrivateRoute>} />
+           <Route path="/marks/student/:id" element={<PrivateRoute roles={['student']}><MarksList /></PrivateRoute>} /> {/* New Route */}
 
           {/* Teacher Module */}
           <Route path="/teacher/dashboard" element={<PrivateRoute roles={['teacher']}><TeacherDashboard /></PrivateRoute>} />
@@ -136,7 +141,10 @@ const App = () => {
           <Route path="/staff/staff-leaves" element={<PrivateRoute roles={['admin', 'teacher', 'cook', 'cleaner', 'accountant']}><StaffLeaveList /></PrivateRoute>} />
           <Route path="/teacher/student-leaves" element={<PrivateRoute roles={['teacher']}><LeaveList /></PrivateRoute>} />
           <Route path="/teacher/my-students" element={<PrivateRoute roles={['teacher']}><MyStudents currentUser={currentUser} /></PrivateRoute>} />
-           <Route path="/attendance/students/assigned" element={<PrivateRoute roles={['teacher']}><AttendanceMarking /></PrivateRoute>} />
+          <Route path="/teacher/my-subjects" element={<PrivateRoute roles={['teacher']}><MySubjects /></PrivateRoute>} />
+          <Route path="/marks/add" element={<PrivateRoute roles={['teacher']}><MarkingForm /></PrivateRoute>} /> 
+          <Route path="/marks/teacher/:id" element={<PrivateRoute roles={['teacher']}><MarksList /></PrivateRoute>} /> 
+          <Route path="/attendance/students/assigned" element={<PrivateRoute roles={['teacher']}><AttendanceMarking /></PrivateRoute>} />
           {/* Staff Module (Cook, Cleaner) */}
           <Route path="/staff/dashboard" element={<PrivateRoute roles={['cook', 'cleaner']}><StaffDashboard /></PrivateRoute>} />
 

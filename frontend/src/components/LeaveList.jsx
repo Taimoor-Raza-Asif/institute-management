@@ -1,18 +1,19 @@
 // // src/components/LeaveList.jsx
-// import React, { useEffect, useState, useCallback, useRef, useContext } from 'react'; // Added useContext
-// import Modal from './Modal'; // Re-use your existing Modal
+// import React, { useEffect, useState, useCallback, useRef, useContext } from 'react';
+// import Modal from './Modal';
 // import LeaveRequestForm from './LeaveRequestForm';
 // import api from '../api';
 // import {
 //   PencilIcon, TrashIcon, PlusIcon, FunnelIcon, XMarkIcon,
 //   MagnifyingGlassIcon, EyeIcon
 // } from '@heroicons/react/24/outline';
-// import { UserContext } from '../App'; // <--- Changed from AuthContext
+// import { UserContext } from '../App';
+// import ConfirmationModal from './ConfirmationModal'; // New confirmation modal
 
 // const LeaveList = () => {
-//   const { currentUser: user } = useContext(UserContext); // <--- Changed to useContext(UserContext)
+//   const { currentUser: user } = useContext(UserContext);
 //   const [leaveRequests, setLeaveRequests] = useState([]);
-//   const [studentsForForm, setStudentsForForm] = useState([]); // For staff to select student
+//   const [studentsForForm, setStudentsForForm] = useState([]);
 //   const [editingLeave, setEditingLeave] = useState(null);
 //   const [modalOpen, setModalOpen] = useState(false);
 //   const [loading, setLoading] = useState(true);
@@ -26,94 +27,77 @@
 //   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 //   const [filterStatus, setFilterStatus] = useState('');
 //   const [filterStudentName, setFilterStudentName] = useState('');
-//   const [filterClass, setFilterClass] = useState('');
-//   const [filterIsReturned, setFilterIsReturned] = useState(''); // 'true', 'false', ''
 
-//   // Debounce search term
-//   useEffect(() => {
-//     const handler = setTimeout(() => {
-//       setDebouncedSearchTerm(searchTerm);
-//     }, 500);
-//     return () => {
-//       clearTimeout(handler);
-//     };
-//   }, [searchTerm]);
+//   // New states for confirmation modal
+//   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+//   const [confirmMessage, setConfirmMessage] = useState('');
+//   const [confirmAction, setConfirmAction] = useState(() => () => {}); // Default no-op function
 
-//   // const fetchLeaves = useCallback(async () => {
-//   //   setLoading(true);
-//   //   setError(null);
-//   //   try {
-//   //     const { data } = await api.get('/leave', {
-//   //       params: {
-//   //         search: debouncedSearchTerm,
-//   //         status: filterStatus,
-//   //         studentName: filterStudentName,
-//   //         class: filterClass,
-//   //         isReturned: filterIsReturned
-//   //       }
-//   //     });
-//   //     setLeaveRequests(data);
-//   //   } catch (err) {
-//   //     setError(err.response?.data?.message || 'Failed to fetch leave requests.');
-//   //     console.error('Error fetching leave requests:', err);
-//   //   } finally {
-//   //     setLoading(false);
-//   //   }
-//   // }, [debouncedSearchTerm, filterStatus, filterStudentName, filterClass, filterIsReturned]);
+//   const isAdmin = user?.role === 'admin';
+//   const isTeacher = user?.role === 'teacher';
+//   const isStudent = user?.role === 'student';
 
 //   const fetchLeaves = useCallback(async () => {
 //     setLoading(true);
 //     setError(null);
 //     try {
-//       const params = {
-//         search: debouncedSearchTerm,
-//         status: filterStatus,
-//         studentName: filterStudentName,
-//         class: filterClass,
-//         isReturned: filterIsReturned,
-//       };
-
-//       // Conditionally add studentId for student role
-//       if (user?.role === 'student' && user?.profileId) {
-//         params.studentId = user.profileId; // Pass the student's own profileId
-//       }
-//       console.log(user?.profileId);
-//       console.log(params.studentId);
-//       const { data } = await api.get('/leave', { params }); // <--- Fixed API endpoint
-//       console.log(data);
+//       const { data } = await api.get(`/leave`, {
+//         params: {
+//           search: debouncedSearchTerm,
+//           status: filterStatus,
+//           studentName: filterStudentName,
+//         },
+//       });
 //       setLeaveRequests(data);
 //     } catch (err) {
-//       setError(err.response?.data?.message || 'Failed to fetch leave requests.');
-//       console.error('Error fetching leave requests:', err);
+//       console.error("Error fetching leave requests:", err);
+//       setError("Failed to fetch leave requests.");
 //     } finally {
 //       setLoading(false);
 //     }
-//   }, [debouncedSearchTerm, filterStatus, filterStudentName, filterClass, filterIsReturned, user]);
+//   }, [debouncedSearchTerm, filterStatus, filterStudentName]);
 
-//   const fetchStudentsForDropdown = useCallback(async () => {
-//     // Only fetch if user is admin or teacher, and modal is open for adding/editing
-//     if ((user?.role === 'admin' || user?.role === 'teacher') && modalOpen && !isViewMode) {
+//   const fetchStudentsForForm = useCallback(async () => {
+//     if (isTeacher || isAdmin) {
 //       try {
-//         const { data } = await api.get('/students'); // Adjust this endpoint if needed
+//         const { data } = await api.get('/students?select=name,cnic');
 //         setStudentsForForm(data);
 //       } catch (err) {
-//         console.error('Error fetching students for dropdown:', err);
+//         console.error("Error fetching students:", err);
 //       }
 //     }
-//   }, [user, modalOpen, isViewMode]); // Added modalOpen and isViewMode to dependencies
+//   }, [isTeacher, isAdmin]);
 
 //   useEffect(() => {
-//     fetchLeaves();
-//   }, [fetchLeaves]);
+//     const timeoutId = setTimeout(() => {
+//       setDebouncedSearchTerm(searchTerm);
+//     }, 500);
+//     return () => clearTimeout(timeoutId);
+//   }, [searchTerm]);
 
 //   useEffect(() => {
-//     fetchStudentsForDropdown(); // Call this when component mounts or user/modal state changes
-//   }, [fetchStudentsForDropdown]);
+//     if (isAdmin || isTeacher || isStudent) {
+//       fetchLeaves();
+//       fetchStudentsForForm();
+//     }
+//   }, [isAdmin, isTeacher, isStudent, fetchLeaves, fetchStudentsForForm]);
 
-//   const handleAddLeave = () => {
-//     setEditingLeave(null);
-//     setIsViewMode(false);
-//     setModalOpen(true);
+
+//   const handleDelete = async (id) => {
+//     // Show confirmation modal before deleting
+//     setConfirmMessage("Are you sure you want to delete this leave request?");
+//     setConfirmAction(() => async () => {
+//       try {
+//         await api.delete(`/leave/${id}`);
+//         fetchLeaves(); // Refresh the list
+//       } catch (err) {
+//         console.error("Error deleting leave request:", err);
+//         setError("Failed to delete leave request.");
+//       } finally {
+//         setIsConfirmModalOpen(false); // Close the modal
+//       }
+//     });
+//     setIsConfirmModalOpen(true);
 //   };
 
 //   const handleEdit = (leave) => {
@@ -128,195 +112,155 @@
 //     setModalOpen(true);
 //   };
 
-//   const handleDelete = async (id) => {
-//     if (window.confirm('Are you sure you want to delete this leave request?')) {
-//       try {
-//         await api.delete(`/leave/${id}`);
-//         fetchLeaves(); // Re-fetch data after deletion
-//       } catch (err) {
-//         setError(err.response?.data?.message || 'Failed to delete leave request.');
-//         console.error('Error deleting leave request:', err);
-//       }
-//     }
+//   const handleAdd = () => {
+//     setEditingLeave(null);
+//     setIsViewMode(false);
+//     setModalOpen(true);
 //   };
 
 //   const handleCloseModal = () => {
 //     setModalOpen(false);
 //     setEditingLeave(null);
 //     setIsViewMode(false);
-//     setError(null); // Clear any form errors when closing
 //   };
 
-//   const applyFilters = () => {
-//     fetchLeaves(); // Trigger re-fetch with current filter states
+//   const handleUpdateStatus = (id, status) => {
+//     setConfirmMessage(`Are you sure you want to ${status.toLowerCase()} this leave request?`);
+//     setConfirmAction(() => async () => {
+//       try {
+//         await api.patch(`/leave/${id}/status`, { status });
+//         fetchLeaves();
+//       } catch (err) {
+//         console.error(`Error updating leave status to ${status}:`, err);
+//         setError(`Failed to update leave request status to ${status}.`);
+//       } finally {
+//         setIsConfirmModalOpen(false);
+//       }
+//     });
+//     setIsConfirmModalOpen(true);
 //   };
-
-//   const clearFilters = () => {
-//     setSearchTerm('');
-//     setFilterStatus('');
-//     setFilterStudentName('');
-//     setFilterClass('');
-//     setFilterIsReturned('');
-//     setDebouncedSearchTerm(''); // Clear debounced term immediately too
-//     setShowAdvancedFilters(false);
-//   };
-
-//   const isStaff = user?.role === 'admin' || user?.role === 'teacher';
-//   const isAdmin = user?.role === 'admin';
-//   const isStudent = user?.role === 'student';
 
 //   return (
-//     <div className="container mx-auto p-4 bg-white shadow-md rounded-lg">
-//       <h1 className="text-3xl font-bold text-gray-800 mb-6">Student Leave Management</h1>
+//     <div className="container mx-auto p-4 sm:p-6 lg:p-8">
+//       <h1 className="text-3xl font-bold text-gray-800 mb-6">Student Leave Requests</h1>
 
-//       {error && (
-//         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-//           {error}
-//         </div>
-//       )}
-
-//       {/* Action buttons and Search */}
-//       <div className="flex flex-col sm:flex-row justify-between items-center mb-6 space-y-3 sm:space-y-0 sm:space-x-4">
-//         <div className="flex space-x-3 w-full sm:w-auto">
-//           {/* Only staff/admin can add leave for any student. Student adds for self */}
-//           {(isStaff || isStudent) && (
-//             <button
-//               onClick={handleAddLeave}
-//               className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition duration-200 flex items-center shadow-sm"
-//             >
-//               <PlusIcon className="h-5 w-5 mr-1" /> {isStaff ? 'Add Student Leave' : 'Apply for Leave'}
-//             </button>
-//           )}
+//       {/* Action and Filter bar */}
+//       <div className="flex flex-col sm:flex-row justify-between items-center mb-6 space-y-4 sm:space-y-0">
+//         <div className="flex items-center space-x-2 w-full sm:w-auto">
+//           <div className="relative w-full">
+//             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+//               <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
+//             </div>
+//             <input
+//               type="text"
+//               placeholder="Search by student name or CNIC..."
+//               value={searchTerm}
+//               onChange={(e) => setSearchTerm(e.target.value)}
+//               className="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-200 w-full sm:w-80"
+//             />
+//           </div>
 //           <button
 //             onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-//             className="bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300 transition duration-200 flex items-center shadow-sm"
+//             className="p-2 border border-gray-300 rounded-md text-gray-600 hover:bg-gray-100 transition duration-200"
+//             title="Advanced Filters"
 //           >
-//             <FunnelIcon className="h-5 w-5 mr-1" /> {showAdvancedFilters ? 'Hide Filters' : 'Show Filters'}
+//             <FunnelIcon className="h-5 w-5" />
 //           </button>
 //         </div>
 
-//         <div className="relative w-full sm:w-64">
-//           <input
-//             type="text"
-//             placeholder="Search by student name or CNIC..."
-//             value={searchTerm}
-//             onChange={(e) => setSearchTerm(e.target.value)}
-//             className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 pl-10"
-//           />
-//           <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-//           {searchTerm && (
-//             <XMarkIcon
-//               className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 cursor-pointer hover:text-gray-600"
-//               onClick={() => setSearchTerm('')}
-//             />
-//           )}
-//         </div>
+//         {(isAdmin || isTeacher) && (
+//           <button
+//             onClick={handleAdd}
+//             className="flex items-center px-4 py-2 bg-green-600 text-white rounded-md shadow-md hover:bg-green-700 transition duration-200"
+//           >
+//             <PlusIcon className="h-5 w-5 mr-2" /> Add Leave Request
+//           </button>
+//         )}
 //       </div>
 
-//       {/* Advanced Filters */}
 //       {showAdvancedFilters && (
-//         <div className="bg-gray-50 p-4 rounded-md shadow-inner mb-6 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-//           <div>
-//             <label htmlFor="filterStatus" className="block text-sm font-medium text-gray-700">Status</label>
-//             <select
-//               id="filterStatus"
-//               value={filterStatus}
-//               onChange={(e) => setFilterStatus(e.target.value)}
-//               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-//             >
-//               <option value="">All</option>
-//               <option value="Pending">Pending</option>
-//               <option value="Approved">Approved</option>
-//               <option value="Rejected">Rejected</option>
-//             </select>
+//         <div className="bg-gray-50 p-4 rounded-md shadow-inner mb-6">
+//           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+//             <div>
+//               <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+//               <select
+//                 value={filterStatus}
+//                 onChange={(e) => setFilterStatus(e.target.value)}
+//                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
+//               >
+//                 <option value="">All</option>
+//                 <option value="Pending">Pending</option>
+//                 <option value="Approved">Approved</option>
+//                 <option value="Rejected">Rejected</option>
+//               </select>
+//             </div>
 //           </div>
-//           <div>
-//             <label htmlFor="filterIsReturned" className="block text-sm font-medium text-gray-700">Returned Status</label>
-//             <select
-//               id="filterIsReturned"
-//               value={filterIsReturned}
-//               onChange={(e) => setFilterIsReturned(e.target.value)}
-//               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-//             >
-//               <option value="">All</option>
-//               <option value="false">Not Returned</option>
-//               <option value="true">Returned</option>
-//             </select>
-//           </div>
-//           {/* Add more filter fields as needed, e.g., filter by class, by class incharge etc. */}
-//           {/* <button onClick={applyFilters} className="col-span-full sm:col-span-1 bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition duration-200">Apply Filters</button> */}
-//           <button onClick={clearFilters} className="col-span-full sm:col-span-1 bg-gray-400 text-white px-4 py-2 rounded-md hover:bg-gray-500 transition duration-200">Clear Filters</button>
 //         </div>
 //       )}
 
 //       {loading ? (
-//         <div className="text-center py-8">Loading leave requests...</div>
+//         <p className="text-center text-gray-500">Loading...</p>
+//       ) : error ? (
+//         <p className="text-center text-red-500">{error}</p>
 //       ) : (
-//         <div className="overflow-x-auto rounded-lg shadow-md border border-gray-200">
+//         <div className="bg-white shadow overflow-hidden sm:rounded-lg">
 //           <table className="min-w-full divide-y divide-gray-200">
 //             <thead className="bg-gray-50">
 //               <tr>
-//                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student Name</th>
-//                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Class</th>
-//                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dates</th>
-//                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reason</th>
-//                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-//                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Return Status</th>
-//                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Requested By</th>
-//                 {isAdmin && <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Approved By</th>}
-//                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+//                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student</th>
+//                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Class</th>
+//                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dates</th>
+//                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reason</th>
+//                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+//                 <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
 //               </tr>
 //             </thead>
 //             <tbody className="bg-white divide-y divide-gray-200">
 //               {leaveRequests.length > 0 ? (
 //                 leaveRequests.map((leave) => (
 //                   <tr key={leave._id} className="hover:bg-gray-50">
-//                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-//                       {leave.student?.name || 'N/A'}
-//                     </td>
+//                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{leave.studentName}</td>
+//                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{leave.studentClass}</td>
 //                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-//                       {leave.studentClass || leave.student?.class || 'N/A'}
+//                       {new Date(leave.startDate).toLocaleDateString()} to {new Date(leave.endDate).toLocaleDateString()}
 //                     </td>
+//                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{leave.reason}</td>
 //                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-//                       {new Date(leave.startDate).toLocaleDateString()} - {new Date(leave.endDate).toLocaleDateString()}
-//                     </td>
-//                     <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate" title={leave.reason}>
-//                       {leave.reason}
-//                     </td>
-//                     <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${leave.status === 'Approved' ? 'text-green-600' :
-//                         leave.status === 'Rejected' ? 'text-red-600' :
-//                           'text-yellow-600'
+//                       <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+//                         leave.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
+//                         leave.status === 'Approved' ? 'bg-green-100 text-green-800' :
+//                         'bg-red-100 text-red-800'
 //                       }`}>
-//                       {leave.status}
+//                         {leave.status}
+//                       </span>
 //                     </td>
-//                     <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${leave.isReturned ? 'text-green-600' :
-//                         (leave.status === 'Approved' && leave.isPastDue) ? 'text-red-600' :
-//                           'text-orange-600'
-//                       }`}>
-//                       {leave.isReturned ? 'Returned' : (leave.status === 'Approved' && leave.isPastDue ? 'Past Due' : 'Not Returned')}
-//                     </td>
-//                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-//                       {leave.requestedBy?.name || 'N/A'} ({leave.requestedByType})
-//                     </td>
-//                     {isAdmin && (
-//                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-//                         {leave.approvedBy?.name || 'N/A'}
-//                       </td>
-//                     )}
 //                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-//                       <div className="flex items-center space-x-2">
-//                         <button onClick={(e) => { e.stopPropagation(); handleView(leave); }} className="text-gray-600 hover:text-gray-800 transition-colors duration-200 p-1 rounded-md hover:bg-gray-100" title="View Details">
-//                           <EyeIcon className="h-5 w-5" />
+//                       <div className="flex items-center justify-end space-x-2">
+//                          {/* View Details Icon */}
+//                         <button onClick={(e) => { e.stopPropagation(); handleView(leave); }} className="text-gray-600 hover:text-gray-900 transition-colors duration-200 p-1 rounded-md hover:bg-gray-100" title="View Details">
+//                             <EyeIcon className="h-5 w-5" />
 //                         </button>
-//                         {(isStaff && leave.status !== 'Returned') && ( // Staff can edit if not returned
-//                           <button onClick={(e) => { e.stopPropagation(); handleEdit(leave); }} className="text-blue-600 hover:text-blue-800 transition-colors duration-200 p-1 rounded-md hover:bg-blue-100" title="Edit Leave">
-//                             <PencilIcon className="h-5 w-5" />
-//                           </button>
+//                         {/* Approve/Reject Buttons for Pending requests (Admin/Teacher only) */}
+//                         {leave.status === 'Pending' && (isAdmin || isTeacher) && (
+//                             <>
+//                                 <button onClick={() => handleUpdateStatus(leave._id, 'Approved')} className="flex items-center justify-center px-3 py-1 text-xs font-medium text-white bg-green-600 rounded-md hover:bg-green-700 transition duration-200 shadow-sm" title="Approve Leave">
+//                                     Approve
+//                                 </button>
+//                                 <button onClick={() => handleUpdateStatus(leave._id, 'Rejected')} className="flex items-center justify-center px-3 py-1 text-xs font-medium text-white bg-red-600 rounded-md hover:bg-red-700 transition duration-200 shadow-sm" title="Reject Leave">
+//                                     Reject
+//                                 </button>
+//                             </>
 //                         )}
-//                         {(isAdmin || (isStudent && leave.status === 'Pending' && leave.requestedBy?._id === user.id)) && (
-//                           <button onClick={(e) => { e.stopPropagation(); handleDelete(leave._id); }} className="text-red-600 hover:text-red-800 transition-colors duration-200 p-1 rounded-md hover:bg-red-100" title="Delete Leave">
-//                             <TrashIcon className="h-5 w-5" />
-//                           </button>
+//                         {/* Edit/Delete Icons for Approved/Rejected requests (Admin only) */}
+//                         {leave.status !== 'Pending' && (isAdmin || isTeacher)&& (
+//                             <>
+//                                 <button onClick={(e) => { e.stopPropagation(); handleEdit(leave); }} className="text-green-600 hover:text-green-800 transition-colors duration-200 p-1 rounded-md hover:bg-green-100" title="Edit Leave">
+//                                     <PencilIcon className="h-5 w-5" />
+//                                 </button>
+//                                 <button onClick={(e) => { e.stopPropagation(); handleDelete(leave._id); }} className="text-red-600 hover:text-red-800 transition-colors duration-200 p-1 rounded-md hover:bg-red-100" title="Delete Leave">
+//                                     <TrashIcon className="h-5 w-5" />
+//                                 </button>
+//                             </>
 //                         )}
 //                       </div>
 //                     </td>
@@ -324,7 +268,7 @@
 //                 ))
 //               ) : (
 //                 <tr>
-//                   <td colSpan={isAdmin ? "9" : "8"} className="text-center p-4 text-gray-500">No leave requests found.</td>
+//                   <td colSpan={6} className="text-center p-4 text-gray-500">No leave requests found.</td>
 //                 </tr>
 //               )}
 //             </tbody>
@@ -339,9 +283,16 @@
 //           studentsForForm={studentsForForm}
 //           onClose={handleCloseModal}
 //           isViewMode={isViewMode}
-//           isStaffMode={isStaff} // Pass prop to control form fields for staff
+//           isStaffMode={isTeacher || isAdmin}
 //         />
 //       </Modal>
+
+//       <ConfirmationModal
+//         isOpen={isConfirmModalOpen}
+//         onClose={() => setIsConfirmModalOpen(false)}
+//         onConfirm={confirmAction}
+//         message={confirmMessage}
+//       />
 //     </div>
 //   );
 // };
@@ -350,21 +301,24 @@
 
 
 
-// src/components/LeaveList.jsx
-import React, { useEffect, useState, useCallback, useRef, useContext } from 'react'; // Added useContext
-import Modal from './Modal'; // Re-use your existing Modal
+
+import React, { useEffect, useState, useCallback, useRef, useContext } from 'react';
+import Modal from './Modal';
 import LeaveRequestForm from './LeaveRequestForm';
 import api from '../api';
 import {
   PencilIcon, TrashIcon, PlusIcon, FunnelIcon, XMarkIcon,
   MagnifyingGlassIcon, EyeIcon
 } from '@heroicons/react/24/outline';
-import { UserContext } from '../App'; // <--- Changed from AuthContext
+import { UserContext } from '../App';
+import ConfirmationModal from './ConfirmationModal';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 
 const LeaveList = () => {
-  const { currentUser: user } = useContext(UserContext); // <--- Changed to useContext(UserContext)
+  const { currentUser: user } = useContext(UserContext);
   const [leaveRequests, setLeaveRequests] = useState([]);
-  const [studentsForForm, setStudentsForForm] = useState([]); // For staff to select student
+  const [studentsForForm, setStudentsForForm] = useState([]);
   const [editingLeave, setEditingLeave] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -379,91 +333,82 @@ const LeaveList = () => {
   const [filterStatus, setFilterStatus] = useState('');
   const [filterStudentName, setFilterStudentName] = useState('');
   const [filterClass, setFilterClass] = useState('');
-  const [filterIsReturned, setFilterIsReturned] = useState(''); //
+  const [filterStartDate, setFilterStartDate] = useState(null);
+  const [filterEndDate, setFilterEndDate] = useState(null);
+  const [filterIsReturned, setFilterIsReturned] = useState('');
 
-  // Debounce search term
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedSearchTerm(searchTerm);
-    }, 300); // 300ms delay
+  // New states for confirmation modal
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [confirmMessage, setConfirmMessage] = useState('');
+  const [confirmAction, setConfirmAction] = useState(() => () => { });
 
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [searchTerm]);
-
-
-  const isAdmin = user && user.role === 'admin';
-  const isTeacher = user && user.role === 'teacher';
-  const isStudent = user && user.role === 'student';
-
+  const isAdmin = user?.role === 'admin';
+  const isTeacher = user?.role === 'teacher';
+  const isStudent = user?.role === 'student';
 
   const fetchLeaves = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const queryParams = new URLSearchParams();
-
-      // Only apply studentId filter if the current user is a student
-      if (isStudent && user?.profileId) {
-        queryParams.append('studentId', user.profileId);
-      }
-
-      // Add other filters if they are not empty
-      if (debouncedSearchTerm) {
-        queryParams.append('searchTerm', debouncedSearchTerm);
-      }
-      if (filterStatus) {
-        queryParams.append('status', filterStatus);
-      }
-      if (filterStudentName) {
-        queryParams.append('studentName', filterStudentName);
-      }
-      if (filterClass) {
-        queryParams.append('studentClass', filterClass);
-      }
-      if (filterIsReturned !== '') { // Use !== '' to distinguish from 'false'
-        queryParams.append('isReturned', filterIsReturned);
-      }
-
-      // Construct the URL with query parameters
-      const url = `/leave?${queryParams.toString()}`;
-
-      const response = await api.get(url);
-      setLeaveRequests(response.data);
+      const { data } = await api.get('/leave', {
+        params: {
+          search: debouncedSearchTerm,
+          status: filterStatus,
+          studentName: filterStudentName,
+          studentClass: filterClass,
+          startDate: filterStartDate ? filterStartDate.toISOString() : null,
+          endDate: filterEndDate ? filterEndDate.toISOString() : null,
+          isReturned: filterIsReturned
+        },
+      });
+      setLeaveRequests(data);
     } catch (err) {
       console.error("Error fetching leave requests:", err);
-      setError("Failed to fetch leave requests. Please try again.");
+      setError("Failed to fetch leave requests.");
     } finally {
       setLoading(false);
     }
-  }, [user, isStudent, debouncedSearchTerm, filterStatus, filterStudentName, filterClass, filterIsReturned]);
+  }, [debouncedSearchTerm, filterStatus, filterStudentName, filterClass, filterStartDate, filterEndDate, filterIsReturned]);
 
-
-
-  // Fetch students for the form (only if admin or teacher)
   const fetchStudentsForForm = useCallback(async () => {
-    if ((isAdmin || isTeacher)) {
+    if (isTeacher || isAdmin) {
       try {
-        const response = await api.get('/students'); // Fetch all students for admin/teacher to select
-        setStudentsForForm(response.data);
+        const { data } = await api.get('/students?select=name,cnic');
+        setStudentsForForm(data);
       } catch (err) {
-        console.error("Error fetching students for form:", err);
-        // Handle error, maybe set an error state
+        console.error("Error fetching students:", err);
       }
     }
-  }, [isAdmin, isTeacher]);
-
+  }, [isTeacher, isAdmin]);
 
   useEffect(() => {
-    fetchLeaves();
-    fetchStudentsForForm(); // Fetch students when component mounts or user role changes
-  }, [fetchLeaves, fetchStudentsForForm]);
+    const timeoutId = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 500);
+    return () => clearTimeout(timeoutId);
+  }, [searchTerm]);
 
-  const handleAdd = () => {
-    setEditingLeave(null); // Clear any previous editing data
-    setIsViewMode(false);
-    setModalOpen(true);
+  useEffect(() => {
+    if (isAdmin || isTeacher || isStudent) {
+      fetchLeaves();
+      fetchStudentsForForm();
+    }
+  }, [isAdmin, isTeacher, isStudent, fetchLeaves, fetchStudentsForForm]);
+
+  const handleDelete = async (id) => {
+    setConfirmMessage("Are you sure you want to delete this leave request?");
+    setConfirmAction(() => async () => {
+      try {
+        await api.delete(`/leave/${id}`);
+        fetchLeaves();
+      } catch (err) {
+        console.error("Error deleting leave request:", err);
+        setError("Failed to delete leave request.");
+      } finally {
+        setIsConfirmModalOpen(false);
+      }
+    });
+    setIsConfirmModalOpen(true);
   };
 
   const handleEdit = (leave) => {
@@ -478,16 +423,10 @@ const LeaveList = () => {
     setModalOpen(true);
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this leave request?')) {
-      try {
-        await api.delete(`/leave/${id}`);
-        fetchLeaves(); // Refresh the list
-      } catch (err) {
-        console.error("Error deleting leave request:", err);
-        setError("Failed to delete leave request.");
-      }
-    }
+  const handleAdd = () => {
+    setEditingLeave(null);
+    setIsViewMode(false);
+    setModalOpen(true);
   };
 
   const handleCloseModal = () => {
@@ -496,176 +435,185 @@ const LeaveList = () => {
     setIsViewMode(false);
   };
 
-  if (loading) return <div className="text-center py-4">Loading leave requests...</div>;
-  if (error) return <div className="text-center py-4 text-red-600">Error: {error}</div>;
+  const handleUpdateStatus = (id, status) => {
+    setConfirmMessage(`Are you sure you want to ${status.toLowerCase()} this leave request?`);
+    setConfirmAction(() => async () => {
+      try {
+        await api.patch(`/leave/${id}/status`, { status });
+        fetchLeaves();
+      } catch (err) {
+        console.error(`Error updating leave status to ${status}:`, err);
+        setError(`Failed to update leave request status to ${status}.`);
+      } finally {
+        setIsConfirmModalOpen(false);
+      }
+    });
+    setIsConfirmModalOpen(true);
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'Approved':
+        return 'bg-green-100 text-green-800';
+      case 'Rejected':
+        return 'bg-red-100 text-red-800';
+      case 'Pending':
+      default:
+        return 'bg-yellow-100 text-yellow-800';
+    }
+  };
 
   return (
-    <div className="container mx-auto p-4">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6">Student Leave Requests</h2>
+    <div className="container mx-auto p-4 sm:p-6 lg:p-4">
+      <h1 className="text-3xl sm:text-4xl font-bold text-center text-green-800 mb-14">Student Leave Requests</h1>
 
-      <div className="flex justify-between items-center mb-4">
-        <input
-          type="text"
-          placeholder="Search by student name or CNIC..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="p-2 border border-gray-300 rounded-md w-full max-w-sm"
-        />
-        <div className="flex space-x-2">
-          <button
-            onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-            className="p-2 rounded-md bg-gray-200 hover:bg-gray-300 text-gray-700 flex items-center"
-          >
-            {showAdvancedFilters ? <XMarkIcon className="h-5 w-5 mr-1" /> : <FunnelIcon className="h-5 w-5 mr-1" />}
-            Filters
-          </button>
-          {(isAdmin || isTeacher || isStudent) && ( // Only Admin and Teacher can add student leaves
+      <div className="mb-6 p-4 bg-gray-50 rounded-lg shadow-sm border border-gray-200">
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-3">
+          <div className="relative w-full sm:w-1/2 lg:w-2/3">
+            <input
+              type="text"
+              placeholder="Search by student name or reason..."
+              className="p-2 pl-10 border border-gray-300 rounded-md w-full focus:outline-none focus:rblue focus:ring-green-500 focus:border-green-500"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            <MagnifyingGlassIcon className="h-5 w-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          </div>
+          <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 w-full sm:w-auto">
             <button
-              onClick={handleAdd}
-              className="p-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white flex items-center"
+              onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+              className="flex items-center justify-center bg-gray-200 text-gray-800 px-5 py-2 rounded-lg hover:bg-gray-300 transition duration-200 shadow-md w-full sm:w-auto"
             >
-              <PlusIcon className="h-5 w-5 mr-1" /> {(isAdmin || isTeacher) ? 'Add Student Leave' : 'Apply for Leave'}
+              <FunnelIcon className="h-5 w-5 mr-2" />
+              {showAdvancedFilters ? 'Hide Filters' : 'Advanced Filters'}
             </button>
-          )}
+            {(isAdmin || isTeacher) && (
+              <button
+                onClick={handleAdd}
+                className="flex items-center justify-center bg-green-600 text-white rounded-md px-5 py-2 hover:bg-green-700 transition duration-200 shadow-md w-full sm:w-auto"
+              >
+                <PlusIcon className="h-5 w-5 mr-2" />
+                Add New Request
+              </button>
+            )}
+          </div>
         </div>
+
+        {showAdvancedFilters && (
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-4 p-4 bg-gray-50 rounded-md shadow-inner">
+            <div>
+              <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+              <select
+                id="status"
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+                className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm"
+              >
+                <option value="">All</option>
+                <option value="Pending">Pending</option>
+                <option value="Approved">Approved</option>
+                <option value="Rejected">Rejected</option>
+              </select>
+            </div>
+            <div>
+              <label htmlFor="studentName" className="block text-sm font-medium text-gray-700 mb-1">Student Name</label>
+              <input
+                type="text"
+                id="studentName"
+                value={filterStudentName}
+                onChange={(e) => setFilterStudentName(e.target.value)}
+                className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm"
+              />
+            </div>
+            <div>
+              <label htmlFor="class" className="block text-sm font-medium text-gray-700 mb-1">Class</label>
+              <input
+                type="text"
+                id="class"
+                value={filterClass}
+                onChange={(e) => setFilterClass(e.target.value)}
+                className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm"
+              />
+            </div>
+            <div>
+              <label htmlFor="isReturned" className="block text-sm font-medium text-gray-700 mb-1">Return Status</label>
+              <select
+                id="isReturned"
+                value={filterIsReturned}
+                onChange={(e) => setFilterIsReturned(e.target.value)}
+                className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm"
+              >
+                <option value="">All</option>
+                <option value="true">Returned</option>
+                <option value="false">Not Returned</option>
+              </select>
+            </div>
+          </div>
+        )}
       </div>
 
-      {showAdvancedFilters && (
-        <div className="bg-gray-50 p-4 rounded-md shadow-inner mb-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label htmlFor="filterStatus" className="block text-sm font-medium text-gray-700">Status</label>
-            <select
-              id="filterStatus"
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
-            >
-              <option value="">All</option>
-              <option value="Pending">Pending</option>
-              <option value="Approved">Approved</option>
-              <option value="Rejected">Rejected</option>
-            </select>
-          </div>
-          <div>
-            <label htmlFor="filterStudentName" className="block text-sm font-medium text-gray-700">Student Name</label>
-            <input
-              type="text"
-              id="filterStudentName"
-              value={filterStudentName}
-              onChange={(e) => setFilterStudentName(e.target.value)}
-              className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
-            />
-          </div>
-          <div>
-            <label htmlFor="filterClass" className="block text-sm font-medium text-gray-700">Class</label>
-            <input
-              type="text"
-              id="filterClass"
-              value={filterClass}
-              onChange={(e) => setFilterClass(e.target.value)}
-              className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
-            />
-          </div>
-          <div>
-            <label htmlFor="filterIsReturned" className="block text-sm font-medium text-gray-700">Returned Status</label>
-            <select
-              id="filterIsReturned"
-              value={filterIsReturned}
-              onChange={(e) => setFilterIsReturned(e.target.value)}
-              className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
-            >
-              <option value="">All</option>
-              <option value="true">Returned</option>
-              <option value="false">Not Returned</option>
-            </select>
-          </div>
-        </div>
-      )}
-
-      {leaveRequests.length === 0 && !loading && (
-        <p className="text-center text-gray-500 mt-8">No leave requests found {isStudent ? "for you." : "."}</p>
-      )}
-
-      {leaveRequests.length > 0 && (
+      {loading ? (
+        <p className="text-center text-gray-500">Loading...</p>
+      ) : error ? (
+        <p className="text-center text-red-500">{error}</p>
+      ) : (
         <div className="bg-white shadow overflow-hidden sm:rounded-lg">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Student Name
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Father Name
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Class
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  From
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  To
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Reason
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Returned
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Requested By
-                </th>
-                {(isAdmin || isTeacher || isStudent) && (
-                  <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
-                )}
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Class</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dates</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reason</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Returned</th>
+                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {leaveRequests.length > 0 ? (
                 leaveRequests.map((leave) => (
-                  <tr key={leave._id}>
+                  <tr key={leave._id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{leave.studentName}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{leave.fatherName}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{leave.studentClass}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(leave.startDate).toLocaleDateString()}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(leave.endDate).toLocaleDateString()}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {new Date(leave.startDate).toLocaleDateString()} to {new Date(leave.endDate).toLocaleDateString()}
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{leave.reason}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${leave.status === 'Approved' ? 'bg-green-100 text-green-800' :
-                          leave.status === 'Rejected' ? 'bg-red-100 text-red-800' :
-                            'bg-yellow-100 text-yellow-800'
-                        }`}>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(leave.status)}`}>
                         {leave.status}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${leave.isReturned ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                        }`}>
+                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${leave.isReturned ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                         {leave.isReturned ? 'Yes' : 'No'}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {leave.requestedBy?.role ? `${leave.requestedBy.role.charAt(0).toUpperCase() + leave.requestedBy.role.slice(1)}` : 'N/A'}
-                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex justify-center items-center space-x-2">
-                        <button onClick={(e) => { e.stopPropagation(); handleView(leave); }} className="text-gray-600 hover:text-gray-800 transition-colors duration-200 p-1 rounded-md hover:bg-gray-100" title="View Leave Details">
+                      <div className="flex items-center justify-end space-x-2">
+                        <button onClick={(e) => { e.stopPropagation(); handleView(leave); }} className="text-gray-600 hover:text-gray-900 transition-colors duration-200 p-1 rounded-md hover:bg-gray-100" title="View Details">
                           <EyeIcon className="h-5 w-5" />
                         </button>
-                        {(isAdmin || isTeacher || (isTeacher && leave.status === 'Pending') || (isStudent && leave.status === 'Pending' && leave.student._id === user.profileId)) && (
-                          <button onClick={(e) => { e.stopPropagation(); handleEdit(leave); }} className="text-blue-600 hover:text-blue-800 transition-colors duration-200 p-1 rounded-md hover:bg-blue-100" title="Edit Leave">
-                            <PencilIcon className="h-5 w-5" />
-                          </button>
+                        {leave.status === 'Pending' && (isAdmin || isTeacher) && (
+                          <>
+                            <button onClick={() => handleUpdateStatus(leave._id, 'Approved')} className="flex items-center justify-center px-3 py-1 text-xs font-medium text-white bg-green-600 rounded-md hover:bg-green-700 transition duration-200 shadow-sm" title="Approve Leave">
+                              Approve
+                            </button>
+                            <button onClick={() => handleUpdateStatus(leave._id, 'Rejected')} className="flex items-center justify-center px-3 py-1 text-xs font-medium text-white bg-red-600 rounded-md hover:bg-red-700 transition duration-200 shadow-sm" title="Reject Leave">
+                              Reject
+                            </button>
+                          </>
                         )}
-                        {(isAdmin || (isStudent && leave.status === 'Pending' && leave.student._id === user.profileId)) && (
-                          <button onClick={(e) => { e.stopPropagation(); handleDelete(leave._id); }} className="text-red-600 hover:text-red-800 transition-colors duration-200 p-1 rounded-md hover:bg-red-100" title="Delete Leave">
-                            <TrashIcon className="h-5 w-5" />
-                          </button>
+                        {leave.status !== 'Pending' && (isAdmin || isTeacher) && (
+                          <>
+                            <button onClick={(e) => { e.stopPropagation(); handleEdit(leave); }} className="text-blue-600 hover:text-blue-800 transition-colors duration-200 p-1 rounded-md hover:bg-blue-100" title="Edit Leave">
+                              <PencilIcon className="h-5 w-5" />
+                            </button>
+                            <button onClick={(e) => { e.stopPropagation(); handleDelete(leave._id); }} className="text-red-600 hover:text-red-800 transition-colors duration-200 p-1 rounded-md hover:bg-red-100" title="Delete Leave">
+                              <TrashIcon className="h-5 w-5" />
+                            </button>
+                          </>
                         )}
                       </div>
                     </td>
@@ -673,7 +621,7 @@ const LeaveList = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={isAdmin ? "10" : "9"} className="text-center p-4 text-gray-500">No leave requests found.</td>
+                  <td colSpan={6} className="text-center p-4 text-gray-500">No leave requests found.</td>
                 </tr>
               )}
             </tbody>
@@ -688,9 +636,16 @@ const LeaveList = () => {
           studentsForForm={studentsForForm}
           onClose={handleCloseModal}
           isViewMode={isViewMode}
-          isStaffMode={isTeacher} // Pass prop to control form fields for staff
+          isStaffMode={isTeacher || isAdmin}
         />
       </Modal>
+
+      <ConfirmationModal
+        isOpen={isConfirmModalOpen}
+        onClose={() => setIsConfirmModalOpen(false)}
+        onConfirm={confirmAction}
+        message={confirmMessage}
+      />
     </div>
   );
 };

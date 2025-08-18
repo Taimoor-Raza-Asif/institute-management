@@ -1,5 +1,5 @@
 // // src/components/StaffLeaveList.jsx
-// import React, { useEffect, useState, useCallback, useContext } from 'react'; // Added useContext
+// import React, { useEffect, useState, useCallback, useContext } from 'react';
 // import Modal from './Modal';
 // import StaffLeaveRequestForm from './StaffLeaveRequestForm';
 // import api from '../api';
@@ -7,12 +7,12 @@
 //   PencilIcon, TrashIcon, PlusIcon, FunnelIcon, XMarkIcon,
 //   MagnifyingGlassIcon, EyeIcon
 // } from '@heroicons/react/24/outline';
-// import { UserContext } from '../App'; // <--- Changed from AuthContext
+// import { UserContext } from '../App';
 
 // const StaffLeaveList = () => {
-//   const { currentUser: user } = useContext(UserContext); // <--- Changed to useContext(UserContext)
+//   const { currentUser: user } = useContext(UserContext);
 //   const [leaveRequests, setLeaveRequests] = useState([]);
-//   const [staffMembersForForm, setStaffMembersForForm] = useState([]); // For admin to select staff
+//   const [staffMembersForForm, setStaffMembersForForm] = useState([]);
 //   const [editingLeave, setEditingLeave] = useState(null);
 //   const [modalOpen, setModalOpen] = useState(false);
 //   const [loading, setLoading] = useState(true);
@@ -28,65 +28,83 @@
 //   const [filterStaffType, setFilterStaffType] = useState('');
 //   const [filterIsReturned, setFilterIsReturned] = useState('');
 
-//   // Debounce search term
-//   useEffect(() => {
-//     const handler = setTimeout(() => {
-//       setDebouncedSearchTerm(searchTerm);
-//     }, 500);
-//     return () => {
-//       clearTimeout(handler);
-//     };
-//   }, [searchTerm]);
+//   const isAdmin = user?.role === 'admin';
+//   const isStaff = ['teacher', 'accountant', 'cook', 'cleaner'].includes(user?.role);
+//   const canApproveReject = isAdmin; // Only admin can approve/reject staff leave
+//   const canCreate = isAdmin || isStaff;
 
 //   const fetchLeaves = useCallback(async () => {
 //     setLoading(true);
 //     setError(null);
 //     try {
-//       const { data } = await api.get('/staff-leave', {
+//       const response = await api.get('/staff-leave', {
 //         params: {
-//           search: debouncedSearchTerm,
 //           status: filterStatus,
 //           staffType: filterStaffType,
-//           isReturned: filterIsReturned
-//         }
+//           isReturned: filterIsReturned,
+//         },
 //       });
-//       setLeaveRequests(data);
+//       const allLeaves = response.data;
+      
+//       let filteredLeaves = allLeaves;
+//       // Client-side filtering for search term
+//       if (debouncedSearchTerm) {
+//         filteredLeaves = filteredLeaves.filter(leave =>
+//           leave.staffName.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+//           leave.staffType.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+//           leave.reason.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
+//         );
+//       }
+      
+//       // Filter for non-admin staff to only see their own requests
+//       if (isStaff && !isAdmin) {
+//         filteredLeaves = filteredLeaves.filter(leave => leave.staff === user.profileId);
+//       }
+
+//       setLeaveRequests(filteredLeaves);
 //     } catch (err) {
-//       setError(err.response?.data?.message || 'Failed to fetch staff leave requests.');
-//       console.error('Error fetching staff leave requests:', err);
+//       console.error("Error fetching staff leave requests:", err);
+//       setError("Failed to fetch staff leave requests.");
 //     } finally {
 //       setLoading(false);
 //     }
-//   }, [debouncedSearchTerm, filterStatus, filterStaffType, filterIsReturned]);
+//   }, [debouncedSearchTerm, filterStatus, filterStaffType, filterIsReturned, isStaff, isAdmin, user]);
 
-//   const fetchStaffMembersForDropdown = useCallback(async () => {
-//     // Only fetch if user is admin, and modal is open for adding/editing
-//     if (user?.role === 'admin' && modalOpen && !isViewMode) {
+//   const fetchStaffMembersForForm = useCallback(async () => {
+//     if (isAdmin) {
 //       try {
-//         const { data } = await api.get('/staff');
-//         setStaffMembersForForm(data);
+//         const res = await api.get('/staff?isDeleted=false');
+//         setStaffMembersForForm(res.data);
 //       } catch (err) {
-//         console.error('Error fetching staff members for dropdown:', err);
+//         console.error("Failed to fetch staff members:", err);
 //       }
 //     }
-//   }, [user, modalOpen, isViewMode]); // Added modalOpen and isViewMode to dependencies
+//   }, [isAdmin]);
 
 //   useEffect(() => {
-//     fetchLeaves();
-//   }, [fetchLeaves]);
+//     if (user) {
+//       fetchLeaves();
+//     }
+//   }, [user, fetchLeaves]);
 
 //   useEffect(() => {
-//     fetchStaffMembersForDropdown();
-//   }, [fetchStaffMembersForDropdown]);
+//     const handler = setTimeout(() => {
+//       setDebouncedSearchTerm(searchTerm);
+//     }, 500);
 
-//   const handleAddLeave = () => {
+//     return () => {
+//       clearTimeout(handler);
+//     };
+//   }, [searchTerm]);
+
+//   useEffect(() => {
+//     if (modalOpen && isAdmin) {
+//       fetchStaffMembersForForm();
+//     }
+//   }, [modalOpen, isAdmin, fetchStaffMembersForForm]);
+
+//   const handleAdd = () => {
 //     setEditingLeave(null);
-//     setIsViewMode(false);
-//     setModalOpen(true);
-//   };
-
-//   const handleEdit = (leave) => {
-//     setEditingLeave(leave);
 //     setIsViewMode(false);
 //     setModalOpen(true);
 //   };
@@ -97,14 +115,33 @@
 //     setModalOpen(true);
 //   };
 
+//   const handleEdit = (leave) => {
+//     setEditingLeave(leave);
+//     setIsViewMode(false);
+//     setModalOpen(true);
+//   };
+
 //   const handleDelete = async (id) => {
 //     if (window.confirm('Are you sure you want to delete this staff leave request?')) {
 //       try {
 //         await api.delete(`/staff-leave/${id}`);
 //         fetchLeaves();
 //       } catch (err) {
-//         setError(err.response?.data?.message || 'Failed to delete staff leave request.');
-//         console.error('Error deleting staff leave request:', err);
+//         console.error("Error deleting staff leave request:", err);
+//         setError("Failed to delete staff leave request.");
+//       }
+//     }
+//   };
+
+//   const handleUpdateStatus = async (id, status) => {
+//     if (window.confirm(`Are you sure you want to ${status.toLowerCase()} this leave request?`)) {
+//       try {
+//         const response = await api.patch(`/staff-leave/${id}/status`, { status });
+//         console.log("Status update response:", response.data);
+//         fetchLeaves();
+//       } catch (err) {
+//         console.error(`Error updating leave status to ${status}:`, err);
+//         setError(`Failed to update status to ${status}.`);
 //       }
 //     }
 //   };
@@ -113,192 +150,190 @@
 //     setModalOpen(false);
 //     setEditingLeave(null);
 //     setIsViewMode(false);
-//     setError(null);
 //   };
 
-//   const clearFilters = () => {
-//     setSearchTerm('');
-//     setFilterStatus('');
-//     setFilterStaffType('');
-//     setFilterIsReturned('');
-//     setDebouncedSearchTerm('');
-//     setShowAdvancedFilters(false);
-//   };
+//   if (!user) {
+//     return <div className="text-center py-10 text-gray-500">Please log in to view this page.</div>;
+//   }
 
-//   const isAdmin = user?.role === 'admin';
-//   const isStaff = ['teacher', 'accountant', 'cook', 'cleaner'].includes(user?.role);
+//   if (!isAdmin && !isStaff) {
+//     return <div className="text-center py-10 text-red-500">You are not authorized to view this page.</div>;
+//   }
+
+//   if (loading) {
+//     return <div className="text-center py-10">Loading...</div>;
+//   }
+
+//   if (error) {
+//     return <div className="text-center py-10 text-red-500">{error}</div>;
+//   }
 
 //   return (
-//     <div className="container mx-auto p-4 bg-white shadow-md rounded-lg">
-//       <h1 className="text-3xl font-bold text-gray-800 mb-6">Staff Leave Management</h1>
+//     <div className="container mx-auto p-4 sm:p-6 lg:p-8 bg-white rounded-lg shadow-md">
+//       <div className="flex justify-between items-center mb-6">
+//         <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Staff Leave Requests</h1>
+//         {canCreate && (
+//           <button
+//             onClick={handleAdd}
+//             className="flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors duration-200"
+//           >
+//             <PlusIcon className="h-5 w-5 mr-1" />
+//             <span className="hidden sm:inline">Add Request</span>
+//           </button>
+//         )}
+//       </div>
 
-//       {error && (
-//         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-//           {error}
-//         </div>
-//       )}
-
-//       {/* Action buttons and Search */}
-//       <div className="flex flex-col sm:flex-row justify-between items-center mb-6 space-y-3 sm:space-y-0 sm:space-x-4">
-//         <div className="flex space-x-3 w-full sm:w-auto">
-//           {(isAdmin || isStaff) && (
-//             <button
-//               onClick={handleAddLeave}
-//               className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition duration-200 flex items-center shadow-sm"
-//             >
-//               <PlusIcon className="h-5 w-5 mr-1" /> {isAdmin ? 'Add Staff Leave' : 'Apply for Leave'}
-//             </button>
-//           )}
+//       {/* Filter and Search Section */}
+//       <div className="mb-6 bg-gray-50 p-4 rounded-lg">
+//         <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+//           <div className="relative w-full sm:w-1/3">
+//             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+//               <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
+//             </div>
+//             <input
+//               type="text"
+//               placeholder="Search by name, type, or reason..."
+//               value={searchTerm}
+//               onChange={(e) => setSearchTerm(e.target.value)}
+//               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500"
+//             />
+//           </div>
 //           <button
 //             onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-//             className="bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300 transition duration-200 flex items-center shadow-sm"
+//             className="flex items-center px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors duration-200"
 //           >
-//             <FunnelIcon className="h-5 w-5 mr-1" /> {showAdvancedFilters ? 'Hide Filters' : 'Show Filters'}
+//             <FunnelIcon className="h-5 w-5 mr-2" />
+//             Filters
+//             {showAdvancedFilters ? <XMarkIcon className="h-4 w-4 ml-2" /> : null}
 //           </button>
 //         </div>
 
-//         <div className="relative w-full sm:w-64">
-//           <input
-//             type="text"
-//             placeholder="Search by staff name or Employee ID..."
-//             value={searchTerm}
-//             onChange={(e) => setSearchTerm(e.target.value)}
-//             className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 pl-10"
-//           />
-//           <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-//           {searchTerm && (
-//             <XMarkIcon
-//               className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 cursor-pointer hover:text-gray-600"
-//               onClick={() => setSearchTerm('')}
-//             />
-//           )}
-//         </div>
+//         {showAdvancedFilters && (
+//           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
+//             <div>
+//               <label className="block text-sm font-medium text-gray-700">Status</label>
+//               <select
+//                 value={filterStatus}
+//                 onChange={(e) => setFilterStatus(e.target.value)}
+//                 className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm rounded-md"
+//               >
+//                 <option value="">All</option>
+//                 <option value="Pending">Pending</option>
+//                 <option value="Approved">Approved</option>
+//                 <option value="Rejected">Rejected</option>
+//               </select>
+//             </div>
+//             <div>
+//               <label className="block text-sm font-medium text-gray-700">Staff Type</label>
+//               <select
+//                 value={filterStaffType}
+//                 onChange={(e) => setFilterStaffType(e.target.value)}
+//                 className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm rounded-md"
+//               >
+//                 <option value="">All</option>
+//                 <option value="Teacher">Teacher</option>
+//                 <option value="Accountant">Accountant</option>
+//                 <option value="Cook">Cook</option>
+//                 <option value="Cleaner">Cleaner</option>
+//               </select>
+//             </div>
+//             <div>
+//               <label className="block text-sm font-medium text-gray-700">Return Status</label>
+//               <select
+//                 value={filterIsReturned}
+//                 onChange={(e) => setFilterIsReturned(e.target.value)}
+//                 className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm rounded-md"
+//               >
+//                 <option value="">All</option>
+//                 <option value="true">Returned</option>
+//                 <option value="false">Not Returned</option>
+//               </select>
+//             </div>
+//           </div>
+//         )}
 //       </div>
 
-//       {/* Advanced Filters */}
-//       {showAdvancedFilters && (
-//         <div className="bg-gray-50 p-4 rounded-md shadow-inner mb-6 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-//           <div>
-//             <label htmlFor="filterStatus" className="block text-sm font-medium text-gray-700">Status</label>
-//             <select
-//               id="filterStatus"
-//               value={filterStatus}
-//               onChange={(e) => setFilterStatus(e.target.value)}
-//               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-//             >
-//               <option value="">All</option>
-//               <option value="Pending">Pending</option>
-//               <option value="Approved">Approved</option>
-//               <option value="Rejected">Rejected</option>
-//             </select>
-//           </div>
-//           <div>
-//             <label htmlFor="filterIsReturned" className="block text-sm font-medium text-gray-700">Returned Status</label>
-//             <select
-//               id="filterIsReturned"
-//               value={filterIsReturned}
-//               onChange={(e) => setFilterIsReturned(e.target.value)}
-//               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-//             >
-//               <option value="">All</option>
-//               <option value="false">Not Returned</option>
-//               <option value="true">Returned</option>
-//             </select>
-//           </div>
-//           <div>
-//             <label htmlFor="filterStaffType" className="block text-sm font-medium text-gray-700">Staff Type</label>
-//             <select
-//               id="filterStaffType"
-//               value={filterStaffType}
-//               onChange={(e) => setFilterStaffType(e.target.value)}
-//               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-//             >
-//               <option value="">All Types</option>
-//               <option value="Teacher">Teacher</option>
-//               <option value="Admin">Admin</option>
-//               <option value="Accountant">Accountant</option>
-//               <option value="Cook">Cook</option>
-//               <option value="Cleaner">Cleaner</option>
-//             </select>
-//           </div>
-//           <button onClick={clearFilters} className="col-span-full sm:col-span-1 bg-gray-400 text-white px-4 py-2 rounded-md hover:bg-gray-500 transition duration-200">Clear Filters</button>
-//         </div>
-//       )}
-
-//       {loading ? (
-//         <div className="text-center py-8">Loading staff leave requests...</div>
-//       ) : (
-//         <div className="overflow-x-auto rounded-lg shadow-md border border-gray-200">
+//       {leaveRequests.length > 0 && (
+//         <div className="overflow-x-auto rounded-lg shadow-sm border border-gray-200">
 //           <table className="min-w-full divide-y divide-gray-200">
 //             <thead className="bg-gray-50">
 //               <tr>
-//                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Staff Name</th>
-//                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Employee ID</th>
-//                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-//                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dates</th>
-//                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reason</th>
-//                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-//                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Return Status</th>
-//                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Requested By</th>
-//                 {isAdmin && <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Approved By</th>}
-//                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+//                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+//                   Staff Name
+//                 </th>
+//                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+//                   Staff Type
+//                 </th>
+//                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+//                   Reason
+//                 </th>
+//                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+//                   Period
+//                 </th>
+//                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+//                   Status
+//                 </th>
+//                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+//                   Returned
+//                 </th>
+//                 <th scope="col" className="relative px-6 py-3"><span className="sr-only">Actions</span></th>
 //               </tr>
 //             </thead>
 //             <tbody className="bg-white divide-y divide-gray-200">
 //               {leaveRequests.length > 0 ? (
 //                 leaveRequests.map((leave) => (
-//                   <tr key={leave._id} className="hover:bg-gray-50">
-//                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-//                       {leave.staff?.name || 'N/A'}
+//                   <tr key={leave._id} className="hover:bg-gray-50 transition-colors duration-150">
+//                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{leave.staffName}</td>
+//                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{leave.staffType}</td>
+//                     <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">{leave.reason}</td>
+//                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+//                       {new Date(leave.startDate).toLocaleDateString()} to {new Date(leave.endDate).toLocaleDateString()}
 //                     </td>
 //                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-//                       {leave.staff?.employeeId || 'N/A'}
+//                       <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+//                         leave.status === 'Approved' ? 'bg-green-100 text-green-800' :
+//                         leave.status === 'Rejected' ? 'bg-red-100 text-red-800' :
+//                         'bg-yellow-100 text-yellow-800'
+//                       }`}>
+//                         {leave.status}
+//                       </span>
 //                     </td>
 //                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-//                       {leave.staff?.staffType || 'N/A'}
+//                       <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${leave.isReturned ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+//                         {leave.isReturned ? 'Yes' : 'No'}
+//                       </span>
 //                     </td>
-//                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-//                       {new Date(leave.startDate).toLocaleDateString()} - {new Date(leave.endDate).toLocaleDateString()}
-//                     </td>
-//                     <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate" title={leave.reason}>
-//                       {leave.reason}
-//                     </td>
-//                     <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${
-//                       leave.status === 'Approved' ? 'text-green-600' :
-//                       leave.status === 'Rejected' ? 'text-red-600' :
-//                       'text-yellow-600'
-//                     }`}>
-//                       {leave.status}
-//                     </td>
-//                     <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${
-//                       leave.isReturned ? 'text-green-600' :
-//                       (leave.status === 'Approved' && leave.isPastDue) ? 'text-red-600' :
-//                       'text-orange-600'
-//                     }`}>
-//                       {leave.isReturned ? 'Returned' : (leave.status === 'Approved' && leave.isPastDue ? 'Past Due' : 'Not Returned')}
-//                     </td>
-//                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-//                       {leave.requestedBy?.name || 'N/A'} ({leave.requestedBy?.role})
-//                     </td>
-//                     {isAdmin && (
-//                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-//                         {leave.approvedBy?.name || 'N/A'}
-//                       </td>
-//                     )}
 //                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-//                       <div className="flex items-center space-x-2">
-//                         <button onClick={(e) => { e.stopPropagation(); handleView(leave); }} className="text-gray-600 hover:text-gray-800 transition-colors duration-200 p-1 rounded-md hover:bg-gray-100" title="View Details">
-//                           <EyeIcon className="h-5 w-5" />
-//                         </button>
-//                         {isAdmin && ( // Only Admin can edit/approve/mark returned
-//                           <button onClick={(e) => { e.stopPropagation(); handleEdit(leave); }} className="text-blue-600 hover:text-blue-800 transition-colors duration-200 p-1 rounded-md hover:bg-blue-100" title="Edit Leave">
-//                             <PencilIcon className="h-5 w-5" />
-//                           </button>
+//                       <div className="flex items-center justify-end space-x-2">
+//                            <button onClick={(e) => { e.stopPropagation(); handleView(leave); }} className="text-indigo-600 hover:text-indigo-800 transition-colors duration-200 p-1 rounded-md hover:bg-indigo-100" title="View Details">
+//                               <EyeIcon className="h-5 w-5" />
+//                             </button>
+//                         {leave.status === 'Pending' && canApproveReject && (
+//                           <>
+                         
+//                             <button
+//                                 onClick={(e) => { e.stopPropagation(); handleUpdateStatus(leave._id, 'Approved'); }}
+//                                 className="text-white bg-green-500 hover:bg-green-600 transition-colors duration-200 px-3 py-1 rounded-md text-sm"
+//                             >
+//                                 Approve
+//                             </button>
+//                             <button
+//                                 onClick={(e) => { e.stopPropagation(); handleUpdateStatus(leave._id, 'Rejected'); }}
+//                                 className="text-white bg-red-500 hover:bg-red-600 transition-colors duration-200 px-3 py-1 rounded-md text-sm"
+//                             >
+//                                 Reject
+//                             </button>
+//                           </>
 //                         )}
-//                         {(isAdmin || (isStaff && leave.status === 'Pending' && leave.requestedBy?._id === user.id)) && (
-//                           <button onClick={(e) => { e.stopPropagation(); handleDelete(leave._id); }} className="text-red-600 hover:text-red-800 transition-colors duration-200 p-1 rounded-md hover:bg-red-100" title="Delete Leave">
-//                             <TrashIcon className="h-5 w-5" />
-//                           </button>
+//                         {leave.status !== 'Pending' && isAdmin && (
+//                           <>
+//                             <button onClick={(e) => { e.stopPropagation(); handleEdit(leave); }} className="text-green-600 hover:text-green-800 transition-colors duration-200 p-1 rounded-md hover:bg-green-100" title="Edit Leave">
+//                               <PencilIcon className="h-5 w-5" />
+//                             </button>
+//                             <button onClick={(e) => { e.stopPropagation(); handleDelete(leave._id); }} className="text-red-600 hover:text-red-800 transition-colors duration-200 p-1 rounded-md hover:bg-red-100" title="Delete Leave">
+//                               <TrashIcon className="h-5 w-5" />
+//                             </button>
+//                           </>
 //                         )}
 //                       </div>
 //                     </td>
@@ -321,7 +356,7 @@
 //           staffMembersForForm={staffMembersForForm}
 //           onClose={handleCloseModal}
 //           isViewMode={isViewMode}
-//           isStaffMode={isAdmin} // Only admin can act as staff mode (add/edit for others)
+//           isStaffMode={isAdmin}
 //         />
 //       </Modal>
 //     </div>
@@ -332,8 +367,7 @@
 
 
 
-// src/components/StaffLeaveList.jsx
-import React, { useEffect, useState, useCallback, useContext } from 'react'; // Added useContext
+import React, { useEffect, useState, useCallback, useContext } from 'react';
 import Modal from './Modal';
 import StaffLeaveRequestForm from './StaffLeaveRequestForm';
 import api from '../api';
@@ -341,12 +375,12 @@ import {
   PencilIcon, TrashIcon, PlusIcon, FunnelIcon, XMarkIcon,
   MagnifyingGlassIcon, EyeIcon
 } from '@heroicons/react/24/outline';
-import { UserContext } from '../App'; // <--- Changed from AuthContext
+import { UserContext } from '../App';
 
 const StaffLeaveList = () => {
-  const { currentUser: user } = useContext(UserContext); // <--- Changed to useContext(UserContext)
+  const { currentUser: user } = useContext(UserContext);
   const [leaveRequests, setLeaveRequests] = useState([]);
-  const [staffMembersForForm, setStaffMembersForForm] = useState([]); // For admin to select staff
+  const [staffMembersForForm, setStaffMembersForForm] = useState([]);
   const [editingLeave, setEditingLeave] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -362,87 +396,83 @@ const StaffLeaveList = () => {
   const [filterStaffType, setFilterStaffType] = useState('');
   const [filterIsReturned, setFilterIsReturned] = useState('');
 
-  // Debounce search term
+  const isAdmin = user?.role === 'admin';
+  const isStaff = ['teacher', 'accountant', 'cook', 'cleaner'].includes(user?.role);
+  const canApproveReject = isAdmin; // Only admin can approve/reject staff leave
+  const canCreate = isAdmin || isStaff;
+
+  const fetchLeaves = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await api.get('/staff-leave', {
+        params: {
+          status: filterStatus,
+          staffType: filterStaffType,
+          isReturned: filterIsReturned,
+        },
+      });
+      const allLeaves = response.data;
+      
+      let filteredLeaves = allLeaves;
+      // Client-side filtering for search term
+      if (debouncedSearchTerm) {
+        filteredLeaves = filteredLeaves.filter(leave =>
+          leave.staffName.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+          leave.staffType.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+          leave.reason.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
+        );
+      }
+      
+      // Filter for non-admin staff to only see their own requests
+      if (isStaff && !isAdmin) {
+        filteredLeaves = filteredLeaves.filter(leave => leave.staff === user.profileId);
+      }
+
+      setLeaveRequests(filteredLeaves);
+    } catch (err) {
+      console.error("Error fetching staff leave requests:", err);
+      setError("Failed to fetch staff leave requests.");
+    } finally {
+      setLoading(false);
+    }
+  }, [debouncedSearchTerm, filterStatus, filterStaffType, filterIsReturned, isStaff, isAdmin, user]);
+
+  const fetchStaffMembersForForm = useCallback(async () => {
+    if (isAdmin) {
+      try {
+        const res = await api.get('/staff?isDeleted=false');
+        setStaffMembersForForm(res.data);
+      } catch (err) {
+        console.error("Failed to fetch staff members:", err);
+      }
+    }
+  }, [isAdmin]);
+
+  useEffect(() => {
+    if (user) {
+      fetchLeaves();
+    }
+  }, [user, fetchLeaves]);
+
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearchTerm(searchTerm);
-    }, 300); // 300ms delay
+    }, 500);
 
     return () => {
       clearTimeout(handler);
     };
   }, [searchTerm]);
 
-  const isAdmin = user && user.role === 'admin';
-  const isStaff = user && ['teacher', 'accountant', 'cook', 'cleaner'].includes(user.role);
-
-
-  const fetchLeaves = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const queryParams = new URLSearchParams();
-
-      // Only apply staffId filter if the current user is a staff member (not admin)
-      if (isStaff && user?.profileId) {
-        queryParams.append('staffId', user.profileId);
-      }
-
-      // Add other filters if they are not empty
-      if (debouncedSearchTerm) {
-        queryParams.append('searchTerm', debouncedSearchTerm);
-      }
-      if (filterStatus) {
-        queryParams.append('status', filterStatus);
-      }
-      if (filterStaffType) {
-        queryParams.append('staffType', filterStaffType);
-      }
-      if (filterIsReturned !== '') { // Use !== '' to distinguish from 'false'
-        queryParams.append('isReturned', filterIsReturned);
-      }
-
-      // Construct the URL with query parameters
-      const url = `/staff-leave?${queryParams.toString()}`;
-
-      const response = await api.get(url);
-      setLeaveRequests(response.data);
-    } catch (err) {
-      console.error("Error fetching staff leave requests:", err);
-      setError("Failed to fetch staff leave requests. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  }, [user, isStaff, debouncedSearchTerm, filterStatus, filterStaffType, filterIsReturned]);
-
-
-  // Fetch staff members for the form (only if admin)
-  const fetchStaffMembersForForm = useCallback(async () => {
-    if (isAdmin) {
-      try {
-        const response = await api.get('/staff'); // Fetch all staff for admin to select
-        setStaffMembersForForm(response.data);
-      } catch (err) {
-        console.error("Error fetching staff for form:", err);
-        // Handle error, maybe set an error state
-      }
-    }
-  }, [isAdmin]);
-
-
   useEffect(() => {
-    fetchLeaves();
-    fetchStaffMembersForForm(); // Fetch staff members when component mounts or user role changes
-  }, [fetchLeaves, fetchStaffMembersForForm]);
+    if (modalOpen && isAdmin) {
+      fetchStaffMembersForForm();
+    }
+  }, [modalOpen, isAdmin, fetchStaffMembersForForm]);
 
   const handleAdd = () => {
-    setEditingLeave(null); // Clear any previous editing data
-    setIsViewMode(false);
-    setModalOpen(true);
-  };
-
-  const handleEdit = (leave) => {
-    setEditingLeave(leave);
+    setEditingLeave(null);
     setIsViewMode(false);
     setModalOpen(true);
   };
@@ -453,14 +483,33 @@ const StaffLeaveList = () => {
     setModalOpen(true);
   };
 
+  const handleEdit = (leave) => {
+    setEditingLeave(leave);
+    setIsViewMode(false);
+    setModalOpen(true);
+  };
+
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this staff leave request?')) {
       try {
         await api.delete(`/staff-leave/${id}`);
-        fetchLeaves(); // Refresh the list
+        fetchLeaves();
       } catch (err) {
         console.error("Error deleting staff leave request:", err);
         setError("Failed to delete staff leave request.");
+      }
+    }
+  };
+
+  const handleUpdateStatus = async (id, status) => {
+    if (window.confirm(`Are you sure you want to ${status.toLowerCase()} this leave request?`)) {
+      try {
+        const response = await api.patch(`/staff-leave/${id}/status`, { status });
+        console.log("Status update response:", response.data);
+        fetchLeaves();
+      } catch (err) {
+        console.error(`Error updating leave status to ${status}:`, err);
+        setError(`Failed to update status to ${status}.`);
       }
     }
   };
@@ -471,88 +520,106 @@ const StaffLeaveList = () => {
     setIsViewMode(false);
   };
 
-  if (loading) return <div className="text-center py-4">Loading staff leave requests...</div>;
-  if (error) return <div className="text-center py-4 text-red-600">Error: {error}</div>;
+  if (!user) {
+    return <div className="text-center py-10 text-gray-500">Please log in to view this page.</div>;
+  }
+
+  if (!isAdmin && !isStaff) {
+    return <div className="text-center py-10 text-red-500">You are not authorized to view this page.</div>;
+  }
+
+  if (loading) {
+    return <div className="text-center py-10">Loading...</div>;
+  }
+
+  if (error) {
+    return <div className="text-center py-10 text-red-500">{error}</div>;
+  }
 
   return (
-    <div className="container mx-auto p-4">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6">Staff Leave Requests</h2>
-
-      <div className="flex justify-between items-center mb-4">
-        <input
-          type="text"
-          placeholder="Search by staff name or CNIC..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="p-2 border border-gray-300 rounded-md w-full max-w-sm"
-        />
-        <div className="flex space-x-2">
-          <button
-            onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-            className="p-2 rounded-md bg-gray-200 hover:bg-gray-300 text-gray-700 flex items-center"
-          >
-            {showAdvancedFilters ? <XMarkIcon className="h-5 w-5 mr-1" /> : <FunnelIcon className="h-5 w-5 mr-1" />}
-            Filters
-          </button>
-          {(isAdmin || isStaff) && ( // Only Admin can add staff leaves for others
-            <button
-              onClick={handleAdd}
-              className="p-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white flex items-center"
-            >
-              <PlusIcon className="h-5 w-5 mr-1" /> {isAdmin ? 'Add Staff Leave' : 'Apply for Leave'}
-            </button>
-          )}
-        </div>
-      </div>
-
-      {showAdvancedFilters && (
-        <div className="bg-gray-50 p-4 rounded-md shadow-inner mb-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label htmlFor="filterStatus" className="block text-sm font-medium text-gray-700">Status</label>
-            <select
-              id="filterStatus"
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
-            >
-              <option value="">All</option>
-              <option value="Pending">Pending</option>
-              <option value="Approved">Approved</option>
-              <option value="Rejected">Rejected</option>
-            </select>
-          </div>
-          <div>
-            <label htmlFor="filterStaffType" className="block text-sm font-medium text-gray-700">Staff Type</label>
+    <div className="container mx-auto p-4 sm:p-6 lg:p-4">
+      <h1 className="text-3xl sm:text-4xl font-bold text-center text-green-800 mb-14">Staff Leave Requests</h1>
+      <div className="mb-6 p-4 bg-gray-50 rounded-lg shadow-sm border border-gray-200">
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-3">
+          <div className="relative w-full sm:w-1/2 lg:w-2/3">
             <input
               type="text"
-              id="filterStaffType"
-              value={filterStaffType}
-              onChange={(e) => setFilterStaffType(e.target.value)}
-              className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+              placeholder="Search by name, type, or reason..."
+              className="p-2 pl-10 border border-gray-300 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
             />
+            <MagnifyingGlassIcon className="h-5 w-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
           </div>
-          <div>
-            <label htmlFor="filterIsReturned" className="block text-sm font-medium text-gray-700">Returned Status</label>
-            <select
-              id="filterIsReturned"
-              value={filterIsReturned}
-              onChange={(e) => setFilterIsReturned(e.target.value)}
-              className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+          <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 w-full sm:w-auto">
+            <button
+              onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+              className="flex items-center justify-center bg-gray-200 text-gray-800 px-5 py-2 rounded-lg hover:bg-gray-300 transition duration-200 shadow-md w-full sm:w-auto"
             >
-              <option value="">All</option>
-              <option value="true">Returned</option>
-              <option value="false">Not Returned</option>
-            </select>
+              <FunnelIcon className="h-5 w-5 mr-2" />
+              {showAdvancedFilters ? 'Hide Filters' : 'Advanced Filters'}
+            </button>
+            {canCreate && (
+              <button
+                onClick={handleAdd}
+                className="flex items-center justify-center bg-green-600 text-white rounded-md px-5 py-2 hover:bg-green-700 transition duration-200 shadow-md w-full sm:w-auto"
+              >
+                <PlusIcon className="h-5 w-5 mr-2" />
+                Add New Request
+              </button>
+            )}
           </div>
         </div>
-      )}
-
-      {leaveRequests.length === 0 && !loading && (
-        <p className="text-center text-gray-500 mt-8">No staff leave requests found {isStaff ? "for you." : "."}</p>
-      )}
+        {showAdvancedFilters && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 p-4 bg-gray-50 rounded-md shadow-inner">
+            <div>
+              <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+              <select
+                id="status"
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+                className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm  focus:ring-green-500 focus:border-green-500 sm:text-sm"
+              >
+                <option value="">All</option>
+                <option value="Pending">Pending</option>
+                <option value="Approved">Approved</option>
+                <option value="Rejected">Rejected</option>
+              </select>
+            </div>
+            <div>
+              <label htmlFor="staffType" className="block text-sm font-medium text-gray-700 mb-1">Staff Type</label>
+              <select
+                id="staffType"
+                value={filterStaffType}
+                onChange={(e) => setFilterStaffType(e.target.value)}
+                className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm"
+              >
+                <option value="">All</option>
+                <option value="Teacher">Teacher</option>
+                <option value="Accountant">Accountant</option>
+                <option value="Cook">Cook</option>
+                <option value="Cleaner">Cleaner</option>
+              </select>
+            </div>
+            <div>
+              <label htmlFor="isReturned" className="block text-sm font-medium text-gray-700 mb-1">Return Status</label>
+              <select
+                id="isReturned"
+                value={filterIsReturned}
+                onChange={(e) => setFilterIsReturned(e.target.value)}
+                className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm"
+              >
+                <option value="">All</option>
+                <option value="true">Returned</option>
+                <option value="false">Not Returned</option>
+              </select>
+            </div>
+          </div>
+        )}
+      </div>
 
       {leaveRequests.length > 0 && (
-        <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+        <div className="overflow-x-auto rounded-lg shadow-sm border border-gray-200">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
@@ -560,19 +627,13 @@ const StaffLeaveList = () => {
                   Staff Name
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  CNIC
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Staff Type
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  From
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  To
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Reason
+                </th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Period
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Status
@@ -580,27 +641,20 @@ const StaffLeaveList = () => {
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Returned
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Requested By
-                </th>
-                {(isAdmin || isStaff) && (
-                  <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
-                )}
+                <th scope="col" className="relative px-6 py-3"><span className="sr-only">Actions</span></th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {leaveRequests.length > 0 ? (
                 leaveRequests.map((leave) => (
-                  <tr key={leave._id}>
+                  <tr key={leave._id} className="hover:bg-gray-50 transition-colors duration-150">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{leave.staffName}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{leave.staff.cnic}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{leave.staffType}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(leave.startDate).toLocaleDateString()}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(leave.endDate).toLocaleDateString()}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{leave.reason}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">{leave.reason}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {new Date(leave.startDate).toLocaleDateString()} to {new Date(leave.endDate).toLocaleDateString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                         leave.status === 'Approved' ? 'bg-green-100 text-green-800' :
                         leave.status === 'Rejected' ? 'bg-red-100 text-red-800' :
@@ -610,29 +664,41 @@ const StaffLeaveList = () => {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        leave.isReturned ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                      }`}>
+                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${leave.isReturned ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                         {leave.isReturned ? 'Yes' : 'No'}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {leave.requestedBy?.role ? `${leave.requestedBy.role.charAt(0).toUpperCase() + leave.requestedBy.role.slice(1)}` : 'N/A'}
-                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex justify-center items-center space-x-2">
-                        <button onClick={(e) => { e.stopPropagation(); handleView(leave); }} className="text-gray-600 hover:text-gray-800 transition-colors duration-200 p-1 rounded-md hover:bg-gray-100" title="View Leave Details">
-                          <EyeIcon className="h-5 w-5" />
-                        </button>
-                        {(isAdmin) && (
-                          <button onClick={(e) => { e.stopPropagation(); handleEdit(leave); }} className="text-blue-600 hover:text-blue-800 transition-colors duration-200 p-1 rounded-md hover:bg-blue-100" title="Edit Leave">
-                            <PencilIcon className="h-5 w-5" />
-                          </button>
+                      <div className="flex items-center justify-end space-x-2">
+                           <button onClick={(e) => { e.stopPropagation(); handleView(leave); }} className="text-indigo-600 hover:text-indigo-800 transition-colors duration-200 p-1 rounded-md hover:bg-indigo-100" title="View Details">
+                              <EyeIcon className="h-5 w-5" />
+                            </button>
+                        {leave.status === 'Pending' && canApproveReject && (
+                          <>
+                         
+                            <button
+                                onClick={(e) => { e.stopPropagation(); handleUpdateStatus(leave._id, 'Approved'); }}
+                                className="text-white bg-green-500 hover:bg-green-600 transition-colors duration-200 px-3 py-1 rounded-md text-sm"
+                            >
+                                Approve
+                            </button>
+                            <button
+                                onClick={(e) => { e.stopPropagation(); handleUpdateStatus(leave._id, 'Rejected'); }}
+                                className="text-white bg-red-500 hover:bg-red-600 transition-colors duration-200 px-3 py-1 rounded-md text-sm"
+                            >
+                                Reject
+                            </button>
+                          </>
                         )}
-                        {(isAdmin) && (
-                          <button onClick={(e) => { e.stopPropagation(); handleDelete(leave._id); }} className="text-red-600 hover:text-red-800 transition-colors duration-200 p-1 rounded-md hover:bg-red-100" title="Delete Leave">
-                            <TrashIcon className="h-5 w-5" />
-                          </button>
+                        {leave.status !== 'Pending' && isAdmin && (
+                          <>
+                            <button onClick={(e) => { e.stopPropagation(); handleEdit(leave); }} className="text-blue-600 hover:text-blue-800 transition-colors duration-200 p-1 rounded-md hover:bg-blue-100" title="Edit Leave">
+                              <PencilIcon className="h-5 w-5" />
+                            </button>
+                            <button onClick={(e) => { e.stopPropagation(); handleDelete(leave._id); }} className="text-red-600 hover:text-red-800 transition-colors duration-200 p-1 rounded-md hover:bg-red-100" title="Delete Leave">
+                              <TrashIcon className="h-5 w-5" />
+                            </button>
+                          </>
                         )}
                       </div>
                     </td>
@@ -655,7 +721,7 @@ const StaffLeaveList = () => {
           staffMembersForForm={staffMembersForForm}
           onClose={handleCloseModal}
           isViewMode={isViewMode}
-          isStaffMode={isAdmin} // Only admin can act as staff mode (add/edit for others)
+          isStaffMode={isAdmin}
         />
       </Modal>
     </div>

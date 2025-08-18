@@ -311,3 +311,45 @@ export const deleteStaffLeaveRequest = asyncHandler(async (req, res) => {
     throw new Error('Not authorized to delete this staff leave request');
   }
 });
+
+
+
+// @desc    Update a staff leave request status
+// @route   PATCH /api/staff-leave/:id/status
+// @access  Private (Admin only)
+export const updateStaffLeaveStatus = asyncHandler(async (req, res) => {
+    const { status } = req.body;
+    const userRole = req.user.role;
+    const userId = req.user.id;
+
+    if (!['Approved', 'Rejected'].includes(status)) {
+        res.status(400);
+        throw new Error('Invalid status provided.');
+    }
+
+    // Only admin can change a staff member's leave status
+    if (userRole !== 'admin') {
+        res.status(403);
+        throw new Error('Not authorized to update staff leave status.');
+    }
+
+    const staffLeaveRequest = await StaffLeaveRequest.findById(req.params.id);
+
+    if (!staffLeaveRequest) {
+        res.status(404);
+        throw new Error('Staff leave request not found.');
+    }
+    
+    if (staffLeaveRequest.status !== 'Pending') {
+        res.status(400);
+        throw new Error('Cannot change the status of a non-pending staff leave request.');
+    }
+
+    staffLeaveRequest.status = status;
+    staffLeaveRequest.approvedBy = userId;
+    staffLeaveRequest.approvedRejectedAt = new Date();
+
+    const updatedStaffLeaveRequest = await staffLeaveRequest.save();
+
+    res.json(updatedStaffLeaveRequest);
+});

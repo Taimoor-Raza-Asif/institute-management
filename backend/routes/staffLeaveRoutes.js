@@ -5,7 +5,8 @@ import {
   getAllStaffLeaveRequests,
   getStaffLeaveRequestById,
   updateStaffLeaveRequest,
-  deleteStaffLeaveRequest
+  deleteStaffLeaveRequest,
+  updateStaffLeaveStatus
 } from '../controllers/staffLeaveController.js';
 import { protect, authorizeRoles } from '../middleware/authMiddleware.js'; // Assuming you have these
 
@@ -25,5 +26,8 @@ router.put('/:id', protect, authorizeRoles('admin'), updateStaffLeaveRequest);
 
 // Delete staff leave request - Admin only, or Staff can delete their own pending request
 router.delete('/:id', protect, authorizeRoles('admin', 'teacher', 'accountant', 'cook', 'cleaner'), deleteStaffLeaveRequest);
+
+// New route for approving/rejecting staff leave requests (Admin only)
+router.patch('/:id/status', protect, authorizeRoles('admin'), updateStaffLeaveStatus);
 
 export default router;

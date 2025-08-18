@@ -2717,43 +2717,43 @@ const StudentForm = ({ editingStudent, fetchStudents, onClose, isViewMode = fals
         const isClass9OrAbove = student.class === 'Class' && parseInt(student.classNumber) >= 9;
         const isBsStudent = student.class === 'BS';
 
-        if (isAdult) {
-            // If CNIC is provided, require CNIC photos
-            if (student.cnic && student.cnic.length === 13) {
-                if (!cnicFrontFile && !student.cnicFrontUrl) {
-                    newFieldErrors.cnicFrontUrl = 'CNIC Front Photo is required.'; hasError = true;
-                }
-                if (!cnicBackFile && !student.cnicBackUrl) {
-                    newFieldErrors.cnicBackUrl = 'CNIC Back Photo is required.'; hasError = true;
-                }
-            } else { // If CNIC not provided or invalid, require B-Form
-                if (!bFormFile && !student.bFormUrl) {
-                    newFieldErrors.bFormUrl = 'B-Form Copy is required if CNIC is not provided/valid.'; hasError = true;
-                }
-            }
-        } else { // For minors, B-Form is required
-            if (!bFormFile && !student.bFormUrl) {
-                newFieldErrors.bFormUrl = 'B-Form Copy is required for students under 18.'; hasError = true;
-            }
-        }
+        // if (isAdult) {
+        //     // If CNIC is provided, require CNIC photos
+        //     if (student.cnic && student.cnic.length === 13) {
+        //         if (!cnicFrontFile && !student.cnicFrontUrl) {
+        //             newFieldErrors.cnicFrontUrl = 'CNIC Front Photo is required.'; hasError = true;
+        //         }
+        //         if (!cnicBackFile && !student.cnicBackUrl) {
+        //             newFieldErrors.cnicBackUrl = 'CNIC Back Photo is required.'; hasError = true;
+        //         }
+        //     } else { // If CNIC not provided or invalid, require B-Form
+        //         if (!bFormFile && !student.bFormUrl) {
+        //             newFieldErrors.bFormUrl = 'B-Form Copy is required if CNIC is not provided/valid.'; hasError = true;
+        //         }
+        //     }
+        // } else { // For minors, B-Form is required
+        //     if (!bFormFile && !student.bFormUrl) {
+        //         newFieldErrors.bFormUrl = 'B-Form Copy is required for students under 18.'; hasError = true;
+        //     }
+        // }
 
-        if (!characterCertificateFile && !student.characterCertificateUrl) {
-            newFieldErrors.characterCertificateUrl = 'Character Certificate is required.'; hasError = true;
-        }
+        // if (!characterCertificateFile && !student.characterCertificateUrl) {
+        //     newFieldErrors.characterCertificateUrl = 'Character Certificate is required.'; hasError = true;
+        // }
 
-        if (isClass9OrAbove) {
-            if (!previousClassResultFile && !student.previousClassResultUrl) {
-                newFieldErrors.previousClassResultUrl = 'Previous Class Result is required for Class 9 and above.'; hasError = true;
-            }
-        }
-        if (isBsStudent) {
-            if (!class10ResultFile && !student.class10ResultUrl) {
-                newFieldErrors.class10ResultUrl = 'Class 10 Result is required for BS students.'; hasError = true;
-            }
-            if (!class12ResultFile && !student.class12ResultUrl) {
-                newFieldErrors.class12ResultUrl = 'Class 12 Result is required for BS students.'; hasError = true;
-            }
-        }
+        // if (isClass9OrAbove) {
+        //     if (!previousClassResultFile && !student.previousClassResultUrl) {
+        //         newFieldErrors.previousClassResultUrl = 'Previous Class Result is required for Class 9 and above.'; hasError = true;
+        //     }
+        // }
+        // if (isBsStudent) {
+        //     if (!class10ResultFile && !student.class10ResultUrl) {
+        //         newFieldErrors.class10ResultUrl = 'Class 10 Result is required for BS students.'; hasError = true;
+        //     }
+        //     if (!class12ResultFile && !student.class12ResultUrl) {
+        //         newFieldErrors.class12ResultUrl = 'Class 12 Result is required for BS students.'; hasError = true;
+        //     }
+        // }
         // --- End New Document Field Validations ---
 
 

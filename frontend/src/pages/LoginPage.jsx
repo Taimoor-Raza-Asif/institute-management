@@ -100,7 +100,7 @@ console.log(userData.role);
               <input
                 type="text"
                 id="cnic"
-                className="mt-1 block w-full px-5 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200 text-base"
+                className="mt-1 block w-full px-5 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition duration-200 text-base"
                 value={cnic}
                 onChange={(e) => setCnic(e.target.value)}
                 placeholder="Enter your CNIC (e.g., 1234567890123)"
@@ -113,7 +113,7 @@ console.log(userData.role);
               <input
                 type="password"
                 id="password"
-                className="mt-1 block w-full px-5 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200 text-base"
+                className="mt-1 block w-full px-5 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition duration-200 text-base"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter your password"
@@ -122,14 +122,14 @@ console.log(userData.role);
             </div>
             <button
               type="submit"
-              className="w-full flex justify-center py-3 px-6 border border-transparent rounded-lg shadow-lg text-lg font-bold text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-3 focus:ring-offset-2 focus:ring-indigo-500 transition duration-300 transform hover:-translate-y-1 active:scale-95"
+              className="w-full flex justify-center py-3 px-6 border border-transparent rounded-lg shadow-lg text-lg font-bold text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-3 focus:ring-offset-2 focus:ring-green-500 transition duration-300 transform hover:-translate-y-1 active:scale-95"
               disabled={loading}
             >
               {loading ? 'Logging In...' : 'Login'}
             </button>
           </form>
           {/* <p className="mt-8 text-center text-gray-600 text-sm">
-            Forgot your password? <a href="#" className="text-indigo-600 hover:text-indigo-800 font-medium transition duration-200">Reset it here</a>.
+            Forgot your password? <a href="#" className="text-green-600 hover:text-green-800 font-medium transition duration-200">Reset it here</a>.
           </p> */}
         </div>
       </div>

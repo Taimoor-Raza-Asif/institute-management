@@ -9,7 +9,7 @@ import User from '../models/User.js';
 // @access  Private/Admin
 const getStaffForSalary = asyncHandler(async (req, res) => {
   // We now select the 'salary' field as well
-  const staff = await Staff.find({}).select('_id name cnic staffType salary').lean();
+  const staff = await Staff.find({}).select('_id name cnic staffType salary profilePictureUrl').lean();
   if (!staff) {
     res.status(404);
     throw new Error('No staff members found');
@@ -139,9 +139,24 @@ const getAllSalaries = asyncHandler(async (req, res) => {
     ];
   }
 
-  const salaries = await Salary.find(filter).sort({ createdAt: -1 }).lean();
-  res.json(salaries);
+//   const salaries = await Salary.find(filter).sort({ createdAt: -1 }).lean();
+//   res.json(salaries);
+// });
+
+  const salaries = await Salary.find(filter)
+    .sort({ createdAt: -1 })
+    .populate('staff', 'profilePictureUrl') // This is the key change
+    .lean();
+
+  // Map the populated staff field to the main salary object
+  const salariesWithProfile = salaries.map(salary => ({
+    ...salary,
+    profilePictureUrl: salary.staff?.profilePictureUrl || ''
+  }));
+
+  res.json(salariesWithProfile);
 });
+
 
 
 // // @desc    Get a single staff member's salary records

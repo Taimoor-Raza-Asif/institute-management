@@ -3,7 +3,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import api from '../api';
 import Modal from './Modal';
 import StudentForm from './StudentForm';
-import { PencilIcon, TrashIcon, PlusIcon, FunnelIcon, XMarkIcon, MagnifyingGlassIcon, EyeIcon, EllipsisVerticalIcon } from '@heroicons/react/24/outline';
+import { PencilIcon, TrashIcon, PlusIcon, FunnelIcon, XMarkIcon, MagnifyingGlassIcon, EyeIcon, EllipsisVerticalIcon, UserCircleIcon} from '@heroicons/react/24/outline';
 import {
   ArrowPathIcon, // For Promotion
   ArrowUturnLeftIcon, // For Demotion
@@ -675,7 +675,24 @@ const StudentList = () => {
                     key={s._id}
                     className={`text-center ${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'} py-4 cursor-pointer hover:bg-gray-200 transition-colors duration-150`}
                   >
-                    <td className="border border-white p-2 w-40 overflow-hidden whitespace-nowrap text-ellipsis  text-base text-black-500" title={s.name}>{s.name}</td>
+                    {/* <td className="border border-white p-2 w-40 overflow-hidden whitespace-nowrap text-ellipsis  text-base text-black-500" title={s.name}>{s.name}</td> */}
+                    <td className="px-6 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
+                      <div className="flex items-center">
+                        {s.profilePictureUrl ? (
+                          // If profilePictureUrl exists, render the <img> tag
+                          <img
+                            src={`http://localhost:5000${s.profilePictureUrl}`}
+                            alt={`${s.name}'s Profile`}
+                            className="h-8 w-8 rounded-full object-cover mr-2"
+                            onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/32x32/cccccc/ffffff?text=NA'; }}
+                          />
+                        ) : (
+                          // If not, render the placeholder icon
+                          <UserCircleIcon className="h-8 w-8 text-gray-400 mr-2" />
+                        )}
+                        <span>{s.name}</span>
+                      </div>
+                    </td>
                     <td className="border border-white p-2 w-40 overflow-hidden whitespace-nowrap text-ellipsis  text-base text-gray-500" title={s.fatherName}>{s.fatherName}</td>
                     <td className="border border-white p-2 w-32 overflow-hidden whitespace-nowrap text-ellipsis  text-base text-gray-500" title={s.cnic}>{s.cnic || '-'}</td>
                     {/* <td className="border border-white p-2 w-28 overflow-hidden whitespace-nowrap text-ellipsis" title={s.address}>{s.address || '-'}</td> */}

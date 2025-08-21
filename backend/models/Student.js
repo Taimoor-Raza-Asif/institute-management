@@ -8,7 +8,7 @@ const studentSchema = new mongoose.Schema({
   address: { type: String, required: true, trim: true },
   guardianContact: { type: String, required: true, trim: true, match: /^\d{11}$/ },
   additionalContact: { type: String, trim: true, match: /^\d{11}$/, default: '' },
- rollNumber: { type: String, unique: true, trim: true },
+  rollNumber: { type: String, unique: true, trim: true },
   dob: { type: Date, required: true },
   gender: { type: String, enum: ['Male', 'Female', 'Other'], required: true },
   admissionDate: { type: Date, required: true },
@@ -44,7 +44,7 @@ const studentSchema = new mongoose.Schema({
   class10ResultUrl: { type: String, default: '' },
   class12ResultUrl: { type: String, default: '' },
   admissionFeeStatus: { type: Boolean, default: false },
-   isDeleted: { type: Boolean, default: false } , // Soft delete
+  isDeleted: { type: Boolean, default: false }, // Soft delete
 }, { timestamps: true });
 
 export default mongoose.model('Student', studentSchema);

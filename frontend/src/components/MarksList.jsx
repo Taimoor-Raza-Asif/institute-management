@@ -1,30 +1,403 @@
+// // frontend/src/pages/MarksList.jsx
+
+// import React, { useState, useEffect, useCallback, useContext } from 'react';
+// import api from '../api';
+// import { UserContext } from '../App';
+// import Loader from '../components/Loader';
+// import Message from '../components/Message';
+// import { toast } from 'react-toastify';
+// import { TrashIcon, PencilIcon } from '@heroicons/react/24/outline';
+// import ConfirmationModal from '../components/ConfirmationModal';
+// import { useNavigate } from 'react-router-dom';
+
+// const months = [
+//     'January', 'February', 'March', 'April', 'May', 'June',
+//     'July', 'August', 'September', 'October', 'November', 'December'
+// ];
+
+// const marksTypes = ['Quiz', 'Assignment', 'Midterm 1', 'Midterm 2', 'Final Exam', 'Bonus Activity'];
+
+// const MarksList = () => {
+//     const { currentUser } = useContext(UserContext);
+//     const navigate = useNavigate();
+//     const [marks, setMarks] = useState([]);
+//     const [loading, setLoading] = useState(true);
+//     const [error, setError] = useState('');
+//     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+//     const [markToDelete, setMarkToDelete] = useState(null);
+//     const [filter, setFilter] = useState({
+//         subject: '',
+//         marksType: '',
+//         studentClass: '',
+//         degree: '',
+//         semester: '',
+//         month: '',
+//         year: '',
+//     });
+//     const [teacherSubjects, setTeacherSubjects] = useState([]);
+//     const [yearRange, setYearRange] = useState([]);
+
+//     const fetchInitialData = useCallback(async () => {
+//         setLoading(true);
+//         try {
+//             const res = await api.get(`/staff/${currentUser.profileId}`);
+//             const subjects = res.data.assignClasses.flatMap(ac => ac.subjects);
+//             setTeacherSubjects(subjects);
+
+//             let marksResponse;
+//             if (currentUser.role === 'admin') {
+//                 marksResponse = await api.get('/marks');
+//             } else if (currentUser.role === 'teacher') {
+//                 marksResponse = await api.get(`/marks/teacher/${currentUser.profileId}`);
+//             } else if (currentUser.role === 'student') {
+//                 marksResponse = await api.get(`/marks/student/${currentUser.profileId}`);
+//             }
+
+//             setMarks(marksResponse.data);
+
+//             const allDates = marksResponse.data.map(mark => new Date(mark.conductedDate));
+//             if (allDates.length > 0) {
+//                 const oldestYear = Math.min(...allDates.map(d => d.getFullYear()));
+//                 const currentYear = new Date().getFullYear();
+//                 const years = [];
+//                 for (let i = oldestYear; i <= currentYear + 1; i++) {
+//                     years.push(i);
+//                 }
+//                 setYearRange(years);
+//             } else {
+//                 const currentYear = new Date().getFullYear();
+//                 setYearRange([currentYear, currentYear + 1]);
+//             }
+//         } catch (err) {
+//             console.error('Failed to fetch initial data:', err);
+//             setError('Failed to load initial data. Please try again.');
+//             toast.error('Failed to load initial data.');
+//         } finally {
+//             setLoading(false);
+//         }
+//     }, [currentUser]);
+
+
+//     const fetchMarks = useCallback(async () => {
+//         setLoading(true);
+//         try {
+//             const queryParams = new URLSearchParams(filter).toString();
+//             let response;
+//             if (currentUser.role === 'admin') {
+//                 response = await api.get(`/marks?${queryParams}`);
+//             } else if (currentUser.role === 'teacher') {
+//                 response = await api.get(`/marks/teacher/${currentUser.profileId}?${queryParams}`);
+//             } else if (currentUser.role === 'student') {
+//                 response = await api.get(`/marks/student/${currentUser.profileId}?${queryParams}`);
+//             }
+//             setMarks(response.data);
+//         } catch (err) {
+//             console.error('Failed to fetch marks:', err);
+//             setError('Failed to load marks. Please try again.');
+//             toast.error('Failed to load marks.');
+//         } finally {
+//             setLoading(false);
+//         }
+//     }, [currentUser, filter]);
+
+//     useEffect(() => {
+//         if (currentUser) {
+//             fetchInitialData();
+//         }
+//     }, [currentUser, fetchInitialData]);
+
+//     useEffect(() => {
+//         if (currentUser) {
+//             fetchMarks();
+//         }
+//     }, [filter, currentUser, fetchMarks]);
+
+//     const handleChange = (e) => {
+//         const { name, value } = e.target;
+//         setFilter(prev => ({ ...prev, [name]: value }));
+//     };
+
+//     const handleDelete = (id) => {
+//         setMarkToDelete(id);
+//         setIsConfirmModalOpen(true);
+//     };
+
+//     const confirmDelete = async () => {
+//         setIsConfirmModalOpen(false);
+//         try {
+//             await api.delete(`/marks/${markToDelete}`);
+//             toast.success('Marks deleted successfully!');
+//             fetchMarks();
+//         } catch (err) {
+//             const errorMessage = err.response?.data?.message || err.message;
+//             toast.error(errorMessage);
+//             console.error(err);
+//         }
+//     };
+
+//     const handleEdit = (id) => {
+//         navigate(`/edit-marks/${id}`);
+//     };
+
+//     if (loading) return <Loader />;
+//     if (error) return <Message variant="danger">{error}</Message>;
+
+//     return (
+//         <div className="bg-white p-6 rounded-lg shadow-lg">
+//             <h1 className="text-2xl font-bold text-gray-800 mb-6">Marks List</h1>
+
+//             {/* Filter Section */}
+//             <div className="mb-6 p-4 bg-gray-100 rounded-lg shadow-sm">
+//                 <h2 className="text-lg font-semibold text-gray-800 mb-4">Filter Marks</h2>
+//                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+//                     {currentUser.role === 'teacher' && (
+//                         <div>
+//                             <label htmlFor="subject" className="block text-sm font-medium text-gray-700">Subject</label>
+//                             <select
+//                                 id="subject"
+//                                 name="subject"
+//                                 value={filter.subject}
+//                                 onChange={handleChange}
+//                                 className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+//                             >
+//                                 <option value="">All Subjects</option>
+//                                 {teacherSubjects.map(sub => (
+//                                     <option key={sub} value={sub}>{sub}</option>
+//                                 ))}
+//                             </select>
+//                         </div>
+//                     )}
+//                     <div>
+//                         <label htmlFor="marksType" className="block text-sm font-medium text-gray-700">Marks Type</label>
+//                         <select
+//                             id="marksType"
+//                             name="marksType"
+//                             value={filter.marksType}
+//                             onChange={handleChange}
+//                             className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+//                         >
+//                             <option value="">All Types</option>
+//                             {marksTypes.map(type => (
+//                                 <option key={type} value={type}>{type}</option>
+//                             ))}
+//                         </select>
+//                     </div>
+
+//                     <div>
+//                         <label htmlFor="year" className="block text-sm font-medium text-gray-700">Year</label>
+//                         <select
+//                             id="year"
+//                             name="year"
+//                             value={filter.year}
+//                             onChange={handleChange}
+//                             className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+//                         >
+//                             <option value="">All Years</option>
+//                             {yearRange.map(year => (
+//                                 <option key={year} value={year}>{year}</option>
+//                             ))}
+//                         </select>
+//                     </div>
+
+//                     <div>
+//                         <label htmlFor="month" className="block text-sm font-medium text-gray-700">Month</label>
+//                         <select
+//                             id="month"
+//                             name="month"
+//                             value={filter.month}
+//                             onChange={handleChange}
+//                             className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+//                         >
+//                             <option value="">All Months</option>
+//                             {months.map((month, index) => (
+//                                 <option key={month} value={index + 1}>{month}</option>
+//                             ))}
+//                         </select>
+//                     </div>
+//                 </div>
+//             </div>
+
+//             <div className="mt-6 overflow-x-auto">
+//                 {marks.length > 0 ? (
+//                     <div className="overflow-x-auto">
+//                         <table className="min-w-full divide-y divide-gray-200">
+//                             <thead className="bg-gray-100">
+//                                 <tr>
+//                                     <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student Name</th>
+//                                     <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subject</th>
+//                                     <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Marks Type</th>
+//                                     <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+//                                     <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+//                                     <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Obtained</th>
+//                                     <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+//                                     {currentUser.role === 'teacher' && (
+//                                         <th className="py-3 px-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+//                                     )}
+//                                 </tr>
+//                             </thead>
+//                             <tbody className="bg-white divide-y divide-gray-200">
+//                                 {marks.map((mark) => (
+//                                     <tr key={mark._id}>
+//                                         <td className="py-3 px-4 whitespace-nowrap">{mark.student.name}</td>
+//                                         <td className="py-3 px-4 whitespace-nowrap">{mark.subject}</td>
+//                                         <td className="py-3 px-4 whitespace-nowrap">{mark.marksType}</td>
+//                                         <td className="py-3 px-4 whitespace-nowrap">{mark.marksName}</td>
+//                                         <td className="py-3 px-4 whitespace-nowrap">{new Date(mark.conductedDate).toLocaleDateString()}</td>
+//                                         <td className="py-3 px-4 whitespace-nowrap">{mark.marksObtained}</td>
+//                                         <td className="py-3 px-4 whitespace-nowrap">{mark.totalMarks}</td>
+//                                         {currentUser.role === 'teacher' && (
+//                                             <td className="py-3 px-4 text-center">
+//                                                 <button 
+//                                                     onClick={() => handleEdit(mark._id)}
+//                                                     className="text-indigo-600 hover:text-indigo-800 transition-colors duration-200 p-1 rounded-md hover:bg-indigo-100 mr-2"
+//                                                     title="Edit Marks"
+//                                                 >
+//                                                     <PencilIcon className="h-5 w-5" />
+//                                                 </button>
+//                                                 <button 
+//                                                     onClick={() => handleDelete(mark._id)}
+//                                                     className="text-red-600 hover:text-red-800 transition-colors duration-200 p-1 rounded-md hover:bg-red-100"
+//                                                     title="Delete Marks"
+//                                                 >
+//                                                     <TrashIcon className="h-5 w-5" />
+//                                                 </button>
+//                                             </td>
+//                                         )}
+//                                     </tr>
+//                                 ))}
+//                             </tbody>
+//                         </table>
+//                     </div>
+//                 ) : (
+//                     <p className="text-xl text-gray-600 text-center p-4 bg-gray-100 rounded-lg shadow-sm">
+//                         No marks found.
+//                     </p>
+//                 )}
+//             </div>
+
+//             <ConfirmationModal
+//                 isOpen={isConfirmModalOpen}
+//                 onClose={() => setIsConfirmModalOpen(false)}
+//                 onConfirm={confirmDelete}
+//                 message="Are you sure you want to delete this marks entry? This action cannot be undone."
+//             />
+//         </div>
+//     );
+// };
+
+// export default MarksList;
+
+
+
 import React, { useState, useEffect, useCallback, useContext } from 'react';
 import api from '../api';
 import { UserContext } from '../App';
 import Loader from '../components/Loader';
 import Message from '../components/Message';
 import { toast } from 'react-toastify';
-import { TrashIcon, PencilIcon } from '@heroicons/react/24/outline';
+import { TrashIcon, PencilIcon, MagnifyingGlassIcon, XMarkIcon, FunnelIcon } from '@heroicons/react/24/outline';
 import ConfirmationModal from '../components/ConfirmationModal';
+import { useNavigate } from 'react-router-dom';
+
+const months = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+];
+
+const marksTypes = ['Quiz', 'Assignment', 'Midterm 1', 'Midterm 2', 'Final Exam', 'Bonus Activity'];
+
+// Function to generate a range of years
+const generateYears = () => {
+    const currentYear = new Date().getFullYear();
+    const years = [];
+    for (let i = currentYear - 5; i <= currentYear + 1; i++) {
+        years.push(i);
+    }
+    return years;
+};
+
+// Custom hook for debouncing a value
+const useDebounce = (value, delay) => {
+    const [debouncedValue, setDebouncedValue] = useState(value);
+
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedValue(value);
+        }, delay);
+
+        return () => {
+            clearTimeout(handler);
+        };
+    }, [value, delay]);
+
+    return debouncedValue;
+};
 
 const MarksList = () => {
     const { currentUser } = useContext(UserContext);
+    const navigate = useNavigate();
     const [marks, setMarks] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
     const [markToDelete, setMarkToDelete] = useState(null);
+    const [searchQuery, setSearchQuery] = useState('');
+    const debouncedSearchQuery = useDebounce(searchQuery, 500); // 500ms debounce
+    const [filter, setFilter] = useState({
+        subject: '',
+        marksType: '',
+        studentClass: '',
+        classNumber: '',
+        degree: '',
+        semester: '',
+        month: '',
+        year: '',
+    });
+    const [teacherSubjects, setTeacherSubjects] = useState([]);
+    const [teacherAssignedClasses, setTeacherAssignedClasses] = useState([]);
+    const [yearRange, setYearRange] = useState(generateYears());
+    const [showFilters, setShowFilters] = useState(false);
+
+    const fetchInitialData = useCallback(async () => {
+        setLoading(true);
+        try {
+            if (currentUser.role === 'teacher') {
+                const res = await api.get(`/staff/${currentUser.profileId}`);
+                const subjects = res.data.assignClasses.flatMap(ac => ac.subjects);
+                setTeacherSubjects(subjects);
+                setTeacherAssignedClasses(res.data.assignClasses);
+            }
+
+            let marksResponse;
+            if (currentUser.role === 'admin') {
+                marksResponse = await api.get('/marks');
+            } else if (currentUser.role === 'teacher') {
+                marksResponse = await api.get(`/marks/teacher/${currentUser.profileId}`);
+            } else if (currentUser.role === 'student') {
+                marksResponse = await api.get(`/marks/student/${currentUser.profileId}`);
+            }
+            setMarks(marksResponse.data);
+
+        } catch (err) {
+            console.error('Failed to fetch initial data:', err);
+            setError('Failed to load initial data. Please try again.');
+            toast.error('Failed to load initial data.');
+        } finally {
+            setLoading(false);
+        }
+    }, [currentUser]);
 
     const fetchMarks = useCallback(async () => {
         setLoading(true);
         try {
+            const queryParams = new URLSearchParams({ ...filter, searchQuery: debouncedSearchQuery }).toString();
             let response;
             if (currentUser.role === 'admin') {
-                response = await api.get('/marks');
+                response = await api.get(`/marks?${queryParams}`);
             } else if (currentUser.role === 'teacher') {
-                response = await api.get(`/marks/teacher/${currentUser.profileId}`);
+                response = await api.get(`/marks/teacher/${currentUser.profileId}?${queryParams}`);
             } else if (currentUser.role === 'student') {
-                response = await api.get(`/marks/student/${currentUser.profileId}`);
+                response = await api.get(`/marks/student/${currentUser.profileId}?${queryParams}`);
             }
             setMarks(response.data);
         } catch (err) {
@@ -34,84 +407,357 @@ const MarksList = () => {
         } finally {
             setLoading(false);
         }
-    }, [currentUser]);
+    }, [currentUser, filter, debouncedSearchQuery]);
 
     useEffect(() => {
-        fetchMarks();
-    }, [fetchMarks]);
+        if (currentUser) {
+            fetchInitialData();
+        }
+    }, [currentUser, fetchInitialData]);
 
-    const handleDelete = (markId) => {
-        setMarkToDelete(markId);
+    useEffect(() => {
+        if (currentUser) {
+            fetchMarks();
+        }
+    }, [filter, debouncedSearchQuery, currentUser, fetchMarks]);
+
+    const handleFilterChange = (e) => {
+        const { name, value } = e.target;
+        setFilter(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleClearFilters = () => {
+        setFilter({
+            subject: '',
+            marksType: '',
+            studentClass: '',
+            classNumber: '',
+            degree: '',
+            semester: '',
+            month: '',
+            year: '',
+        });
+        setSearchQuery('');
+    };
+
+    const handleSearchChange = (e) => {
+        setSearchQuery(e.target.value);
+    };
+
+    const handleDelete = (id) => {
+        setMarkToDelete(id);
         setIsConfirmModalOpen(true);
     };
 
     const confirmDelete = async () => {
+        setIsConfirmModalOpen(false);
         try {
             await api.delete(`/marks/${markToDelete}`);
             toast.success('Marks deleted successfully!');
-            setMarks(marks.filter(m => m._id !== markToDelete));
+            fetchMarks();
         } catch (err) {
-            toast.error(err.response?.data?.message || 'Failed to delete marks.');
-        } finally {
-            setIsConfirmModalOpen(false);
-            setMarkToDelete(null);
+            const errorMessage = err.response?.data?.message || err.message;
+            toast.error(errorMessage);
+            console.error(err);
         }
     };
 
+    const handleEdit = (id) => {
+        navigate(`/marks/edit/${id}`);
+    };
+
     if (loading) return <Loader />;
-    if (error) return <Message type="error">{error}</Message>;
+    if (error) return <Message variant="danger">{error}</Message>;
+
+    const filteredMarks = marks.filter(mark => {
+        // Basic client-side filtering (server-side is better but this works as a fallback)
+        const studentName = mark.student?.name?.toLowerCase() || '';
+        const rollNumber = mark.student?.rollNumber?.toLowerCase() || '';
+        const matchesSearch = studentName.includes(searchQuery.toLowerCase()) || rollNumber.includes(searchQuery.toLowerCase());
+
+        const conductedDate = new Date(mark.conductedDate);
+        const matchesMonth = filter.month ? conductedDate.getMonth() + 1 === parseInt(filter.month) : true;
+        const matchesYear = filter.year ? conductedDate.getFullYear() === parseInt(filter.year) : true;
+        const matchesMarksType = filter.marksType ? mark.marksType === filter.marksType : true;
+        const matchesSubject = filter.subject ? mark.subject === filter.subject : true;
+
+        return matchesSearch && matchesMonth && matchesYear && matchesMarksType && matchesSubject;
+    });
+
+    const getAssignedClassNumbers = () => {
+        const classType = teacherAssignedClasses.find(ac => ac.type === 'Class');
+        return classType ? classType.classNumbers : [];
+    };
+
+    const adminClassNumbers = Array.from({ length: 12 }, (_, i) => i + 1);
 
     return (
-        <div className="container mx-auto p-4 sm:p-6 lg:p-8">
-            <h1 className="text-3xl font-bold text-center text-indigo-800 mb-6">
-                {currentUser.role === 'teacher' ? 'My Marked Subjects' :
-                 currentUser.role === 'admin' ? 'All Student Marks' :
-                 'My Academic Marks'}
-            </h1>
-            
-            {marks.length > 0 ? (
-                <div className="overflow-x-auto bg-white rounded-lg shadow overflow-y-auto relative mt-6">
-                    <table className="w-full whitespace-nowrap table-auto">
-                        <thead className="bg-gray-50 text-gray-600 uppercase text-sm leading-normal">
-                            <tr>
-                                <th className="py-3 px-4 text-left">Student Name</th>
-                                {currentUser.role === 'admin' && <th className="py-3 px-4 text-left">Teacher Name</th>}
-                                <th className="py-3 px-4 text-left">Subject</th>
-                                <th className="py-3 px-4 text-left">Marks Type</th>
-                                <th className="py-3 px-4 text-center">Marks</th>
-                                {currentUser.role === 'teacher' && <th className="py-3 px-4 text-center">Actions</th>}
-                            </tr>
-                        </thead>
-                        <tbody className="text-gray-600 text-sm font-light">
-                            {marks.map(mark => (
-                                <tr key={mark._id} className="border-b border-gray-200 hover:bg-gray-100">
-                                    <td className="py-3 px-4 text-left font-medium">{mark.student.name}</td>
-                                    {console.log(mark.student)}
-                                    {currentUser.role === 'admin' && <td className="py-3 px-4 text-left">{mark.teacher.name}</td>}
-                                    <td className="py-3 px-4 text-left">{mark.subject}</td>
-                                    <td className="py-3 px-4 text-left">{mark.marksType}</td>
-                                    <td className="py-3 px-4 text-center">{mark.marksObtained} / {mark.totalMarks}</td>
+        <div className="bg-white p-6 rounded-lg shadow-lg">
+            <h1 className="text-2xl font-bold text-gray-800 mb-6">Marks List</h1>
+
+            {/* Header with Search and Filter Toggle */}
+            <div className="flex flex-col md:flex-row justify-between items-center mb-6 space-y-4 md:space-y-0">
+                <div className="relative w-full md:w-1/3">
+                    <input
+                        type="text"
+                        placeholder="Search by student name or roll number..."
+                        value={searchQuery}
+                        onChange={handleSearchChange}
+                        className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+                    />
+                    <MagnifyingGlassIcon className="h-5 w-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
+                    {searchQuery && (
+                        <button
+                            onClick={() => setSearchQuery('')}
+                            className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 p-1 rounded-full"
+                            title="Clear search"
+                        >
+                            <XMarkIcon className="h-4 w-4" />
+                        </button>
+                    )}
+                </div>
+                <div className="flex space-x-2">
+                    <button
+                        onClick={() => setShowFilters(!showFilters)}
+                        className="flex items-center space-x-2 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg shadow-sm hover:bg-gray-300 transition-colors"
+                    >
+                        <FunnelIcon className="h-5 w-5" />
+                        <span>Filters</span>
+                    </button>
+                    {(Object.values(filter).some(val => val !== '') || searchQuery !== '') && (
+                        <button
+                            onClick={handleClearFilters}
+                            className="flex items-center space-x-2 px-4 py-2 bg-red-100 text-red-600 rounded-lg shadow-sm hover:bg-red-200 transition-colors"
+                        >
+                            <XMarkIcon className="h-5 w-5" />
+                            <span>Clear</span>
+                        </button>
+                    )}
+                </div>
+            </div>
+
+            {/* Filter Section */}
+            {showFilters && (
+                <div className="mb-6 p-4 bg-gray-100 rounded-lg shadow-sm transition-all duration-300 ease-in-out">
+                    <h2 className="text-lg font-semibold text-gray-800 mb-4">Filter Marks</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                        {currentUser.role === 'teacher' && (
+                            <div>
+                                <label htmlFor="subject" className="block text-sm font-medium text-gray-700">Subject</label>
+                                <select
+                                    id="subject"
+                                    name="subject"
+                                    value={filter.subject}
+                                    onChange={handleFilterChange}
+                                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                                >
+                                    <option value="">All Subjects</option>
+                                    {teacherSubjects.map(sub => (
+                                        <option key={sub} value={sub}>{sub}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        )}
+                        <div>
+                            <label htmlFor="marksType" className="block text-sm font-medium text-gray-700">Marks Type</label>
+                            <select
+                                id="marksType"
+                                name="marksType"
+                                value={filter.marksType}
+                                onChange={handleFilterChange}
+                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                            >
+                                <option value="">All Types</option>
+                                {marksTypes.map(type => (
+                                    <option key={type} value={type}>{type}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div>
+                            <label htmlFor="studentClass" className="block text-sm font-medium text-gray-700">Class</label>
+                            <select
+                                id="studentClass"
+                                name="studentClass"
+                                value={filter.studentClass}
+                                onChange={handleFilterChange}
+                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                            >
+                                <option value="">All Classes</option>
+                                <option value="Class">Class</option>
+                                <option value="BS">BS</option>
+                            </select>
+                        </div>
+
+                        {(filter.studentClass === 'BS') && (
+                            <>
+                                <div>
+                                    <label htmlFor="degree" className="block text-sm font-medium text-gray-700">Degree</label>
+                                    <input
+                                        type="text"
+                                        id="degree"
+                                        name="degree"
+                                        value={filter.degree}
+                                        onChange={handleFilterChange}
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                                        placeholder="e.g., Software Engineering"
+                                    />
+                                </div>
+                                <div>
+                                    <label htmlFor="semester" className="block text-sm font-medium text-gray-700">Semester</label>
+                                    <input
+                                        type="number"
+                                        id="semester"
+                                        name="semester"
+                                        value={filter.semester}
+                                        onChange={handleFilterChange}
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                                        placeholder="e.g., 5"
+                                    />
+                                </div>
+                            </>
+                        )}
+                        {/* {filter.studentClass === 'Class' && (
+                            <div>
+                                <label htmlFor="classNumber" className="block text-sm font-medium text-gray-700">Class Number</label>
+                                <select
+                                    id="classNumber"
+                                    name="classNumber"
+                                    value={filter.classNumber}
+                                    onChange={handleFilterChange}
+                                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                                >
+                                    <option value="">All Class Numbers</option>
+                                    {currentUser.role === 'admin' ? (
+                                        adminClassNumbers.map(num => (
+                                            <option key={num} value={num}>{num}</option>
+                                        ))
+                                    ) : (
+                                        teacherAssignedClasses.find(ac => ac.type === 'Class')?.classNumbers?.map(num => (
+                                            <option key={num} value={num}>{num}</option>
+                                        ))
+                                    )}
+                                </select>
+                            </div>
+                        )} */}
+
+                        {filter.studentClass === 'Class' && (
+                            <div>
+                                <label htmlFor="classNumber" className="block text-sm font-medium text-gray-700">Class Number</label>
+                                <select
+                                    id="classNumber"
+                                    name="classNumber"
+                                    value={filter.classNumber}
+                                    onChange={handleFilterChange}
+                                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                                >
+                                    <option value="">All Class Numbers</option>
+                                    {currentUser.role === 'admin' ? (
+                                        Array.from({ length: 12 }, (_, i) => i + 1).map(num => (
+                                            <option key={num} value={num}>{num}</option>
+                                        ))
+                                    ) : (
+                                        teacherAssignedClasses
+                                            .filter(ac => ac.type === 'Class')
+                                            .map(ac => (
+                                                <option key={ac.classNumber} value={ac.classNumber}>{ac.classNumber}</option>
+                                            ))
+                                    )}
+                                </select>
+                            </div>
+                        )}
+
+                        <div>
+                            <label htmlFor="year" className="block text-sm font-medium text-gray-700">Year</label>
+                            <select
+                                id="year"
+                                name="year"
+                                value={filter.year}
+                                onChange={handleFilterChange}
+                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                            >
+                                <option value="">All Years</option>
+                                {yearRange.map(year => (
+                                    <option key={year} value={year}>{year}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div>
+                            <label htmlFor="month" className="block text-sm font-medium text-gray-700">Month</label>
+                            <select
+                                id="month"
+                                name="month"
+                                value={filter.month}
+                                onChange={handleFilterChange}
+                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                            >
+                                <option value="">All Months</option>
+                                {months.map((month, index) => (
+                                    <option key={month} value={index + 1}>{month}</option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            <div className="mt-6 overflow-x-auto">
+                {marks.length > 0 ? (
+                    <div className="overflow-x-auto">
+                        <table className="min-w-full divide-y divide-gray-200">
+                            <thead className="bg-gray-100">
+                                <tr>
+                                    <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student Name</th>
+                                    <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subject</th>
+                                    <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Marks Type</th>
+                                    <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                    <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                    <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Obtained</th>
+                                    <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
                                     {currentUser.role === 'teacher' && (
-                                        <td className="py-3 px-4 text-center">
-                                            <button 
-                                                onClick={() => handleDelete(mark._id)}
-                                                className="text-red-600 hover:text-red-800 transition-colors duration-200 p-1 rounded-md hover:bg-red-100"
-                                                title="Delete Marks"
-                                            >
-                                                <TrashIcon className="h-5 w-5" />
-                                            </button>
-                                        </td>
+                                        <th className="py-3 px-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                                     )}
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            ) : (
-                <p className="text-xl text-gray-600 text-center p-4 bg-gray-100 rounded-lg shadow-sm">
-                    No marks found.
-                </p>
-            )}
+                            </thead>
+                            <tbody className="bg-white divide-y divide-gray-200">
+                                {marks.map((mark) => (
+                                    <tr key={mark._id}>
+                                        <td className="py-3 px-4 whitespace-nowrap">{mark.student?.name || 'N/A'}</td>
+                                        <td className="py-3 px-4 whitespace-nowrap">{mark.subject}</td>
+                                        <td className="py-3 px-4 whitespace-nowrap">{mark.marksType}</td>
+                                        <td className="py-3 px-4 whitespace-nowrap">{mark.marksName}</td>
+                                        <td className="py-3 px-4 whitespace-nowrap">{new Date(mark.conductedDate).toLocaleDateString()}</td>
+                                        <td className="py-3 px-4 whitespace-nowrap">{mark.marksObtained}</td>
+                                        <td className="py-3 px-4 whitespace-nowrap">{mark.totalMarks}</td>
+                                        {currentUser.role === 'teacher' && (
+                                            <td className="py-3 px-4 text-center">
+                                                <button
+                                                    onClick={() => handleEdit(mark._id)}
+                                                    className="text-indigo-600 hover:text-indigo-800 transition-colors duration-200 p-1 rounded-md hover:bg-indigo-100 mr-2"
+                                                    title="Edit Marks"
+                                                >
+                                                    <PencilIcon className="h-5 w-5" />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDelete(mark._id)}
+                                                    className="text-red-600 hover:text-red-800 transition-colors duration-200 p-1 rounded-md hover:bg-red-100"
+                                                    title="Delete Marks"
+                                                >
+                                                    <TrashIcon className="h-5 w-5" />
+                                                </button>
+                                            </td>
+                                        )}
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                ) : (
+                    <p className="text-xl text-gray-600 text-center p-4 bg-gray-100 rounded-lg shadow-sm">
+                        No marks found.
+                    </p>
+                )}
+            </div>
 
             <ConfirmationModal
                 isOpen={isConfirmModalOpen}

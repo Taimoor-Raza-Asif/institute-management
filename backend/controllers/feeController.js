@@ -176,7 +176,7 @@ export const getAllFees = async (req, res) => {
     }
 
     // Populate student details for display
-    const fees = await FeeRecord.find(filter).populate('studentId', 'name cnic feePerMonth depositedAmount otherDues');
+    const fees = await FeeRecord.find(filter).populate('studentId', 'name cnic feePerMonth depositedAmount otherDues profilePictureUrl');
     res.json(fees);
   } catch (err) {
     console.error("Error fetching fees:", err);
@@ -194,7 +194,7 @@ export const getFeesByStudent = async (req, res) => {
       return res.status(403).json({ message: 'Not authorized to view these fee records.' });
     }
 
-    const fees = await FeeRecord.find({ studentId }).populate('studentId', 'name cnic feePerMonth depositedAmount otherDues');
+    const fees = await FeeRecord.find({ studentId }).populate('studentId', 'name cnic feePerMonth depositedAmount otherDues profilePictureUrl');
     if (!fees) {
       return res.status(404).json({ message: 'No fee records found for this student' });
     }

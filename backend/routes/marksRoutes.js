@@ -5,7 +5,9 @@ import {
     deleteMarks,
     getMarksByTeacher,
     getMarksByStudent,
-    getAllMarks
+    getAllMarks, 
+    addBulkMarks,
+    getMarksById
 } from '../controllers/marksController.js';
 import { protect, authorizeRoles } from '../middleware/authMiddleware.js';
 
@@ -13,6 +15,8 @@ const router = express.Router();
 
 // Teacher can add marks for an assigned subject
 router.post('/', protect, authorizeRoles('teacher'), addMarks);
+
+router.post('/bulk', protect, authorizeRoles('teacher'), addBulkMarks);
 
 // Teacher can update their own marks
 router.put('/:id', protect, authorizeRoles('teacher'), updateMarks);
@@ -27,6 +31,9 @@ router.get('/teacher/:id', protect, authorizeRoles('teacher'), getMarksByTeacher
 router.get('/student/:id', protect, authorizeRoles('student', 'admin', 'teacher'), getMarksByStudent);
 
 // Admin can view all marks
-router.get('/', protect, authorizeRoles('admin'), getAllMarks);
+router.get('/', protect, authorizeRoles('admin', 'teacher'), getAllMarks);
+
+// Get marks entry by ID (New Route)
+router.get('/:id', protect, authorizeRoles('teacher', 'student', 'admin'), getMarksById);
 
 export default router;

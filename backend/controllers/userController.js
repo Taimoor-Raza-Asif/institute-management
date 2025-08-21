@@ -202,17 +202,13 @@ export const authUser = asyncHandler(async (req, res) => {
 
 
 
-
-
-
-
 // @desc    Get all users (Admin only)
 // @route   GET /api/users
 // @access  Private/Admin
 export const getAllUsers = asyncHandler(async (req, res) => {
   const users = await User.find({}).select('-password').populate({
     path: 'profileId',
-    select: 'name cnic employeeId', // Populate name, cnic (for students), employeeId (for staff)
+    select: 'name cnic employeeId profilePictureUrl', // Populate name, cnic (for students), employeeId (for staff)
     // We don't need to specify model here as refPath handles it
   });
 
@@ -377,8 +373,17 @@ export const toggleEditMode = asyncHandler(async (req, res) => {
 
 // controllers/userController.js
 const getUsers = asyncHandler(async (req, res) => {
-  const users = await User.find().populate('profileId', 'name'); // Only populate the `name` from staff
-  res.json(users);
+  // const users = await User.find().populate('profileId', 'name'); // Only populate the `name` from staff
+  // res.json(users);
+const users = await User.find()
+  .populate({
+    path: 'profileId',
+    model: function(doc) {
+      return doc.roleMapping === 'Staff' ? 'Staff' : 'Student';
+    }
+  });
+
+res.json(users);
 });
 
 
@@ -433,3 +438,5 @@ export const registerAdminUser = asyncHandler(async (req, res) => {
     throw new Error('Invalid user data');
   }
 });
+
+

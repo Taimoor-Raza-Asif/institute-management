@@ -8,7 +8,7 @@ import Message from './Message';
 import Modal from './Modal';
 import SalaryForm from './SalaryForm';
 import {
-  CurrencyDollarIcon, EyeIcon, PencilIcon, TrashIcon, PlusCircleIcon, DocumentArrowDownIcon, XMarkIcon, FunnelIcon, MagnifyingGlassIcon
+  CurrencyDollarIcon, EyeIcon, PencilIcon, TrashIcon, PlusCircleIcon, DocumentArrowDownIcon, XMarkIcon, FunnelIcon, MagnifyingGlassIcon, UserCircleIcon
 } from '@heroicons/react/24/outline';
 import jsPDF from 'jspdf';
 import 'react-datepicker/dist/react-datepicker.css';
@@ -311,7 +311,25 @@ const StaffSalaryList = () => {
             <tbody className="bg-white divide-y divide-gray-200">
               {salaries.map((salary, index) => (
                 <tr key={salary._id} className={`text-center ${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'} py-4 cursor-pointer hover:bg-gray-200 transition-colors duration-150`}>
-                  <td className="px-6 py-4 whitespace-nowrap text-base font-medium text-gray-900 text-left">{salary.staffName}</td>
+                  {/* <td className="px-6 py-4 whitespace-nowrap text-base font-medium text-gray-900 text-left">{salary.staffName}</td> */}
+                   <td className="px-6 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
+                    {console.log(salary)}
+                                          <div className="flex items-center">
+                                            {salary.profilePictureUrl ? (
+                                              // If profilePictureUrl exists, render the <img> tag
+                                              <img
+                                                src={`http://localhost:5000${salary.profilePictureUrl}`}
+                                                alt={`${salary.staffName}'s Profile`}
+                                                className="h-8 w-8 rounded-full object-cover mr-2"
+                                                onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/32x32/cccccc/ffffff?text=NA'; }}
+                                              />
+                                            ) : (
+                                              // If not, render the placeholder icon
+                                              <UserCircleIcon className="h-8 w-8 text-gray-400 mr-2" />
+                                            )}
+                                            <span>{salary.staffName}</span>
+                                          </div>
+                                        </td>
                   <td className="px-6 py-4 whitespace-nowrap text-base text-gray-500 text-left">{salary.staffRole}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-base text-gray-500 text-left">{months[salary.month - 1]} {salary.year}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-base text-gray-500 text-left">PKR {parseFloat(salary.paidAmount).toFixed(2)}</td>

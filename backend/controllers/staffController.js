@@ -768,7 +768,16 @@ export const updateStaff = async (req, res) => {
     if (subjectsTaught !== undefined) updateFields.subjectsTaught = subjectsTaught ? JSON.parse(subjectsTaught) : [];
     if (emergencyContact !== undefined) updateFields.emergencyContact = emergencyContact;
     if (bankAccountDetails !== undefined) updateFields.bankAccountDetails = JSON.parse(bankAccountDetails);
-    if (assignClasses !== undefined) updateFields.assignClasses = assignClasses ? JSON.parse(assignClasses) : [];
+    // if (assignClasses !== undefined) updateFields.assignClasses = assignClasses ? JSON.parse(assignClasses) : [];
+    if (assignClasses !== undefined) {
+  try {
+    updateFields.assignClasses = assignClasses ? JSON.parse(assignClasses) : [];
+  } catch (e) {
+    console.error("Invalid JSON for assignClasses:", assignClasses);
+    updateFields.assignClasses = [];
+  }
+}
+
 
     updateFields.profilePictureUrl = handleProfilePictureUpload(req.file, existingProfilePictureUrl, currentStaff.profilePictureUrl);
 

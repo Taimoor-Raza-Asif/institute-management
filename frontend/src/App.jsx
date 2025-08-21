@@ -33,6 +33,7 @@ import MarkingForm from './components/MarkingForm';
 import DonationManagement from './components/DonationManagement';
 import BillingManagement from './components/BillingManagement';
 import Reports from './pages/Reports';
+import EditMarksForm from './components/EditMarksForm'; // New Import
 export const UserContext = createContext(null);
 
 const App = () => {
@@ -145,6 +146,7 @@ const App = () => {
           <Route path="/marks/add" element={<PrivateRoute roles={['teacher']}><MarkingForm /></PrivateRoute>} /> 
           <Route path="/marks/teacher/:id" element={<PrivateRoute roles={['teacher']}><MarksList /></PrivateRoute>} /> 
           <Route path="/attendance/students/assigned" element={<PrivateRoute roles={['teacher']}><AttendanceMarking /></PrivateRoute>} />
+            <Route path="/marks/edit/:id" element={<EditMarksForm />} />
           {/* Staff Module (Cook, Cleaner) */}
           <Route path="/staff/dashboard" element={<PrivateRoute roles={['cook', 'cleaner']}><StaffDashboard /></PrivateRoute>} />
 

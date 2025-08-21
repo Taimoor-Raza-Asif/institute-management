@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback, useContext } from 'react';
 import api from '../api';
 import { UserContext } from '../App'; // Assuming UserContext is provided by App.jsx
-import { PlusIcon, PencilIcon, TrashIcon, EyeIcon, FunnelIcon, XMarkIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, PencilIcon, TrashIcon, EyeIcon, FunnelIcon, XMarkIcon, MagnifyingGlassIcon, UserCircleIcon } from '@heroicons/react/24/outline';
 import Modal from '../components/Modal'; // Assuming a Modal component exists
 
 // UserForm.jsx (Nested component for Add/Edit/View User)
@@ -384,11 +384,29 @@ const UserManagement = () => {
                     <th scope="col" className="px-6 py-3 text-center text-sm font-base text-white border border-white uppercase tracking-wider text-center">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-white divide-y divide-gray-">
                   {filteredUsers.map((user) => (
                     <tr key={user._id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      {/* <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                         {user.cnic}
+                      </td> */}
+
+                      <td className="px-6 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
+                        <div className="flex items-center">
+                          {user.profileId.profilePictureUrl ? (
+                            // If profilePictureUrl exists, render the <img> tag
+                            <img
+                              src={`http://localhost:5000${user.profileId.profilePictureUrl}`}
+                              alt={`${user.profileId.cnic}'s Profile`}
+                              className="h-8 w-8 rounded-full object-cover mr-2"
+                              onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/32x32/cccccc/ffffff?text=NA'; }}
+                            />
+                          ) : (
+                            // If not, render the placeholder icon
+                            <UserCircleIcon className="h-8 w-8 text-gray-400 mr-2" />
+                          )}
+                          <span>{user.profileId.cnic}</span>
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {user.role}

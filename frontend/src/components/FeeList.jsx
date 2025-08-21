@@ -3,7 +3,7 @@ import React, { useEffect, useState, useCallback, useRef } from 'react';
 import FeeModal from './FeeModal';
 import FeeForm from './FeeForm';
 import api from '../api';
-import { PencilIcon, TrashIcon, PlusIcon, FunnelIcon, XMarkIcon, MagnifyingGlassIcon, EyeIcon } from '@heroicons/react/24/outline';
+import { PencilIcon, TrashIcon, PlusIcon, FunnelIcon, XMarkIcon, MagnifyingGlassIcon, EyeIcon, UserCircleIcon } from '@heroicons/react/24/outline';
 
 // Array of month names
 const months = [
@@ -497,7 +497,28 @@ const FeeList = () => {
                                     key={fee._id}
                                     className={`text-center ${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'} py-4 cursor-pointer hover:bg-gray-200 transition-colors duration-150`}>
                                     {/* Ensure no whitespace immediately after <td> or between </td> and <td> */}
-                                    <td className="border border-white text-base  p-2">{fee.studentId?.name || '-'}</td>
+                                    {/* <td className="border border-white text-base  p-2">{fee.studentId?.name || '-'}</td>
+                                    {console.log(fee)} */}
+
+                                    <td className="px-6 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
+                                        <div className="flex items-center">
+                                            {console.log(fee.studentId )}
+                                            {fee.studentId?.profilePictureUrl ? (
+                                                // If profilePictureUrl exists, render the <img> tag
+                                                <img
+                                                    src={`http://localhost:5000${fee.studentId?.profilePictureUrl}`}
+                                                    alt={`${fee.studentId?.name}'s Profile`}
+                                                    className="h-8 w-8 rounded-full object-cover mr-2"
+                                                    onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/32x32/cccccc/ffffff?text=NA'; }}
+                                                />
+                                            ) : (
+                                                // If not, render the placeholder icon
+                                                <UserCircleIcon className="h-8 w-8 text-gray-400 mr-2" />
+                                            )}
+                                            <span>{fee.studentId?.name || '-'}</span>
+                                        </div>
+                                    </td>
+                                    
                                     <td className="border border-white text-base text-gray-500 p-2">{fee.month || '-'} {fee.year || ''}</td> {/* Added || '-' for safety */}
                                     <td className="border border-white text-base text-gray-500 p-2">{fee.totalFee || '0'}</td> {/* Added || '0' for safety */}
                                     <td className="border border-white text-base text-gray-500 p-2">{fee.receivedAmount || '0'}</td> {/* Added || '0' for safety */}
@@ -525,16 +546,16 @@ const FeeList = () => {
                                         <button onClick={(e) => { e.stopPropagation(); handleView(fee); }} className="text-gray-600 hover:text-gray-800 transition-colors duration-200 p-1 rounded-md hover:bg-gray-100" title="View Fee Details">
                                             <EyeIcon className="h-5 w-5" />
                                         </button>
-                                           {canEditFee && (
-                                        <button onClick={(e) => { e.stopPropagation(); handleEdit(fee); }} className="text-blue-600 hover:text-blue-800 transition-colors duration-200 p-1 rounded-md hover:bg-blue-100" title="Edit Fee Record">
-                                            <PencilIcon className="h-5 w-5" />
-                                        </button>
-                                         )}
-                                         {canDeleteFee && (
-                                        <button onClick={(e) => { e.stopPropagation(); handleDelete(fee._id); }} className="text-red-600 hover:text-red-800 transition-colors duration-200 p-1 rounded-md hover:bg-red-100" title="Delete Fee Record">
-                                            <TrashIcon className="h-5 w-5" />
-                                        </button>
-                                         )}
+                                        {canEditFee && (
+                                            <button onClick={(e) => { e.stopPropagation(); handleEdit(fee); }} className="text-blue-600 hover:text-blue-800 transition-colors duration-200 p-1 rounded-md hover:bg-blue-100" title="Edit Fee Record">
+                                                <PencilIcon className="h-5 w-5" />
+                                            </button>
+                                        )}
+                                        {canDeleteFee && (
+                                            <button onClick={(e) => { e.stopPropagation(); handleDelete(fee._id); }} className="text-red-600 hover:text-red-800 transition-colors duration-200 p-1 rounded-md hover:bg-red-100" title="Delete Fee Record">
+                                                <TrashIcon className="h-5 w-5" />
+                                            </button>
+                                        )}
                                     </td>
                                 </tr>
                             ))

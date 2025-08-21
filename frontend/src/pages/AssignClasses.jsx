@@ -497,7 +497,7 @@ const AssignClasses = () => {
                                     onClick={resetCurrentAssignmentForm}
                                     className="ml-4 px-6 py-3 border border-gray-300 rounded-lg text-gray-700 font-semibold hover:bg-gray-100 transition duration-200"
                                 >
-                                    Cancel
+                                    Clear
                                 </button>
                             </div>
                         </div>

@@ -128,7 +128,7 @@ import React, { useState, useEffect, useCallback, useContext } from 'react';
 import api from '../api';
 import { UserContext } from '../App';
 import { Switch } from '@headlessui/react';
-import { FunnelIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { FunnelIcon, MagnifyingGlassIcon, UserCircleIcon } from '@heroicons/react/24/outline';
 
 const AccessControlPanel = () => {
   const { currentUser } = useContext(UserContext);
@@ -269,8 +269,25 @@ const AccessControlPanel = () => {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {filteredUsers.map((user) => (
                     <tr key={user._id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      {/* <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                         {user.cnic}
+                      </td> */}
+                      <td className="px-6 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
+                        <div className="flex items-center">
+                          {user.profileId.profilePictureUrl ? (
+                            // If profilePictureUrl exists, render the <img> tag
+                            <img
+                              src={`http://localhost:5000${user.profileId.profilePictureUrl}`}
+                              alt={`${user.profileId.cnic}'s Profile`}
+                              className="h-8 w-8 rounded-full object-cover mr-2"
+                              onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/32x32/cccccc/ffffff?text=NA'; }}
+                            />
+                          ) : (
+                            // If not, render the placeholder icon
+                            <UserCircleIcon className="h-8 w-8 text-gray-400 mr-2" />
+                          )}
+                          <span>{user.cnic}</span>
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {user.role}
@@ -290,15 +307,13 @@ const AccessControlPanel = () => {
                           <Switch
                             checked={user.editModeEnabled}
                             onChange={() => handleToggleEditMode(user)}
-                            className={`${
-                              user.editModeEnabled ? 'bg-green-600' : 'bg-gray-200'
-                            } relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2`}
+                            className={`${user.editModeEnabled ? 'bg-green-600' : 'bg-gray-200'
+                              } relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2`}
                           >
                             <span className="sr-only">Toggle edit mode</span>
                             <span
-                              className={`${
-                                user.editModeEnabled ? 'translate-x-6' : 'translate-x-1'
-                              } inline-block h-4 w-4 transform rounded-full bg-white transition duration-200 ease-in-out`}
+                              className={`${user.editModeEnabled ? 'translate-x-6' : 'translate-x-1'
+                                } inline-block h-4 w-4 transform rounded-full bg-white transition duration-200 ease-in-out`}
                             />
                           </Switch>
                         ) : (

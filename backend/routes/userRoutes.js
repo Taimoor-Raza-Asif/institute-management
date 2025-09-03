@@ -8,7 +8,8 @@ import {
   updateUser,
   deleteUser,
   toggleEditMode,
-  registerAdminUser
+  registerAdminUser,
+  toggleAllEditMode,
 } from '../controllers/userController.js';
 import { protect, authorizeRoles } from '../middleware/authMiddleware.js';
 
@@ -29,29 +30,5 @@ router.put('/:id', protect, authorizeRoles('admin'), updateUser);
 router.delete('/:id', protect, authorizeRoles('admin'), deleteUser);
 router.put('/:id/editmode', protect, authorizeRoles('admin'), toggleEditMode); // Toggle edit mode for a user
 
+router.put('/editmode/:role', protect, authorizeRoles('admin'), toggleAllEditMode);
 export default router;
-
-
-// // backend/routes/userRoutes.js
-// import express from 'express';
-// import {
-//   registerUser, // Make sure you have this controller
-//   loginUser,
-//   // getMe,
-//   getAllUsers, // If you have an endpoint to get all users
-// } from '../controllers/userController.js';
-// import { protect, authorizeRoles } from '../middleware/authMiddleware.js';
-
-// const router = express.Router();
-
-// // Public routes (no authentication needed)
-// router.post('/register', registerUser); // Route to register a new user
-// router.post('/login', loginUser);       // Route for user login
-
-// // Protected routes (require a valid token)
-// // router.get('/me', protect, getMe);
-
-// // Admin-only routes (require 'admin' role)
-// router.get('/', protect, authorizeRoles('admin'), getAllUsers); // Example: Get all users, only for admin
-
-// export default router;

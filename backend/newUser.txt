@@ -1,6 +1,6 @@
 curl -X POST http://localhost:5000/api/staff \
--F "name=Admin User" \
--F "fatherName=Admin's Father" \
+-F "name=Razaa" \
+-F "fatherName=Asif" \
 -F "cnic=1234567890000" \
 -F "staffType=Admin" \
 -F "contactNumber=03001234567" \

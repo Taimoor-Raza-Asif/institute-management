@@ -440,3 +440,38 @@ export const registerAdminUser = asyncHandler(async (req, res) => {
 });
 
 
+// ... other imports and functions
+
+// --- TOGGLE EDIT MODE FOR ALL USERS OF A SPECIFIC ROLE ---
+export const toggleAllEditMode = async (req, res) => {
+  try {
+    const { role, enable } = req.body;
+
+    if (!role || typeof enable !== 'boolean') {
+      return res.status(400).json({ message: 'Role and a valid boolean "enable" value are required.' });
+    }
+
+    if (role === 'admin') {
+      return res.status(403).json({ message: 'Cannot bulk-toggle edit mode for admin accounts.' });
+    }
+
+    // Find all users with the specified role and update their editModeEnabled field
+    const result = await User.updateMany(
+      { role: role },
+      { $set: { editModeEnabled: enable } }
+    );
+
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ message: `No users with the role "${role}" found.` });
+    }
+
+    res.json({
+      message: `Edit mode has been ${enable ? 'enabled' : 'disabled'} for ${result.modifiedCount} users with the role "${role}".`,
+      modifiedCount: result.modifiedCount
+    });
+
+  } catch (err) {
+    console.error("Error toggling edit mode for all users:", err);
+    res.status(500).json({ message: 'Failed to update access settings: ' + err.message });
+  }
+};

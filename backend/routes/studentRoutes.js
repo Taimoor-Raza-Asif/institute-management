@@ -259,7 +259,7 @@ router.get('/:id', protect, authorizeRoles('admin', 'teacher', 'student', 'accou
 router.post('/', protect, authorizeRoles('admin', 'accountant'), studentUploadFields, createStudent);
 
 // Admin and Teacher can update students (Teacher with restrictions)
-router.put('/:id', protect, authorizeRoles('admin', 'teacher', 'accountant'), studentUploadFields, updateStudent);
+router.put('/:id', protect, authorizeRoles('admin', 'teacher', 'accountant', 'student'), studentUploadFields, updateStudent);
 
 // Admin can delete students
 router.delete('/:id', protect, authorizeRoles('admin'), deleteStudent);

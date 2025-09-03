@@ -419,7 +419,7 @@ const StudentList = () => {
           <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
             {canAddStudent && (
               <button onClick={handleAddStudent} className="flex items-center justify-center bg-green-600 font-semibold text-white px-5 py-2 rounded-lg hover:bg-green-700 transition duration-200 shadow-md w-full sm:w-auto">
-                <PlusIcon className="h-5 w-5 mr-2" /> Add New Student
+                <PlusIcon className="h-5 w-5 mr-2" /> New Student
               </button>
             )}
             <button
@@ -427,7 +427,7 @@ const StudentList = () => {
               className="flex items-center justify-center bg-gray-200 text-gray-800 px-5 py-2 rounded-lg hover:bg-gray-300 transition duration-200 shadow-md w-full sm:w-auto"
             >
               <FunnelIcon className="h-5 w-5 mr-2" />
-              {showAdvancedFilters ? 'Hide Filters' : 'Show Filters'}
+              {showAdvancedFilters ? 'Hide' : 'Filters'}
             </button>
           </div>
 

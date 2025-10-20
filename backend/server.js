@@ -55,7 +55,7 @@ import salaryRoutes from './routes/salaryRoutes.js';
 import donationRoutes from './routes/donationRoutes.js'; // Import the new routes
 import billingRoutes from './routes/billingRoutes.js'; 
 import marksRoutes from './routes/marksRoutes.js'; // Import the new routes
-
+import academicStructureRoutes from './routes/academicStructureRoutes.js';
 // Helper to get __filename and __dirname in ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -86,6 +86,7 @@ app.use('/api/salary', salaryRoutes);
 app.use('/api/donations', donationRoutes);
 app.use('/api/billing', billingRoutes); 
 app.use('/api/marks', marksRoutes);
+app.use('/api/academic-structure', academicStructureRoutes);
 // Define the port for the server
 const PORT = process.env.PORT || 5000;
 

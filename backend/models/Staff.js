@@ -18,13 +18,30 @@ const attendanceSchema = new mongoose.Schema({
 });
 
 
+// const assignClassSchema = new mongoose.Schema({
+//   type: { type: String, enum: ['Class', 'BS'], required: true },
+//   classNumber: { type: String, default: null }, // Only for "Class"
+//   degreeName: { type: String, default: null },  // Only for "BS"
+//   semester: { type: Number, default: null },    // Only for "BS"
+//   subjects: [{ type: String, required: true }]
+// });
+
+
+// --- MODIFIED assignClassSchema ---
 const assignClassSchema = new mongoose.Schema({
-  type: { type: String, enum: ['Class', 'BS'], required: true },
-  classNumber: { type: String, default: null }, // Only for "Class"
-  degreeName: { type: String, default: null },  // Only for "BS"
-  semester: { type: Number, default: null },    // Only for "BS"
+  type: { 
+      type: String, 
+      enum: ['Class', 'BS', 'Almiya', 'Hifaz'], // NEW ENUMS ADDED
+      required: true 
+  },
+  classNumber: { type: String, default: null }, // For 'Class' / Almiya (if applicable)
+  classIdentifier: { type: String, default: null }, // For 'Almiya' class names (Ama Awal, etc.)
+  degreeName: { type: String, default: null },  // For 'BS'
+  semester: { type: Number, default: null },    // For 'BS'
+  // For Hifaz, subjects will be 'Quran' but an array is kept for consistency.
   subjects: [{ type: String, required: true }]
 });
+
 
 const staffSchema = new mongoose.Schema({
     name: { type: String, required: true, trim: true },

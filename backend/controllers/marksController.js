@@ -32,11 +32,16 @@ export const addMarks = asyncHandler(async (req, res) => {
         type: ac.type,
         classNumber: ac.classNumber,
         degreeName: ac.degreeName,
-        semester: ac.semester
+        semester: ac.semester,
+        classIdentifier: ac.classIdentifier
     }));
     const isStudentInAssignedClass = assignedClasses.some(ac =>
         (ac.type === 'Class' && student.class === 'Class' && student.classNumber === ac.classNumber) ||
-        (ac.type === 'BS' && student.class === 'BS' && student.degreeName === ac.degreeName && student.semester === ac.semester)
+        (ac.type === 'BS' && student.class === 'BS' && student.degreeName === ac.degreeName && student.semester === ac.semester)||
+        // NEW Almiya check (uses classNumber or classIdentifier)
+        (ac.type === 'Almiya' && student.class === 'Almiya' && (student.classNumber === ac.classNumber || student.classIdentifier === ac.classIdentifier)) ||
+        // NEW Hifaz check
+        (ac.type === 'Hifaz' && student.class === 'Hifaz')
     );
     if (!isStudentInAssignedClass) {
         res.status(403);
@@ -52,23 +57,46 @@ export const addMarks = asyncHandler(async (req, res) => {
         }
     }
 
+    // // 4. Create new marks entry
+    // const newMarks = new Marks({
+    //     student: student._id,
+    //     studentName: student.name,
+    //     teacher: teacher._id,
+    //     teacherName: teacher.name,
+    //     assignedClass: assignedClasses.find(ac =>
+    //         (ac.type === 'Class' && student.class === 'Class' && student.classNumber === ac.classNumber) ||
+    //         (ac.type === 'BS' && student.class === 'BS' && student.degreeName === ac.degreeName && student.semester === ac.semester)
+    //     ),
+    //     subject,
+    //     marksType,
+    //     marksName,
+    //     marksObtained,
+    //     totalMarks,
+    //     conductedDate,
+    // });
+    // 
+    
     // 4. Create new marks entry
-    const newMarks = new Marks({
-        student: student._id,
-        studentName: student.name,
-        teacher: teacher._id,
-        teacherName: teacher.name,
-        assignedClass: assignedClasses.find(ac =>
-            (ac.type === 'Class' && student.class === 'Class' && student.classNumber === ac.classNumber) ||
-            (ac.type === 'BS' && student.class === 'BS' && student.degreeName === ac.degreeName && student.semester === ac.semester)
-        ),
-        subject,
-        marksType,
-        marksName,
-        marksObtained,
-        totalMarks,
-        conductedDate,
-    });
+    const assignedClass = assignedClasses.find(ac =>
+        (ac.type === 'Class' && student.class === 'Class' && student.classNumber === ac.classNumber) ||
+        (ac.type === 'BS' && student.class === 'BS' && student.degreeName === ac.degreeName && student.semester === ac.semester) ||
+        (ac.type === 'Almiya' && student.class === 'Almiya' && (student.classNumber === ac.classNumber || student.classIdentifier === ac.classIdentifier)) ||
+        (ac.type === 'Hifaz' && student.class === 'Hifaz')
+    ); 
+
+    const newMarks = new Marks({ //
+        student: student._id, //
+        studentName: student.name, //
+        teacher: teacher._id, //
+        teacherName: teacher.name, //
+        assignedClass: assignedClass, //
+        subject, //
+        marksType, //
+        marksName, //
+        marksObtained, //
+        totalMarks, //
+        conductedDate, //
+    }); //
 
     await newMarks.save();
     res.status(201).json(newMarks);
@@ -463,7 +491,8 @@ export const addBulkMarks = asyncHandler(async (req, res) => {
         type: ac.type,
         classNumber: ac.classNumber,
         degreeName: ac.degreeName,
-        semester: ac.semester
+        semester: ac.semester,
+        classIdentifier: ac.classIdentifier // NEW FIELD
     }));
 
     const results = [];
@@ -486,11 +515,21 @@ export const addBulkMarks = asyncHandler(async (req, res) => {
             throw new Error(`Student with ID ${studentId} not found.`);
         }
 
-        // 3. Validate student is in one of the teacher's classes
+        // // 3. Validate student is in one of the teacher's classes
+        // const isStudentInAssignedClass = assignedClasses.some(ac =>
+        //     (ac.type === 'Class' && student.class === 'Class' && student.classNumber === ac.classNumber) ||
+        //     (ac.type === 'BS' && student.class === 'BS' && student.degreeName === ac.degreeName && student.semester === ac.semester)
+        // );
+
+
+        // 3. Validate student is in one of the teacher's classes (MODIFIED)
         const isStudentInAssignedClass = assignedClasses.some(ac =>
             (ac.type === 'Class' && student.class === 'Class' && student.classNumber === ac.classNumber) ||
-            (ac.type === 'BS' && student.class === 'BS' && student.degreeName === ac.degreeName && student.semester === ac.semester)
-        );
+            (ac.type === 'BS' && student.class === 'BS' && student.degreeName === ac.degreeName && student.semester === ac.semester) ||
+            (ac.type === 'Almiya' && student.class === 'Almiya' && (student.classNumber === ac.classNumber || student.classIdentifier === ac.classIdentifier)) ||
+            (ac.type === 'Hifaz' && student.class === 'Hifaz')
+        ); 
+
 
         if (!isStudentInAssignedClass) {
             res.status(403);
@@ -506,11 +545,20 @@ export const addBulkMarks = asyncHandler(async (req, res) => {
             }
         }
 
-        // 5. Find and update or create a new marks entry
+        // // 5. Find and update or create a new marks entry
+        // const assignedClass = assignedClasses.find(ac =>
+        //     (ac.type === 'Class' && student.class === 'Class' && student.classNumber === ac.classNumber) ||
+        //     (ac.type === 'BS' && student.class === 'BS' && student.degreeName === ac.degreeName && student.semester === ac.semester)
+        // );
+
+        // 5. Find and update or create a new marks entry (MODIFIED)
         const assignedClass = assignedClasses.find(ac =>
             (ac.type === 'Class' && student.class === 'Class' && student.classNumber === ac.classNumber) ||
-            (ac.type === 'BS' && student.class === 'BS' && student.degreeName === ac.degreeName && student.semester === ac.semester)
-        );
+            (ac.type === 'BS' && student.class === 'BS' && student.degreeName === ac.degreeName && student.semester === ac.semester) ||
+            (ac.type === 'Almiya' && student.class === 'Almiya' && (student.classNumber === ac.classNumber || student.classIdentifier === ac.classIdentifier)) ||
+            (ac.type === 'Hifaz' && student.class === 'Hifaz')
+        ); //
+
 
         const filter = {
             student: student._id,

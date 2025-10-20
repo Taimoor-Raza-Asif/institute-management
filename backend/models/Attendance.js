@@ -26,14 +26,27 @@ const attendanceSchema = new mongoose.Schema({
     default: 'Absent',
   },
   
-  // Optional: details for students
+  // // Optional: details for students
+  // studentDetails: {
+  //   class: { type: String }, // e.g., 'BS', 'Class'
+  //   classNumber: { type: String }, // e.g., '10th', '9th'
+  //   semester: { type: Number },
+  //   degreeName: { type: String },
+  //   majorSubject: { type: String },
+  // },
+
+// Optional: details for students (MODIFIED)
   studentDetails: {
-    class: { type: String }, // e.g., 'BS', 'Class'
+    class: { type: String, enum: ['Class', 'BS', 'Almiya', 'Hifaz'] }, // NEW ENUMS ADDED
     classNumber: { type: String }, // e.g., '10th', '9th'
     semester: { type: Number },
     degreeName: { type: String },
     majorSubject: { type: String },
+    // NEW HIFAZ FIELDS
+    currentJuz: { type: Number },
+    currentSurah: { type: String },
   },
+
 
   // Optional: Who marked the attendance
   markedBy: {

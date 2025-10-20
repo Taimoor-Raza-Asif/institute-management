@@ -322,12 +322,12 @@ const UserManagement = () => {
 
   return (
     <div className="container mx-auto p-4 sm:p-6 lg:p-4">
-      <h1 className="text-3xl sm:text-4xl font-bold text-center text-green-800 mb-14">User Account Management</h1>
+      <h1 className="text-3xl sm:text-4xl font-bold font-serif text-center text-green-800 mb-14">User Account Management</h1>
 
       <div className="mb-6 p-4 bg-gray-50 rounded-lg shadow-sm border border-gray-200">
         <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-3">
           {/* Search Input */}
-          <div className="relative w-full sm:w-1/2">
+          <div className="relative w-full sm:w-3/4">
             <input
               type="text"
               id="filterCnic"
@@ -354,12 +354,12 @@ const UserManagement = () => {
                 ))}
               </select>
             </div>
-            <button
+            {/* <button
               onClick={handleAddUser}
               className="flex items-center justify-center bg-green-600 font-semibold text-white px-5 py-2 rounded-lg hover:bg-green-700 transition duration-200 shadow-md w-full sm:w-auto"
             >
               <PlusIcon className="h-5 w-5 mr-2" /> Add New User
-            </button>
+            </button> */}
           </div>
         </div>
       </div>

@@ -34,6 +34,7 @@ import DonationManagement from './components/DonationManagement';
 import BillingManagement from './components/BillingManagement';
 import Reports from './pages/Reports';
 import EditMarksForm from './components/EditMarksForm'; // New Import
+import AcademicStructurePanel from './pages/AcademicStructurePanel';
 export const UserContext = createContext(null);
 
 const App = () => {
@@ -115,6 +116,8 @@ const App = () => {
           <Route path="/admin/staff-leaves" element={<PrivateRoute roles={['admin']}><StaffLeaveList /></PrivateRoute>} />
           <Route path="/assign-classes" element={<PrivateRoute roles={['admin']}><AssignClasses /></PrivateRoute>} />
            <Route path="/admin/marks" element={<PrivateRoute roles={['admin']}><MarksList /></PrivateRoute>} /> {/* New Route */}
+           
+          <Route path="/academic-structure" element={<PrivateRoute roles={['admin']}><AcademicStructurePanel /></PrivateRoute>} />
 
           <Route path="/salaries" element={<PrivateRoute roles={['admin', 'accountant']}><StaffSalaryList /></PrivateRoute>} />
           <Route path="/salary/add" element={<PrivateRoute roles={['admin', 'accountant']}><SalaryForm /></PrivateRoute>} />

@@ -24,9 +24,9 @@ const Message = ({ type = 'info', children }) => {
       break;
     case 'info':
     default:
-      bgColorClass = 'bg-blue-100';
-      textColorClass = 'text-blue-800';
-      borderColorClass = 'border-blue-400';
+      bgColorClass = 'bg-green-100';
+      textColorClass = 'text-green-800';
+      borderColorClass = 'border-green-400';
       break;
   }
 

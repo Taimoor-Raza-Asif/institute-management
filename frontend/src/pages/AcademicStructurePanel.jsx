@@ -1,0 +1,862 @@
+import React, { useState, useEffect, useCallback, useContext } from 'react';
+import api from '../api';
+import { UserContext } from '../App';
+import Loader from '../components/Loader';
+import Message from '../components/Message';
+import {
+    AcademicCapIcon, PlusIcon, TrashIcon, PencilIcon, XMarkIcon,
+    ArrowPathIcon, BookmarkSquareIcon, BookOpenIcon, UsersIcon, SparklesIcon, MinusCircleIcon
+} from '@heroicons/react/24/outline';
+import { toast } from 'react-toastify';
+
+const initialNewType = {
+    name: '',
+    slug: '',
+    classConfig: [],
+    degreeConfig: [],
+    hifazConfig: [],
+    defaultDocumentsRequired: []
+};
+
+// --- Default Data Factory ---
+const getDefaultStructure = () => {
+    // Generate 30 Juz for Hifaz (simplified Surah list for initialization)
+    const hifazJuzConfig = Array.from({ length: 30 }, (_, i) => ({
+        juzNumber: i + 1,
+        surahs: [
+            i === 0 ? "Al-Fatiha & Al-Baqarah (Part)" : `Juz ${i + 1} Checkpoint 1`,
+            `Juz ${i + 1} Checkpoint 2`
+        ]
+    }));
+
+    return [
+        {
+            name: 'Regular Class (1-8)',
+            slug: 'Class',
+            classConfig: Array.from({ length: 8 }, (_, i) => ({
+                classIdentifier: `${i + 1}th Grade`,
+                classNumber: i + 1,
+                subjects: i < 5 ? ['Urdu', 'Math', 'Science', 'English'] : ['Physics', 'Chemistry', 'Math', 'Urdu']
+            })),
+            defaultDocumentsRequired: ["B-Form"],
+        },
+        {
+            name: 'BS / Honors / Degree',
+            slug: 'BS',
+            degreeConfig: [
+                {
+                    degreeName: 'Software Engineering',
+                    years: 4,
+                    maxSemester: 8,
+                    // Note: Must use Map for reactivity when manipulating in the UI state
+                    subjectsBySemester: new Map(Object.entries({
+                        '1': ['Calculus I', 'Programming Fundamentals', 'English'],
+                        '2': ['Calculus II', 'OOP', 'Data Structures']
+                    }))
+                },
+                {
+                    degreeName: 'Islamic Studies',
+                    years: 4,
+                    maxSemester: 8,
+                    subjectsBySemester: new Map(Object.entries({
+                        '1': ['Arabic Grammar', 'Fiqh Awal'],
+                        '2': ['Hadith Studies', 'Tafseer Awal']
+                    }))
+                }
+            ],
+            defaultDocumentsRequired: ["Class 10 Result", "Class 12 Result"],
+        },
+        {
+            name: 'Almiya (9-16)',
+            slug: 'Almiya',
+            classConfig: [
+                { classIdentifier: 'Ama Awal', classNumber: 9, subjects: ['Arabic', 'Tajweed', 'Fiqh'] },
+                { classIdentifier: 'Ama Doom', classNumber: 10, subjects: ['Sarf', 'Nahu', 'Usul'] },
+                { classIdentifier: 'Khasa Awal', classNumber: 11, subjects: ['Hadith', 'Tafseer', 'Balaghat'] },
+                { classIdentifier: 'Khasa Dom', classNumber: 12, subjects: ['Mantiq', 'Falsafa', 'Kalam'] },
+                { classIdentifier: 'Almiya Awal', classNumber: 13, subjects: ['Adab', 'Qira\'at'] },
+                { classIdentifier: 'Almiya Dom', classNumber: 14, subjects: ['Falsafa', 'Kalam'] },
+                { classIdentifier: 'Alma Awal', classNumber: 15, subjects: ['Tafseer ul Quran', 'Hadith Nabvi'] },
+                { classIdentifier: 'Alma Dom', classNumber: 16, subjects: ['Final Thesis', 'Islamic History'] },
+            ],
+            defaultDocumentsRequired: ["Previous Class Result"],
+        },
+        {
+            name: 'Hifaz-ul-Quran',
+            slug: 'Hifaz',
+            hifazConfig: hifazJuzConfig,
+            defaultDocumentsRequired: [],
+        },
+    ];
+};
+// --- End Default Data Factory ---
+
+const AcademicStructurePanel = () => {
+    const { currentUser: user } = useContext(UserContext);
+    const [structure, setStructure] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [isSaving, setIsSaving] = useState(false);
+    const [activeTab, setActiveTab] = useState('');
+    const [isAddingNewType, setIsAddingNewType] = useState(false);
+    const [newType, setNewType] = useState(initialNewType);
+
+    // Helper to process data from backend to ensure Maps are correctly instantiated
+    const processStructureData = (data) => {
+        if (!data || !data.classTypes) return data;
+        
+        return {
+            ...data,
+            classTypes: data.classTypes.map(type => {
+                if (type.slug === 'BS' && type.degreeConfig) {
+                    return {
+                        ...type,
+                        degreeConfig: type.degreeConfig.map(degree => ({
+                            ...degree,
+                            // Convert plain object to Map instance for reactivity
+                            subjectsBySemester: new Map(Object.entries(degree.subjectsBySemester || {}))
+                        }))
+                    };
+                }
+                return type;
+            })
+        };
+    };
+
+    const fetchStructure = useCallback(async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            const { data } = await api.get('/academic-structure');
+            
+            const processedData = processStructureData(data);
+            setStructure(processedData);
+            
+            if (processedData.classTypes.length > 0) {
+                setActiveTab(processedData.classTypes[0].slug);
+            }
+        } catch (err) {
+            console.error('Error fetching academic structure:', err);
+            setError(err.response?.data?.message || 'Failed to fetch academic structure.');
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        if (user?.role === 'admin') {
+            fetchStructure();
+        } else {
+            setError('You are not authorized to access the Academic Structure Panel.');
+            setLoading(false);
+        }
+    }, [user, fetchStructure]);
+
+    // MODIFIED: handleSaveStructure now accepts an optional payload to bypass async state update
+    const handleSaveStructure = async (initialPayload = null) => { 
+        setIsSaving(true);
+        setError(null);
+        
+        // Use the passed payload for initialization, or the current state for standard saving
+        const structureToSave = initialPayload 
+            ? { classTypes: initialPayload } 
+            : structure;
+
+        // Prepare payload: convert Maps to plain objects and clean up transient keys
+        const serializedClassTypes = structureToSave.classTypes.map(type => {
+            let serializedType = { ...type, key: undefined };
+            if (type.slug === 'BS' && type.degreeConfig) {
+                serializedType.degreeConfig = type.degreeConfig.map(degree => ({
+                    ...degree,
+                    subjectsBySemester: degree.subjectsBySemester instanceof Map 
+                        ? Object.fromEntries(degree.subjectsBySemester)
+                        : (degree.subjectsBySemester || {}) 
+                }));
+            }
+            return serializedType;
+        });
+
+        try {
+            const payload = { classTypes: serializedClassTypes };
+            const { data } = await api.put('/academic-structure', payload);
+            
+            // Process saved data back into state
+            const loadedStructure = processStructureData(data.structure);
+            setStructure(loadedStructure);
+            
+            // Update active tab if it was an initialization
+            if (initialPayload && loadedStructure.classTypes.length > 0) {
+                setActiveTab(loadedStructure.classTypes[0].slug);
+            }
+            
+            toast.success('Academic structure updated successfully!');
+        } catch (err) {
+            console.error('Error saving academic structure:', err);
+            setError(err.response?.data?.message || 'Failed to save academic structure.');
+            toast.error(err.response?.data?.message || 'Failed to save.');
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    // FIXED: initializeDefaultStructure now passes the payload directly to handleSaveStructure
+    const initializeDefaultStructure = async () => {
+        if (!window.confirm("Are you sure you want to initialize the default structure? This will overwrite any existing configuration.")) return;
+        
+        const defaultStructure = getDefaultStructure();
+        
+        // Pass the default structure array directly to the save handler
+        await handleSaveStructure(defaultStructure); 
+    };
+
+    // --- Dynamic Type Management (Unchanged core logic) ---
+    const handleNewTypeChange = (e) => {
+        const { name, value } = e.target;
+        setNewType(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleAddNewType = () => {
+        if (!newType.name || !newType.slug) {
+            toast.error('Name and Slug are required.');
+            return;
+        }
+
+        const newClassType = {
+            name: newType.name,
+            slug: newType.slug,
+            classConfig: newType.slug === 'Class' || newType.slug === 'Almiya' ? [] : undefined,
+            degreeConfig: newType.slug === 'BS' ? [] : undefined,
+            hifazConfig: newType.slug === 'Hifaz' ? Array.from({ length: 30 }, (_, i) => ({ juzNumber: i + 1, surahs: [] })) : undefined,
+            defaultDocumentsRequired: [],
+            // Initialize Almiya with default list if specified
+            ... (newType.slug === 'Almiya' && {
+                 classConfig: [
+                    { classIdentifier: 'Ama Awal', classNumber: 9, subjects: [] },
+                    { classIdentifier: 'Ama Doom', classNumber: 10, subjects: [] },
+                    { classIdentifier: 'Khasa Awal', classNumber: 11, subjects: [] },
+                    { classIdentifier: 'Khasa Dom', classNumber: 12, subjects: [] },
+                    { classIdentifier: 'Almiya Awal', classNumber: 13, subjects: [] },
+                    { classIdentifier: 'Almiya Dom', classNumber: 14, subjects: [] },
+                    { classIdentifier: 'Alma Awal', classNumber: 15, subjects: [] },
+                    { classIdentifier: 'Alma Dom', classNumber: 16, subjects: [] },
+                ]
+            }),
+            ... (newType.slug === 'BS' && {
+                degreeConfig: [
+                    {
+                        degreeName: 'New Degree',
+                        years: 4,
+                        maxSemester: 8,
+                        subjectsBySemester: new Map().set('1', ['Intro']).set('2', ['Core'])
+                    }
+                ]
+            }),
+            ... (newType.slug === 'Class' && {
+                classConfig: [
+                    { classIdentifier: '1st Grade', classNumber: 1, subjects: [] }
+                ]
+            }),
+        };
+
+        setStructure(prev => ({
+            ...prev,
+            classTypes: [...(prev?.classTypes || []), newClassType]
+        }));
+        setNewType(initialNewType);
+        setIsAddingNewType(false);
+        setActiveTab(newType.slug); // Switch to the new tab
+        toast.success(`Class type '${newType.name}' added. Click Save to confirm.`);
+    };
+
+    const handleRemoveType = (slug) => {
+        if (window.confirm(`Are you sure you want to remove the class type with slug: ${slug}? This will affect student data.`)) {
+            setStructure(prev => ({
+                ...prev,
+                classTypes: prev.classTypes.filter(type => type.slug !== slug)
+            }));
+            setActiveTab(prev => prev === slug ? (structure.classTypes.length > 1 ? structure.classTypes[0].slug : '') : prev);
+            toast.warning('Class type removed from config. Click Save to confirm.');
+        }
+    };
+
+    const updateTypeConfig = (slug, configField, newValue) => {
+        setStructure(prev => ({
+            ...prev,
+            classTypes: prev.classTypes.map(type =>
+                type.slug === slug ? { ...type, [configField]: newValue } : type
+            )
+        }));
+    };
+
+    // --- Class/Almiya Configuration Component ---
+    const ClassConfigEditor = ({ type, updateConfig }) => {
+        const isAlmiya = type.slug === 'Almiya';
+
+        const handleAddClass = () => {
+            const currentMax = type.classConfig.length > 0 ? Math.max(...type.classConfig.map(c => c.classNumber)) : 0;
+            const newClassNum = currentMax + 1;
+            const newClass = {
+                classIdentifier: isAlmiya ? `New Almiya Class ${newClassNum}` : `${newClassNum}th Grade`,
+                classNumber: newClassNum,
+                subjects: []
+            };
+            updateConfig('classConfig', [...type.classConfig, newClass]);
+        };
+
+        // FIXED: Stabilized handler for class property updates (Identifier, Number)
+        const handleUpdateClass = (index, field, value) => {
+            
+            // 1. Validate for duplicates if changing classNumber
+            if (field === 'classNumber') {
+                 const num = parseInt(value) || '';
+                 if (num !== '' && type.classConfig.some((c, i) => i !== index && c.classNumber === num)) {
+                     toast.error("Class number must be unique.");
+                     return;
+                 }
+            }
+            
+            // 2. Perform the immutable update correctly
+            updateConfig('classConfig', type.classConfig.map((cls, i) => {
+                if (i === index) {
+                    return { ...cls, [field]: value };
+                }
+                return cls;
+            }));
+        };
+
+        // FIXED: Stabilized handler for subject input changes
+        const handleUpdateSubject = (classIndex, subIndex, value) => {
+            updateConfig('classConfig', type.classConfig.map((cls, i) => {
+                if (i === classIndex) {
+                    // Create a new subjects array for immutability
+                    const newSubjects = cls.subjects.map((sub, j) => j === subIndex ? value : sub);
+                    return { ...cls, subjects: newSubjects };
+                }
+                return cls;
+            }));
+        };
+
+        const handleAddSubject = (classIndex) => {
+            updateConfig('classConfig', type.classConfig.map((cls, i) => {
+                if (i === classIndex) {
+                    return { ...cls, subjects: [...cls.subjects, ''] };
+                }
+                return cls;
+            }));
+        };
+
+        const handleRemoveClass = (classNumber) => {
+            if (window.confirm(`Are you sure you want to remove Class with number: ${classNumber}?`)) {
+                updateConfig('classConfig', type.classConfig.filter(c => c.classNumber !== classNumber));
+            }
+        };
+
+
+        return (
+            <div className="space-y-6">
+                <button
+                    onClick={handleAddClass}
+                    className="flex items-center bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition duration-200 shadow-md"
+                >
+                    <PlusIcon className="h-5 w-5 mr-2" />
+                    Add {isAlmiya ? 'Almiya' : 'Regular'} Class
+                </button>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    {type.classConfig.sort((a, b) => a.classNumber - b.classNumber).map((cls, classIndex) => (
+                        <div key={cls.classNumber} className="border border-indigo-200 p-4 rounded-lg shadow-md bg-white relative">
+                            <button
+                                onClick={() => handleRemoveClass(cls.classNumber)}
+                                className="absolute top-2 right-2 text-red-500 hover:text-red-700 p-1 bg-white rounded-full transition"
+                                title="Remove Class"
+                            >
+                                <TrashIcon className="h-5 w-5" />
+                            </button>
+                            <h4 className="text-md font-bold mb-3 pb-2 text-indigo-700 border-b border-indigo-100">
+                                {cls.classIdentifier}
+                            </h4>
+                            
+                            <div className="space-y-3">
+                                <div>
+                                    <label className="block text-xs font-medium text-gray-700">Class Identifier</label>
+                                    <input
+                                        type="text"
+                                        value={cls.classIdentifier}
+                                        onChange={(e) => handleUpdateClass(classIndex, 'classIdentifier', e.target.value)}
+                                        className="mt-1 block w-full px-2 py-1 text-sm border border-gray-300 rounded-md shadow-sm"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-medium text-gray-700">Class Number (Unique ID)</label>
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        value={cls.classNumber}
+                                        onChange={(e) => handleUpdateClass(classIndex, 'classNumber', e.target.value)}
+                                        className="mt-1 block w-full px-2 py-1 text-sm border border-gray-300 rounded-md shadow-sm bg-indigo-50"
+                                    />
+                                </div>
+                            </div>
+                            
+                            <h5 className="font-semibold text-sm mt-4 mb-2 text-gray-800 border-t pt-2">Subjects</h5>
+                            <div className="space-y-1">
+                                {cls.subjects.map((subject, subIndex) => (
+                                    <div key={subIndex} className="flex items-center space-x-2">
+                                        <input
+                                            type="text"
+                                            value={subject}
+                                            onChange={(e) => handleUpdateSubject(classIndex, subIndex, e.target.value)}
+                                            className="block w-full px-2 py-1 text-xs border border-gray-300 rounded-md shadow-sm"
+                                            placeholder={`Subject ${subIndex + 1}`}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                updateConfig('classConfig', type.classConfig.map((c, i) => {
+                                                    if (i === classIndex) {
+                                                        const newSubjects = c.subjects.filter((_, j) => j !== subIndex);
+                                                        return { ...c, subjects: newSubjects };
+                                                    }
+                                                    return c;
+                                                }));
+                                            }}
+                                            className="text-red-400 hover:text-red-600 p-1"
+                                        >
+                                            <MinusCircleIcon className="h-4 w-4" />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                            <button
+                                onClick={() => handleAddSubject(classIndex)}
+                                className="text-xs text-green-600 hover:text-green-800 flex items-center mt-2 font-medium"
+                            >
+                                <PlusIcon className="h-4 w-4 mr-1" /> Add Subject
+                            </button>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    };
+
+    // --- BS Configuration Component ---
+    const DegreeConfigEditor = ({ type, updateConfig }) => {
+        const handleAddDegree = () => {
+            updateConfig('degreeConfig', [...type.degreeConfig, {
+                degreeName: 'New Program',
+                years: 4,
+                maxSemester: 8,
+                subjectsBySemester: new Map().set('1', ['Intro to Core']).set('2', ['Core II'])
+            }]);
+        };
+
+        // FIXED: Stabilized handler for input changes
+        const handleUpdateDegree = (index, field, value) => {
+            updateConfig('degreeConfig', type.degreeConfig.map((degree, i) => {
+                if (i === index) {
+                    let newDegree = { ...degree, [field]: value };
+                    let parsedValue = value;
+
+                    if (field === 'years' || field === 'maxSemester') {
+                        parsedValue = parseInt(value) || 0;
+                        if (parsedValue < 1) parsedValue = 1;
+                        newDegree[field] = parsedValue;
+                    }
+
+                    if (field === 'years' && parsedValue) {
+                        newDegree.maxSemester = parsedValue * 2;
+                    } else if (field === 'maxSemester' && parsedValue) {
+                        newDegree.years = Math.ceil(parsedValue / 2);
+                    }
+                    return newDegree;
+                }
+                return degree;
+            }));
+        };
+
+        // FIXED: Stabilized handler for subject updates inside the Map
+        const handleUpdateSemesterSubject = (degreeIndex, semester, subjectIndex, value) => {
+             updateConfig('degreeConfig', type.degreeConfig.map((degree, i) => {
+                 if (i === degreeIndex) {
+                     // Create new Map instance for immutability
+                     const newSubjectsMap = new Map(degree.subjectsBySemester);
+                     
+                     // Get the subjects array for the specific semester
+                     const subjects = [...(newSubjectsMap.get(String(semester)) || [])];
+                     
+                     // Update the specific subject in the array
+                     subjects[subjectIndex] = value;
+                     
+                     // Put the new array back into the new Map
+                     newSubjectsMap.set(String(semester), subjects);
+                     
+                     // Return the degree object with the new map instance
+                     return { ...degree, subjectsBySemester: newSubjectsMap };
+                 }
+                 return degree;
+             }));
+        };
+
+        const handleAddSemesterSubject = (degreeIndex, semester) => {
+            updateConfig('degreeConfig', type.degreeConfig.map((degree, i) => {
+                if (i === degreeIndex) {
+                    const newSubjectsMap = new Map(degree.subjectsBySemester);
+                    const subjects = [...(newSubjectsMap.get(String(semester)) || [])];
+                    subjects.push('');
+                    newSubjectsMap.set(String(semester), subjects);
+                    return { ...degree, subjectsBySemester: newSubjectsMap };
+                }
+                return degree;
+            }));
+        };
+
+        const handleRemoveDegree = (degreeName) => {
+            if (window.confirm(`Are you sure you want to remove the degree: ${degreeName}?`)) {
+                updateConfig('degreeConfig', type.degreeConfig.filter(d => d.degreeName !== degreeName));
+            }
+        };
+        
+        const handleRemoveSubject = (degreeIndex, semester, subIndex) => {
+            updateConfig('degreeConfig', type.degreeConfig.map((degree, i) => {
+                if (i === degreeIndex) {
+                    const newSubjectsMap = new Map(degree.subjectsBySemester);
+                    const subjects = (newSubjectsMap.get(String(semester)) || []).filter((_, j) => j !== subIndex);
+                    newSubjectsMap.set(String(semester), subjects);
+                    return { ...degree, subjectsBySemester: newSubjectsMap };
+                }
+                return degree;
+            }));
+        };
+
+
+        return (
+            <div className="space-y-6">
+                <button
+                    onClick={handleAddDegree}
+                    className="flex items-center bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition duration-200 shadow-md"
+                >
+                    <PlusIcon className="h-5 w-5 mr-2" />
+                    Add New Degree/Program
+                </button>
+
+                <div className="space-y-8">
+                    {type.degreeConfig.map((degree, degreeIndex) => (
+                        // Use degree name/slug as key to ensure stable mounting
+                        <div key={degree.degreeName} className="border border-green-300 p-6 rounded-lg shadow-xl bg-white relative">
+                            <button
+                                onClick={() => handleRemoveDegree(degree.degreeName)}
+                                className="absolute top-2 right-2 text-red-500 hover:text-red-700 p-1 bg-white rounded-full transition"
+                                title="Remove Degree"
+                            >
+                                <TrashIcon className="h-5 w-5" />
+                            </button>
+                            <h4 className="text-xl font-bold text-green-700 mb-4">{degree.degreeName}</h4>
+                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4 border-b pb-4 border-gray-100">
+                                <div className="md:col-span-2">
+                                    <label className="block text-sm font-medium text-gray-700">Degree Name</label>
+                                    <input
+                                        type="text"
+                                        value={degree.degreeName}
+                                        onChange={(e) => handleUpdateDegree(degreeIndex, 'degreeName', e.target.value)}
+                                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">Total Years</label>
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        value={degree.years}
+                                        onChange={(e) => handleUpdateDegree(degreeIndex, 'years', e.target.value)}
+                                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-green-50"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">Max Semester</label>
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        value={degree.maxSemester}
+                                        onChange={(e) => handleUpdateDegree(degreeIndex, 'maxSemester', e.target.value)}
+                                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-green-50"
+                                    />
+                                </div>
+                            </div>
+
+                            <h5 className="font-semibold text-gray-800 mb-3 flex items-center"><BookOpenIcon className="h-5 w-5 mr-2 text-green-600" /> Semester-wise Subjects</h5>
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                {Array.from({ length: degree.maxSemester }, (_, i) => i + 1).map(semester => (
+                                    // Use a stable key that includes the degree name and semester number
+                                    <div key={`${degree.degreeName}-${semester}`} className="border border-gray-200 p-3 rounded-lg bg-gray-50 shadow-sm">
+                                        <h6 className="font-bold text-sm text-indigo-700 mb-2 border-b pb-1">Semester {semester}</h6>
+                                        <div className="space-y-1">
+                                            {Array.from(degree.subjectsBySemester.get(String(semester)) || []).map((subject, subIndex) => (
+                                                <div key={subIndex} className="flex items-center space-x-1">
+                                                    <input
+                                                        type="text"
+                                                        value={subject}
+                                                        onChange={(e) => handleUpdateSemesterSubject(degreeIndex, semester, subIndex, e.target.value)}
+                                                        className="w-full px-2 py-1 text-xs border border-gray-300 rounded-md"
+                                                        placeholder="Subject Name"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleRemoveSubject(degreeIndex, semester, subIndex)}
+                                                        className="text-red-400 hover:text-red-600 p-1"
+                                                    >
+                                                        <MinusCircleIcon className="h-4 w-4" />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <button
+                                            onClick={() => handleAddSemesterSubject(degreeIndex, semester)}
+                                            className="text-xs text-green-500 hover:text-green-700 flex items-center mt-2 font-medium"
+                                        >
+                                            <PlusIcon className="h-3 w-3 mr-1" /> Add Subject
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    };
+
+
+    // --- Hifaz Configuration Component ---
+    const HifazConfigEditor = ({ type, updateConfig }) => {
+        
+        // FIXED: Stabilized handler for surah updates
+        const handleUpdateSurah = (juzIndex, surahIndex, value) => {
+            updateConfig('hifazConfig', type.hifazConfig.map((juz, i) => {
+                if (i === juzIndex) {
+                    const newSurahs = juz.surahs.map((surah, j) => j === surahIndex ? value : surah);
+                    return { ...juz, surahs: newSurahs };
+                }
+                return juz;
+            }));
+        };
+
+        const handleAddSurah = (juzIndex) => {
+            updateConfig('hifazConfig', type.hifazConfig.map((juz, i) => {
+                if (i === juzIndex) {
+                    return { ...juz, surahs: [...juz.surahs, ''] };
+                }
+                return juz;
+            }));
+        };
+        
+        const handleRemoveSurah = (juzIndex, surahIndex) => {
+             updateConfig('hifazConfig', type.hifazConfig.map((juz, i) => {
+                if (i === juzIndex) {
+                    const newSurahs = juz.surahs.filter((_, j) => j !== surahIndex);
+                    return { ...juz, surahs: newSurahs };
+                }
+                return juz;
+            }));
+        };
+
+        return (
+            <div className="space-y-6">
+                <p className="text-gray-700 bg-yellow-100 p-3 rounded-md border border-yellow-300 flex items-center">
+                    <BookmarkSquareIcon className="h-5 w-5 mr-2 text-yellow-700" />
+                    Hifaz structure tracks the 30 Juz (Chapters). Configure the major Surahs within each Juz as checkpoints for student progress.
+                </p>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {type.hifazConfig.map((juz, juzIndex) => (
+                        // Use juzNumber as key for stable mapping
+                        <div key={juz.juzNumber} className="border border-green-200 p-4 rounded-lg shadow-sm bg-white">
+                            <h4 className="text-lg font-bold mb-3 pb-2 text-green-700 border-b border-green-100">Juz (Chapter) {juz.juzNumber}</h4>
+
+                            <h5 className="font-semibold text-sm mt-2 mb-2 text-gray-800 flex items-center">Surahs/Checkpoints</h5>
+                            <div className="space-y-1">
+                                {juz.surahs.map((surah, surahIndex) => (
+                                    <div key={surahIndex} className="flex items-center space-x-2">
+                                        <input
+                                            type="text"
+                                            value={surah}
+                                            onChange={(e) => handleUpdateSurah(juzIndex, surahIndex, e.target.value)}
+                                            className="block w-full px-2 py-1 text-xs border border-gray-300 rounded-md shadow-sm"
+                                            placeholder={`Checkpoint ${surahIndex + 1}`}
+                                        />
+                                        <button
+                                             type="button"
+                                             onClick={() => handleRemoveSurah(juzIndex, surahIndex)}
+                                             className="text-red-400 hover:text-red-600 p-1"
+                                         >
+                                            <MinusCircleIcon className="h-4 w-4" />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                            
+                            <button
+                                onClick={() => handleAddSurah(juzIndex)}
+                                className="text-xs text-indigo-600 hover:text-indigo-800 flex items-center mt-2 font-medium"
+                            >
+                                <PlusIcon className="h-4 w-4 mr-1" /> Add Checkpoint
+                            </button>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    };
+
+    if (loading) return <Loader />;
+    if (error) return <Message type="error">{error}</Message>;
+
+    const activeType = structure?.classTypes.find(type => type.slug === activeTab);
+    const isStructureEmpty = !structure || structure.classTypes.length === 0;
+
+    return (
+        <div className="container mx-auto p-6 bg-white shadow-2xl rounded-xl my-8 max-w-7xl">
+            <h2 className="text-3xl font-extrabold text-gray-900 mb-6 border-b pb-4 flex items-center">
+                <AcademicCapIcon className="h-8 w-8 mr-3 text-indigo-600" /> Academic Structure Panel
+            </h2>
+
+            {/* Initialization Block */}
+            {isStructureEmpty && (
+                <div className="mb-6 p-6 bg-red-50 border border-red-300 rounded-lg shadow-md text-center">
+                    <Message type="error" className="mb-4">
+                        Database is empty. You must **initialize the academic structure** before adding students.
+                    </Message>
+                    <button
+                        onClick={initializeDefaultStructure}
+                        className="flex items-center justify-center mx-auto bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition duration-200 shadow-lg font-bold"
+                        disabled={isSaving}
+                    >
+                        <SparklesIcon className={`h-6 w-6 mr-3 ${isSaving ? 'animate-bounce' : ''}`} />
+                        {isSaving ? 'Initializing...' : 'Initialize Default Structure'}
+                    </button>
+                </div>
+            )}
+            
+            {!isStructureEmpty && (
+                <Message type="info" className="mb-6">
+                    Configure the classes, degrees, subjects, and checkpoints for each academic track. Remember to **Save Configuration** after making changes.
+                </Message>
+            )}
+
+            {/* FIXED: Responsive layout for Tabs/Add Button and Save Button */}
+            <div className="flex flex-col md:flex-row justify-between items-start mb-6 mt-4 gap-4">
+                
+                {/* Tabs and Add Type Button - Takes full width on mobile/tablet, then shrinks on desktop */}
+                <div className="flex space-x-2 overflow-x-auto pb-2 flex-shrink md:flex-grow md:w-auto w-full">
+                    {structure?.classTypes.map(type => (
+                        <button
+                            key={type.slug}
+                            onClick={() => setActiveTab(type.slug)}
+                            className={`flex-shrink-0 px-5 py-2 text-sm font-semibold rounded-lg transition duration-150 shadow-md ${activeTab === type.slug ? 'bg-indigo-600 text-white transform scale-[1.02] ring-2 ring-indigo-300' : 'bg-gray-200 text-gray-700 hover:bg-indigo-100 hover:text-indigo-800'}`}
+                        >
+                            <span className="flex items-center">
+                                <UsersIcon className="h-5 w-5 mr-1" /> {type.name}
+                            </span>
+                        </button>
+                    ))}
+
+                    <button
+                        onClick={() => setIsAddingNewType(true)}
+                        className="flex-shrink-0 px-5 py-2 text-sm font-medium rounded-lg bg-green-500 text-white hover:bg-green-600 transition duration-150 shadow-md flex items-center"
+                    >
+                        <PlusIcon className="h-5 w-5 mr-2" /> Add Type
+                    </button>
+                </div>
+                
+                {/* Save Configuration Button - Pushed to the right, takes full width on mobile/tablet */}
+                <button
+                    onClick={handleSaveStructure}
+                    disabled={isSaving || isStructureEmpty}
+                    className="flex items-center justify-center bg-green-600 text-white px-8 py-3 rounded-lg hover:bg-green-700 transition duration-200 shadow-xl font-bold md:w-auto w-full disabled:bg-gray-400 disabled:shadow-none flex-shrink-0"
+                >
+                    <ArrowPathIcon className={`h-5 w-5 mr-3 ${isSaving ? 'animate-spin' : ''}`} />
+                    {isSaving ? 'Saving...' : 'Save Configuration'}
+                </button>
+            </div>
+
+            {isAddingNewType && (
+                <div className="p-6 mb-6 border border-dashed border-indigo-400 rounded-lg bg-indigo-50 shadow-inner">
+                    <h3 className="text-xl font-semibold mb-4 text-indigo-800">Add New Academic Type</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div className="md:col-span-1">
+                            <label className="block text-sm font-medium text-indigo-700">Display Name</label>
+                            <input type="text" name="name" value={newType.name} onChange={handleNewTypeChange} placeholder="e.g., Vocational Training" className="mt-1 block w-full px-3 py-2 border border-indigo-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
+                        </div>
+                        <div className="md:col-span-2">
+                            <label className="block text-sm font-medium text-indigo-700">Unique Slug (e.g., Vocational, VT, must be unique)</label>
+                            <input type="text" name="slug" value={newType.slug} onChange={handleNewTypeChange} placeholder="e.g., VT" className="mt-1 block w-full px-3 py-2 border border-indigo-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
+                        </div>
+                        <div className="flex items-end space-x-3 md:col-span-1">
+                            <button onClick={handleAddNewType} className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 shadow-md">
+                                Create Type
+                            </button>
+                            <button onClick={() => setIsAddingNewType(false)} className="bg-gray-300 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-400 shadow-sm">
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+
+            {/* Active Tab Content */}
+            <div className="mt-6 p-6 border border-gray-200 rounded-xl bg-gray-50 min-h-[500px]">
+                {activeType ? (
+                    <>
+                        <div className="flex justify-between items-center mb-6 pb-2 border-b border-gray-300">
+                            <h3 className="text-2xl font-bold text-gray-800">
+                                <UsersIcon className='h-6 w-6 mr-2 inline-block text-indigo-500'/> Configuring: {activeType.name}
+                            </h3>
+                            <button
+                                onClick={() => handleRemoveType(activeType.slug)}
+                                className="flex items-center text-sm text-red-500 hover:text-red-700 font-medium p-2 rounded-lg transition hover:bg-red-50"
+                            >
+                                <TrashIcon className="h-4 w-4 mr-1" /> Remove {activeType.name} Type
+                            </button>
+                        </div>
+
+                        {/* RENDER DYNAMIC CONFIGURATION EDITOR */}
+                        {['Class', 'Almiya'].includes(activeType.slug) && (
+                            <ClassConfigEditor
+                                type={activeType}
+                                updateConfig={(field, value) => updateTypeConfig(activeTab, field, value)}
+                            />
+                        )}
+
+                        {activeType.slug === 'BS' && (
+                            <DegreeConfigEditor
+                                type={activeType}
+                                updateConfig={(field, value) => updateTypeConfig(activeTab, field, value)}
+                            />
+                        )}
+
+                        {activeType.slug === 'Hifaz' && (
+                            <HifazConfigEditor
+                                type={activeType}
+                                updateConfig={(field, value) => updateTypeConfig(activeTab, field, value)}
+                            />
+                        )}
+
+                        {/* Fallback for Custom/New Types */}
+                        {!(['Class', 'BS', 'Almiya', 'Hifaz'].includes(activeType.slug)) && (
+                            <Message type="info">
+                                No dedicated configuration editor for this type yet. You can still modify the core structure.
+                            </Message>
+                        )}
+                    </>
+                ) : (
+                    <Message type="info">
+                        {!isStructureEmpty ? "Select an academic type from the tabs above to configure." : "Click 'Initialize Default Structure' to begin configuration."}
+                    </Message>
+                )}
+            </div>
+        </div>
+    );
+};
+
+export default AcademicStructurePanel;

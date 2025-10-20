@@ -53,7 +53,7 @@ export const updateStudent = async (req, res) => {
       name, fatherName, rollNumber, cnic, address, guardianContact, additionalContact,
       dob, gender, email, admissionDate, class: studentClass, classNumber,
       majorSubject, degreeName, semester, feePerMonth, studentStatus, depositedAmount, otherDues,
-      reason,
+      reason, currentJuz, currentSurah,
       profilePictureUrl: existingProfilePictureUrl,
       cnicFrontUrl: existingCnicFrontUrl,
       cnicBackUrl: existingCnicBackUrl,
@@ -124,24 +124,65 @@ export const updateStudent = async (req, res) => {
       updateFields.reason = reason;
     }
 
-    // Handle class-specific fields
+    // // Handle class-specific fields
+    // if (studentClass !== undefined) {
+    //   if (studentClass === 'Class') {
+    //     if (classNumber !== undefined) updateFields.classNumber = classNumber;
+    //     if (majorSubject !== undefined) updateFields.majorSubject = majorSubject;
+    //     updateFields.degreeName = undefined;
+    //     updateFields.semester = undefined;
+    //   } else if (studentClass === 'BS') {
+    //     if (degreeName !== undefined) updateFields.degreeName = degreeName;
+    //     if (semester !== undefined) updateFields.semester = parseInt(semester);
+    //     updateFields.classNumber = undefined;
+    //     updateFields.majorSubject = undefined;
+    //   } else {
+    //     updateFields.classNumber = undefined;
+    //     updateFields.majorSubject = undefined;
+    //     updateFields.degreeName = undefined;
+    //     updateFields.semester = undefined;
+    //   }
+    // }
+
+
+// Handle class-specific fields (MODIFIED)
     if (studentClass !== undefined) {
-      if (studentClass === 'Class') {
+      if (['Class', 'Almiya'].includes(studentClass)) {
         if (classNumber !== undefined) updateFields.classNumber = classNumber;
-        if (majorSubject !== undefined) updateFields.majorSubject = majorSubject;
-        updateFields.degreeName = undefined;
-        updateFields.semester = undefined;
+        if (studentClass === 'Class' && majorSubject !== undefined) updateFields.majorSubject = majorSubject;
+        
+        updateFields.degreeName = null;
+        updateFields.semester = null;
+        updateFields.currentJuz = null;
+        updateFields.currentSurah = null;
       } else if (studentClass === 'BS') {
         if (degreeName !== undefined) updateFields.degreeName = degreeName;
         if (semester !== undefined) updateFields.semester = parseInt(semester);
-        updateFields.classNumber = undefined;
-        updateFields.majorSubject = undefined;
+
+        updateFields.classNumber = null;
+        updateFields.majorSubject = null;
+        updateFields.currentJuz = null;
+        updateFields.currentSurah = null;
+      } else if (studentClass === 'Hifaz') {
+        if (currentJuz !== undefined) updateFields.currentJuz = parseInt(currentJuz) || 0;
+        if (currentSurah !== undefined) updateFields.currentSurah = currentSurah;
+
+        updateFields.classNumber = null;
+        updateFields.majorSubject = null;
+        updateFields.degreeName = null;
+        updateFields.semester = null;
       } else {
-        updateFields.classNumber = undefined;
-        updateFields.majorSubject = undefined;
-        updateFields.degreeName = undefined;
-        updateFields.semester = undefined;
+        updateFields.classNumber = null;
+        updateFields.majorSubject = null;
+        updateFields.degreeName = null;
+        updateFields.semester = null;
+        updateFields.currentJuz = null;
+        updateFields.currentSurah = null;
       }
+    } else {
+      // If class is not explicitly updated, still handle Hifaz fields if they are present in req.body
+       if (currentJuz !== undefined) updateFields.currentJuz = parseInt(currentJuz) || 0;
+       if (currentSurah !== undefined) updateFields.currentSurah = currentSurah;
     }
 
     // --- Document Upload Fields ---
@@ -422,7 +463,7 @@ export const createStudent = async (req, res) => {
       name, fatherName, rollNumber, cnic, address, guardianContact, additionalContact,
       dob, gender, email, admissionDate, class: studentClass, classNumber,
       majorSubject, degreeName, semester, feePerMonth, studentStatus, depositedAmount, otherDues,
-      reason
+      reason, currentJuz, currentSurah
     } = req.body;
 
     const profilePictureUrl = req.files?.profilePicture ? getRelativeUploadUrl(req.files.profilePicture[0].path) : '';
@@ -447,37 +488,78 @@ export const createStudent = async (req, res) => {
       return res.status(400).json({ message: 'Reason is required for Expelled or Withdrawn status.' });
     }
 
+    // // 1. Create the Student record first
+    // const newStudent = new Student({
+    //   name,
+    //   fatherName,
+    //   cnic,
+    //   rollNumber,
+    //   address,
+    //   guardianContact,
+    //   additionalContact,
+    //   dob: new Date(dob),
+    //   gender,
+    //   admissionDate: new Date(admissionDate),
+    //   email,
+    //   profilePictureUrl,
+    //   class: studentClass,
+    //   studentStatus,
+    //   feePerMonth: parseFloat(feePerMonth),
+    //   reason: (studentStatus === 'Expelled' || studentStatus === 'Withdrawn') ? reason : undefined,
+    //   depositedAmount: depositedAmount || 0,
+    //   otherDues: otherDues || 0,
+    //   classNumber: studentClass === 'Class' ? classNumber : undefined,
+    //   majorSubject: studentClass === 'Class' ? majorSubject : undefined,
+    //   degreeName: studentClass === 'BS' ? degreeName : undefined,
+    //   semester: studentClass === 'BS' ? parseInt(semester) : undefined,
+    //   cnicFrontUrl,
+    //   cnicBackUrl,
+    //   bFormUrl,
+    //   characterCertificateUrl,
+    //   previousClassResultUrl,
+    //   class10ResultUrl,
+    //   class12ResultUrl,
+    // });
+
+
     // 1. Create the Student record first
     const newStudent = new Student({
-      name,
-      fatherName,
-      cnic,
-      rollNumber,
-      address,
-      guardianContact,
-      additionalContact,
-      dob: new Date(dob),
-      gender,
-      admissionDate: new Date(admissionDate),
-      email,
-      profilePictureUrl,
-      class: studentClass,
-      studentStatus,
-      feePerMonth: parseFloat(feePerMonth),
-      reason: (studentStatus === 'Expelled' || studentStatus === 'Withdrawn') ? reason : undefined,
-      depositedAmount: depositedAmount || 0,
-      otherDues: otherDues || 0,
-      classNumber: studentClass === 'Class' ? classNumber : undefined,
+      name, //
+      fatherName, //
+      cnic, //
+      rollNumber, //
+      address, //
+      guardianContact, //
+      additionalContact, //
+      dob: new Date(dob), //
+      gender, //
+      admissionDate: new Date(admissionDate), //
+      email, //
+      profilePictureUrl, //
+      class: studentClass, //
+      studentStatus, //
+      feePerMonth: parseFloat(feePerMonth), //
+      reason: (studentStatus === 'Expelled' || studentStatus === 'Withdrawn') ? reason : undefined, //
+      depositedAmount: depositedAmount || 0, //
+      otherDues: otherDues || 0, //
+      
+      // Update academic fields to handle all types (new logic for Almiya/Hifaz is minimal here)
+      classNumber: ['Class', 'Almiya'].includes(studentClass) ? classNumber : undefined,
       majorSubject: studentClass === 'Class' ? majorSubject : undefined,
       degreeName: studentClass === 'BS' ? degreeName : undefined,
       semester: studentClass === 'BS' ? parseInt(semester) : undefined,
-      cnicFrontUrl,
-      cnicBackUrl,
-      bFormUrl,
-      characterCertificateUrl,
-      previousClassResultUrl,
-      class10ResultUrl,
-      class12ResultUrl,
+      
+      // NEW HIFAZ FIELDS
+      currentJuz: studentClass === 'Hifaz' ? (parseInt(currentJuz) || 0) : undefined,
+      currentSurah: studentClass === 'Hifaz' ? currentSurah : undefined,
+
+      cnicFrontUrl, //
+      cnicBackUrl, //
+      bFormUrl, //
+      characterCertificateUrl, //
+      previousClassResultUrl, //
+      class10ResultUrl, //
+      class12ResultUrl, //
     });
 
     const savedStudent = await newStudent.save();
@@ -586,87 +668,189 @@ export const updateStudentFeeStatus = async (req, res) => {
 };
 
 
-// @desc    Promote a student to the next class
+// // @desc    Promote a student to the next class
+// // @route   PUT /api/students/:id/promote
+// // @access  Private (Admin)
+// export const promoteStudent = asyncHandler(async (req, res) => {
+//   const { id } = req.params;
+//   const student = await Student.findById(id);
+
+//   if (!student) {
+//     res.status(404);
+//     throw new Error('Student not found');
+//   }
+
+//   // MODIFIED: Ensure student is in a regular class before promoting
+//   if (student.class === 'Class' && student.classNumber >= 1 && student.classNumber < 11) {
+//     student.classNumber = (parseInt(student.classNumber) + 1).toString();
+//     await student.save();
+//     res.json({ message: 'Student promoted successfully', student });
+//   } else {
+//     res.status(400);
+//     throw new Error('Student cannot be promoted from this class or is not in a class from 1 to 11');
+//   }
+// });
+
+
+// @desc    Promote a student to the next class (MODIFIED)
 // @route   PUT /api/students/:id/promote
 // @access  Private (Admin)
 export const promoteStudent = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  const student = await Student.findById(id);
+  const { id } = req.params; //
+  const student = await Student.findById(id); //
 
-  if (!student) {
-    res.status(404);
-    throw new Error('Student not found');
-  }
+  if (!student) { //
+    res.status(404); //
+    throw new Error('Student not found'); //
+  } //
 
-  // MODIFIED: Ensure student is in a regular class before promoting
-  if (student.class === 'Class' && student.classNumber >= 1 && student.classNumber < 11) {
-    student.classNumber = (parseInt(student.classNumber) + 1).toString();
-    await student.save();
-    res.json({ message: 'Student promoted successfully', student });
+  // NOTE: This logic should ideally be dynamic by reading the AcademicStructure.
+  // For now, we generalize the class number promotion logic.
+  if (['Class', 'Almiya'].includes(student.class)) {
+    const currentClassNumber = parseInt(student.classNumber);
+    if (!isNaN(currentClassNumber)) {
+      student.classNumber = (currentClassNumber + 1).toString();
+      await student.save();
+      res.json({ message: `${student.class} student promoted successfully`, student });
+    } else {
+       res.status(400);
+       throw new Error(`Student of type ${student.class} has an invalid class number for promotion.`);
+    }
   } else {
-    res.status(400);
-    throw new Error('Student cannot be promoted from this class or is not in a class from 1 to 11');
+    res.status(400); //
+    throw new Error('Student type cannot be promoted via class number route.'); //
   }
 });
 
-// @desc    Demote a student to the previous class
+
+// // @desc    Demote a student to the previous class
+// // @route   PUT /api/students/:id/demote
+// // @access  Private (Admin)
+// export const demoteStudent = asyncHandler(async (req, res) => {
+//   const { id } = req.params;
+//   const student = await Student.findById(id);
+
+//   if (!student) {
+//     res.status(404);
+//     throw new Error('Student not found');
+//   }
+
+//   // MODIFIED: Ensure student is in a regular class before demoting
+//   if (student.class === 'Class' && student.classNumber > 1 && student.classNumber <= 12) {
+//     student.classNumber = (parseInt(student.classNumber) - 1).toString();
+//     await student.save();
+//     res.json({ message: 'Student demoted successfully', student });
+//   } else {
+//     res.status(400);
+//     throw new Error('Student cannot be demoted from this class or is not in a class from 1 to 11');
+//   }
+// });
+
+
+// @desc    Demote a student to the previous class (MODIFIED)
 // @route   PUT /api/students/:id/demote
 // @access  Private (Admin)
 export const demoteStudent = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  const student = await Student.findById(id);
+  const { id } = req.params; //
+  const student = await Student.findById(id); //
 
-  if (!student) {
-    res.status(404);
-    throw new Error('Student not found');
-  }
+  if (!student) { //
+    res.status(404); //
+    throw new Error('Student not found'); //
+  } //
 
-  // MODIFIED: Ensure student is in a regular class before demoting
-  if (student.class === 'Class' && student.classNumber > 1 && student.classNumber <= 12) {
-    student.classNumber = (parseInt(student.classNumber) - 1).toString();
-    await student.save();
-    res.json({ message: 'Student demoted successfully', student });
+  if (['Class', 'Almiya'].includes(student.class)) {
+    const currentClassNumber = parseInt(student.classNumber);
+    if (!isNaN(currentClassNumber) && currentClassNumber > 1) {
+      student.classNumber = (currentClassNumber - 1).toString();
+      await student.save();
+      res.json({ message: `${student.class} student demoted successfully`, student });
+    } else {
+      res.status(400); //
+      throw new Error(`Student of type ${student.class} has an invalid class number for demotion.`); //
+    }
   } else {
-    res.status(400);
-    throw new Error('Student cannot be demoted from this class or is not in a class from 1 to 11');
+    res.status(400); //
+    throw new Error('Student type cannot be demoted via class number route.'); //
   }
 });
 
-// @desc    Promote an entire class to the next class
+
+// // @desc    Promote an entire class to the next class
+// // @route   PUT /api/students/promote-class
+// // @access  Private (Admin)
+// export const promoteClass = asyncHandler(async (req, res) => {
+//   const { classNumber } = req.body;
+//   if (!classNumber || classNumber < 1 || classNumber >= 12) {
+//     res.status(400);
+//     throw new Error('Invalid class number for promotion. Must be between 1 and 12.');
+//   }
+
+//   const updatedStudents = await Student.updateMany(
+//     { class: 'Class', classNumber: classNumber.toString() },
+//     { $set: { classNumber: (parseInt(classNumber) + 1).toString() } }
+//   );
+
+//   res.json({ message: `${updatedStudents.modifiedCount} students promoted successfully.` });
+// });
+
+
+// @desc    Promote an entire class (MODIFIED)
 // @route   PUT /api/students/promote-class
 // @access  Private (Admin)
 export const promoteClass = asyncHandler(async (req, res) => {
-  const { classNumber } = req.body;
-  if (!classNumber || classNumber < 1 || classNumber >= 12) {
+  const { classNumber, classType = 'Class' } = req.body; // Allow classType to be passed, default to 'Class'
+  if (!classNumber || classNumber < 1) {
     res.status(400);
-    throw new Error('Invalid class number for promotion. Must be between 1 and 12.');
+    throw new Error('Invalid class number for promotion.');
   }
 
   const updatedStudents = await Student.updateMany(
-    { class: 'Class', classNumber: classNumber.toString() },
+    { class: classType, classNumber: classNumber.toString() },
     { $set: { classNumber: (parseInt(classNumber) + 1).toString() } }
   );
 
   res.json({ message: `${updatedStudents.modifiedCount} students promoted successfully.` });
 });
 
-// @desc    Demote an entire class to the previous class
+
+// // @desc    Demote an entire class to the previous class
+// // @route   PUT /api/students/demote-class
+// // @access  Private (Admin)
+// export const demoteClass = asyncHandler(async (req, res) => {
+//   const { classNumber } = req.body;
+//   if (!classNumber || classNumber <= 1 || classNumber > 12) {
+//     res.status(400);
+//     throw new Error('Invalid class number for demotion. Must be between 2 and 12.');
+//   }
+
+//   const updatedStudents = await Student.updateMany(
+//     { class: 'Class', classNumber: classNumber.toString() },
+//     { $set: { classNumber: (parseInt(classNumber) - 1).toString() } }
+//   );
+
+//   res.json({ message: `${updatedStudents.modifiedCount} students demoted successfully.` });
+// });
+
+
+// @desc    Demote an entire class (MODIFIED)
 // @route   PUT /api/students/demote-class
 // @access  Private (Admin)
 export const demoteClass = asyncHandler(async (req, res) => {
-  const { classNumber } = req.body;
-  if (!classNumber || classNumber <= 1 || classNumber > 12) {
+  const { classNumber, classType = 'Class' } = req.body; // Allow classType to be passed, default to 'Class'
+  if (!classNumber || classNumber <= 1) {
     res.status(400);
-    throw new Error('Invalid class number for demotion. Must be between 2 and 12.');
+    throw new Error('Invalid class number for demotion.');
   }
 
   const updatedStudents = await Student.updateMany(
-    { class: 'Class', classNumber: classNumber.toString() },
+    { class: classType, classNumber: classNumber.toString() },
     { $set: { classNumber: (parseInt(classNumber) - 1).toString() } }
   );
 
   res.json({ message: `${updatedStudents.modifiedCount} students demoted successfully.` });
 });
+
 
 
 // --- NEW FUNCTIONS FOR SEMESTER PROMOTION/DEMOTION ---

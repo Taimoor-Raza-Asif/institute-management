@@ -221,11 +221,14 @@ const getSalaryById = asyncHandler(async (req, res) => {
 // @route   GET /api/salary/reports
 // @access  Private/Admin & Accountant
 const getSalaryReports = asyncHandler(async (req, res) => {
-  const { year } = req.query;
+  const { year, month } = req.query;
   const matchFilter = { paidAt: { $ne: null } };
 
-  if (year) {
-    matchFilter.$expr = { $eq: [{ $year: "$paidAt" }, parseInt(year)] };
+  if (year || month) {
+    const expressions = [];
+    if (year) expressions.push({ $eq: [{ $year: "$paidAt" }, parseInt(year, 10)] });
+    if (month) expressions.push({ $eq: [{ $month: "$paidAt" }, parseInt(month, 10)] });
+    matchFilter.$expr = expressions.length === 1 ? expressions[0] : { $and: expressions };
   }
 
   try {

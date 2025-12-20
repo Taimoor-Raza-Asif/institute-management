@@ -25,7 +25,7 @@ const StudentDashboard = () => {
         <DashboardCard
           title="My Profile"
           description="View and manage your personal student information."
-          icon={<UserCircleIcon className="h-8 w-8 text-blue-600" />}
+          icon={<UserCircleIcon className="h-8 w-8 text-green-600" />}
           link="/students/my-data"
         />
         <DashboardCard

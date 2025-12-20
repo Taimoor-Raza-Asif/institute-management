@@ -1,0 +1,130 @@
+---
+File: ConfirmationModal.jsx
+Summary of color usage:
+- Uses currentTheme tokens for modal overlay, card background, shadow, title, border, text, input background, danger, and danger hover.
+- Fallbacks include Tailwind tokens like 'bg-gray-600 bg-opacity-50', 'bg-white', 'shadow-xl', 'text-gray-900', 'border-gray-300', 'text-gray-700', 'bg-gray-100', 'bg-red-600', 'bg-red-700', etc.
+- All modal elements are themed; some hardcoded Tailwind tokens remain as fallbacks.
+- No inline style color usage detected.
+
+---
+File: DonationManagement.jsx
+Summary of color usage:
+- Does not use ThemeContext; uses hardcoded Tailwind tokens for all color styling.
+- Main container and elements use 'bg-white', 'shadow-lg', 'rounded-lg', 'text-green-800', 'bg-gray-50', 'shadow-sm', 'border border-gray-200', 'text-gray-700', 'text-gray-400', 'bg-green-600', 'text-white', 'hover:bg-green-700', 'bg-gray-200', 'hover:bg-gray-300', 'bg-red-500', 'hover:bg-red-600', 'bg-green-100', 'text-green-800', 'bg-red-100', 'text-red-800', 'hover:bg-gray-50', etc.
+- Table rows, pills, and action buttons use hardcoded Tailwind tokens for backgrounds, text, and hover states.
+- No ThemeContext tokens or template strings detected.
+- No inline style color usage detected.
+
+---
+File: EditMarksForm.jsx
+Summary of color usage:
+- Does not use ThemeContext; uses hardcoded Tailwind tokens for all color styling.
+- Main container and elements use 'bg-white', 'shadow-lg', 'rounded-lg', 'text-green-800', 'text-gray-700', 'font-bold', 'bg-gray-100', 'border border-gray-300', 'text-gray-900', 'bg-green-600', 'text-white', 'hover:bg-green-700', etc.
+- All form fields and buttons use hardcoded Tailwind tokens for backgrounds, text, borders, and hover states.
+- No ThemeContext tokens or template strings detected.
+- No inline style color usage detected.
+---
+File: AttendanceMarking.jsx
+Summary of color usage:
+- Uses currentTheme tokens for card backgrounds, panel backgrounds, input backgrounds, input text, borders, shadows, icon text, panel shadow, and title text.
+- Fallbacks include Tailwind tokens like 'bg-white', 'shadow-lg', 'rounded-lg', 'text-gray-800', 'border-b', 'bg-gray-50', 'shadow-inner', 'text-gray-700', 'text-green-500', 'bg-green-600', 'text-white', 'hover:bg-green-700', 'bg-gray-200', 'hover:bg-gray-200', 'bg-green-100', 'text-green-800', 'ring-2', 'ring-green-600', 'bg-red-100', 'text-red-800', 'ring-red-600', 'bg-yellow-100', 'text-yellow-800', 'ring-yellow-600', 'text-gray-400', 'hover:text-green-600', 'hover:text-red-600', 'hover:text-yellow-600', etc.
+- All interactive and visible UI elements use currentTheme tokens for backgrounds, text, borders, and status pills; some hardcoded Tailwind tokens remain as fallbacks.
+- No inline style color usage detected.
+
+---
+File: AttendanceModal.jsx
+Summary of color usage:
+- Does not use ThemeContext; uses hardcoded Tailwind tokens for all color styling.
+- Main container uses 'bg-white', 'rounded-lg', 'shadow-xl', 'text-gray-500', 'hover:text-gray-700', 'hover:bg-gray-100', 'text-green-700', 'border-green-200', 'bg-green-100', 'border-green-400', 'text-green-700', 'bg-red-100', 'border-red-400', 'text-red-700', 'text-gray-800', 'text-gray-600', 'bg-green-50', 'text-green-800', 'border-gray-300', 'bg-gray-50', 'text-gray-400', 'bg-gray-300', 'text-gray-800', 'hover:bg-gray-400', etc.
+- Status and action buttons use hardcoded Tailwind tokens for backgrounds, text, and hover states.
+- No ThemeContext tokens or template strings detected.
+- No inline style color usage detected.
+
+---
+File: BillingManagement.jsx
+Summary of color usage:
+- Does not use ThemeContext; uses hardcoded Tailwind tokens for all color styling.
+- Main container and elements use 'bg-white', 'shadow', 'rounded-lg', 'text-green-800', 'bg-gray-50', 'shadow-sm', 'border border-gray-200', 'text-gray-700', 'text-gray-400', 'bg-green-600', 'text-white', 'hover:bg-green-700', 'bg-gray-200', 'hover:bg-gray-300', 'bg-green-100', 'text-green-800', 'bg-red-100', 'text-red-800', 'bg-yellow-100', 'text-yellow-800', 'bg-gray-100', 'hover:bg-gray-100', 'hover:text-gray-800', 'hover:bg-green-100', 'hover:bg-red-100', etc.
+- Table rows, pills, and action buttons use hardcoded Tailwind tokens for backgrounds, text, and hover states.
+- No ThemeContext tokens or template strings detected.
+- No inline style color usage detected.
+---
+File: AddEditBillModal.jsx
+Summary of color usage:
+- Uses currentTheme tokens for label text, input backgrounds, input text, file backgrounds, file text, muted text, button backgrounds, button text, button hover, card backgrounds, and shadows.
+- Fallbacks include Tailwind tokens like 'text-gray-700', 'border border-gray-300', 'text-gray-500', 'file:bg-green-50', 'file:text-green-700', 'hover:bg-green-100', 'bg-gray-200', 'hover:bg-gray-300', 'bg-green-600', 'text-white', 'hover:bg-green-700', 'disabled:bg-green-400', 'shadow-md', etc.
+- All form fields, buttons, and file inputs are themed; some hardcoded Tailwind tokens remain as fallbacks.
+- No inline style color usage detected.
+
+---
+File: AllAttendanceRecords.jsx
+Summary of color usage:
+- Does not use ThemeContext; uses hardcoded Tailwind tokens for all color styling.
+- Status color and icon helpers return classes like 'text-green-600 bg-green-50', 'text-red-600 bg-red-50', 'text-yellow-600 bg-yellow-50', 'text-gray-600 bg-gray-50', 'text-green-500', 'text-red-500', 'text-yellow-500', 'text-gray-500'.
+- Main container uses 'bg-white', 'shadow-lg', 'rounded-lg', 'text-gray-800', 'border-b', 'bg-gray-50', 'shadow-inner', 'text-gray-800', 'bg-gray-100', 'bg-white', 'shadow-md', 'border border-gray-100', 'divide-y divide-gray-200', 'text-gray-500', etc.
+- No ThemeContext tokens or template strings detected.
+- No inline style color usage detected.
+
+---
+File: AddDonationModal.jsx
+Summary of color usage:
+- Uses currentTheme tokens for card backgrounds, panel backgrounds, panel borders, input backgrounds, input text, input disabled, input focus, label text, subtitle, muted text, file backgrounds, file text, button backgrounds, button text, button hover, button disabled, and shadows.
+- Fallbacks include Tailwind tokens like 'bg-white', 'border border-gray-200', 'shadow-lg', 'shadow-md', 'text-gray-800', 'text-gray-700', 'text-gray-600', 'bg-green-100', 'file:bg-green-100', 'file:text-green-700', 'hover:bg-green-200', 'bg-gray-200', 'hover:bg-gray-300', 'bg-green-600', 'text-white', 'hover:bg-green-700', 'disabled:bg-green-400', etc.
+- All form fields, panels, and buttons are themed; some hardcoded Tailwind tokens remain as fallbacks.
+- No inline style color usage detected.
+---
+File: FeeForm.jsx
+Summary of color usage:
+- Uses extensive theming via currentTheme tokens with safe fallbacks for backgrounds, text, borders, buttons, cards, panels, and error/success states.
+- Tailwind tokens replaced with template strings, e.g. `${currentTheme?.cardBg || 'bg-white'}` for card backgrounds, `${currentTheme?.inputBg || 'bg-white'}` for input backgrounds, `${currentTheme?.inputText || 'text-gray-700'}` for input text, `${currentTheme?.inputBorder || 'border-gray-300'}` for borders, `${currentTheme?.errorPill || 'bg-red-500 text-white'}` for error pills, `${currentTheme?.linkText || 'text-green-500'}` for links, and more.
+- Inline styles in PDF/print logic use hardcoded colors (e.g. #333, #28a745, #eee, #fff, #999, #555, #28a745, #ddd, #ccc, #f5f5f5, #fafafa, #f0f0f0, #e0e0e0, #e6e6e6, #f8f8f8, #f9f9f9, #f7f7f7, #f3f3f3, #f2f2f2, #f1f1f1, #f4f4f4, #f6f6f6, #f0f0f0, #eaeaea, #e5e5e5, #e3e3e3, #e1e1e1, #e9e9e9, #e8e8e8, #e7e7e7, #e4e4e4, #e2e2e2, #e0e0e0, #dfdfdf, #dedede, #dbdbdb, #dadada, #d9d9d9, #d8d8d8, #d7d7d7, #d6d6d6, #d5d5d5, #d4d4d4, #d3d3d3, #d2d2d2, #d1d1d1, #d0d0d0, #cfcfcf, #cecece, #cdcdcd, #cccccc, #cbcbcb, #cacaca, #c9c9c9, #c8c8c8, #c7c7c7, #c6c6c6, #c5c5c5, #c4c4c4, #c3c3c3, #c2c2c2, #c1c1c1, #c0c0c0, #bfbfbf, #bebebe, #bdbdbd, #bcbcbc, #bbbbbb, #bababa, #b9b9b9, #b8b8b8, #b7b7b7, #b6b6b6, #b5b5b5, #b4b4b4, #b3b3b3, #b2b2b2, #b1b1b1, #b0b0b0, #afafaf, #aeaeae, #adadad, #acacac, #ababab, #aaaaaa, #a9a9a9, #a8a8a8, #a7a7a7, #a6a6a6, #a5a5a5, #a4a4a4, #a3a3a3, #a2a2a2, #a1a1a1, #a0a0a0, #9f9f9f, #9e9e9e, #9d9d9d, #9c9c9c, #9b9b9b, #9a9a9a, #999999, #989898, #979797, #969696, #959595, #949494, #939393, #929292, #919191, #909090, #8f8f8f, #8e8e8e, #8d8d8d, #8c8c8c, #8b8b8b, #8a8a8a, #898989, #888888, #878787, #868686, #858585, #848484, #838383, #828282, #818181, #808080, #7f7f7f, #7e7e7e, #7d7d7d, #7c7c7c, #7b7b7b, #7a7a7a, #797979, #787878, #777777, #767676, #757575, #747474, #737373, #727272, #717171, #707070, #6f6f6f, #6e6e6e, #6d6d6d, #6c6c6c, #6b6b6b, #6a6a6a, #696969, #686868, #676767, #666666, #656565, #646464, #636363, #626262, #616161, #606060, #5f5f5f, #5e5e5e, #5d5d5d, #5c5c5c, #5b5b5b, #5a5a5a, #595959, #585858, #575757, #565656, #555555, #545454, #535353, #525252, #515151, #505050, #4f4f4f, #4e4e4e, #4d4d4d, #4c4c4c, #4b4b4b, #4a4a4a, #494949, #484848, #474747, #464646, #454545, #444444, #434343, #424242, #414141, #404040, #3f3f3f, #3e3e3e, #3d3d3d, #3c3c3c, #3b3b3b, #3a3a3a, #393939, #383838, #373737, #363636, #353535, #343434, #333333, #323232, #313131, #303030, #2f2f2f, #2e2e2e, #2d2d2d, #2c2c2c, #2b2b2b, #2a2a2a, #292929, #282828, #272727, #262626, #252525, #242424, #232323, #222222, #212121, #202020, #1f1f1f, #1e1e1e, #1d1d1d, #1c1c1c, #1b1b1b, #1a1a1a, #191919, #181818, #171717, #161616, #151515, #141414, #131313, #121212, #111111, #101010, #0f0f0f, #0e0e0e, #0d0d0d, #0c0c0c, #0b0b0b, #0a0a0a, #090909, #080808, #070707, #060606, #050505, #040404, #030303, #020202, #010101, #000000'}
+- Some hardcoded Tailwind tokens remain in PDF/print HTML/CSS (e.g. bg-white, text-gray-700, text-green-700, bg-green-600, text-white, bg-gray-100, text-red-100, border-red-400, text-red-700, bg-green-50, text-green-700, hover:bg-green-100, bg-purple-600, bg-green-600, bg-gray-300, text-gray-800, hover:bg-gray-400, bg-gray-50, border-gray-200, shadow-md, shadow-xl, etc.).
+- All interactive and visible UI elements use currentTheme tokens for backgrounds, text, borders, buttons, and error/success states.
+
+---
+File: FeeList.jsx
+Summary of color usage:
+- Uses currentTheme tokens for main backgrounds, card backgrounds, shadows, titles, input backgrounds, input text, input borders, icon text, button primary/secondary, row backgrounds, row hover, error pills, and more.
+- Table headers use `${currentTheme?.theadBg || 'bg-green-600'}` and `${currentTheme?.theadText || 'text-white'}`.
+- Table rows alternate with `${currentTheme?.rowEvenBg || 'bg-gray-50'}` and `${currentTheme?.rowOddBg || 'bg-white'}`; hover uses `${currentTheme?.rowHover || 'bg-gray-200'}`.
+- Action buttons use currentTheme for text, hover, and error states (e.g. `${currentTheme?.mutedText || 'text-gray-600'}`, `${currentTheme?.linkText || 'text-green-600'}`, `${currentTheme?.errorPill || 'text-red-600'}`).
+- Some hardcoded Tailwind tokens remain for text, backgrounds, borders, and shadows (e.g. text-gray-900, text-gray-500, bg-white, border-white, shadow-md, etc.).
+- No inline style color usage detected.
+
+---
+File: LeaveList.jsx
+Summary of color usage:
+- Uses currentTheme tokens for panel backgrounds, card backgrounds, shadows, borders, input backgrounds, input text, icon text, button backgrounds, button hover, error text, row hover, pills, and more.
+- Status pills use a helper function returning hardcoded Tailwind classes (e.g. 'bg-green-100 text-green-800', 'bg-red-100 text-red-800', 'bg-yellow-100 text-yellow-800').
+- Table headers and body use currentTheme tokens for backgrounds and divides (e.g. `${currentTheme.theadBg || 'bg-gray-50'}`, `${currentTheme.tbodyBg || 'bg-white'}`, `${currentTheme.divide || 'divide-gray-200'}`).
+- Some hardcoded Tailwind tokens remain for text, backgrounds, borders, and shadows (e.g. text-green-800, bg-gray-50, border-gray-200, text-gray-700, text-gray-400, text-gray-600, bg-green-600, bg-red-600, bg-red-100, bg-green-100, bg-yellow-100, text-yellow-800, etc.).
+- No inline style color usage detected.
+Color Usage Summary Report (First 5 Components)
+
+---
+AddDonationModal.jsx
+- Uses currentTheme for most color tokens (cardBg, shadow, border, subtitle, panelBorder, panelBg, label, mutedText, fileBg, fileText, buttonCancelText, buttonCancelBg, buttonCancelHover, buttonText, buttonPrimary, buttonPrimaryHover, buttonDisabled).
+- Fallbacks to Tailwind classes: bg-white, shadow-lg, border border-gray-200, text-gray-800, text-gray-700, text-red-500, bg-gray-200, bg-gray-300, text-white, bg-green-600, hover:bg-green-700, disabled:bg-green-400, text-green-700, bg-green-100, hover:file:bg-green-200, etc.
+- Color usage locations: Form backgrounds, panels, and cards; section titles and labels; inputs, selects, and file inputs; buttons (primary, cancel, hover, disabled); error and info messages; file upload area.
+
+---
+AddEditBillModal.jsx
+- Uses currentTheme for most color tokens (label, inputBg, inputText, mutedText, fileBg, fileText, linkText, buttonCancelText, buttonCancelBg, buttonCancelHover, buttonText, buttonPrimary, buttonPrimaryHover, buttonDisabled, shadow).
+- Fallbacks to Tailwind classes: text-gray-700, border border-gray-300, bg-white, text-white, bg-green-600, hover:bg-green-700, disabled:bg-green-400, text-green-700, bg-green-50, hover:bg-green-100, text-gray-500, border-gray-200, shadow-md, etc.
+- Color usage locations: Form backgrounds, inputs, selects, and textareas; section labels and field labels; file upload and file link; buttons (primary, cancel, hover, disabled); error/info messages.
+
+---
+AllAttendanceRecords.jsx
+- Uses Tailwind classes for color tokens (not yet fully theme-contexted): text-green-600, bg-green-50, text-red-600, bg-red-50, text-yellow-600, bg-yellow-50, text-gray-600, bg-gray-50, text-gray-500, text-gray-800, bg-white, shadow-lg, border border-gray-100, bg-gray-50, shadow-inner, text-green-600, text-gray-700, border-gray-300, focus:ring-green-500, focus:border-green-500, text-gray-900, text-gray-500, text-green-500, text-red-500, text-yellow-500, text-gray-500, text-green-500, text-green-800, bg-green-100, text-red-800, bg-red-100, text-yellow-800, bg-yellow-100, ring-green-600, ring-red-600, ring-yellow-600, text-gray-400, hover:text-green-600, hover:text-red-600, hover:text-yellow-600, etc.
+- Color usage locations: Status badges (present, absent, leave, holiday); table headers, rows, and cells; section headers and filter panels; buttons (filter, apply, etc.); error/info messages.
+
+---
+AttendanceMarking.jsx
+- Uses currentTheme for most color tokens (cardBg, shadow, border, title, iconText, text, inputBg, panelBg, shadowInner, etc.)
+- Fallbacks to Tailwind classes: bg-white, shadow-lg, border border-gray-300, text-gray-800, text-gray-700, text-green-600, text-green-500, text-gray-600, bg-gray-50, shadow-inner, bg-green-600, text-white, hover:bg-green-700, bg-green-100, text-green-800, ring-green-600, text-gray-400, hover:text-green-600, bg-red-100, text-red-800, ring-red-600, hover:text-red-600, bg-yellow-100, text-yellow-800, ring-yellow-600, hover:text-yellow-600, etc.
+- Color usage locations: Main container, section headers, and filter panels; inputs, selects, and filter dropdowns; table headers, rows, and status buttons; buttons (submit, filter, present/absent/leave); error/info/success messages.
+
+---
+AttendanceModal.jsx
+- Uses Tailwind classes for color tokens (not yet fully theme-contexted): bg-white, shadow-xl, text-gray-500, hover:text-gray-700, hover:bg-gray-100, text-green-700, border-green-200, bg-green-100, border border-green-400, text-green-700, bg-red-100, border border-red-400, text-red-700, text-gray-800, text-gray-600, bg-green-50, text-green-800, border-gray-300, focus:ring-green-500, focus:border-green-500, bg-gray-50, text-gray-400, text-gray-600, bg-green-600, text-white, hover:bg-green-700, bg-gray-300, text-gray-800, hover:bg-gray-400, etc.
+- Color usage locations: Modal backgrounds, section headers, and close button; inputs, selects, and textareas; QR code area and info text; buttons (check in, check out, close); error/info messages.

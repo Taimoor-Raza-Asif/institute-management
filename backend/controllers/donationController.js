@@ -187,11 +187,14 @@ const downloadReceipt = asyncHandler(async (req, res) => {
 // @route   GET /api/donations/reports
 // @access  Private/Admin & Accountant
 export const getDonationReports = asyncHandler(async (req, res) => {
-  const { year } = req.query;
+  const { year, month } = req.query;
   const matchFilter = { donationDate: { $ne: null } };
 
-  if (year) {
-    matchFilter.$expr = { $eq: [{ $year: "$donationDate" }, parseInt(year)] };
+  if (year || month) {
+    const expressions = [];
+    if (year) expressions.push({ $eq: [{ $year: "$donationDate" }, parseInt(year, 10)] });
+    if (month) expressions.push({ $eq: [{ $month: "$donationDate" }, parseInt(month, 10)] });
+    matchFilter.$expr = expressions.length === 1 ? expressions[0] : { $and: expressions };
   }
 
   try {

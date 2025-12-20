@@ -4,6 +4,7 @@ import api from '../api';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 import Message from './Message';
+import { useTheme } from '../context/ThemeContext';
 import DatePicker from 'react-datepicker';
 
 const billCategories = ['Utilities', 'Kitchen', 'Vendor Payment', 'Repairs', 'Other'];
@@ -22,6 +23,7 @@ const AddEditBillModal = ({ onAdd, onEdit, onClose, billToEdit, isViewMode }) =>
     paidTo: '',
     remarks: '',
   });
+  const { currentTheme } = useTheme();
   const [attachmentFile, setAttachmentFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -109,191 +111,204 @@ const AddEditBillModal = ({ onAdd, onEdit, onClose, billToEdit, isViewMode }) =>
     }
   };
 
+  const inputBase = 'w-full rounded-lg border border-gray-200 bg-white/70 px-3.5 py-2.5 text-sm text-gray-900 shadow-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition disabled:bg-gray-100 disabled:text-gray-500';
+  const labelBase = 'text-sm font-semibold text-gray-700 mb-1 flex items-center gap-2';
+  const sectionBase = 'p-4 md:p-5 bg-gray-50/70 border border-gray-100 rounded-xl space-y-4';
+
   return (
-    <form onSubmit={handleSubmit} className="p-4">
-      {error && <Message type="error">{error}</Message>}
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Title */}
-        <div>
-          <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">Title</label>
-          <input
-            type="text"
-            id="title"
-            name="title"
-            value={formData.title}
-            onChange={handleChange}
-            required
-            readOnly={isViewMode}
-            className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
-          />
+    <form onSubmit={handleSubmit} className="relative overflow-hidden rounded-2xl bg-white/95 backdrop-blur border border-emerald-50 shadow-2xl p-5 sm:p-7 space-y-5">
+      <div className="absolute inset-0 pointer-events-none bg-gradient-to-br from-emerald-100/60 via-white to-teal-50/50" aria-hidden />
+      <div className="relative space-y-4">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-600">Billing</p>
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mt-1">{billToEdit ? (isViewMode ? 'Bill Details' : 'Edit Bill') : 'Add New Bill'}</h2>
+            <p className="text-sm text-gray-500 mt-1">Keep your bill records tidy with payment status and attachments.</p>
+          </div>
+          <span className={`px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm border ${formData.status === 'Paid' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : formData.status === 'Partial' ? 'bg-amber-50 text-amber-700 border-amber-100' : 'bg-rose-50 text-rose-700 border-rose-100'}`}>
+            {formData.status}
+          </span>
         </div>
 
-        {/* Category */}
-        <div>
-          <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-          <select
-            id="category"
-            name="category"
-            value={formData.category}
-            onChange={handleChange}
-            required
-            disabled={isViewMode}
-            className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
-          >
-            {billCategories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
-          </select>
-        </div>
+        {error && <Message type="error">{error}</Message>}
 
-        {/* Amount */}
-        <div>
-          <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-1">Amount (PKR)</label>
-          <input
-            type="number"
-            id="amount"
-            name="amount"
-            value={formData.amount}
-            onChange={handleChange}
-            required
-            readOnly={isViewMode}
-            min="0"
-            step="0.01"
-            className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
-          />
-        </div>
-
-        {/* Status */}
-        <div>
-          <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-          <select
-            id="status"
-            name="status"
-            value={formData.status}
-            onChange={handleChange}
-            required
-            disabled={isViewMode}
-            className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
-          >
-            {billStatuses.map(status => <option key={status} value={status}>{status}</option>)}
-          </select>
-        </div>
-
-        {/* Bill Date */}
-        <div>
-          <label htmlFor="billDate" className="block text-sm font-medium text-gray-700 mb-1">Bill Date</label>
-          <DatePicker
-            selected={formData.billDate}
-            onChange={(date) => handleDateChange(date, 'billDate')}
-            dateFormat="dd/MM/yyyy"
-            readOnly={isViewMode}
-            className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
-            required
-          />
-        </div>
-        
-        {/* Paid To */}
-        <div>
-          <label htmlFor="paidTo" className="block text-sm font-medium text-gray-700 mb-1">Paid To</label>
-          <input
-            type="text"
-            id="paidTo"
-            name="paidTo"
-            value={formData.paidTo}
-            onChange={handleChange}
-            readOnly={isViewMode}
-            className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
-          />
-        </div>
-
-        {/* Payment Date (Conditional) */}
-        {formData.status !== 'Unpaid' && (
-            <div>
-              <label htmlFor="paymentDate" className="block text-sm font-medium text-gray-700 mb-1">Payment Date</label>
-              <DatePicker
-                selected={formData.paymentDate}
-                onChange={(date) => handleDateChange(date, 'paymentDate')}
-                dateFormat="dd/MM/yyyy"
+        <div className={sectionBase}>
+          <h3 className="text-sm font-bold text-gray-800">Basics</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
+            <div className="space-y-1">
+              <label htmlFor="title" className={labelBase}>Title</label>
+              <input
+                type="text"
+                id="title"
+                name="title"
+                value={formData.title}
+                onChange={handleChange}
+                required
                 readOnly={isViewMode}
-                className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
+                className={inputBase}
               />
             </div>
-        )}
-
-        {/* Payment Method (Conditional) */}
-        {formData.status !== 'Unpaid' && (
-            <div>
-              <label htmlFor="paymentMethod" className="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
+            <div className="space-y-1">
+              <label htmlFor="category" className={labelBase}>Category</label>
               <select
-                id="paymentMethod"
-                name="paymentMethod"
-                value={formData.paymentMethod}
+                id="category"
+                name="category"
+                value={formData.category}
                 onChange={handleChange}
+                required
                 disabled={isViewMode}
-                className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
+                className={inputBase}
               >
-                {paymentMethods.map(method => <option key={method} value={method}>{method}</option>)}
+                {billCategories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
               </select>
             </div>
-        )}
-      </div>
+            <div className="space-y-1">
+              <label htmlFor="status" className={labelBase}>Status</label>
+              <select
+                id="status"
+                name="status"
+                value={formData.status}
+                onChange={handleChange}
+                required
+                disabled={isViewMode}
+                className={inputBase}
+              >
+                {billStatuses.map(status => <option key={status} value={status}>{status}</option>)}
+              </select>
+            </div>
+            <div className="space-y-1">
+              <label htmlFor="paidTo" className={labelBase}>Paid To</label>
+              <input
+                type="text"
+                id="paidTo"
+                name="paidTo"
+                value={formData.paidTo}
+                onChange={handleChange}
+                readOnly={isViewMode}
+                className={inputBase}
+                placeholder="Vendor / Payee"
+              />
+            </div>
+          </div>
+        </div>
 
-      {/* Remarks */}
-      <div className="mt-4">
-        <label htmlFor="remarks" className="block text-sm font-medium text-gray-700 mb-1">Remarks</label>
-        <textarea
-          id="remarks"
-          name="remarks"
-          rows="3"
-          value={formData.remarks}
-          onChange={handleChange}
-          readOnly={isViewMode}
-          className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
-        ></textarea>
-      </div>
-
-      {/* Attachment */}
-      <div className="mt-4">
-        <label htmlFor="attachment" className="block text-sm font-medium text-gray-700 mb-1">Attachment</label>
-        {!isViewMode && (
-          <input
-            type="file"
-            id="attachment"
-            name="attachment"
-            onChange={handleFileChange}
-            className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
-          />
-        )}
-        {billToEdit?.attachmentPath && (
-          <p className="mt-2 text-sm text-gray-500">
-            Current attachment: <a href={`${api.defaults.baseURL}${billToEdit.attachmentPath}`} target="_blank" rel="noopener noreferrer" className="text-green-600 hover:underline">View File</a>
-          </p>
-        )}
-      </div>
-
-      <div className="flex justify-end space-x-4 pt-4">
-        <button
-          type="button"
-          onClick={onClose}
-          className="px-6 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition duration-150"
-        >
-          {isViewMode ? 'Close' : 'Cancel'}
-        </button>
-        {!isViewMode && (
-          <button
-            type="submit"
-            disabled={loading}
-            className="flex items-center justify-center px-6 py-2 text-sm font-medium text-white bg-green-600 rounded-md shadow-md hover:bg-green-700 disabled:bg-green-400 transition duration-150"
-          >
-            {loading ? (
-              <>
-                <FontAwesomeIcon icon={faSpinner} className="animate-spin mr-2" />
-                Saving...
-              </>
-            ) : (
-              billToEdit ? 'Save Changes' : 'Add Bill'
+        <div className={sectionBase}>
+          <h3 className="text-sm font-bold text-gray-800">Amounts & Dates</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
+            <div className="space-y-1">
+              <label htmlFor="amount" className={labelBase}>Amount (PKR)</label>
+              <input
+                type="number"
+                id="amount"
+                name="amount"
+                value={formData.amount}
+                onChange={handleChange}
+                readOnly={isViewMode}
+                min="0"
+                step="0.01"
+                className={inputBase}
+              />
+            </div>
+            <div className="space-y-1">
+              <label htmlFor="billDate" className={labelBase}>Bill Date</label>
+              <DatePicker
+                selected={formData.billDate}
+                onChange={(date) => handleDateChange(date, 'billDate')}
+                dateFormat="dd/MM/yyyy"
+                readOnly={isViewMode}
+                className={inputBase}
+                placeholderText="Select bill date"
+                required
+              />
+            </div>
+            {formData.status !== 'Unpaid' && (
+              <div className="space-y-1">
+                <label htmlFor="paymentDate" className={labelBase}>Payment Date</label>
+                <DatePicker
+                  selected={formData.paymentDate}
+                  onChange={(date) => handleDateChange(date, 'paymentDate')}
+                  dateFormat="dd/MM/yyyy"
+                  readOnly={isViewMode}
+                  className={inputBase}
+                  placeholderText="Select payment date"
+                />
+              </div>
             )}
+            {formData.status !== 'Unpaid' && (
+              <div className="space-y-1">
+                <label htmlFor="paymentMethod" className={labelBase}>Payment Method</label>
+                <select
+                  id="paymentMethod"
+                  name="paymentMethod"
+                  value={formData.paymentMethod}
+                  onChange={handleChange}
+                  disabled={isViewMode}
+                  className={inputBase}
+                >
+                  {paymentMethods.map(method => <option key={method} value={method}>{method}</option>)}
+                </select>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className={sectionBase}>
+          <h3 className="text-sm font-bold text-gray-800">Notes</h3>
+          <textarea
+            id="remarks"
+            name="remarks"
+            rows={4}
+            value={formData.remarks}
+            onChange={handleChange}
+            readOnly={isViewMode}
+            className={`${inputBase} min-h-[120px]`}
+            placeholder="Add remarks or payment reference"
+          ></textarea>
+        </div>
+
+        <div className={sectionBase}>
+          <h3 className="text-sm font-bold text-gray-800">Attachment</h3>
+          {!isViewMode && (
+            <input
+              type="file"
+              id="attachment"
+              name="attachment"
+              onChange={handleFileChange}
+              className={`block w-full text-sm ${currentTheme.mutedText || 'text-gray-600'} file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100`}
+            />
+          )}
+          {billToEdit?.attachmentPath && (
+            <p className={`mt-2 text-sm ${currentTheme.mutedText || 'text-gray-600'}`}>
+              Current attachment: <a href={`${api.defaults.baseURL}${billToEdit.attachmentPath}`} target="_blank" rel="noopener noreferrer" className={`${currentTheme.linkText || 'text-emerald-600'} hover:underline`}>View File</a>
+            </p>
+          )}
+        </div>
+
+        <div className="flex flex-col sm:flex-row justify-end gap-3 pt-2">
+          <button
+            type="button"
+            onClick={onClose}
+            className="inline-flex items-center justify-center px-5 py-2.5 text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-lg shadow-sm hover:bg-gray-50 transition"
+          >
+            {isViewMode ? 'Close' : 'Cancel'}
           </button>
-        )}
+          {!isViewMode && (
+            <button
+              type="submit"
+              disabled={loading}
+              className="inline-flex items-center justify-center px-6 py-2.5 text-sm font-semibold text-white rounded-lg shadow-md bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 transition disabled:from-emerald-400 disabled:to-emerald-400"
+            >
+              {loading ? (
+                <>
+                  <FontAwesomeIcon icon={faSpinner} className="animate-spin mr-2" />
+                  Saving...
+                </>
+              ) : (
+                billToEdit ? 'Save Changes' : 'Add Bill'
+              )}
+            </button>
+          )}
+        </div>
       </div>
     </form>
   );

@@ -1,585 +1,367 @@
 // src/components/FeeList.jsx
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useContext, useEffect, useMemo, useState, useCallback } from 'react';
+import { UserContext } from '../App';
+import { useTheme } from '../context/ThemeContext';
+import api from '../api';
 import FeeModal from './FeeModal';
 import FeeForm from './FeeForm';
-import api from '../api';
-import { PencilIcon, TrashIcon, PlusIcon, FunnelIcon, XMarkIcon, MagnifyingGlassIcon, EyeIcon, UserCircleIcon } from '@heroicons/react/24/outline';
+import ConfirmationModal from './ConfirmationModal';
+import Loader from './Loader';
+import Message from './Message';
+import {
+  BanknotesIcon,
+  WalletIcon,
+  MagnifyingGlassIcon,
+  FunnelIcon,
+  PlusCircleIcon,
+  PencilSquareIcon,
+  TrashIcon,
+  EyeIcon,
+  DocumentArrowDownIcon,
+} from '@heroicons/react/24/outline';
 
-// Array of month names
 const months = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December"
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December'
 ];
 
-const FeeList = () => {
-    const [fees, setFees] = useState([]);
-    const [studentsForForm, setStudentsForForm] = useState([]);
-    const [editingFee, setEditingFee] = useState(null);
-    const [modalOpen, setModalOpen] = useState(false);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-
-    const [isFeeFormViewMode, setIsFeeFormViewMode] = useState(false);
-
-    // --- Filter States ---
-    const [searchTerm, setSearchTerm] = useState('');
-    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
-    const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
-
-    const [filterMonth, setFilterMonth] = useState('');
-    const [filterReceivedBy, setFilterReceivedBy] = useState('');
-    const [filterPaymentMethod, setFilterPaymentMethod] = useState('');
-    const [filterYear, setFilterYear] = useState(new Date().getFullYear().toString());
-    const [filterDueStatus, setFilterDueStatus] = useState('');
-
-    const [currentUser, setCurrentUser] = useState(null);
-    const [canAddFee, setCanAddFee] = useState(false);
-    const [canEditFee, setCanEditFee] = useState(false);
-    const [canDeleteFee, setCanDeleteFee] = useState(false);
-
-    const generateYearOptions = useCallback(() => {
-        const currentYear = new Date().getFullYear();
-        const years = [];
-        for (let i = currentYear - 5; i <= currentYear + 1; i++) {
-            years.push(i.toString());
-        }
-        return years;
-    }, []);
-
-    const buildFeeFilterQueryParams = useCallback(() => {
-        const params = new URLSearchParams();
-        if (debouncedSearchTerm) {
-            params.append('studentSearchTerm', debouncedSearchTerm);
-        }
-        if (filterMonth) {
-            params.append('month', filterMonth);
-        }
-        if (filterYear) {
-            params.append('year', filterYear);
-        }
-        if (filterReceivedBy) {
-            params.append('receivedBy', filterReceivedBy);
-        }
-        if (filterPaymentMethod) {
-            params.append('paymentMethod', filterPaymentMethod);
-        }
-        if (filterDueStatus === 'dueRemaining') {
-            params.append('dueStatus', 'dueRemaining');
-        }
-        return params.toString();
-    }, [debouncedSearchTerm, filterMonth, filterYear, filterReceivedBy, filterPaymentMethod, filterDueStatus]);
-
-    // const fetchFees = useCallback(async () => {
-    //     setLoading(true); // Set loading true at the start of fetch
-    //     setError(null);
-    //     try {
-    //         const queryParams = buildFeeFilterQueryParams();
-    //         const res = await api.get(`/fees?${queryParams}`);
-    //         if (Array.isArray(res.data)) {
-    //             setFees(res.data);
-    //             console.log("Fetched Fees Data:", res.data);
-    //         } else {
-    //             console.error("API response for fees is not an array:", res.data);
-    //             setFees([]);
-    //             setError("Received unexpected data format from server.");
-    //         }
-    //     } catch (err) {
-    //         console.error('Failed to fetch fees:', err);
-    //         setFees([]);
-    //         setError('Failed to load fee records. Please try again.');
-    //     } finally {
-    //         setLoading(false); // Set loading false after fetch completes (success or error)
-    //     }
-    // }, [buildFeeFilterQueryParams]);
-
-    const fetchFees = useCallback(async () => {
-        setLoading(true);
-        setError(null);
-        try {
-            let url = '/fees';
-            const params = new URLSearchParams();
-
-            // If a student is logged in, they can only see their own fees
-            if (currentUser?.role === 'student' && currentUser?.profileId) {
-                url = `/fees/student/${currentUser.profileId}`;
-            } else {
-                // For Admin/Accountant, apply filters
-                if (debouncedSearchTerm) params.append('searchTerm', debouncedSearchTerm);
-                if (filterMonth) params.append('month', filterMonth);
-                if (filterYear) params.append('year', filterYear);
-                if (filterReceivedBy) params.append('receivedBy', filterReceivedBy);
-                if (filterPaymentMethod) params.append('paymentMethod', filterPaymentMethod);
-                url = `${url}?${params.toString()}`;
-            }
-
-            const response = await api.get(url);
-            if (Array.isArray(response.data)) {
-                setFees(response.data);
-            } else if (response.data && currentUser?.role === 'student') {
-                // If student route returns a single object, wrap it in an array
-                setFees([response.data]);
-            } else {
-                console.error("API response for fees is not an array:", response.data);
-                setFees([]);
-                setError("Received unexpected data format from server for fees.");
-            }
-        } catch (err) {
-            console.error('Failed to fetch fees:', err);
-            setFees([]);
-            setError('Failed to load fee records. Please try again.');
-        } finally {
-            setLoading(false);
-        }
-    }, [buildFeeFilterQueryParams, currentUser]);
-
-    const fetchStudentsForDropdown = useCallback(async () => {
-        try {
-            const res = await api.get('/students');
-            if (Array.isArray(res.data)) {
-                setStudentsForForm(res.data);
-            } else {
-                console.error("API response for students is not an array:", res.data);
-                setStudentsForForm([]);
-            }
-        } catch (err) {
-            console.error('Failed to fetch students for form:', err);
-            setStudentsForForm([]);
-        }
-    }, []);
-
-    // useEffect(() => {
-    //     fetchFees();
-    //     fetchStudentsForDropdown(); // Fetch students initially
-    // }, [fetchFees, fetchStudentsForDropdown]);
-
-    useEffect(() => {
-        if (currentUser) { // Only fetch data if user is logged in
-            fetchFees();
-            // Only fetch students for the form if the user has permission to add/edit fees
-            if (canAddFee || canEditFee) {
-                fetchStudentsForDropdown();
-            }
-        }
-    }, [fetchFees, fetchStudentsForDropdown, currentUser, canAddFee, canEditFee]);
-
-    // Debounce search term
-    useEffect(() => {
-        const handler = setTimeout(() => {
-            setDebouncedSearchTerm(searchTerm);
-        }, 500); // 500ms delay
-
-        return () => {
-            clearTimeout(handler);
-        };
-    }, [searchTerm]);
-
-    // Refetch fees when debouncedSearchTerm or filters change
-    // useEffect(() => {
-    //     fetchFees();
-    // }, [debouncedSearchTerm, filterMonth, filterYear, filterReceivedBy, filterPaymentMethod, filterDueStatus, fetchFees]);
-
-    // Effect to load current user and set permissions
-    useEffect(() => {
-        const userInfo = localStorage.getItem('userInfo');
-        if (userInfo) {
-            const user = JSON.parse(userInfo);
-            setCurrentUser(user);
-
-            // Admin and Accountant can add, edit, delete fees
-            setCanAddFee(user.role === 'admin' || user.role === 'accountant');
-            setCanEditFee(user.role === 'admin' || user.role === 'accountant');
-            setCanDeleteFee(user.role === 'admin' || user.role === 'accountant');
-        }
-    }, []);
-
-    const handleAddFee = () => {
-        setEditingFee(null);
-        setIsFeeFormViewMode(false);
-        setModalOpen(true);
-    };
-
-    const handleEdit = (fee) => {
-        setEditingFee(fee);
-        setIsFeeFormViewMode(false);
-        setModalOpen(true);
-    };
-
-    const handleView = (fee) => {
-        setEditingFee(fee);
-        setIsFeeFormViewMode(true);
-        setModalOpen(true);
-    };
-
-    const handleDelete = async (id) => {
-        if (!canDeleteFee) {
-            alert("You are not authorized to delete fee records.");
-            return;
-        }
-        if (window.confirm('Are you sure you want to delete this fee record?')) {
-            try {
-                // Find the fee record to get its details before deletion
-                const feeToDelete = fees.find(f => f._id === id);
-                if (!feeToDelete) {
-                    console.error("Fee record not found for deletion.");
-                    return;
-                }
-
-                await api.delete(`/fees/${id}`);
-                fetchFees(); // Refresh the list of fees
-
-                // Re-evaluate student's fee status and financial balances after deletion
-                if (feeToDelete.studentId) {
-                    // Fetch the latest student data
-                    const studentResponse = await api.get(`/students/${feeToDelete.studentId._id}`);
-                    let currentStudent = studentResponse.data;
-
-                    // Undo the financial impact of the deleted fee record
-                    const deletedTotalFee = parseFloat(feeToDelete.totalFee);
-                    const deletedReceivedAmount = parseFloat(feeToDelete.receivedAmount);
-                    const deletedPaymentMethod = feeToDelete.paymentMethod;
-
-                    let newDepositedAmount = parseFloat(currentStudent.depositedAmount || 0);
-                    let newOtherDues = parseFloat(currentStudent.otherDues || 0);
-
-                    if (deletedPaymentMethod === 'Deposited Cash') {
-                        newDepositedAmount += deletedReceivedAmount; // Put back what was used from deposit
-                        if (deletedReceivedAmount < deletedTotalFee) {
-                            newOtherDues -= (deletedTotalFee - deletedReceivedAmount); // Undo deficit added to otherDues
-                        }
-                    } else {
-                        if (deletedReceivedAmount > deletedTotalFee) {
-                            newDepositedAmount -= (deletedReceivedAmount - deletedTotalFee); // Remove old excess from deposit
-                        }
-                        if (deletedReceivedAmount < deletedTotalFee) {
-                            newOtherDues -= (deletedTotalFee - deletedReceivedAmount); // Remove old deficit from otherDues
-                        }
-                    }
-
-                    // Ensure non-negative balances
-                    newDepositedAmount = Math.max(0, newDepositedAmount);
-                    newOtherDues = Math.max(0, newOtherDues);
-
-                    // Update student's financial details on backend
-                    await api.put(`/students/${feeToDelete.studentId._id}`, {
-                        depositedAmount: newDepositedAmount,
-                        otherDues: newOtherDues
-                    });
-
-                    // Also re-evaluate feeStatus for the student
-                    // This would ideally be handled by a backend endpoint that re-calculates feeStatus
-                    // based on remaining fees, but for simplicity, we'll just re-fetch students here.
-                    fetchStudentsForDropdown(); // Refresh student data in dropdowns and displays
-                }
-
-            } catch (err) {
-                console.error('Failed to delete fee record:', err);
-                setError('Failed to delete fee record. Please try again.');
-            }
-        }
-    };
-
-    const handleCloseModal = () => {
-        setModalOpen(false);
-        setEditingFee(null);
-        setIsFeeFormViewMode(false);
-        fetchFees(); // Refresh fees when modal closes
-        fetchStudentsForDropdown(); // Refresh students when modal closes (important for updated balances)
-    };
-
-    const getDueStatusText = (fee) => {
-        if (fee.dueAmount > 0) {
-            return `Due: PKR ${fee.dueAmount.toFixed(2)}`;
-        } else if (fee.receivedAmount >= fee.totalFee) {
-            return 'Paid';
-        }
-        return '-'; // Should not happen if logic is correct
-    };
-
-    const filteredFees = fees.filter(fee => {
-        const studentNameMatch = fee.studentId?.name.toLowerCase().includes(searchTerm.toLowerCase());
-        const cnicMatch = fee.studentId?.cnic.toLowerCase().includes(searchTerm.toLowerCase());
-        const monthMatch = filterMonth ? fee.month === filterMonth : true;
-        const yearMatch = filterYear ? fee.year.toString() === filterYear : true;
-        const receivedByMatch = filterReceivedBy ? fee.receivedBy.toLowerCase().includes(filterReceivedBy.toLowerCase()) : true;
-        const paymentMethodMatch = filterPaymentMethod ? fee.paymentMethod === filterPaymentMethod : true;
-        const dueStatusMatch = filterDueStatus === 'dueRemaining' ? fee.dueAmount > 0 : true;
-
-        return (studentNameMatch || cnicMatch) && monthMatch && yearMatch && receivedByMatch && paymentMethodMatch && dueStatusMatch;
-    });
-
-    if (loading) {
-        return <div className="text-center py-4">Loading fee records...</div>;
-    }
-
-    if (error) {
-        return <div className="text-center py-4 text-red-600">Error: {error}</div>;
-    }
-
-    if (!currentUser) {
-        return <div className="text-center py-4 text-gray-600">Please log in to view fee records.</div>;
-    }
-    return (
-        <div className="container mx-auto p-4 sm:p-6 lg:p-8">
-            <h1 className="text-3xl sm:text-4xl font-bold text-center text-green-800 mb-8">Fee Management</h1>
-
-            {/* Action Buttons and Filters */}
-            <div className="bg-white rounded-lg shadow-md p-4 mb-6">
-                <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-3">
-
-                    {/* Search Bar */}
-                    {/* <div className="relative w-full sm:w-1/2 lg:w-2/3">
-                        <input
-                            type="text"
-                            placeholder="Search by student name or CNIC..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                        />
-                        <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                    </div> */}
-
-                    {(currentUser.role === 'admin' || currentUser.role === 'accountant') && (
-                        <div className="relative w-full sm:w-1/2 lg:w-2/3">
-                            <input
-                                type="text"
-                                placeholder="Search by student name or CNIC..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                            />
-                            <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                        </div>
-                    )}
-
-                    {/* <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-                      
-                        <button
-                            onClick={handleAddFee}
-                            className="flex items-center justify-center bg-green-600 font-semibold text-white px-5 py-2 rounded-lg hover:bg-green-700 transition duration-200 shadow-md w-full sm:w-auto"
-                        >
-                            <PlusIcon className="h-5 w-5 mr-2" /> Add New Fee
-                        </button>
-
-                       
-                        <button
-                            onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-                            className="flex items-center justify-center bg-gray-200 text-gray-800 px-5 py-2 rounded-lg hover:bg-gray-300 transition duration-200 shadow-md w-full sm:w-auto"
-                        >
-                            <FunnelIcon className="h-5 w-5 mr-2" />
-                            {showAdvancedFilters ? 'Hide Filters' : 'Show Filters'}
-                        </button>
-                    </div> */}
-
-                    <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-                        {canAddFee && (
-                            <button
-                                onClick={handleAddFee}
-                                className="flex items-center justify-center bg-green-600 text-white px-5 py-2 rounded-lg hover:bg-green-700 transition duration-200 shadow-md w-full sm:w-auto"
-                            >
-                                <PlusIcon className="h-5 w-5 mr-2" /> Add New Fee
-                            </button>
-                        )}
-                        {(currentUser.role === 'admin' || currentUser.role === 'accountant') && (
-                            <button
-                                onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-                                className="flex items-center justify-center bg-gray-200 text-gray-800 px-5 py-2 rounded-lg hover:bg-gray-300 transition duration-200 shadow-md w-full sm:w-auto"
-                            >
-                                <FunnelIcon className="h-5 w-5 mr-2" />
-                                {showAdvancedFilters ? 'Hide Filters' : 'Show Filters'}
-                            </button>
-                        )}
-                    </div>
-
-                </div>
-
-                {/* Advanced Filters */}
-                {/* {showAdvancedFilters && ( */}
-                {showAdvancedFilters && (currentUser.role === 'admin' || currentUser.role === 'accountant') && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
-                        {/* Month Filter */}
-                        <div>
-                            <label htmlFor="filterMonth" className="block text-sm font-medium text-gray-700 mb-1">Month</label>
-                            <select
-                                id="filterMonth"
-                                value={filterMonth}
-                                onChange={(e) => setFilterMonth(e.target.value)}
-                                className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                            >
-                                <option value="">All Months</option>
-                                {months.map(month => (
-                                    <option key={month} value={month}>{month}</option>
-                                ))}
-                            </select>
-                        </div>
-                        {/* Year Filter */}
-                        <div>
-                            <label htmlFor="filterYear" className="block text-sm font-medium text-gray-700 mb-1">Year</label>
-                            <select
-                                id="filterYear"
-                                value={filterYear}
-                                onChange={(e) => setFilterYear(e.target.value)}
-                                className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                            >
-                                {generateYearOptions().map(year => (
-                                    <option key={year} value={year}>{year}</option>
-                                ))}
-                            </select>
-                        </div>
-                        {/* Received By Filter */}
-                        <div>
-                            <label htmlFor="filterReceivedBy" className="block text-sm font-medium text-gray-700 mb-1">Received By</label>
-                            <input
-                                type="text"
-                                id="filterReceivedBy"
-                                value={filterReceivedBy}
-                                onChange={(e) => setFilterReceivedBy(e.target.value)}
-                                className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                                placeholder="e.g., John Doe"
-                            />
-                        </div>
-                        {/* Payment Method Filter */}
-                        <div>
-                            <label htmlFor="filterPaymentMethod" className="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
-                            <select
-                                id="filterPaymentMethod"
-                                value={filterPaymentMethod}
-                                onChange={(e) => setFilterPaymentMethod(e.target.value)}
-                                className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                            >
-                                <option value="">All Methods</option>
-                                <option value="Cash">Cash</option>
-                                <option value="Bank Transfer">Bank Transfer</option>
-                                <option value="Easypaisa">Easypaisa</option>
-                                <option value="JazzCash">JazzCash</option>
-                                <option value="Online Wallet">Online Wallet</option>
-                                <option value="Deposited Cash">Deposited Cash</option>
-                            </select>
-                        </div>
-                        {/* Due Status Filter */}
-                        <div>
-                            <label htmlFor="filterDueStatus" className="block text-sm font-medium text-gray-700 mb-1">Due Status</label>
-                            <select
-                                id="filterDueStatus"
-                                value={filterDueStatus}
-                                onChange={(e) => setFilterDueStatus(e.target.value)}
-                                className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                            >
-                                <option value="">All</option>
-                                <option value="dueRemaining">Due Remaining</option>
-                            </select>
-                        </div>
-                    </div>
-                )}
-            </div>
-
-            {/* Fee Records Table */}
-            <div className="bg-white rounded-lg shadow-md overflow-x-auto">
-                <table className="min-w-full table-auto border-separate border-spacing-y-2 border-white shadow-lg rounded-lg overflow-hidden">
-                    <thead className="bg-green-600 text-white rounded-md">
-                        <tr> {/* Ensure no whitespace immediately after <tr> */}
-                            <th className="p-2 border border-white">Student Name</th>{/* Ensure no whitespace between </th> and <th> */}
-                            <th className="p-2 border border-white">Month/Year</th>
-                            <th className="p-2 border border-white">Total Fee</th>
-                            <th className="p-2 border border-white">Received Amt</th>
-                            <th className="p-2 border border-white">Received Date</th>
-                            <th className="p-2 border border-white">Received From</th>
-                            <th className="p-2 border border-white">Received By</th>
-                            <th className="p-2 border border-white">Payment Method</th>
-                            <th className="p-2 border border-white">Due Amt</th>
-                            <th className="p-2 border border-white">Bill Screenshot</th>
-                            <th className="p-2 border border-white">Actions</th>
-                        </tr> {/* Ensure no whitespace immediately before </tr> */}
-                    </thead>
-                    <tbody>
-                        {Array.isArray(fees) && fees.length > 0 ? (
-                            fees.map((fee, index) => (
-                                <tr
-                                    key={fee._id}
-                                    className={`text-center ${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'} py-4 cursor-pointer hover:bg-gray-200 transition-colors duration-150`}>
-                                    {/* Ensure no whitespace immediately after <td> or between </td> and <td> */}
-                                    {/* <td className="border border-white text-base  p-2">{fee.studentId?.name || '-'}</td>
-                                    {console.log(fee)} */}
-
-                                    <td className="px-6 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
-                                        <div className="flex items-center">
-                                            {console.log(fee.studentId )}
-                                            {fee.studentId?.profilePictureUrl ? (
-                                                // If profilePictureUrl exists, render the <img> tag
-                                                <img
-                                                    src={`http://localhost:5000${fee.studentId?.profilePictureUrl}`}
-                                                    alt={`${fee.studentId?.name}'s Profile`}
-                                                    className="h-8 w-8 rounded-full object-cover mr-2"
-                                                    onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/32x32/cccccc/ffffff?text=NA'; }}
-                                                />
-                                            ) : (
-                                                // If not, render the placeholder icon
-                                                <UserCircleIcon className="h-8 w-8 text-gray-400 mr-2" />
-                                            )}
-                                            <span>{fee.studentId?.name || '-'}</span>
-                                        </div>
-                                    </td>
-                                    
-                                    <td className="border border-white text-base text-gray-500 p-2">{fee.month || '-'} {fee.year || ''}</td> {/* Added || '-' for safety */}
-                                    <td className="border border-white text-base text-gray-500 p-2">{fee.totalFee || '0'}</td> {/* Added || '0' for safety */}
-                                    <td className="border border-white text-base text-gray-500 p-2">{fee.receivedAmount || '0'}</td> {/* Added || '0' for safety */}
-                                    <td className="border border-white text-base text-gray-500 p-2">{fee.receivedDate ? new Date(fee.receivedDate).toLocaleDateString() : '-'}</td>
-                                    <td className="border border-white text-base text-gray-500 p-2">{fee.paidBy || '-'}</td> {/* Added || '-' for safety */}
-                                    <td className="border border-white text-base text-gray-500 p-2">{fee.receivedBy || '-'}</td>
-                                    <td className="border border-white text-base text-gray-500 p-2">{fee.paymentMethod || '-'}</td>
-                                    <td className={`border border-white text-base text-gray-500 p-2 ${fee.dueAmount > 0 ? 'bg-red-600 text-white' : ''}`}>{fee.dueAmount || '0'}</td> {/* Added || '0' for safety */}
-                                    <td className="border border-white text-base text-gray-500 p-2">
-                                        {fee.billScreenshotUrl ? (
-                                            <a
-                                                href={`http://localhost:5000${fee.billScreenshotUrl}`}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="text-gray-600 hover:underline"
-                                                onClick={(e) => e.stopPropagation()}
-                                            >
-                                                View Bill
-                                            </a>
-                                        ) : (
-                                            '-'
-                                        )}
-                                    </td>
-                                    <td className="border border-white p-2 space-x-2 flex justify-center items-center">
-                                        <button onClick={(e) => { e.stopPropagation(); handleView(fee); }} className="text-gray-600 hover:text-gray-800 transition-colors duration-200 p-1 rounded-md hover:bg-gray-100" title="View Fee Details">
-                                            <EyeIcon className="h-5 w-5" />
-                                        </button>
-                                        {canEditFee && (
-                                            <button onClick={(e) => { e.stopPropagation(); handleEdit(fee); }} className="text-blue-600 hover:text-blue-800 transition-colors duration-200 p-1 rounded-md hover:bg-blue-100" title="Edit Fee Record">
-                                                <PencilIcon className="h-5 w-5" />
-                                            </button>
-                                        )}
-                                        {canDeleteFee && (
-                                            <button onClick={(e) => { e.stopPropagation(); handleDelete(fee._id); }} className="text-red-600 hover:text-red-800 transition-colors duration-200 p-1 rounded-md hover:bg-red-100" title="Delete Fee Record">
-                                                <TrashIcon className="h-5 w-5" />
-                                            </button>
-                                        )}
-                                    </td>
-                                </tr>
-                            ))
-                        ) : (
-                            <tr>
-                                <td colSpan="11" className="text-center p-4 text-gray-500">No fee records found. Add a new fee record!</td>
-                            </tr>
-                        )}
-                    </tbody>
-                </table>
-            </div>
-
-            <FeeModal isOpen={modalOpen} onClose={handleCloseModal}>
-                <FeeForm
-                    editingFee={editingFee}
-                    fetchFees={fetchFees}
-                    studentsForForm={studentsForForm}
-                    onClose={handleCloseModal}
-                    isViewMode={isFeeFormViewMode}
-                    fetchStudents={fetchStudentsForDropdown}
-                />
-            </FeeModal>
-        </div>
-    );
+const yearOptions = () => {
+  const current = new Date().getFullYear();
+  return Array.from({ length: 11 }, (_, i) => (current - 5 + i).toString());
 };
+
+const currency = (n) => new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PKR', maximumFractionDigits: 0 }).format(n || 0);
+
+const paymentMethods = ['Cash', 'Bank Transfer', 'Deposited Cash'];
+
+const FeeList = () => {
+  const { currentUser } = useContext(UserContext);
+  const { currentTheme } = useTheme();
+
+  const [fees, setFees] = useState([]);
+  const [students, setStudents] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const [filters, setFilters] = useState({
+    searchTerm: '',
+    month: '',
+    year: '',
+    paymentMethod: '',
+    receivedBy: '',
+  });
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isViewMode, setIsViewMode] = useState(false);
+  const [editingFee, setEditingFee] = useState(null);
+
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [feeToDelete, setFeeToDelete] = useState(null);
+
+  const canManage = currentUser && (currentUser.role === 'admin' || currentUser.role === 'accountant');
+
+  const backendBaseUrl = 'http://localhost:5000';
+
+  const fetchStudents = useCallback(async () => {
+    try {
+      const res = await api.get('/students');
+      setStudents(res.data || []);
+    } catch (err) {
+      console.error('Failed to load students:', err);
+    }
+  }, []);
+
+  const fetchFees = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError('');
+      let res;
+      if (currentUser?.role === 'student' && currentUser?.profileId) {
+        res = await api.get(`/fees/student/${currentUser.profileId}`);
+      } else {
+        res = await api.get('/fees', { params: {
+          searchTerm: filters.searchTerm || undefined,
+          month: filters.month || undefined,
+          year: filters.year || undefined,
+          paymentMethod: filters.paymentMethod || undefined,
+          receivedBy: filters.receivedBy || undefined,
+        }});
+      }
+      setFees(res.data || []);
+    } catch (err) {
+      console.error('Failed to load fees:', err);
+      setError(err.response?.data?.message || 'Failed to load fees');
+    } finally {
+      setLoading(false);
+    }
+  }, [currentUser, filters]);
+
+  useEffect(() => {
+    fetchFees();
+  }, [fetchFees]);
+
+  useEffect(() => {
+    if (canManage) fetchStudents();
+  }, [canManage, fetchStudents]);
+
+  const stats = useMemo(() => {
+    const totalCollected = fees.reduce((sum, f) => sum + (parseFloat(f.receivedAmount) || 0), 0);
+    const totalDue = fees.reduce((sum, f) => sum + (parseFloat(f.dueAmount) || 0), 0);
+    return { totalCollected, totalDue, count: fees.length };
+  }, [fees]);
+
+  const openAdd = () => {
+    setEditingFee(null);
+    setIsViewMode(false);
+    setIsModalOpen(true);
+  };
+
+  const openEdit = (fee) => {
+    setEditingFee(fee);
+    setIsViewMode(false);
+    setIsModalOpen(true);
+  };
+
+  const openView = (fee) => {
+    setEditingFee(fee);
+    setIsViewMode(true);
+    setIsModalOpen(true);
+  };
+
+  const requestDelete = (fee) => {
+    setFeeToDelete(fee);
+    setConfirmOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!feeToDelete) return;
+    try {
+      await api.delete(`/fees/${feeToDelete._id}`);
+      setConfirmOpen(false);
+      setFeeToDelete(null);
+      fetchFees();
+    } catch (err) {
+      console.error('Delete failed:', err);
+      setConfirmOpen(false);
+      setFeeToDelete(null);
+    }
+  };
+
+  const resetFilters = () => setFilters({ searchTerm: '', month: '', year: '', paymentMethod: '', receivedBy: '' });
+
+  return (
+    <div className="p-6 sm:p-8">
+      {/* Hero header */}
+      <div className={`mb-6 rounded-2xl p-6 sm:p-8 ${currentTheme.panelBg || 'bg-gradient-to-r from-emerald-50 to-teal-100'} ${currentTheme.shadow || 'shadow'} ${currentTheme.border || 'border border-gray-200'}`}>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className={`text-2xl sm:text-3xl font-extrabold ${currentTheme.title || 'text-emerald-800'}`}>Fee Management</h1>
+            <p className={`${currentTheme.mutedText || 'text-gray-600'} mt-2`}>Track collections, dues, and receipts with ease.</p>
+          </div>
+          <div className="hidden sm:flex items-center space-x-3">
+            {canManage && (
+              <button onClick={openAdd} className="inline-flex items-center px-4 py-2 rounded-lg bg-green-700 hover:bg-green-800 text-white">
+                <PlusCircleIcon className="h-5 w-5 mr-2" />
+                Add Fee
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <StatCard title="Total Collected" value={currency(stats.totalCollected)} icon={<BanknotesIcon className="h-8 w-8 text-emerald-600" />} theme={currentTheme} />
+        <StatCard title="Outstanding Dues" value={currency(stats.totalDue)} icon={<WalletIcon className="h-8 w-8 text-rose-600" />} theme={currentTheme} />
+        <StatCard title="Records" value={stats.count} icon={<DocumentArrowDownIcon className="h-8 w-8 text-teal-600" />} theme={currentTheme} />
+      </div>
+
+      {/* Filters */}
+      <div className={`mb-6 rounded-xl p-4 ${currentTheme.panelBg || 'bg-white'} ${currentTheme.shadow || 'shadow'} ${currentTheme.border || 'border border-gray-200'}`}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
+          <div className="flex items-center border rounded-lg px-3 py-2 bg-white">
+            <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
+            <input
+              className="ml-2 w-full outline-none"
+              placeholder="Search by name or CNIC"
+              value={filters.searchTerm}
+              onChange={(e) => setFilters((p) => ({ ...p, searchTerm: e.target.value }))}
+            />
+          </div>
+          <select className="border rounded-lg px-3 py-2" value={filters.month} onChange={(e) => setFilters((p) => ({ ...p, month: e.target.value }))}>
+            <option value="">Month</option>
+            {months.map((m) => <option key={m} value={m}>{m}</option>)}
+          </select>
+          <select className="border rounded-lg px-3 py-2" value={filters.year} onChange={(e) => setFilters((p) => ({ ...p, year: e.target.value }))}>
+            <option value="">Year</option>
+            {yearOptions().map((y) => <option key={y} value={y}>{y}</option>)}
+          </select>
+          <select className="border rounded-lg px-3 py-2" value={filters.paymentMethod} onChange={(e) => setFilters((p) => ({ ...p, paymentMethod: e.target.value }))}>
+            <option value="">Payment Method</option>
+            {paymentMethods.map((pm) => <option key={pm} value={pm}>{pm}</option>)}
+          </select>
+          <input className="border rounded-lg px-3 py-2" placeholder="Received By" value={filters.receivedBy} onChange={(e) => setFilters((p) => ({ ...p, receivedBy: e.target.value }))} />
+          <button onClick={resetFilters} className="inline-flex items-center justify-center px-3 py-2 rounded-lg border bg-white hover:bg-gray-50">
+            <FunnelIcon className="h-5 w-5 mr-2 text-gray-500" />Reset
+          </button>
+        </div>
+      </div>
+
+      {error && <Message type="error">{error}</Message>}
+
+      {/* List */}
+      <div className={`${currentTheme.cardBg || 'bg-white'} ${currentTheme.shadow || 'shadow'} ${currentTheme.border || 'border border-gray-200'} rounded-xl overflow-hidden`}>
+        {loading ? (
+          <div className="p-10"><Loader /></div>
+        ) : fees.length === 0 ? (
+          <div className="p-10 text-center text-gray-600">No fees found.</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gradient-to-r from-green-600 to-emerald-600">
+                <tr>
+                  <Th>Student</Th>
+                  <Th>Month</Th>
+                  <Th>Year</Th>
+                  <Th>Total</Th>
+                  <Th>Received</Th>
+                  <Th>Due</Th>
+                  <Th>Method</Th>
+                  <Th>Received Date</Th>
+                  <Th>Attachment</Th>
+                  <Th>Actions</Th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-100">
+                {fees.map((f, index) => (
+                  <tr
+                    key={f._id}
+                    className={`transition-all duration-150 hover:bg-green-50 hover:shadow-md ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
+                  >
+                    <Td>
+                      <div className="flex items-center">
+                        {f.studentId?.profilePictureUrl ? (
+                          <img
+                            src={`${backendBaseUrl}${f.studentId.profilePictureUrl}`}
+                            alt="avatar"
+                            className="h-10 w-10 rounded-full object-cover ring-2 ring-green-100"
+                            onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/40x40/10b981/ffffff?text=' + (f.studentId?.name?.[0] || 'S'); }}
+                          />
+                        ) : (
+                          <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center ring-2 ring-green-200">
+                            <span className="text-green-700 font-bold text-sm">{(f.studentId?.name?.[0] || 'S')}</span>
+                          </div>
+                        )}
+                        <div className="ml-3">
+                          <div className="text-sm font-semibold text-gray-900">{f.studentId?.name || '—'}</div>
+                          <div className="text-xs text-gray-500 font-mono">{f.studentId?.cnic || ''}</div>
+                        </div>
+                      </div>
+                    </Td>
+                    <Td>{f.month}</Td>
+                    <Td>{f.year}</Td>
+                    <Td className="text-gray-900 font-semibold">{currency(f.totalFee)}</Td>
+                    <Td>
+                      <span className="px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full bg-green-100 text-green-800">
+                        {currency(f.receivedAmount)}
+                      </span>
+                    </Td>
+                    <Td>
+                      <span className="px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full bg-red-100 text-red-800">
+                        {currency(f.dueAmount)}
+                      </span>
+                    </Td>
+                    <Td>
+                      {f.paymentMethod ? (
+                        <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                          {f.paymentMethod}
+                        </span>
+                      ) : '—'}
+                    </Td>
+                    <Td>{f.receivedDate ? new Date(f.receivedDate).toLocaleDateString() : '—'}</Td>
+                    <Td>
+                      {f.billScreenshotUrl ? (
+                        <a className="text-teal-700 hover:underline" href={`${backendBaseUrl}${f.billScreenshotUrl}`} target="_blank" rel="noreferrer">View</a>
+                      ) : (
+                        <span className="text-gray-400">—</span>
+                      )}
+                    </Td>
+                    <Td>
+                      <div className="flex items-center justify-center space-x-2">
+                        <button className="p-2 text-green-600 hover:text-green-900 hover:bg-green-50 rounded-lg transition-colors duration-200" onClick={() => openView(f)} title="View">
+                          <EyeIcon className="h-5 w-5" />
+                        </button>
+                        {canManage && (
+                          <>
+                            <button className="p-2 text-yellow-600 hover:text-yellow-900 hover:bg-yellow-50 rounded-lg transition-colors duration-200" onClick={() => openEdit(f)} title="Edit">
+                              <PencilSquareIcon className="h-5 w-5" />
+                            </button>
+                            <button className="p-2 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-lg transition-colors duration-200" onClick={() => requestDelete(f)} title="Delete">
+                              <TrashIcon className="h-5 w-5" />
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </Td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* Primary CTA for mobile */}
+      {canManage && (
+        <div className="fixed bottom-6 right-6 sm:hidden">
+          <button onClick={openAdd} className="inline-flex items-center px-4 py-3 rounded-full shadow-lg bg-emerald-600 text-white">
+            <PlusCircleIcon className="h-6 w-6 mr-2" /> New Fee
+          </button>
+        </div>
+      )}
+
+      {/* Modal */}
+      <FeeModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+        <div className="flex items-start justify-between mb-4">
+          <h3 className={`text-xl font-semibold ${currentTheme.title || 'text-gray-900'}`}>{isViewMode ? 'Fee Details (Receipt)' : editingFee ? 'Edit Fee Record' : 'Add New Fee Record'}</h3>
+          <button onClick={() => setIsModalOpen(false)} className="text-gray-500 hover:text-gray-700">✕</button>
+        </div>
+        <FeeForm
+          editingFee={editingFee}
+          fetchFees={fetchFees}
+          studentsForForm={students}
+          onClose={() => setIsModalOpen(false)}
+          isViewMode={isViewMode}
+          fetchStudents={fetchStudents}
+        />
+      </FeeModal>
+
+      {/* Delete confirmation */}
+      <ConfirmationModal
+        isOpen={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={confirmDelete}
+        message={feeToDelete ? `Delete fee record for ${feeToDelete.studentId?.name || 'this student'} (${feeToDelete.month} ${feeToDelete.year})?` : 'Delete this fee record?'}
+      />
+    </div>
+  );
+};
+
+const StatCard = ({ title, value, icon, theme }) => (
+  <div className={`p-5 rounded-lg flex items-center justify-between ${theme.panelBg || 'bg-gray-50'} ${theme.shadow || 'shadow'} ${theme.border || 'border border-gray-200'} transform hover:-translate-y-0.5 transition`}>
+    <div>
+      <p className={`${theme.mutedText || 'text-gray-500'} text-sm`}>{title}</p>
+      <p className={`text-2xl font-bold ${theme.title || 'text-emerald-800'}`}>{value}</p>
+    </div>
+    <div className={`p-3 rounded-full ${theme.badgeBg || 'bg-white'} ${theme.shadow || 'shadow'}`}>{icon}</div>
+  </div>
+);
+
+const Th = ({ children }) => (
+  <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">{children}</th>
+);
+const Td = ({ children }) => (
+  <td className="px-6 py-4 text-sm text-gray-700 align-middle">{children}</td>
+);
 
 export default FeeList;

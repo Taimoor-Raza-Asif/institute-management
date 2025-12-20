@@ -27,7 +27,7 @@ const StaffDashboard = () => {
         <DashboardCard
           title="My Profile"
           description="View your personal staff information."
-          icon={<UserCircleIcon className="h-8 w-8 text-blue-600" />}
+          icon={<UserCircleIcon className="h-8 w-8 text-green-600" />}
           link="/staff/my-data"
         />
         <DashboardCard

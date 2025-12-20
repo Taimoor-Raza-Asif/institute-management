@@ -305,11 +305,14 @@ const downloadReceipt = asyncHandler(async (req, res) => {
 // @route   GET /api/billing/reports
 // @access  Private/Admin & Accountant
 export const getBillReports = asyncHandler(async (req, res) => {
-  const { year } = req.query;
+  const { year, month } = req.query;
   const matchFilter = { paymentDate: { $ne: null } };
 
-  if (year) {
-    matchFilter.$expr = { $eq: [{ $year: "$paymentDate" }, parseInt(year)] };
+  if (year || month) {
+    const expressions = [];
+    if (year) expressions.push({ $eq: [{ $year: "$paymentDate" }, parseInt(year, 10)] });
+    if (month) expressions.push({ $eq: [{ $month: "$paymentDate" }, parseInt(month, 10)] });
+    matchFilter.$expr = expressions.length === 1 ? expressions[0] : { $and: expressions };
   }
 
   try {

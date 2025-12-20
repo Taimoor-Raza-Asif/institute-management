@@ -1,0 +1,11 @@
+Color Usage Report for AddEditBillModal.jsx
+
+- Uses currentTheme for most color tokens (label, inputBg, inputText, mutedText, fileBg, fileText, linkText, buttonCancelText, buttonCancelBg, buttonCancelHover, buttonText, buttonPrimary, buttonPrimaryHover, buttonDisabled, shadow).
+- Fallbacks to Tailwind classes:
+  - text-gray-700, border border-gray-300, bg-white, text-white, bg-green-600, hover:bg-green-700, disabled:bg-green-400, text-green-700, bg-green-50, hover:bg-green-100, text-gray-500, border-gray-200, shadow-md, etc.
+- Color usage locations:
+  - Form backgrounds, inputs, selects, and textareas
+  - Section labels and field labels
+  - File upload and file link
+  - Buttons (primary, cancel, hover, disabled)
+  - Error/info messages

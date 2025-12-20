@@ -43,7 +43,7 @@
 
 //     return (
 //         <div className="container mx-auto p-4 sm:p-6 lg:p-4">
-//             <h1 className="text-3xl sm:text-4xl font-bold text-center text-indigo-800 mb-8">My Subjects</h1>
+//             <h1 className="text-3xl sm:text-4xl font-bold text-center text-green-800 mb-8">My Subjects</h1>
             
 //             {assignedClasses.length > 0 ? (
 //                 <div className="overflow-x-auto bg-white rounded-lg shadow overflow-y-auto relative mt-6">
@@ -94,9 +94,11 @@ import 'react-toastify/dist/ReactToastify.css';
 import { UserContext } from '../App';
 import Loader from '../components/Loader';
 import Message from '../components/Message';
+import { useTheme } from '../context/ThemeContext';
 
 const MySubjects = () => {
     const { currentUser } = useContext(UserContext);
+    const { currentTheme } = useTheme();
     const [assignedClasses, setAssignedClasses] = useState([]);
     const [academicStructure, setAcademicStructure] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -160,31 +162,31 @@ const MySubjects = () => {
     }
 
     return (
-        <div className="container mx-auto p-4 sm:p-6 lg:p-4">
-            <h1 className="text-3xl sm:text-4xl font-bold text-center text-indigo-800 mb-8">My Assigned Classes & Subjects</h1>
+        <div className={`container mx-auto p-4 sm:p-6 lg:p-4`}> 
+            <h1 className={`text-3xl sm:text-4xl font-bold text-center mb-8 ${currentTheme?.title || 'text-green-800'}`}>My Assigned Classes & Subjects</h1>
             
             {assignedClasses.length > 0 ? (
-                <div className="overflow-x-auto bg-white rounded-lg shadow overflow-y-auto relative mt-6">
+                <div className={`overflow-x-auto ${currentTheme?.cardBg || 'bg-white'} rounded-lg ${currentTheme?.shadow || 'shadow'} overflow-y-auto relative mt-6`}>
                     <table className="w-full whitespace-nowrap table-auto">
-                        <thead className="bg-gray-50 text-gray-600 uppercase text-sm leading-normal">
+                        <thead className={`${currentTheme?.theadBg || 'bg-gray-50'} ${currentTheme?.text || 'text-gray-600'} uppercase text-sm leading-normal`}>
                             <tr>
-                                <th className="py-3 px-4 border-b border-gray-200">Academic Track</th>
-                                <th className="py-3 px-4 border-b border-gray-200">Class / Degree / Course</th>
-                                <th className="py-3 px-4 border-b border-gray-200 text-center">Subjects Taught</th>
+                                <th className={`py-3 px-4 border-b ${currentTheme?.panelBorder || 'border-gray-200'}`}>Academic Track</th>
+                                <th className={`py-3 px-4 border-b ${currentTheme?.panelBorder || 'border-gray-200'}`}>Class / Degree / Course</th>
+                                <th className={`py-3 px-4 border-b ${currentTheme?.panelBorder || 'border-gray-200'} text-center`}>Subjects Taught</th>
                             </tr>
                         </thead>
                         <tbody>
                             {assignedClasses.map((assignment, index) => (
-                                <tr key={index} className="border-b text-center border-gray-100 hover:bg-gray-50 transition duration-150 ease-in-out">
-                                    <td className="py-3 px-4 text-gray-800 font-medium">
-                                        <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${assignment.type === 'Class' ? 'bg-blue-100 text-blue-800' : assignment.type === 'BS' ? 'bg-purple-100 text-purple-800' : assignment.type === 'Almiya' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
+                                <tr key={index} className={`border-b text-center ${currentTheme?.divide || 'border-gray-100'} hover:${currentTheme?.rowHover || 'bg-gray-50'} transition duration-150 ease-in-out`}>
+                                    <td className={`py-3 px-4 ${currentTheme?.text || 'text-gray-800'} font-medium`}>
+                                        <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${assignment.type === 'Class' ? (currentTheme?.pillClass || 'bg-green-100 text-green-800') : assignment.type === 'BS' ? (currentTheme?.pillBS || 'bg-green-100 text-green-800') : assignment.type === 'Almiya' ? (currentTheme?.pillAlmiya || 'bg-yellow-100 text-yellow-800') : (currentTheme?.pillOther || 'bg-green-100 text-green-800')}`}>
                                             {assignment.type}
                                         </span>
                                     </td>
-                                    <td className="py-3 px-4 text-gray-800 font-medium">
+                                    <td className={`py-3 px-4 ${currentTheme?.text || 'text-gray-800'} font-medium`}>
                                         {renderAssignmentDetails(assignment)}
                                     </td>
-                                    <td className="py-3 px-4 text-gray-600 text-center">
+                                    <td className={`py-3 px-4 ${currentTheme?.mutedText || 'text-gray-600'} text-center`}>
                                         {assignment.subjects && assignment.subjects.length > 0 ? (
                                             assignment.subjects.join(', ')
                                         ) : (
@@ -197,7 +199,7 @@ const MySubjects = () => {
                     </table>
                 </div>
             ) : (
-                <p className="text-xl text-gray-600 text-center p-4 bg-gray-100 rounded-lg shadow-sm">
+                <p className={`text-xl ${currentTheme?.mutedText || 'text-gray-600'} text-center p-4 ${currentTheme?.panelBg || 'bg-gray-100'} rounded-lg ${currentTheme?.shadow || 'shadow-sm'}`}>
                     No classes or subjects have been assigned to you yet.
                 </p>
             )}

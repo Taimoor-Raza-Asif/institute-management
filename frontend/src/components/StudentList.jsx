@@ -64,40 +64,6 @@
 //     }
 //     return years;
 //   }, []);
-
-
-//   // Helper to build query parameters for student filters
-//   const buildStudentFilterQueryParams = useCallback(() => {
-//     const params = new URLSearchParams();
-//     if (debouncedSearchTerm) { // Use debounced search term
-//       params.append('searchTerm', debouncedSearchTerm);
-//     }
-//     if (filterClassType) {
-//       params.append('class', filterClassType);
-//       if (filterClassType === 'Class') {
-//         if (filterClassNumber) params.append('classNumber', filterClassNumber);
-//         if (filterMajorSubject) params.append('majorSubject', filterMajorSubject);
-//       } else if (filterClassType === 'BS') {
-//         if (filterDegreeName) params.append('degreeName', filterDegreeName);
-//         if (filterSemester) params.append('semester', filterSemester);
-//       }
-//     }
-//     // Append studentStatus filter
-//     if (filterStudentStatus && filterStudentStatus !== 'All Students') {
-//       params.append('studentStatus', filterStudentStatus);
-//     }
-//     if (filterGender && filterGender !== 'all') {
-//       params.append('gender', filterGender);
-//     }
-//     return params.toString();
-//   }, [debouncedSearchTerm, filterClassType, filterClassNumber, filterMajorSubject, filterDegreeName, filterSemester, filterStudentStatus, filterGender]);
-
-//   //   // Fetch students based on current filters
-//   //   const fetchStudents = useCallback(async () => {
-//   //     setLoading(true); // Set loading true at the start of fetch
-//   //     setError(null);
-//   //     try {
-//   //       const queryParams = buildStudentFilterQueryParams();
 //   //       const res = await api.get(`/students?${queryParams}`);
 //   //       if (Array.isArray(res.data)) {
 //   //         setStudents(res.data);
@@ -444,7 +410,7 @@
 //                   id="filterStudentStatus"
 //                   value={filterStudentStatus}
 //                   onChange={(e) => setFilterStudentStatus(e.target.value)}
-//                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2"
+//                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-300 focus:ring focus:ring-green-200 focus:ring-opacity-50 p-2"
 //                 >
 //                   <option value="All Students">All Students</option>
 //                   <option value="Regular">Regular</option>
@@ -460,7 +426,7 @@
 //                   id="filterGender"
 //                   value={filterGender}
 //                   onChange={(e) => setFilterGender(e.target.value)}
-//                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2"
+//                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-300 focus:ring focus:ring-green-200 focus:ring-opacity-50 p-2"
 //                 >
 //                   <option value="all">All</option>
 //                   <option value="male">Male</option>
@@ -480,7 +446,7 @@
 //                     setFilterDegreeName('');
 //                     setFilterSemester('');
 //                   }}
-//                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2"
+//                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-300 focus:ring focus:ring-green-200 focus:ring-opacity-50 p-2"
 //                 >
 //                   <option value="">All Class Types</option>
 //                   <option value="Class">Class (1-12)</option>
@@ -496,7 +462,7 @@
 //                       id="filterClassNumber"
 //                       value={filterClassNumber}
 //                       onChange={(e) => setFilterClassNumber(e.target.value)}
-//                       className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2"
+//                       className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-300 focus:ring focus:ring-green-200 focus:ring-opacity-50 p-2"
 //                     >
 //                       <option value="">All Classes</option>
 //                       {[...Array(12)].map((_, i) => (
@@ -510,7 +476,7 @@
 //                       id="filterMajorSubject"
 //                       value={filterMajorSubject}
 //                       onChange={(e) => setFilterMajorSubject(e.target.value)}
-//                       className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2"
+//                       className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-300 focus:ring focus:ring-green-200 focus:ring-opacity-50 p-2"
 //                     >
 //                       <option value="">All Subjects</option>
 //                       <option value="Arts">Arts</option>
@@ -528,7 +494,7 @@
 //                       id="filterDegreeName"
 //                       value={filterDegreeName}
 //                       onChange={(e) => setFilterDegreeName(e.target.value)}
-//                       className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2"
+//                       className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-300 focus:ring focus:ring-green-200 focus:ring-opacity-50 p-2"
 //                     >
 //                       <option value="">All Degrees</option>
 //                       <option value="Islamiyat">Islamiyat</option>
@@ -542,7 +508,7 @@
 //                       id="filterSemester"
 //                       value={filterSemester}
 //                       onChange={(e) => setFilterSemester(e.target.value)}
-//                       className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2"
+//                       className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-300 focus:ring focus:ring-green-200 focus:ring-opacity-50 p-2"
 //                     >
 //                       <option value="">All Semesters</option>
 //                       {[...Array(8)].map((_, i) => (
@@ -565,7 +531,7 @@
 //                   id="filterFeeYear"
 //                   value={filterFeeYear}
 //                   onChange={(e) => { setFilterFeeYear(e.target.value); }}
-//                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2"
+//                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-300 focus:ring focus:ring-green-200 focus:ring-opacity-50 p-2"
 //                 >
 //                   {generateYearOptions().map(year => (
 //                     <option key={year} value={year}>{year}</option>
@@ -578,7 +544,7 @@
 //                   id="filterFeeMonth"
 //                   value={filterFeeMonth}
 //                   onChange={(e) => setFilterFeeMonth(e.target.value)}
-//                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2"
+//                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-300 focus:ring focus:ring-green-200 focus:ring-opacity-50 p-2"
 //                 >
 //                   <option value="">All Months</option>
 //                   {months.map(monthName => (
@@ -852,7 +818,7 @@ import React, { useEffect, useState, useCallback, useContext } from 'react';
 import api from '../api';
 import Modal from './Modal';
 import StudentForm from './StudentForm';
-import { PencilIcon, TrashIcon, PlusIcon, FunnelIcon, XMarkIcon, MagnifyingGlassIcon, EyeIcon, EllipsisVerticalIcon, UserCircleIcon} from '@heroicons/react/24/outline';
+import { PencilIcon, TrashIcon, PlusIcon, FunnelIcon, XMarkIcon, MagnifyingGlassIcon, EyeIcon, EllipsisVerticalIcon, UserCircleIcon,UsersIcon} from '@heroicons/react/24/outline';
 import {
   ArrowPathIcon, // For Promotion
   ArrowUturnLeftIcon, // For Demotion
@@ -861,6 +827,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
 import { UserContext } from '../App'; // Import UserContext
+import { useTheme } from '../context/ThemeContext';
 // Assuming you have a Loader component available, otherwise uncomment the note below
 // import Loader from './Loader'; // <-- UNCOMMENT IF YOU HAVE THIS COMPONENT
 
@@ -872,6 +839,7 @@ const months = [
 
 const StudentList = () => {
   const { currentUser } = useContext(UserContext); // Use context
+  const { currentTheme } = useTheme();
   const [students, setStudents] = useState([]);
   const [allFees, setAllFees] = useState([]);
   const [editingStudent, setEditingStudent] = useState(null);
@@ -1193,16 +1161,27 @@ const StudentList = () => {
   // MODIFIED LOADING BLOCK: Check structure loading and show a simple message
   if (structureLoading) return (
       <div className="container mx-auto p-4 sm:p-6 lg:p-4 min-h-[400px] relative flex justify-center items-center">
-          <div className="text-xl text-indigo-600 animate-pulse">Loading Academic Structure...</div>
+          <div className="text-xl text-green-600 animate-pulse">Loading Academic Structure...</div>
       </div>
   );
 
 
   return (
-    <div className="container mx-auto p-4 sm:p-6 lg:p-4">
-      <h1 className="text-3xl sm:text-4xl font-bold font-serif text-center text-green-800 mb-14">Students Management</h1>
-      <div className="mb-6 p-4 bg-gray-50 rounded-lg shadow-sm border border-gray-200">
-        {/* Search and Main Buttons (Unchanged) */}
+    <div className="container mx-auto p-4 sm:p-6 lg:p-8">
+      {/* Enhanced Header */}
+      <div className={`mb-8 p-6 rounded-xl flex items-center justify-between ${currentTheme?.panelBg || 'bg-gradient-to-r from-green-50 to-emerald-50'} ${currentTheme?.shadow || 'shadow-md'}`}>
+        <div>
+          <h1 className={`text-3xl sm:text-4xl font-extrabold ${currentTheme?.title || 'text-green-800'}`}>Students Management</h1>
+          <p className={`${currentTheme?.mutedText || 'text-gray-600'} mt-1 text-sm`}>Manage student records, fees, and academic progress</p>
+        </div>
+        <div className="hidden sm:flex items-center space-x-2 text-sm text-gray-500">
+          <UsersIcon className="h-5 w-5" />
+          <span className="font-medium">{displayedStudents.length} Students</span>
+        </div>
+      </div>
+
+      {/* Enhanced Search and Filter Card */}
+      <div className={`mb-6 p-6 rounded-xl ${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.shadow || 'shadow-lg'} ${currentTheme?.border || 'border border-gray-100'}`}>
         <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-3">
           {!isStudentRole && (
             <div className="relative w-full sm:w-1/2 lg:w-2/3">
@@ -1211,41 +1190,41 @@ const StudentList = () => {
                 id="searchTerm"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition ${currentTheme?.inputBg || 'border-gray-300 bg-gray-50'}`}
                 placeholder="Search by Name or CNIC..."
               />
               <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
             </div>
           )}
           <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-            {canAddStudent && (
-              <button onClick={handleAddStudent} className="flex items-center justify-center bg-green-600 font-semibold text-white px-5 py-2 rounded-lg hover:bg-green-700 text-xs transition duration-200 shadow-md w-full sm:w-auto">
-                <PlusIcon className="h-5 w-5 mr-2" /> New Student
-              </button>
-            )}
             <button
               onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-              className="flex items-center justify-center bg-gray-200 text-gray-800 px-5 py-2 text-xs rounded-lg hover:bg-gray-300 transition duration-200 shadow-md w-full sm:w-auto"
+              className={`group flex items-center justify-center px-8 py-2 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 w-full sm:w-auto ${showAdvancedFilters ? 'bg-gradient-to-r from-gray-700 to-gray-600 text-white' : 'bg-white text-gray-700 border-2 border-gray-200 hover:border-gray-300'}`}
             >
-              <FunnelIcon className="h-5 w-5 mr-2" />
+              <FunnelIcon className="h-5 w-5 mr-2 transition-transform group-hover:scale-110" />
               {showAdvancedFilters ? 'Hide' : 'Filters'}
             </button>
+              {canAddStudent && (
+              <button onClick={handleAddStudent} className="group flex items-center justify-center px-8 py-2 rounded-xl font-bold  bg-gradient-to-r from-green-600 to-emerald-600 text-white transition-all duration-300 shadow-lg hover:shadow-2xl hover:from-green-700 hover:to-emerald-700 transform hover:-translate-y-0.5 w-full sm:w-auto">
+                <PlusIcon className="h-5 w-5 mr-2 transition-transform group-hover:rotate-90" />Student
+              </button>
+            )}
           </div>
         </div>
 
         {/* Advanced Filters (MODIFIED) */}
         {showAdvancedFilters && (
-          <div className="mt-4 pt-4 border-t border-gray-300">
-            <h3 className="text-md font-semibold mb-3">Advanced Filters</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-4">
+          <div className={`mt-6 pt-6 border-t ${currentTheme?.border || 'border-gray-200'}`}>
+            <h3 className={`text-lg font-bold mb-4 ${currentTheme?.title || 'text-gray-800'}`}>Advanced Filters</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
               {/* Student Status Filter (Unchanged) */}
               <div>
-                <label htmlFor="filterStudentStatus" className="block text-sm font-medium text-gray-700">Student Status</label>
+                <label htmlFor="filterStudentStatus" className="block text-sm font-semibold text-gray-700 mb-2">Student Status</label>
                 <select
                   id="filterStudentStatus"
                   value={filterStudentStatus}
                   onChange={(e) => setFilterStudentStatus(e.target.value)}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2"
+                  className={`block w-full rounded-lg border shadow-sm focus:border-green-500 focus:ring-2 focus:ring-green-200 p-2.5 transition ${currentTheme?.inputBg || 'border-gray-300'}`}
                 >
                   <option value="All Students">All Students</option>
                   <option value="Regular">Regular</option>
@@ -1257,12 +1236,12 @@ const StudentList = () => {
 
               {/* Gender Filter (Unchanged) */}
               <div>
-                <label htmlFor="filterGender" className="block text-sm font-medium text-gray-700">Gender</label>
+                <label htmlFor="filterGender" className="block text-sm font-semibold text-gray-700 mb-2">Gender</label>
                 <select
                   id="filterGender"
                   value={filterGender}
                   onChange={(e) => setFilterGender(e.target.value)}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2"
+                  className={`block w-full rounded-lg border shadow-sm focus:border-green-500 focus:ring-2 focus:ring-green-200 p-2.5 transition ${currentTheme?.inputBg || 'border-gray-300'}`}
                 >
                   <option value="all">All</option>
                   <option value="male">Male</option>
@@ -1272,7 +1251,7 @@ const StudentList = () => {
 
               {/* Class Type Filter (Dynamic) */}
               <div>
-                <label htmlFor="filterClassType" className="block text-sm font-medium text-gray-700">Class Type</label>
+                <label htmlFor="filterClassType" className="block text-sm font-semibold text-gray-700 mb-2">Class Type</label>
                 <select
                   id="filterClassType"
                   value={filterClassType}
@@ -1283,7 +1262,7 @@ const StudentList = () => {
                     setFilterDegreeName('');
                     setFilterSemester('');
                   }}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2"
+                  className={`block w-full rounded-lg border shadow-sm focus:border-green-500 focus:ring-2 focus:ring-green-200 p-2.5 transition ${currentTheme?.inputBg || 'border-gray-300'}`}
                 >
                   <option value="">All Class Types</option>
                   {academicStructure?.map(type => (
@@ -1301,7 +1280,7 @@ const StudentList = () => {
                       id="filterClassNumber"
                       value={filterClassNumber}
                       onChange={(e) => setFilterClassNumber(e.target.value)}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2"
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-300 focus:ring focus:ring-green-200 focus:ring-opacity-50 p-2"
                     >
                       <option value="">All Classes</option>
                       {selectedClassConfig.classConfig?.sort((a, b) => a.classNumber - b.classNumber).map((cls) => (
@@ -1318,7 +1297,7 @@ const StudentList = () => {
                         id="filterMajorSubject"
                         value={filterMajorSubject}
                         onChange={(e) => setFilterMajorSubject(e.target.value)}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2"
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-300 focus:ring focus:ring-green-200 focus:ring-opacity-50 p-2"
                       >
                         <option value="">All Subjects</option>
                         {/* Static options for Major subject on Class type for simplicity in filter */}
@@ -1342,7 +1321,7 @@ const StudentList = () => {
                         setFilterDegreeName(e.target.value);
                         setFilterSemester('');
                       }}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2"
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-300 focus:ring focus:ring-green-200 focus:ring-opacity-50 p-2"
                     >
                       <option value="">All Degrees</option>
                       {selectedDegreeConfig.degreeConfig?.map(degree => (
@@ -1357,7 +1336,7 @@ const StudentList = () => {
                           id="filterSemester"
                           value={filterSemester}
                           onChange={(e) => setFilterSemester(e.target.value)}
-                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2"
+                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-300 focus:ring focus:ring-green-200 focus:ring-opacity-50 p-2"
                         >
                           <option value="">All Semesters</option>
                           {Array.from({ length: selectedDegreeConfig.degreeConfig.find(d => d.degreeName === filterDegreeName)?.maxSemester || 0 }, (_, i) => i + 1).map(sem => (
@@ -1376,7 +1355,7 @@ const StudentList = () => {
                   id="filterFeeYear"
                   value={filterFeeYear}
                   onChange={(e) => { setFilterFeeYear(e.target.value); }}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-300 focus:ring focus:ring-green-200 focus:ring-opacity-50 p-2"
                 >
                   {generateYearOptions().map(year => (
                     <option key={year} value={year}>{year}</option>
@@ -1389,7 +1368,7 @@ const StudentList = () => {
                   id="filterFeeMonth"
                   value={filterFeeMonth}
                   onChange={(e) => setFilterFeeMonth(e.target.value)}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-300 focus:ring focus:ring-green-200 focus:ring-opacity-50 p-2"
                 >
                   <option value="">All Months</option>
                   {months.map(monthName => (
@@ -1399,22 +1378,22 @@ const StudentList = () => {
               </div>
             </div>
 
-            <div className="flex justify-end space-x-2">
-              {/* Bulk Promotion/Demotion Buttons (MODIFIED) */}
+            <div className="flex flex-wrap justify-end gap-3">
+              {/* Bulk Promotion/Demotion Buttons */}
               {((currentUser?.role === 'admin') || (currentUser?.role === 'teacher')) && filterClassType && ['Class', 'Almiya'].includes(filterClassType) && filterClassNumber && (
                 <>
                   <button
                     onClick={() => handlePromoteClass(`/students/promote-class`, { classNumber: filterClassNumber, classType: filterClassType }, `from ${filterClassType} Class ${filterClassNumber}`)}
-                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 transition duration-150 ease-in-out"
+                    className="group inline-flex items-center px-6 py-2 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5"
                   >
-                    <ArrowLongLeftIcon className="-ml-1 mr-2 h-5 w-5" />
+                    <ArrowLongLeftIcon className="-ml-1 mr-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
                     Promote {filterClassType} {filterClassNumber}
                   </button>
                   <button
                     onClick={() => handleDemoteClass(`/students/demote-class`, { classNumber: filterClassNumber, classType: filterClassType }, `from ${filterClassType} Class ${filterClassNumber}`)}
-                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition duration-150 ease-in-out"
+                    className="group inline-flex items-center px-6 py-2 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5"
                   >
-                    <ArrowLongRightIcon className="-ml-1 mr-2 h-5 w-5" />
+                    <ArrowLongRightIcon className="-ml-1 mr-2 h-5 w-5 transition-transform group-hover:-translate-x-1" />
                     Demote {filterClassType} {filterClassNumber}
                   </button>
                 </>
@@ -1423,125 +1402,126 @@ const StudentList = () => {
                 <>
                   <button
                     onClick={() => handlePromoteClass(`/students/promote-semester`, { degreeName: filterDegreeName, semester: parseInt(filterSemester) }, `from ${filterDegreeName} Semester ${filterSemester}`)}
-                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 transition duration-150 ease-in-out"
+                    className="group inline-flex items-center px-6 py-2 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5"
                   >
-                    <ArrowLongLeftIcon className="-ml-1 mr-2 h-5 w-5" />
+                    <ArrowLongLeftIcon className="-ml-1 mr-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
                     Promote Semester {filterSemester}
                   </button>
                   <button
                     onClick={() => handleDemoteClass(`/students/demote-semester`, { degreeName: filterDegreeName, semester: parseInt(filterSemester) }, `from ${filterDegreeName} Semester ${filterSemester}`)}
-                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition duration-150 ease-in-out"
+                    className="group inline-flex items-center px-6 py-2 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5"
                   >
-                    <ArrowLongRightIcon className="-ml-1 mr-2 h-5 w-5" />
+                    <ArrowLongRightIcon className="-ml-1 mr-2 h-5 w-5 transition-transform group-hover:-translate-x-1" />
                     Demote Semester {filterSemester}
                   </button>
                 </>
               )}
-              <button onClick={handleResetFilters} className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition">Reset Filters</button>
+              <button onClick={handleResetFilters} className="group inline-flex items-center px-6 py-2 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5">
+                <XMarkIcon className="h-5 w-5 mr-2 transition-transform group-hover:rotate-90" />
+                Reset Filters
+              </button>
             </div>
           </div>
         )}
       </div>
 
 
-      {/* Table Container... (Remains largely the same) */}
-      <div className=" min-h-[400px] relative">
+      {/* Enhanced Table Container */}
+      <div className="min-h-[400px] relative">
         {/* Loading Overlay */}
         {loading && (
-          <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10">
-            <div className="text-center text-lg text-gray-700">Loading students...</div>
+          <div className="absolute inset-0 bg-white bg-opacity-90 flex items-center justify-center z-10 rounded-xl">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-3"></div>
+              <p className="text-lg font-medium text-gray-700">Loading students...</p>
+            </div>
           </div>
         )}
         {error && !loading && (
-          <div className="absolute inset-0 bg-red-100 bg-opacity-75 flex items-center justify-center z-10 border border-red-400 text-red-700">
-            <div className="text-center text-lg">{error}</div>
+          <div className="absolute inset-0 bg-red-50 bg-opacity-95 flex items-center justify-center z-10 border-2 border-red-300 rounded-xl">
+            <div className="text-center p-6">
+              <p className="text-lg font-medium text-red-700">{error}</p>
+            </div>
           </div>
         )}
 
-        <div className="bg-white rounded-lg shadow-md md:overflow-visible lg:overflow-visible sm:overflow-x-auto">
-          <table className="min-w-full table-auto border-separate border-spacing-y-2 border-white shadow-lg rounded-lg overflow-auto">
-            <thead className="bg-green-600 text-white rounded-md">
-              <tr>
-                <th className="p-2 border border-white text-sm w-44">Name</th>
-                <th className="p-2 border border-white text-sm w-44">F.Name</th>
-                <th className="p-2 border border-white text-sm w-32">CNIC</th>
-                {/* <th className="p-2 border border-white w-36">Guardian Contact</th> */}
-                <th className="p-2 border border-white text-sm w-14">Type</th>
-                <th className="p-2 border border-white text-sm w-14">Grade/Juz</th>
-                <th className="p-2 border border-white text-sm w-36">Major/Degree</th>
-                <th className="p-2 border border-white text-sm w-14">Semester</th>
-                <th className="p-2 border border-white text-sm w-32">Fee/month</th>
-                <th className="p-2 border border-white text-sm">Status</th>
-                {(canEditStudent || canDeleteStudent) && (
-                  <th className="p-2 border border-white w-36 text-sm">Actions</th>
-                )}
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                [...Array(5)].map((_, i) => <SkeletonRow key={i} columns={10} />) // Use the skeleton row
-              ) : Array.isArray(displayedStudents) && displayedStudents.length > 0 ? (
-                displayedStudents.map((s, index) => (
-                  <tr
-                    key={s._id}
-                    className={`text-center ${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'} py-4 cursor-pointer hover:bg-gray-200 transition-colors duration-150`}
-                  >
-                    <td className="px-6 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
-                      <div className="flex items-center">
-                        {s.profilePictureUrl ? (
-                          <img
-                            src={`http://localhost:5000${s.profilePictureUrl}`}
-                            alt={`${s.name}'s Profile`}
-                            className="h-8 w-8 rounded-full object-cover mr-2"
-                            onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/32x32/cccccc/ffffff?text=NA'; }}
-                          />
-                        ) : (
-                          <UserCircleIcon className="h-8 w-8 text-gray-400 mr-2" />
-                        )}
-                        <span>{s.name}</span>
-                      </div>
-                    </td>
-                    <td className="border border-white p-2 w-40 overflow-hidden whitespace-nowrap text-ellipsis  text-xs text-gray-500" title={s.fatherName}>{s.fatherName}</td>
-                    <td className="border border-white p-2 w-32 overflow-hidden whitespace-nowrap text-ellipsis  text-xs text-gray-500" title={s.cnic}>{s.cnic || '-'}</td>
-                    {/* <td className="border border-white p-2 w-36 overflow-hidden whitespace-nowrap text-ellipsis  text-base text-gray-500" title={s.guardianContact}>{s.guardianContact}</td> */}
-                    
-                    {/* TYPE COLUMN */}
-                    <td className="border border-white p-2 w-28  text-xs text-gray-500">
-                      {s.class}
-                    </td>
-
-                    {/* GRADE/JUZ COLUMN */}
-                    <td className="border border-white p-2 w-28  text-xs text-gray-500">
-                      {s.class === 'Class' || s.class === 'Almiya' ? s.classNumber || '-' : s.class === 'Hifaz' ? `Juz ${s.currentJuz || 0}` : '-'}
-                    </td>
-                    
-                    <td className="border border-white p-2 w-36 overflow-hidden whitespace-nowrap text-ellipsis  text-xs text-gray-500" title={s.class === 'BS' ? s.degreeName : s.majorSubject}>
-                      {s.class === 'BS' ? s.degreeName || '-' : s.majorSubject || '-'}
-                    </td>
-                    <td className="border border-white p-2 w-28 text-xs text-gray-500">
-                      {s.class === 'BS' ? s.semester || '-' : '-'}
-                    </td>
-                    <td className="border border-white p-2 w-32  text-xs text-gray-500">PKR {s.feePerMonth || '-'}</td>
-                    <td className={`border border-white p-2 w-32 font-semibold text-xs
-                      ${s.feeStatus === 'Paid' ? 'bg-green-300 text-black' :
-                        s.feeStatus === 'Partial Paid' ? 'bg-orange-500 text-white' :
-                          'bg-red-500 text-white'}
-                  `}>
-                      {s.feeStatus}
-                    </td>
-                    <td className="border border-white p-2 w-30 space-x-2 flex justify-center items-center">
-                      <button onClick={(e) => { e.stopPropagation(); handleViewStudentDetails(s); }} className="text-gray-600 hover:text-gray-800 transition-colors duration-200 p-1 rounded-md hover:bg-gray-100" title="View Student Details">
-                        <EyeIcon className="h-5 w-5" />
-                      </button>
-                      {/* Action Dropdown Menu (MODIFIED) */}
-                      <Menu as="div" className="relative z-50 inline-block text-left ml-2">
-                        <div>
-                          <MenuButton className="flex items-center text-gray-400 hover:text-gray-600">
-                            <EllipsisVerticalIcon className="h-5 w-5" aria-hidden="true" />
-                          </MenuButton>
+        <div className={`${currentTheme?.cardBg || 'bg-white'} rounded-xl ${currentTheme?.shadow || 'shadow-lg'} overflow-hidden`}>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className={`${currentTheme?.theadBg || 'bg-gradient-to-r from-green-600 to-emerald-600'}`}>
+                <tr>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Name</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">F.Name</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">CNIC</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Type</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Grade/Juz</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Major/Degree</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Semester</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Fee/month</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Status</th>
+                  {(canEditStudent || canDeleteStudent) && (
+                    <th className="px-6 py-4 text-center text-xs font-bold text-white uppercase tracking-wider">Actions</th>
+                  )}
+                </tr>
+              </thead>
+              <tbody className={`${currentTheme?.tbodyBg || 'bg-white'} divide-y divide-gray-100`}>
+                {loading ? (
+                  [...Array(5)].map((_, i) => <SkeletonRow key={i} columns={10} />)
+                ) : Array.isArray(displayedStudents) && displayedStudents.length > 0 ? (
+                  displayedStudents.map((s, index) => (
+                    <tr
+                      key={s._id}
+                      className={`transition-all duration-150 hover:bg-green-50 hover:shadow-md ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
+                    >
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          {s.profilePictureUrl ? (
+                            <img
+                              src={`http://localhost:5000${s.profilePictureUrl}`}
+                              alt={`${s.name}'s Profile`}
+                              className="h-10 w-10 rounded-full object-cover ring-2 ring-green-100 mr-3"
+                              onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/40x40/10b981/ffffff?text=' + s.name[0]; }}
+                            />
+                          ) : (
+                            <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center mr-3 ring-2 ring-green-200">
+                              <span className="text-green-700 font-bold text-sm">{s.name[0]}</span>
+                            </div>
+                          )}
+                          <div>
+                            <div className="text-sm font-semibold text-gray-900">{s.name}</div>
+                          </div>
                         </div>
-                        <MenuItems className="absolute right-0 z-50 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
-                          <div className="py-1">
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{s.fatherName}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-mono">{s.cnic || '-'}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">{s.class}</span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-medium">
+                        {s.class === 'Class' || s.class === 'Almiya' ? s.classNumber || '-' : s.class === 'Hifaz' ? `Juz ${s.currentJuz || 0}` : '-'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{s.class === 'BS' ? s.degreeName || '-' : s.majorSubject || '-'}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{s.class === 'BS' ? s.semester || '-' : '-'}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">PKR {s.feePerMonth || '-'}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full ${s.feeStatus === 'Paid' ? 'bg-green-100 text-green-800' : s.feeStatus === 'Partial Paid' ? 'bg-orange-100 text-orange-800' : 'bg-red-100 text-red-800'}`}>
+                          {s.feeStatus}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                        <div className="flex items-center justify-center space-x-2">
+                          <button onClick={(e) => { e.stopPropagation(); handleViewStudentDetails(s); }} className="p-2 text-green-600 hover:text-green-900 hover:bg-green-50 rounded-lg transition-colors duration-200" title="View Student Details">
+                            <EyeIcon className="h-5 w-5" />
+                          </button>
+                          {/* Action Dropdown Menu */}
+                          <Menu as="div" className="relative inline-block text-left">
+                            <div>
+                              <MenuButton className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors duration-200">
+                                <EllipsisVerticalIcon className="h-5 w-5" aria-hidden="true" />
+                              </MenuButton>
+                            </div>
+                            <MenuItems className="absolute right-0 z-50 mt-2 w-56 origin-top-right rounded-lg bg-white shadow-xl ring-1 ring-black ring-opacity-5 focus:outline-none">
+                              <div className="py-1">
                             {/* Class/Almiya Promotion/Demotion Buttons */}
                             {currentUser?.role === 'admin' && (s.class === 'Class' || s.class === 'Almiya') && s.classNumber && s.classNumber >= 1 && (
                               <>
@@ -1626,18 +1606,26 @@ const StudentList = () => {
                           </div>
                         </MenuItems>
                       </Menu>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="10" className="text-center p-4 text-gray-500">No students found. Add a new student!</td>
+                    </div>
+                  </td>
                 </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="10" className="px-6 py-12 text-center">
+                  <div className="flex flex-col items-center justify-center">
+                    <UsersIcon className="h-12 w-12 text-gray-300 mb-3" />
+                    <p className="text-lg font-medium text-gray-500">No students found</p>
+                    <p className="text-sm text-gray-400 mt-1">Try adjusting your filters or add a new student</p>
+                  </div>
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
       </div>
+    </div>
+  </div>
       <Modal isOpen={modalOpen} onClose={handleCloseModal}>
         <StudentForm
           editingStudent={editingStudent}

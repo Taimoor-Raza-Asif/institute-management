@@ -179,7 +179,7 @@
 //   return (
 //     <div className="container mx-auto p-6 bg-white shadow-lg rounded-lg my-8 max-w-6xl">
 //       <h2 className="text-3xl font-bold text-gray-800 mb-6 border-b pb-4 flex items-center">
-//         <ClipboardDocumentCheckIcon className="h-8 w-8 mr-3 text-indigo-600" /> Mark Attendance
+//         <ClipboardDocumentCheckIcon className="h-8 w-8 mr-3 text-green-600" /> Mark Attendance
 //       </h2>
 
 //       {successMessage && <Message type="success">{successMessage}</Message>}
@@ -188,25 +188,25 @@
 //       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
 //         <div className="flex flex-col">
 //           <label htmlFor="attendanceDate" className="block text-sm font-medium text-gray-700 mb-1">
-//             <CalendarDaysIcon className="h-4 w-4 inline-block mr-2 text-indigo-500" /> Select Date
+//             <CalendarDaysIcon className="h-4 w-4 inline-block mr-2 text-green-500" /> Select Date
 //           </label>
 //           <input
 //             type="date"
 //             id="attendanceDate"
 //             value={selectedDate}
 //             onChange={(e) => setSelectedDate(e.target.value)}
-//             className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+//             className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
 //           />
 //         </div>
 //         <div className="flex flex-col">
 //           <label htmlFor="attendanceType" className="block text-sm font-medium text-gray-700 mb-1">
-//             <UserGroupIcon className="h-4 w-4 inline-block mr-2 text-indigo-500" /> Select Type
+//             <UserGroupIcon className="h-4 w-4 inline-block mr-2 text-green-500" /> Select Type
 //           </label>
 //           <select
 //             id="attendanceType"
 //             value={attendanceType}
 //             onChange={handleAttendanceTypeChange}
-//             className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+//             className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
 //             disabled={isTeacher} // Teachers can't change type, always student
 //           >
 //             <option value="Student">Students</option>
@@ -234,7 +234,7 @@
 //                 id="filterClassType"
 //                 value={filterClassType}
 //                 onChange={(e) => setFilterClassType(e.target.value)}
-//                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+//                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
 //               >
 //                 <option value="">All</option>
 //                 <option value="Class">Class</option>
@@ -258,7 +258,7 @@
 //               <input type="text" id="majorSubject" value={filterMajorSubject} onChange={(e) => setFilterMajorSubject(e.target.value)} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" />
 //             </div>
 //             <div className="flex items-end">
-//               <button onClick={fetchMembers} className="w-full bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition duration-200">
+//               <button onClick={fetchMembers} className="w-full bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition duration-200">
 //                 Apply Filters
 //               </button>
 //             </div>
@@ -272,7 +272,7 @@
 //               <input type="text" id="role" value={filterRole} onChange={(e) => setFilterRole(e.target.value)} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" />
 //             </div>
 //             <div className="flex items-end">
-//               <button onClick={fetchMembers} className="w-full bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition duration-200">
+//               <button onClick={fetchMembers} className="w-full bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition duration-200">
 //                 Apply Filters
 //               </button>
 //             </div>
@@ -351,7 +351,7 @@
 //             <div className="mt-6 text-right">
 //               <button
 //                 type="submit"
-//                 className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+//                 className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
 //                 disabled={loading}
 //               >
 //                 {loading ? 'Submitting...' : 'Submit Attendance'}
@@ -377,12 +377,14 @@ import api from '../api';
 import { UserContext } from '../App';
 import Loader from '../components/Loader';
 import Message from '../components/Message';
+import { useTheme } from '../context/ThemeContext';
 import {
   CalendarDaysIcon, UserGroupIcon, FunnelIcon, CheckIcon, XMarkIcon, ClipboardDocumentCheckIcon, BookOpenIcon, UserIcon
 } from '@heroicons/react/24/outline';
 
 const AttendanceMarking = () => {
   const { currentUser: user } = useContext(UserContext);
+  const { currentTheme } = useTheme();
 
   const [academicStructure, setAcademicStructure] = useState(null);
   const [structureLoading, setStructureLoading] = useState(true);
@@ -631,47 +633,58 @@ const AttendanceMarking = () => {
 
 
   return (
-    <div className="container mx-auto p-6 bg-white shadow-lg rounded-lg my-8 max-w-6xl">
-      <h2 className="text-3xl font-bold text-gray-800 mb-6 border-b pb-4 flex items-center">
-        <ClipboardDocumentCheckIcon className="h-8 w-8 mr-3 text-indigo-600" /> Mark Attendance
-      </h2>
+    <div className="container mx-auto p-4 sm:p-6 lg:p-8 bg-gray-100 min-h-screen">
+      {/* Hero Header */}
+      <div className={`relative ${currentTheme?.heroBg || 'bg-gradient-to-r from-emerald-50 to-teal-100'} ${currentTheme?.shadow || 'shadow-lg'} rounded-2xl p-8 mb-8 overflow-hidden`}>
+        <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full -mr-32 -mt-32"></div>
+        <div className="relative z-10 text-left">
+          <h1 className={`text-3xl sm:text-4xl font-extrabold mb-2 ${currentTheme?.heroTitle || 'text-emerald-800'}`}>
+            <ClipboardDocumentCheckIcon className="h-9 w-9 inline-block mr-3" /> Mark Attendance
+          </h1>
+          <p className={`${currentTheme?.heroSubtitle || 'text-emerald-700'} text-sm`}>Track daily attendance for students and staff members</p>
+        </div>
+      </div>
 
       {successMessage && <Message type="success">{successMessage}</Message>}
       {error && <Message type="error">{error}</Message>}
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        <div className="flex flex-col">
-          <label htmlFor="attendanceDate" className="block text-sm font-medium text-gray-700 mb-1">
-            <CalendarDaysIcon className="h-4 w-4 inline-block mr-2 text-indigo-500" /> Select Date
-          </label>
-          <input
-            type="date"
-            id="attendanceDate"
-            value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-          />
-        </div>
-        <div className="flex flex-col">
-          <label htmlFor="attendanceType" className="block text-sm font-medium text-gray-700 mb-1">
-            <UserGroupIcon className="h-4 w-4 inline-block mr-2 text-indigo-500" /> Select Type
-          </label>
-          <select
-            id="attendanceType"
-            value={attendanceType}
-            onChange={handleAttendanceTypeChange}
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-            disabled={isTeacher} // Teachers can't change type, always student
-          >
-            <option value="Student">Students</option>
-            {isAdmin && <option value="Staff">Staff</option>}
-          </select>
+      {/* Date and Type Selection Card */}
+      <div className={`${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.shadow || 'shadow-xl'} rounded-xl p-6 mb-6`}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="flex flex-col">
+            <label htmlFor="attendanceDate" className="block text-sm font-medium text-gray-700 mb-2">
+              <CalendarDaysIcon className="h-5 w-5 inline-block mr-2 text-green-600" /> Select Date
+            </label>
+            <input
+              type="date"
+              id="attendanceDate"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              className="block w-full h-12 px-4 rounded-lg border border-gray-300 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+            />
+          </div>
+          <div className="flex flex-col">
+            <label htmlFor="attendanceType" className="block text-sm font-medium text-gray-700 mb-2">
+              <UserGroupIcon className="h-5 w-5 inline-block mr-2 text-green-600" /> Select Type
+            </label>
+            <select
+              id="attendanceType"
+              value={attendanceType}
+              onChange={handleAttendanceTypeChange}
+              className="block w-full h-12 px-4 rounded-lg border border-gray-300 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+              disabled={isTeacher}
+            >
+              <option value="Student">Students</option>
+              {isAdmin && <option value="Staff">Staff</option>}
+            </select>
+          </div>
         </div>
       </div>
 
-      <div className="bg-gray-50 p-6 rounded-lg shadow-inner">
-        <h3 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
-          <FunnelIcon className="h-6 w-6 mr-2 text-gray-600" /> Filters
+      {/* Filters Card */}
+      <div className="bg-white rounded-xl shadow-xl p-6 mb-6">
+        <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center border-b pb-3">
+          <FunnelIcon className="h-6 w-6 mr-2 text-green-600" /> Filters
         </h3>
 
         {attendanceType === 'Student' && (isAdmin || isTeacher) && (
@@ -691,7 +704,7 @@ const AttendanceMarking = () => {
                     setFilterSemester('');
                     setFilterMajorSubject('');
                   }}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
                 >
                   <option value="">Select Type</option>
                   {academicStructure?.map(type => (
@@ -704,12 +717,12 @@ const AttendanceMarking = () => {
             {/* Conditional Filters based on selected type */}
             {selectedAcademicType && ['Class', 'Almiya'].includes(filterClassType) && (
               <div>
-                <label htmlFor="filterClassNumber" className="block text-sm font-medium text-gray-700">{selectedAcademicType.name} Grade/Number</label>
+                <label htmlFor="filterClassNumber" className="block text-sm font-medium text-gray-700">Grade/Number</label>
                 <select
                   id="filterClassNumber"
                   value={filterClassNumber}
                   onChange={(e) => setFilterClassNumber(e.target.value)}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
                 >
                   <option value="">All Grades</option>
                   {selectedAcademicType.classConfig?.sort((a, b) => a.classNumber - b.classNumber).map((cls) => (
@@ -729,7 +742,7 @@ const AttendanceMarking = () => {
                     id="filterDegreeName"
                     value={filterDegreeName}
                     onChange={(e) => { setFilterDegreeName(e.target.value); setFilterSemester(''); }}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
                   >
                     <option value="">All Degrees</option>
                     {selectedAcademicType.degreeConfig?.map(degree => (
@@ -744,7 +757,7 @@ const AttendanceMarking = () => {
                       id="filterSemester"
                       value={filterSemester}
                       onChange={(e) => setFilterSemester(e.target.value)}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
                     >
                       <option value="">All Semesters</option>
                       {Array.from({ length: selectedAcademicType.degreeConfig?.find(d => d.degreeName === filterDegreeName)?.maxSemester || 0 }, (_, i) => i + 1).map(sem => (
@@ -766,10 +779,10 @@ const AttendanceMarking = () => {
               <div className="flex items-end lg:col-span-1 md:col-span-2">
                 <button 
                   onClick={handleFilterChange} 
-                  className="w-full bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition duration-200"
+                  className="w-full h-12 flex items-center justify-center px-6 rounded-lg font-medium transition-all duration-200 bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-700 hover:to-green-800 shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={!filterClassType}
                 >
-                  <FunnelIcon className="h-5 w-5 mr-2 inline-block" /> Load Members
+                  <FunnelIcon className="h-5 w-5 mr-2" /> Load Members
                 </button>
               </div>
             )}
@@ -796,17 +809,18 @@ const AttendanceMarking = () => {
               </select>
             </div>
             <div className="flex items-end">
-              <button onClick={handleFilterChange} className="w-full bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition duration-200">
-                Load Staff
+              <button onClick={handleFilterChange} className="w-full h-12 flex items-center justify-center px-6 rounded-lg font-medium transition-all duration-200 bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-700 hover:to-green-800 shadow-md">
+                <FunnelIcon className="h-5 w-5 mr-2" /> Load Staff
               </button>
             </div>
           </div>
         )}
       </div>
 
+      {/* Members List */}
       <div className="mt-8">
-        <h3 className="text-2xl font-bold text-gray-800 mb-4 flex items-center">
-            <UserIcon className='h-6 w-6 mr-2 text-gray-600'/> {attendanceType === 'Student' ? 'Student List' : 'Staff List'}
+        <h3 className="text-2xl font-bold text-gray-900 mb-4 px-1 flex items-center">
+            <UserIcon className='h-6 w-6 mr-2 text-gray-700'/> {attendanceType === 'Student' ? 'Student List' : 'Staff List'}
         </h3>
 
         {loading ? (
@@ -817,22 +831,23 @@ const AttendanceMarking = () => {
           </Message>
         ) : (
           <form onSubmit={handleSubmitAttendance}>
-            <div className="overflow-x-auto rounded-lg shadow">
+            <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+            <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+                <thead className="bg-gradient-to-r from-green-600 to-emerald-600">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Class Info</th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Name</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">ID</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Class Info</th>
+                    <th className="px-6 py-4 text-center text-xs font-bold text-white uppercase tracking-wider">Status</th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {members.map((member) => (
-                    <tr key={member._id}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{member.name}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{member.cnic}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <tbody className="bg-white divide-y divide-gray-100">
+                  {members.map((member, index) => (
+                    <tr key={member._id} className={`transition-all duration-150 hover:bg-green-50 hover:shadow-md ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">{member.name}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{member.cnic}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                         {attendanceType === 'Student' ? getClassInfo(member) : member.staffType}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
@@ -868,12 +883,14 @@ const AttendanceMarking = () => {
                 </tbody>
               </table>
             </div>
-            <div className="mt-6 text-right">
+            </div>
+            <div className="mt-6 flex justify-end">
               <button
                 type="submit"
-                className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                className="flex items-center justify-center h-12 px-8 rounded-lg font-bold bg-gradient-to-r from-green-600 to-emerald-600 text-white transition-all duration-300 shadow-lg hover:shadow-xl hover:from-green-700 hover:to-emerald-700 transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                 disabled={loading}
               >
+                <ClipboardDocumentCheckIcon className="h-5 w-5 mr-2" />
                 {loading ? 'Submitting...' : 'Submit Attendance'}
               </button>
             </div>

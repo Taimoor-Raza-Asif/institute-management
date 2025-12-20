@@ -391,11 +391,32 @@ export const deleteFeeRecord = async (req, res) => {
 // @route   GET /api/fees/reports
 // @access  Private/Admin & Accountant
 export const getFeeReports = asyncHandler(async (req, res) => {
-  const { year } = req.query;
+  const { year, month } = req.query;
   const matchFilter = {};
 
   if (year) {
-    matchFilter.year = parseInt(year);
+    const parsedYear = parseInt(year, 10);
+    if (!Number.isNaN(parsedYear)) {
+      matchFilter.year = parsedYear;
+    }
+  }
+
+  if (month) {
+    const monthNames = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+
+    const parsedMonth = parseInt(month, 10);
+    let monthName = month;
+
+    if (!Number.isNaN(parsedMonth) && parsedMonth >= 1 && parsedMonth <= 12) {
+      monthName = monthNames[parsedMonth - 1];
+    }
+
+    if (typeof monthName === 'string' && monthName.trim().length > 0) {
+      matchFilter.month = new RegExp(`^${monthName}$`, 'i'); // case-insensitive exact match
+    }
   }
 
   try {

@@ -1,5 +1,5 @@
 // src/components/StaffSalaryList.jsx
-import React, { useState, useEffect, useContext, useCallback } from 'react';
+import React, { useState, useEffect, useContext, useCallback, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../api';
 import { UserContext } from '../App';
@@ -8,13 +8,16 @@ import Message from './Message';
 import Modal from './Modal';
 import SalaryForm from './SalaryForm';
 import {
-  CurrencyDollarIcon, EyeIcon, PencilIcon, TrashIcon, PlusCircleIcon, DocumentArrowDownIcon, XMarkIcon, FunnelIcon, MagnifyingGlassIcon, UserCircleIcon
+  CurrencyDollarIcon, EyeIcon, PencilIcon, TrashIcon, PlusCircleIcon, DocumentArrowDownIcon, XMarkIcon, FunnelIcon, MagnifyingGlassIcon, UserCircleIcon, BanknotesIcon, ClockIcon
 } from '@heroicons/react/24/outline';
+import { useTheme } from '../context/ThemeContext';
+import ConfirmationModal from './ConfirmationModal';
 import jsPDF from 'jspdf';
 import 'react-datepicker/dist/react-datepicker.css';
 
 const StaffSalaryList = () => {
   const { currentUser: user } = useContext(UserContext);
+  const { currentTheme } = useTheme();
   const navigate = useNavigate();
 
   const [salaries, setSalaries] = useState([]);
@@ -186,43 +189,99 @@ const StaffSalaryList = () => {
     navigate(`/salary/edit/${salaryId}`);
   };
 
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [toDeleteId, setToDeleteId] = useState(null);
+
   const handleDelete = async (salaryId) => {
-    if (!window.confirm('Are you sure you want to delete this salary record?')) return;
+    setToDeleteId(salaryId);
+    setConfirmOpen(true);
+  };
 
+  const confirmDelete = async () => {
+    if (!toDeleteId) return;
     try {
-      await api.delete(`/salary/${salaryId}`);
-      alert('Salary record deleted successfully.');
-
-      // Refresh the list after deletion (assumes you have a fetchSalaries method)
-      fetchSalaries?.(); // call your fetch function again if available
-
+      await api.delete(`/salary/${toDeleteId}`);
+      fetchSalaries?.();
     } catch (error) {
       console.error('Failed to delete salary record:', error);
-      alert(error.response?.data?.message || 'Failed to delete salary record.');
+      setError(error.response?.data?.message || 'Failed to delete salary record.');
+    } finally {
+      setConfirmOpen(false);
+      setToDeleteId(null);
     }
   };
 
+  // Stats for hero header
+  const totalPaid = useMemo(() => (
+    Array.isArray(salaries) ? salaries.reduce((sum, s) => sum + parseFloat(s.paidAmount || 0), 0) : 0
+  ), [salaries]);
+  const totalRecords = salaries.length;
+  const unpaidCount = useMemo(() => (
+    Array.isArray(salaries) ? salaries.filter(s => s.status !== 'Paid').length : 0
+  ), [salaries]);
+
   return (
-    <div className="container mx-auto p-4 sm:p-6 lg:p-4">
-      <h1 className="text-3xl sm:text-4xl font-bold text-center text-green-800 mb-14">Staff Salary Management</h1>
+    <div className="container mx-auto p-4 sm:p-6 lg:p-8">
+      {/* Hero Header */}
+      <div className={`relative ${currentTheme?.heroBg || 'bg-gradient-to-r from-emerald-50 to-teal-100'} ${currentTheme?.shadow || 'shadow-lg'} rounded-2xl p-8 mb-8 overflow-hidden`}>
+        <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full -mr-32 -mt-32"></div>
+        <div className="relative z-10">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className={`text-3xl sm:text-4xl font-bold mb-2 ${currentTheme?.heroTitle || 'text-emerald-800'}`}>Staff Salary Management</h1>
+              <p className={`${currentTheme?.heroSubtitle || 'text-emerald-700'} text-sm sm:text-base`}>Track, review, and manage staff salaries</p>
+            </div>
+            <CurrencyDollarIcon className={`h-16 w-16 ${currentTheme?.heroIcon || 'text-emerald-600 opacity-80'}`} />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className={`${currentTheme?.statCard || 'bg-white'} ${currentTheme?.border || 'border border-emerald-100'} rounded-lg p-4`}>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className={`text-xs sm:text-sm ${currentTheme?.statLabel || 'text-emerald-700'} mb-1`}>Total Paid</p>
+                  <p className={`text-xl sm:text-2xl font-bold ${currentTheme?.statValue || 'text-emerald-800'}`}>PKR {totalPaid.toFixed(2)}</p>
+                </div>
+                <BanknotesIcon className={`h-8 w-8 ${currentTheme?.statIcon || 'text-emerald-600 opacity-80'}`} />
+              </div>
+            </div>
+            <div className={`${currentTheme?.statCard || 'bg-white'} ${currentTheme?.border || 'border border-emerald-100'} rounded-lg p-4`}>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className={`text-xs sm:text-sm ${currentTheme?.statLabel || 'text-emerald-700'} mb-1`}>Total Records</p>
+                  <p className={`text-xl sm:text-2xl font-bold ${currentTheme?.statValue || 'text-emerald-800'}`}>{totalRecords}</p>
+                </div>
+                <DocumentArrowDownIcon className={`h-8 w-8 ${currentTheme?.statIcon || 'text-emerald-600 opacity-80'}`} />
+              </div>
+            </div>
+            <div className={`${currentTheme?.statCard || 'bg-white'} ${currentTheme?.border || 'border border-emerald-100'} rounded-lg p-4`}>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className={`text-xs sm:text-sm ${currentTheme?.statLabel || 'text-emerald-700'} mb-1`}>Unpaid/Partial</p>
+                  <p className={`text-xl sm:text-2xl font-bold ${currentTheme?.statValue || 'text-emerald-800'}`}>{unpaidCount}</p>
+                </div>
+                <ClockIcon className={`h-8 w-8 ${currentTheme?.statIcon || 'text-emerald-600 opacity-80'}`} />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
       {error && <Message type="error">{error}</Message>}
 
-      <div className="mb-6 p-4 bg-gray-50 rounded-lg shadow-sm border border-gray-200">
-        <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-3">
-          <div className="relative w-full sm:w-1/2 lg:w-2/3">
+      <div className={`${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.shadow || 'shadow-md'} rounded-xl p-6 mb-6`}> 
+        <div className="flex flex-col lg:flex-row justify-between items-stretch lg:items-center gap-4">
+          <div className="relative flex-1 min-w-0">
             <input
               type="text"
               placeholder="Search by staff name or CNIC..."
-              className="p-2 pl-10 border border-gray-300 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              className={`w-full h-12 pl-10 pr-4 rounded-lg ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} border ${currentTheme?.inputBorder || 'border-gray-300'} focus:outline-none`}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
-            <MagnifyingGlassIcon className="h-5 w-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <MagnifyingGlassIcon className={`h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 ${currentTheme?.iconText || 'text-gray-400'}`} />
           </div>
-          <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 w-full sm:w-auto">
+          <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto flex-shrink-0">
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className="flex items-center justify-center bg-gray-200 text-gray-800 px-5 py-2 rounded-lg hover:bg-gray-300 transition duration-200 shadow-md w-full sm:w-auto"
+              className={`flex items-center justify-center h-12 px-6 rounded-lg font-medium transition-all duration-200 bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-700 hover:to-green-800 ${currentTheme?.shadow || 'shadow-md'} w-full sm:w-auto`}
             >
               <FunnelIcon className="h-5 w-5 mr-2" />
               {showFilters ? 'Hide Filters' : 'Advanced Filters'}
@@ -230,7 +289,7 @@ const StaffSalaryList = () => {
             {isAdmin && (
               <Link
                 to="/salary/add"
-                className="flex items-center justify-center bg-green-600 text-white px-5 py-2 rounded-lg hover:bg-green-700 transition duration-200 shadow-md w-full sm:w-auto"
+                className={`flex items-center justify-center h-12 px-6 rounded-lg font-medium transition-all duration-200 bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-700 hover:to-green-800 ${currentTheme?.shadow || 'shadow-md'} w-full sm:w-auto`}
               >
                 <PlusCircleIcon className="h-5 w-5 mr-2" />
                 Add New Record
@@ -297,64 +356,71 @@ const StaffSalaryList = () => {
         <Loader />
       ) : salaries.length > 0 ? (
         <div className="bg-white shadow overflow-auto rounded-lg">
-          <table className="min-w-full table-auto border-separate border-spacing-y-2 border-white shadow-lg rounded-lg overflow-auto">
-            <thead className="bg-green-600 text-white rounded-md">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gradient-to-r from-green-600 to-emerald-600 text-white">
               <tr>
-                <th className="p-2 border border-white text-left">Staff Member</th>
-                <th className="p-2 border border-white text-left">Role</th>
-                <th className="p-2 border border-white text-left">Month/Year</th>
-                <th className="p-2 border border-white text-left">Paid Amount</th>
-                <th className="p-2 border border-white text-left">Status</th>
-                <th className="p-2 border border-white text-left">Actions</th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Staff Member</th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Role</th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Month/Year</th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Paid Amount</th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Status</th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white divide-y divide-gray-100">
               {salaries.map((salary, index) => (
-                <tr key={salary._id} className={`text-center ${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'} py-4 cursor-pointer hover:bg-gray-200 transition-colors duration-150`}>
+                <tr
+                  key={salary._id}
+                  className={`transition-all duration-150 hover:bg-green-50 hover:shadow-md ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
+                >
                   {/* <td className="px-6 py-4 whitespace-nowrap text-base font-medium text-gray-900 text-left">{salary.staffName}</td> */}
-                   <td className="px-6 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {console.log(salary)}
-                                          <div className="flex items-center">
-                                            {salary.profilePictureUrl ? (
-                                              // If profilePictureUrl exists, render the <img> tag
-                                              <img
-                                                src={`http://localhost:5000${salary.profilePictureUrl}`}
-                                                alt={`${salary.staffName}'s Profile`}
-                                                className="h-8 w-8 rounded-full object-cover mr-2"
-                                                onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/32x32/cccccc/ffffff?text=NA'; }}
-                                              />
-                                            ) : (
-                                              // If not, render the placeholder icon
-                                              <UserCircleIcon className="h-8 w-8 text-gray-400 mr-2" />
-                                            )}
-                                            <span>{salary.staffName}</span>
-                                          </div>
-                                        </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-base text-gray-500 text-left">{salary.staffRole}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-base text-gray-500 text-left">{months[salary.month - 1]} {salary.year}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-base text-gray-500 text-left">PKR {parseFloat(salary.paidAmount).toFixed(2)}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-base text-left">
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${salary.status === 'Paid' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                   <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        {salary.profilePictureUrl ? (
+                          <img
+                            src={`http://localhost:5000${salary.profilePictureUrl}`}
+                            alt={`${salary.staffName}'s Profile`}
+                            className="h-10 w-10 rounded-full object-cover ring-2 ring-green-100 mr-3"
+                            onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/40x40/10b981/ffffff?text=' + (salary.staffName?.[0] || 'S'); }}
+                          />
+                        ) : (
+                          <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center mr-3 ring-2 ring-green-200">
+                            <span className="text-green-700 font-bold text-sm">{salary.staffName?.[0] || 'S'}</span>
+                          </div>
+                        )}
+                        <div>
+                          <div className="text-sm font-semibold text-gray-900">{salary.staffName}</div>
+                          <div className="text-xs text-gray-500 font-mono">{salary.staffCnic || ''}</div>
+                        </div>
+                      </div>
+                    </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{salary.staffRole}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{months[salary.month - 1]} {salary.year}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">PKR {parseFloat(salary.paidAmount).toFixed(2)}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full ${salary.status === 'Paid' ? 'bg-green-100 text-green-800' : salary.status === 'Partial Paid' ? 'bg-orange-100 text-orange-800' : 'bg-red-100 text-red-800'}`}>
                       {salary.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-left text-base font-medium flex items-center space-x-2">
-                    <button onClick={() => handleViewReceipt(salary._id)} className="text-gray-600 hover:text-gray-800 transition-colors duration-200 p-1 rounded-md hover:bg-gray-100" title="View Details">
-                      <EyeIcon className="h-5 w-5" />
-                    </button>
+                  <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                    <div className="flex items-center justify-center space-x-2">
+                      <button onClick={() => handleViewReceipt(salary._id)} className="p-2 text-green-600 hover:text-green-900 hover:bg-green-50 rounded-lg transition-colors duration-200" title="View Details">
+                        <EyeIcon className="h-5 w-5" />
+                      </button>
                     {canEditOrDelete && (
                       <>
-                        <button onClick={() => handleEdit(salary._id)} className="text-blue-600 hover:text-blue-800 transition-colors duration-200 p-1 rounded-md hover:bg-blue-100" title="Edit">
+                        <button onClick={() => handleEdit(salary._id)} className="p-2 text-yellow-600 hover:text-yellow-900 hover:bg-yellow-50 rounded-lg transition-colors duration-200" title="Edit">
                           <PencilIcon className="h-5 w-5" />
                         </button>
-                        <button onClick={() => handleDelete(salary._id)} className="text-red-600 hover:text-red-800 transition-colors duration-200 p-1 rounded-md hover:bg-red-100" title="Delete">
+                        <button onClick={() => handleDelete(salary._id)} className="p-2 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-lg transition-colors duration-200" title="Delete">
                           <TrashIcon className="h-5 w-5" />
                         </button>
                       </>
                     )}
-                    <button onClick={() => handleDownloadReceiptPdf(salary._id)} className="text-purple-600 hover:text-purple-800 transition-colors duration-200 p-1 rounded-md hover:bg-purple-100" title="Download Receipt">
-                      <DocumentArrowDownIcon className="h-5 w-5" />
-                    </button>
+                      <button onClick={() => handleDownloadReceiptPdf(salary._id)} className="p-2 text-green-600 hover:text-green-900 hover:bg-green-50 rounded-lg transition-colors duration-200" title="Download Receipt">
+                        <DocumentArrowDownIcon className="h-5 w-5" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -368,6 +434,13 @@ const StaffSalaryList = () => {
       <Modal isOpen={isModalOpen} onClose={handleCloseModal} title={isViewMode ? "Salary Details" : "Edit Salary"}>
         <SalaryForm salaryToEdit={selectedSalary} isViewMode={isViewMode} onAdd={fetchSalaries} onEdit={fetchSalaries} onClose={handleCloseModal} />
       </Modal>
+
+      <ConfirmationModal
+        isOpen={confirmOpen}
+        onClose={() => { setConfirmOpen(false); setToDeleteId(null); }}
+        onConfirm={confirmDelete}
+        message="Are you sure you want to delete this salary record?"
+      />
     </div>
   );
 };

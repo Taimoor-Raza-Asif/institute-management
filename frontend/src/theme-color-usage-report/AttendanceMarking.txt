@@ -1,0 +1,11 @@
+Color Usage Report for AttendanceMarking.jsx
+
+- Uses currentTheme for most color tokens (cardBg, shadow, border, title, iconText, text, inputBg, panelBg, shadowInner, etc.)
+- Fallbacks to Tailwind classes:
+  - bg-white, shadow-lg, border border-gray-300, text-gray-800, text-gray-700, text-green-600, text-green-500, text-gray-600, bg-gray-50, shadow-inner, bg-green-600, text-white, hover:bg-green-700, bg-green-100, text-green-800, ring-green-600, text-gray-400, hover:text-green-600, bg-red-100, text-red-800, ring-red-600, hover:text-red-600, bg-yellow-100, text-yellow-800, ring-yellow-600, hover:text-yellow-600, etc.
+- Color usage locations:
+  - Main container, section headers, and filter panels
+  - Inputs, selects, and filter dropdowns
+  - Table headers, rows, and status buttons
+  - Buttons (submit, filter, present/absent/leave)
+  - Error/info/success messages

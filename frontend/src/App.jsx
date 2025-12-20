@@ -35,6 +35,8 @@ import BillingManagement from './components/BillingManagement';
 import Reports from './pages/Reports';
 import EditMarksForm from './components/EditMarksForm'; // New Import
 import AcademicStructurePanel from './pages/AcademicStructurePanel';
+import { ThemeProvider } from './context/ThemeContext'; 
+
 export const UserContext = createContext(null);
 
 const App = () => {
@@ -90,6 +92,7 @@ const App = () => {
   };
 
   return (
+    <ThemeProvider>
     <UserContext.Provider value={{ currentUser, setCurrentUser }}>
       <Router>
         <Routes>
@@ -168,6 +171,7 @@ const App = () => {
         </Routes>
       </Router>
     </UserContext.Provider>
+    </ThemeProvider>
   );
 };
 

@@ -254,38 +254,23 @@ const getAttendanceByDate = asyncHandler(async (req, res) => {
 // @route   GET /api/attendance/reports
 // @access  Private/Admin & Accountant
 export const getAttendanceReports = asyncHandler(async (req, res) => {
-  const { type, startDate, endDate, year, month } = req.query;
+  const { type, startDate, endDate } = req.query;
   const matchFilter = {};
 
   if (type) {
     matchFilter.onModel = type;
   }
-
-  let dateFilter = null;
-
-  // Prefer explicit year/month filters
-  if (year && month) {
-    const { start, end } = getMonthDateRange(parseInt(year, 10), parseInt(month, 10));
-    dateFilter = { $gte: start, $lte: end };
-  } else if (year) {
-    const parsedYear = parseInt(year, 10);
-    const start = new Date(parsedYear, 0, 1);
-    const end = new Date(parsedYear, 11, 31, 23, 59, 59, 999);
-    dateFilter = { $gte: start, $lte: end };
-  } else if (startDate || endDate) {
-    dateFilter = {};
+  
+  if (startDate || endDate) {
+    matchFilter.date = {};
     if (startDate) {
-      dateFilter.$gte = new Date(startDate);
+      matchFilter.date.$gte = new Date(startDate);
     }
     if (endDate) {
       const end = new Date(endDate);
       end.setHours(23, 59, 59, 999);
-      dateFilter.$lte = end;
+      matchFilter.date.$lte = end;
     }
-  }
-
-  if (dateFilter && (dateFilter.$gte || dateFilter.$lte)) {
-    matchFilter.date = dateFilter;
   }
 
   try {

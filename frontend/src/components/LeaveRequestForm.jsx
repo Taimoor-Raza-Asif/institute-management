@@ -2,9 +2,11 @@ import React, { useState, useEffect, useContext } from 'react';
 import api from '../api';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { UserContext } from '../App';
+import { useTheme } from '../context/ThemeContext';
 
 const LeaveRequestForm = ({ editingLeave, fetchLeaves, studentsForForm, onClose, isViewMode = false }) => {
   const { currentUser: user } = useContext(UserContext);
+  const { currentTheme } = useTheme();
   const initialState = {
     studentId: '',
     startDate: '',
@@ -164,53 +166,55 @@ const LeaveRequestForm = ({ editingLeave, fetchLeaves, studentsForForm, onClose,
 
 
   return (
-    <div className="relative p-6 bg-white rounded-lg shadow-xl max-w-full mx-auto max-h-[90vh] overflow-y-auto custom-scrollbar">
+    <div className="relative p-6 sm:p-8 lg:p-10 rounded-2xl max-w-full mx-auto max-h-[90vh] overflow-y-auto custom-scrollbar bg-gradient-to-br from-white via-gray-50 to-white shadow-2xl border border-gray-100">
       <button
         onClick={onClose}
-        className="absolute top-3 right-3 text-gray-500 hover:text-gray-700 transition-colors duration-200"
+        className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 transition-colors duration-200 p-2 rounded-full hover:bg-gray-100"
       >
-        <XMarkIcon className="h-6 w-6" />
+        <XMarkIcon className="h-7 w-7" />
       </button>
-      <h2 className="text-2xl font-bold text-gray-800 mb-6 border-b pb-3">
+      <h2 className="text-3xl sm:text-4xl font-bold mb-2 text-center bg-gradient-to-r from-green-700 to-emerald-600 bg-clip-text text-transparent">
         {isViewMode ? 'Leave Request Details' : (editingLeave ? 'Edit Student Leave Request' : 'New Student Leave Request')}
       </h2>
+      <p className="text-center text-gray-500 text-sm mb-6">Manage student leave requests efficiently</p>
 
       {formError && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative mb-6 shadow-sm" role="alert">
           {formError}
         </div>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {isViewMode && editingLeave && ( // Changed editingLeave.student to just editingLeave as top-level fields are used
-          <div className="bg-gray-50 p-4 rounded-md border border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-800 mb-2">Student Details</h3>
-            {/* Use the top-level properties directly from editingLeave */}
-            <p><span className="font-medium">Name:</span> {editingLeave.studentName}</p>
-            <p><span className="font-medium">Father Name:</span> {editingLeave.fatherName}</p>
-            <p><span className="font-medium">CNIC:</span> {editingLeave.student?.cnic}</p> {/* Keep student?.cnic as CNIC is in the nested student object */}
-            <p><span className="font-medium">Class:</span>
-              {viewStudentDetails
-                ? (viewStudentDetails.class === 'Class'
-                  ? `Class ${viewStudentDetails.classNumber}`
-                  : `BS Sem ${viewStudentDetails.semester}`)
-                : editingLeave.studentClass // Fallback to editingLeave.studentClass if full details not found
-              }
-            </p>
+        {isViewMode && editingLeave && (
+          <div className="bg-gradient-to-br from-blue-50 to-cyan-50 p-6 rounded-xl border-2 border-blue-200 shadow-sm mb-6">
+            <h3 className="text-xl font-bold text-gray-800 mb-4 border-b-2 border-blue-300 pb-2">Student Details</h3>
+            <div className="space-y-2">
+              <p><span className="font-semibold text-gray-700">Name:</span> <span className="text-gray-600">{editingLeave.studentName}</span></p>
+              <p><span className="font-semibold text-gray-700">Father Name:</span> <span className="text-gray-600">{editingLeave.fatherName}</span></p>
+              <p><span className="font-semibold text-gray-700">CNIC:</span> <span className="text-gray-600">{editingLeave.student?.cnic}</span></p>
+              <p><span className="font-semibold text-gray-700">Class:</span> <span className="text-gray-600">
+                {viewStudentDetails
+                  ? (viewStudentDetails.class === 'Class'
+                    ? `Class ${viewStudentDetails.classNumber}`
+                    : `BS Sem ${viewStudentDetails.semester}`)
+                  : editingLeave.studentClass
+                }
+              </span></p>
+            </div>
           </div>
         )}
         {/* Student Selection (for Admin/Teacher) or Display (for Student) */}
-        <div className="border border-gray-200 p-4 rounded-md bg-gray-50 mb-6">
-          <label htmlFor="studentId" className="block text-sm font-medium text-gray-700 mb-1">
+        <div className="mb-6">
+          <label htmlFor="studentId" className="block text-sm font-bold text-gray-700 mb-2">
             Student <span className="text-red-500">*</span>
           </label>
-          {isAdminOrTeacher && !isViewMode ? ( // Show dropdown for Admin/Teacher in add/edit mode
+          {isAdminOrTeacher && !isViewMode ? (
             <select
               id="studentId"
               name="studentId"
               value={leave.studentId}
               onChange={handleChange}
-              className={`mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm ${fieldErrors.studentId ? 'border-red-500' : ''}`}
+              className={`block w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-400 focus:border-green-500 hover:border-gray-300 transition shadow-sm bg-white ${fieldErrors.studentId ? 'border-red-500' : ''}`}
               required
             >
               <option value="">-- Select Student --</option>
@@ -220,11 +224,8 @@ const LeaveRequestForm = ({ editingLeave, fetchLeaves, studentsForForm, onClose,
                 </option>
               ))}
             </select>
-          ) : ( // Show pre-filled student details for Student user or in view mode
-            // <p className={`mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm sm:text-sm bg-gray-100`}>
-            //   {editingLeave?.student?.name || user?.name || 'N/A'} (CNIC: {editingLeave?.student?.cnic || user?.cnic || 'N/A'})
-            // </p>
-            <p className={`mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm sm:text-sm bg-gray-100`}>
+          ) : (
+            <p className="block w-full border-2 border-gray-200 rounded-lg px-4 py-2 bg-gray-50 shadow-sm">
               {editingLeave?.studentName || user?.name || 'N/A'} (CNIC: {editingLeave?.student?.cnic || user?.cnic || 'N/A'})
             </p>
           )}
@@ -232,11 +233,11 @@ const LeaveRequestForm = ({ editingLeave, fetchLeaves, studentsForForm, onClose,
         </div>
 
         {/* Leave Details Section */}
-        <div className="border border-indigo-200 p-4 rounded-md bg-indigo-50 mb-6">
-          <h3 className="text-lg font-semibold text-indigo-800 mb-4">Leave Period & Reason</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+        <div className="p-6 rounded-xl border-2 border-green-200 bg-gradient-to-br from-green-50 to-emerald-50 shadow-sm mb-6">
+          <h3 className="text-xl font-bold mb-6 text-green-800 border-b-2 border-green-300 pb-2">Leave Period & Reason</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="startDate" className="block text-sm font-bold text-gray-700 mb-2">
                 Start Date <span className="text-red-500">*</span>
               </label>
               <input
@@ -246,13 +247,13 @@ const LeaveRequestForm = ({ editingLeave, fetchLeaves, studentsForForm, onClose,
                 value={leave.startDate}
                 onChange={handleChange}
                 disabled={isFieldDisabled('startDate')}
-                className={`mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm ${fieldErrors.startDate ? 'border-red-500' : ''} ${isFieldDisabled('startDate') ? 'bg-gray-100' : ''}`}
+                className={`block w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-400 focus:border-green-500 hover:border-gray-300 transition shadow-sm ${fieldErrors.startDate ? 'border-red-500' : ''} ${isFieldDisabled('startDate') ? 'bg-gray-50' : 'bg-white'}`}
                 required
               />
               {fieldErrors.startDate && <p className="text-red-500 text-xs mt-1">{fieldErrors.startDate}</p>}
             </div>
             <div>
-              <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="endDate" className="block text-sm font-bold text-gray-700 mb-2">
                 End Date <span className="text-red-500">*</span>
               </label>
               <input
@@ -262,13 +263,13 @@ const LeaveRequestForm = ({ editingLeave, fetchLeaves, studentsForForm, onClose,
                 value={leave.endDate}
                 onChange={handleChange}
                 disabled={isFieldDisabled('endDate')}
-                className={`mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm ${fieldErrors.endDate ? 'border-red-500' : ''} ${isFieldDisabled('endDate') ? 'bg-gray-100' : ''}`}
+                className={`block w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-400 focus:border-green-500 hover:border-gray-300 transition shadow-sm ${fieldErrors.endDate ? 'border-red-500' : ''} ${isFieldDisabled('endDate') ? 'bg-gray-50' : 'bg-white'}`}
                 required
               />
               {fieldErrors.endDate && <p className="text-red-500 text-xs mt-1">{fieldErrors.endDate}</p>}
             </div>
             <div className="md:col-span-2">
-              <label htmlFor="addressGoingTo" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="addressGoingTo" className="block text-sm font-bold text-gray-700 mb-2">
                 Address Going To <span className="text-red-500">*</span>
               </label>
               <input
@@ -278,13 +279,13 @@ const LeaveRequestForm = ({ editingLeave, fetchLeaves, studentsForForm, onClose,
                 value={leave.addressGoingTo}
                 onChange={handleChange}
                 disabled={isFieldDisabled('addressGoingTo')}
-                className={`mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm ${fieldErrors.addressGoingTo ? 'border-red-500' : ''} ${isFieldDisabled('addressGoingTo') ? 'bg-gray-100' : ''}`}
+                className={`block w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-400 focus:border-green-500 hover:border-gray-300 transition shadow-sm ${fieldErrors.addressGoingTo ? 'border-red-500' : ''} ${isFieldDisabled('addressGoingTo') ? 'bg-gray-50' : 'bg-white'}`}
                 required
               />
               {fieldErrors.addressGoingTo && <p className="text-red-500 text-xs mt-1">{fieldErrors.addressGoingTo}</p>}
             </div>
             <div className="md:col-span-2">
-              <label htmlFor="reason" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="reason" className="block text-sm font-bold text-gray-700 mb-2">
                 Reason <span className="text-red-500">*</span>
               </label>
               <textarea
@@ -294,13 +295,13 @@ const LeaveRequestForm = ({ editingLeave, fetchLeaves, studentsForForm, onClose,
                 onChange={handleChange}
                 disabled={isFieldDisabled('reason')}
                 rows="3"
-                className={`mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm ${fieldErrors.reason ? 'border-red-500' : ''} ${isFieldDisabled('reason') ? 'bg-gray-100' : ''}`}
+                className={`block w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-400 focus:border-green-500 hover:border-gray-300 transition shadow-sm ${fieldErrors.reason ? 'border-red-500' : ''} ${isFieldDisabled('reason') ? 'bg-gray-50' : 'bg-white'}`}
                 required
               ></textarea>
               {fieldErrors.reason && <p className="text-red-500 text-xs mt-1">{fieldErrors.reason}</p>}
             </div>
             <div>
-              <label htmlFor="leaveTime" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="leaveTime" className="block text-sm font-bold text-gray-700 mb-2">
                 Leave Time (on Start Date)
               </label>
               <input
@@ -310,11 +311,11 @@ const LeaveRequestForm = ({ editingLeave, fetchLeaves, studentsForForm, onClose,
                 value={leave.leaveTime}
                 onChange={handleChange}
                 disabled={isFieldDisabled('leaveTime')}
-                className={`mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm ${isFieldDisabled('leaveTime') ? 'bg-gray-100' : ''}`}
+                className={`block w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-400 focus:border-green-500 hover:border-gray-300 transition shadow-sm ${isFieldDisabled('leaveTime') ? 'bg-gray-50' : 'bg-white'}`}
               />
             </div>
             <div>
-              <label htmlFor="expectedReturnTime" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="expectedReturnTime" className="block text-sm font-bold text-gray-700 mb-2">
                 Expected Return Time (on End Date)
               </label>
               <input
@@ -324,18 +325,18 @@ const LeaveRequestForm = ({ editingLeave, fetchLeaves, studentsForForm, onClose,
                 value={leave.expectedReturnTime}
                 onChange={handleChange}
                 disabled={isFieldDisabled('expectedReturnTime')}
-                className={`mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm ${isFieldDisabled('expectedReturnTime') ? 'bg-gray-100' : ''}`}
+                className={`block w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-400 focus:border-green-500 hover:border-gray-300 transition shadow-sm ${isFieldDisabled('expectedReturnTime') ? 'bg-gray-50' : 'bg-white'}`}
               />
             </div>
           </div>
         </div>
 
         {/* Person Picking Up Student Section - Conditionally required fields */}
-        <div className="border border-blue-200 p-4 rounded-md bg-blue-50 mb-6">
-          <h3 className="text-lg font-semibold text-blue-800 mb-4">Person Picking Up Student (Optional unless Leave Time is Set)</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+        <div className="border-2 border-purple-200 p-6 rounded-xl bg-gradient-to-br from-purple-50 to-pink-50 shadow-sm mb-6">
+          <h3 className="text-xl font-bold text-purple-800 mb-6 border-b-2 border-purple-300 pb-2">Person Picking Up Student (Optional unless Leave Time is Set)</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label htmlFor="pickerName" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="pickerName" className="block text-sm font-bold text-gray-700 mb-2">
                 Name {leave.leaveTime && <span className="text-red-500">*</span>}
               </label>
               <input
@@ -345,13 +346,13 @@ const LeaveRequestForm = ({ editingLeave, fetchLeaves, studentsForForm, onClose,
                 value={leave.pickerName}
                 onChange={handleChange}
                 disabled={isFieldDisabled('pickerName')}
-                className={`mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm ${fieldErrors.pickerName ? 'border-red-500' : ''} ${isFieldDisabled('pickerName') ? 'bg-gray-100' : ''}`}
+                className={`block w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-400 focus:border-green-500 hover:border-gray-300 transition shadow-sm ${fieldErrors.pickerName ? 'border-red-500' : ''} ${isFieldDisabled('pickerName') ? 'bg-gray-50' : 'bg-white'}`}
                 required={!!leave.leaveTime}
               />
               {fieldErrors.pickerName && <p className="text-red-500 text-xs mt-1">{fieldErrors.pickerName}</p>}
             </div>
             <div>
-              <label htmlFor="pickerRelation" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="pickerRelation" className="block text-sm font-bold text-gray-700 mb-2">
                 Relation with Student {leave.leaveTime && <span className="text-red-500">*</span>}
               </label>
               <input
@@ -361,13 +362,13 @@ const LeaveRequestForm = ({ editingLeave, fetchLeaves, studentsForForm, onClose,
                 value={leave.pickerRelation}
                 onChange={handleChange}
                 disabled={isFieldDisabled('pickerRelation')}
-                className={`mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm ${fieldErrors.pickerRelation ? 'border-red-500' : ''} ${isFieldDisabled('pickerRelation') ? 'bg-gray-100' : ''}`}
+                className={`block w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-400 focus:border-green-500 hover:border-gray-300 transition shadow-sm ${fieldErrors.pickerRelation ? 'border-red-500' : ''} ${isFieldDisabled('pickerRelation') ? 'bg-gray-50' : 'bg-white'}`}
                 required={!!leave.leaveTime}
               />
               {fieldErrors.pickerRelation && <p className="text-red-500 text-xs mt-1">{fieldErrors.pickerRelation}</p>}
             </div>
             <div>
-              <label htmlFor="pickerPhoneNumber" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="pickerPhoneNumber" className="block text-sm font-bold text-gray-700 mb-2">
                 Phone Number {leave.leaveTime && <span className="text-red-500">*</span>}
               </label>
               <input
@@ -377,7 +378,7 @@ const LeaveRequestForm = ({ editingLeave, fetchLeaves, studentsForForm, onClose,
                 value={leave.pickerPhoneNumber}
                 onChange={handleChange}
                 disabled={isFieldDisabled('pickerPhoneNumber')}
-                className={`mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm ${fieldErrors.pickerPhoneNumber ? 'border-red-500' : ''} ${isFieldDisabled('pickerPhoneNumber') ? 'bg-gray-100' : ''}`}
+                className={`block w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-400 focus:border-green-500 hover:border-gray-300 transition shadow-sm ${fieldErrors.pickerPhoneNumber ? 'border-red-500' : ''} ${isFieldDisabled('pickerPhoneNumber') ? 'bg-gray-50' : 'bg-white'}`}
                 required={!!leave.leaveTime}
                 maxLength="11"
                 pattern="^\d{11}$"
@@ -386,7 +387,7 @@ const LeaveRequestForm = ({ editingLeave, fetchLeaves, studentsForForm, onClose,
               {fieldErrors.pickerPhoneNumber && <p className="text-red-500 text-xs mt-1">{fieldErrors.pickerPhoneNumber}</p>}
             </div>
             <div>
-              <label htmlFor="pickerCnicNumber" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="pickerCnicNumber" className="block text-sm font-bold text-gray-700 mb-2">
                 CNIC Number {leave.leaveTime && <span className="text-red-500">*</span>}
               </label>
               <input
@@ -396,7 +397,7 @@ const LeaveRequestForm = ({ editingLeave, fetchLeaves, studentsForForm, onClose,
                 value={leave.pickerCnicNumber}
                 onChange={handleChange}
                 disabled={isFieldDisabled('pickerCnicNumber')}
-                className={`mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm ${fieldErrors.pickerCnicNumber ? 'border-red-500' : ''} ${isFieldDisabled('pickerCnicNumber') ? 'bg-gray-100' : ''}`}
+                className={`block w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-400 focus:border-green-500 hover:border-gray-300 transition shadow-sm ${fieldErrors.pickerCnicNumber ? 'border-red-500' : ''} ${isFieldDisabled('pickerCnicNumber') ? 'bg-gray-50' : 'bg-white'}`}
                 required={!!leave.leaveTime}
                 maxLength="13"
                 pattern="^\d{13}$"
@@ -408,12 +409,12 @@ const LeaveRequestForm = ({ editingLeave, fetchLeaves, studentsForForm, onClose,
         </div>
 
         {/* Status and Admin/Teacher Specific Fields */}
-        {(isAdminOrTeacher || isViewMode) && ( // Show these fields to Admin/Teacher, or in View Mode for any user
-          <div className="border border-green-200 p-4 rounded-md bg-green-50 mb-6">
-            <h3 className="text-lg font-semibold text-green-800 mb-4">Status & Staff Notes</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+        {(isAdminOrTeacher || isViewMode) && (
+          <div className="border-2 border-blue-200 p-6 rounded-xl bg-gradient-to-br from-blue-50 to-cyan-50 shadow-sm mb-6">
+            <h3 className="text-xl font-bold text-blue-800 mb-6 border-b-2 border-blue-300 pb-2">Status & Staff Notes</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="status" className="block text-sm font-bold text-gray-700 mb-2">
                   Status <span className="text-red-500">*</span>
                 </label>
                 <select
@@ -421,8 +422,8 @@ const LeaveRequestForm = ({ editingLeave, fetchLeaves, studentsForForm, onClose,
                   name="status"
                   value={leave.status}
                   onChange={handleChange}
-                  disabled={isViewMode || !isAdminOrTeacher} // Disabled if in view mode OR if not Admin/Teacher
-                  className={`mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm ${isViewMode || !isAdminOrTeacher ? 'bg-gray-100' : ''}`}
+                  disabled={isViewMode || !isAdminOrTeacher}
+                  className={`block w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-400 focus:border-green-500 hover:border-gray-300 transition shadow-sm ${isViewMode || !isAdminOrTeacher ? 'bg-gray-50' : 'bg-white'}`}
                 >
                   <option value="Pending">Pending</option>
                   <option value="Approved">Approved</option>
@@ -430,7 +431,7 @@ const LeaveRequestForm = ({ editingLeave, fetchLeaves, studentsForForm, onClose,
                 </select>
               </div>
               <div>
-                <label htmlFor="classInchargeName" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="classInchargeName" className="block text-sm font-bold text-gray-700 mb-2">
                   Class Incharge Name (Optional)
                 </label>
                 <input
@@ -439,13 +440,13 @@ const LeaveRequestForm = ({ editingLeave, fetchLeaves, studentsForForm, onClose,
                   name="classInchargeName"
                   value={leave.classInchargeName}
                   onChange={handleChange}
-                  disabled={isViewMode || !isAdminOrTeacher} // Disabled if in view mode OR if not Admin/Teacher
-                  className={`mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm ${isViewMode || !isAdminOrTeacher ? 'bg-gray-100' : ''}`}
+                  disabled={isViewMode || !isAdminOrTeacher}
+                  className={`block w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-400 focus:border-green-500 hover:border-gray-300 transition shadow-sm ${isViewMode || !isAdminOrTeacher ? 'bg-gray-50' : 'bg-white'}`}
                 />
               </div>
 
               <div>
-                <label htmlFor="actualReturnTime" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="actualReturnTime" className="block text-sm font-bold text-gray-700 mb-2">
                   Actual Return Time
                 </label>
                 <input
@@ -454,14 +455,14 @@ const LeaveRequestForm = ({ editingLeave, fetchLeaves, studentsForForm, onClose,
                   name="actualReturnTime"
                   value={leave.actualReturnTime}
                   onChange={handleChange}
-                  disabled={isViewMode || !isAdminOrTeacher} // Disabled if in view mode OR if not Admin/Teacher
-                  className={`mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm ${isViewMode || !isAdminOrTeacher ? 'bg-gray-100' : ''}`}
+                  disabled={isViewMode || !isAdminOrTeacher}
+                  className={`block w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-400 focus:border-green-500 hover:border-gray-300 transition shadow-sm ${isViewMode || !isAdminOrTeacher ? 'bg-gray-50' : 'bg-white'}`}
                 />
                 {leave.actualReturnTime && !isViewMode && isAdminOrTeacher && (
                   <button
                     type="button"
                     onClick={() => setLeave(prev => ({ ...prev, actualReturnTime: '' }))}
-                    className="text-red-600 mt-2 text-sm hover:underline"
+                    className="text-red-600 mt-2 text-sm hover:underline font-semibold"
                   >
                     Clear Actual Return Time
                   </button>
@@ -469,29 +470,29 @@ const LeaveRequestForm = ({ editingLeave, fetchLeaves, studentsForForm, onClose,
               </div>
             </div>
             {isViewMode && (
-              <div className="mt-4 pt-4 border-t border-green-200 space-y-2">
+              <div className="mt-6 pt-6 border-t-2 border-blue-300 space-y-3">
                 {editingLeave?.requestedBy && (
-                  <p className="text-sm text-gray-700">
-                    <span className="font-semibold text-green-800">Requested By:</span>{' '}
-                    {editingLeave.requestedBy.name} ({editingLeave.requestedBy.role})
+                  <p className="text-sm">
+                    <span className="font-bold text-blue-800">Requested By:</span>{' '}
+                    <span className="text-gray-700">{editingLeave.requestedBy.name} ({editingLeave.requestedBy.role})</span>
                   </p>
                 )}
                 {editingLeave?.approvedBy && (
-                  <p className="text-sm text-gray-700">
-                    <span className="font-semibold text-green-800">Approved/Rejected By:</span>{' '}
-                    {editingLeave.approvedBy.name} ({editingLeave.approvedBy.role})
+                  <p className="text-sm">
+                    <span className="font-bold text-blue-800">Approved/Rejected By:</span>{' '}
+                    <span className="text-gray-700">{editingLeave.approvedBy.name} ({editingLeave.approvedBy.role})</span>
                   </p>
                 )}
                 {editingLeave?.requestedAt && (
-                  <p className="text-sm text-gray-700">
-                    <span className="font-semibold text-green-800">Requested At:</span>{' '}
-                    {new Date(editingLeave.requestedAt).toLocaleString()}
+                  <p className="text-sm">
+                    <span className="font-bold text-blue-800">Requested At:</span>{' '}
+                    <span className="text-gray-700">{new Date(editingLeave.requestedAt).toLocaleString()}</span>
                   </p>
                 )}
                 {editingLeave?.approvedRejectedAt && (
-                  <p className="text-sm text-gray-700">
-                    <span className="font-semibold text-green-800">Status Updated At:</span>{' '}
-                    {new Date(editingLeave.approvedRejectedAt).toLocaleString()}
+                  <p className="text-sm">
+                    <span className="font-bold text-blue-800">Status Updated At:</span>{' '}
+                    <span className="text-gray-700">{new Date(editingLeave.approvedRejectedAt).toLocaleString()}</span>
                   </p>
                 )}
               </div>
@@ -499,11 +500,11 @@ const LeaveRequestForm = ({ editingLeave, fetchLeaves, studentsForForm, onClose,
           </div>
         )}
 
-        <div className="flex justify-end space-x-3 mt-8">
+        <div className="flex justify-end space-x-4 mt-8 pt-6 border-t-2 border-gray-200">
           {!isViewMode && (
             <button
               type="submit"
-              className="bg-indigo-600 text-white px-6 py-2 rounded-md hover:bg-indigo-700 transition duration-200 shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              className="bg-gradient-to-r from-green-600 to-emerald-700 text-white px-8 py-2.5 rounded-lg hover:from-green-700 hover:to-emerald-800 transition shadow-md hover:shadow-lg active:scale-95 font-semibold"
             >
               {editingLeave ? 'Update Leave' : 'Submit Leave Request'}
             </button>
@@ -511,7 +512,7 @@ const LeaveRequestForm = ({ editingLeave, fetchLeaves, studentsForForm, onClose,
           <button
             type="button"
             onClick={onClose}
-            className="bg-gray-300 text-gray-800 px-6 py-2 rounded-md hover:bg-gray-400 transition duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+            className="bg-gray-300 text-gray-800 px-8 py-2.5 rounded-lg hover:bg-gray-400 transition shadow-md hover:shadow-lg active:scale-95 font-semibold"
           >
             {isViewMode ? 'Close' : 'Cancel'}
           </button>

@@ -215,7 +215,7 @@
 //                         placeholder="Search by student name or roll number..."
 //                         value={searchQuery}
 //                         onChange={handleSearchChange}
-//                         className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+//                         className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
 //                     />
 //                     <MagnifyingGlassIcon className="h-5 w-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
 //                     {searchQuery && (
@@ -261,7 +261,7 @@
 //                                     name="subject"
 //                                     value={filter.subject}
 //                                     onChange={handleFilterChange}
-//                                     className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+//                                     className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500"
 //                                 >
 //                                     <option value="">All Subjects</option>
 //                                     {teacherSubjects.map(sub => (
@@ -277,7 +277,7 @@
 //                                 name="marksType"
 //                                 value={filter.marksType}
 //                                 onChange={handleFilterChange}
-//                                 className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+//                                 className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500"
 //                             >
 //                                 <option value="">All Types</option>
 //                                 {marksTypes.map(type => (
@@ -292,7 +292,7 @@
 //                                 name="studentClass"
 //                                 value={filter.studentClass}
 //                                 onChange={handleFilterChange}
-//                                 className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+//                                 className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500"
 //                             >
 //                                 <option value="">All Classes</option>
 //                                 <option value="Class">Class</option>
@@ -310,7 +310,7 @@
 //                                         name="degree"
 //                                         value={filter.degree}
 //                                         onChange={handleFilterChange}
-//                                         className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+//                                         className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500"
 //                                         placeholder="e.g., Software Engineering"
 //                                     />
 //                                 </div>
@@ -322,7 +322,7 @@
 //                                         name="semester"
 //                                         value={filter.semester}
 //                                         onChange={handleFilterChange}
-//                                         className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+//                                         className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500"
 //                                         placeholder="e.g., 5"
 //                                     />
 //                                 </div>
@@ -336,7 +336,7 @@
 //                                     name="classNumber"
 //                                     value={filter.classNumber}
 //                                     onChange={handleFilterChange}
-//                                     className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+//                                     className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500"
 //                                 >
 //                                     <option value="">All Class Numbers</option>
 //                                     {currentUser.role === 'admin' ? (
@@ -360,7 +360,7 @@
 //                                     name="classNumber"
 //                                     value={filter.classNumber}
 //                                     onChange={handleFilterChange}
-//                                     className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+//                                     className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500"
 //                                 >
 //                                     <option value="">All Class Numbers</option>
 //                                     {currentUser.role === 'admin' ? (
@@ -385,7 +385,7 @@
 //                                 name="year"
 //                                 value={filter.year}
 //                                 onChange={handleFilterChange}
-//                                 className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+//                                 className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500"
 //                             >
 //                                 <option value="">All Years</option>
 //                                 {yearRange.map(year => (
@@ -401,7 +401,7 @@
 //                                 name="month"
 //                                 value={filter.month}
 //                                 onChange={handleFilterChange}
-//                                 className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+//                                 className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500"
 //                             >
 //                                 <option value="">All Months</option>
 //                                 {months.map((month, index) => (
@@ -445,7 +445,7 @@
 //                                             <td className="py-3 px-4 text-center">
 //                                                 <button
 //                                                     onClick={() => handleEdit(mark._id)}
-//                                                     className="text-indigo-600 hover:text-indigo-800 transition-colors duration-200 p-1 rounded-md hover:bg-indigo-100 mr-2"
+//                                                     className="text-green-600 hover:text-green-800 transition-colors duration-200 p-1 rounded-md hover:bg-green-100 mr-2"
 //                                                     title="Edit Marks"
 //                                                 >
 //                                                     <PencilIcon className="h-5 w-5" />
@@ -499,6 +499,7 @@ import { toast } from 'react-toastify';
 import { TrashIcon, PencilIcon, MagnifyingGlassIcon, XMarkIcon, FunnelIcon } from '@heroicons/react/24/outline';
 import ConfirmationModal from '../components/ConfirmationModal';
 import { useNavigate } from 'react-router-dom';
+import { useTheme } from '../context/ThemeContext';
 
 const months = [
     'January', 'February', 'March', 'April', 'May', 'June',
@@ -535,6 +536,7 @@ const useDebounce = (value, delay) => {
 };
 
 const MarksList = () => {
+    const { currentTheme } = useTheme();
     const { currentUser } = useContext(UserContext);
     const navigate = useNavigate();
     const [marks, setMarks] = useState([]);
@@ -751,8 +753,8 @@ const MarksList = () => {
 
 
     return (
-        <div className="bg-white p-6 rounded-lg shadow-lg">
-            <h1 className="text-2xl font-bold text-gray-800 mb-6">Marks List</h1>
+        <div className={`p-6 rounded-lg ${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.shadow || 'shadow-lg'}`}>
+            <h1 className={`text-2xl font-bold mb-6 ${currentTheme?.title || 'text-gray-800'}`}>Marks List</h1>
 
             {/* Header with Search and Filter Toggle */}
             <div className="flex flex-col md:flex-row justify-between items-center mb-6 space-y-4 md:space-y-0">
@@ -762,13 +764,13 @@ const MarksList = () => {
                         placeholder="Search by student name or roll number..."
                         value={searchQuery}
                         onChange={handleSearchChange}
-                        className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+                        className={`w-full px-4 py-2 pl-10 rounded-lg transition-all ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} border ${currentTheme?.inputBorder || 'border-gray-300'} focus:outline-none`}
                     />
-                    <MagnifyingGlassIcon className="h-5 w-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
+                    <MagnifyingGlassIcon className={`h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 ${currentTheme?.iconText || 'text-gray-400'}`} />
                     {searchQuery && (
                         <button
                             onClick={() => setSearchQuery('')}
-                            className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 p-1 rounded-full"
+                            className={`absolute right-2 top-1/2 transform -translate-y-1/2 p-1 rounded-full ${currentTheme?.mutedText || 'text-gray-500'} hover:${currentTheme?.linkHover || 'text-gray-700'}`}
                             title="Clear search"
                         >
                             <XMarkIcon className="h-4 w-4" />
@@ -778,7 +780,7 @@ const MarksList = () => {
                 <div className="flex space-x-2">
                     <button
                         onClick={() => setShowFilters(!showFilters)}
-                        className="flex items-center space-x-2 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg shadow-sm hover:bg-gray-300 transition-colors"
+                        className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${currentTheme?.buttonSecondary || 'bg-gray-200 text-gray-800'} ${currentTheme?.shadow || 'shadow-sm'}`}
                     >
                         <FunnelIcon className="h-5 w-5" />
                         <span>Filters</span>
@@ -786,7 +788,7 @@ const MarksList = () => {
                     {(Object.values(filter).some(val => val !== '') || searchQuery !== '') && (
                         <button
                             onClick={handleClearFilters}
-                            className="flex items-center space-x-2 px-4 py-2 bg-red-100 text-red-600 rounded-lg shadow-sm hover:bg-red-200 transition-colors"
+                            className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${currentTheme?.buttonMuted || 'bg-red-100 text-red-600'} ${currentTheme?.shadow || 'shadow-sm'}`}
                         >
                             <XMarkIcon className="h-5 w-5" />
                             <span>Clear</span>
@@ -797,8 +799,8 @@ const MarksList = () => {
 
             {/* Filter Section (MODIFIED FOR DYNAMIC STRUCTURE) */}
             {showFilters && (
-                <div className="mb-6 p-4 bg-gray-100 rounded-lg shadow-sm transition-all duration-300 ease-in-out">
-                    <h2 className="text-lg font-semibold text-gray-800 mb-4">Filter Marks</h2>
+                <div className={`mb-6 p-4 rounded-lg transition-all duration-300 ease-in-out ${currentTheme?.panelBg || 'bg-gray-100'} ${currentTheme?.shadow || 'shadow-sm'}`}>
+                    <h2 className={`text-lg font-semibold mb-4 ${currentTheme?.title || 'text-gray-800'}`}>Filter Marks</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                         
                         {/* Subject Filter (Teacher only, dynamically filtered by assignment) */}
@@ -810,7 +812,7 @@ const MarksList = () => {
                                     name="subject"
                                     value={filter.subject}
                                     onChange={handleFilterChange}
-                                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                                    className={`mt-1 block w-full rounded-md py-2 px-3 ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} border ${currentTheme?.inputBorder || 'border-gray-300'} focus:outline-none`}
                                 >
                                     <option value="">All Subjects</option>
                                     {[...new Set(teacherSubjects)].map(sub => (
@@ -828,7 +830,7 @@ const MarksList = () => {
                                 name="marksType"
                                 value={filter.marksType}
                                 onChange={handleFilterChange}
-                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                                className={`mt-1 block w-full rounded-md py-2 px-3 ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} border ${currentTheme?.inputBorder || 'border-gray-300'} focus:outline-none`}
                             >
                                 <option value="">All Types</option>
                                 {marksTypes.map(type => (
@@ -845,7 +847,7 @@ const MarksList = () => {
                                 name="studentClass"
                                 value={filter.studentClass}
                                 onChange={handleFilterChange}
-                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                                className={`mt-1 block w-full rounded-md py-2 px-3 ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} border ${currentTheme?.inputBorder || 'border-gray-300'} focus:outline-none`}
                             >
                                 <option value="">All Types</option>
                                 {academicStructure?.map(type => (
@@ -863,7 +865,7 @@ const MarksList = () => {
                                     name="classNumber"
                                     value={filter.classNumber}
                                     onChange={handleFilterChange}
-                                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500"
                                 >
                                     <option value="">All Grades</option>
                                     {/* Filter options based on user role/assignments */}
@@ -891,7 +893,7 @@ const MarksList = () => {
                                         name="degree"
                                         value={filter.degree}
                                         onChange={handleFilterChange}
-                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500"
                                     >
                                         <option value="">All Degrees</option>
                                         {currentUser.role === 'admin' ? (
@@ -913,7 +915,7 @@ const MarksList = () => {
                                             name="semester"
                                             value={filter.semester}
                                             onChange={handleFilterChange}
-                                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500"
                                         >
                                             <option value="">All Semesters</option>
                                             {/* Get max semester for selected degree from structure */}
@@ -934,7 +936,7 @@ const MarksList = () => {
                                 name="year"
                                 value={filter.year}
                                 onChange={handleFilterChange}
-                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                                className={`mt-1 block w-full rounded-md py-2 px-3 ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} border ${currentTheme?.inputBorder || 'border-gray-300'} focus:outline-none`}
                             >
                                 <option value="">All Years</option>
                                 {yearRange.map(year => (
@@ -951,7 +953,7 @@ const MarksList = () => {
                                 name="month"
                                 value={filter.month}
                                 onChange={handleFilterChange}
-                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500"
                             >
                                 <option value="">All Months</option>
                                 {months.map((month, index) => (
@@ -963,46 +965,46 @@ const MarksList = () => {
                 </div>
             )}
 
-            <div className="mt-6 overflow-x-auto">
+                <div className="mt-6 overflow-x-auto">
                 {filteredMarks.length > 0 ? (
                     <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-gray-100">
+                        <table className="min-w-full divide-y" >
+                            <thead className={`${currentTheme?.theadBg || 'bg-gray-100'}`}>
                                 <tr>
-                                    <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student Name</th>
-                                    <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subject</th>
-                                    <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Marks Type</th>
-                                    <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                                    <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                                    <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Obtained</th>
-                                    <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                                    <th className={`py-3 px-4 text-left text-xs font-medium uppercase tracking-wider ${currentTheme?.theadText || 'text-gray-500'}`}>Student Name</th>
+                                    <th className={`py-3 px-4 text-left text-xs font-medium uppercase tracking-wider ${currentTheme?.theadText || 'text-gray-500'}`}>Subject</th>
+                                    <th className={`py-3 px-4 text-left text-xs font-medium uppercase tracking-wider ${currentTheme?.theadText || 'text-gray-500'}`}>Marks Type</th>
+                                    <th className={`py-3 px-4 text-left text-xs font-medium uppercase tracking-wider ${currentTheme?.theadText || 'text-gray-500'}`}>Name</th>
+                                    <th className={`py-3 px-4 text-left text-xs font-medium uppercase tracking-wider ${currentTheme?.theadText || 'text-gray-500'}`}>Date</th>
+                                    <th className={`py-3 px-4 text-left text-xs font-medium uppercase tracking-wider ${currentTheme?.theadText || 'text-gray-500'}`}>Obtained</th>
+                                    <th className={`py-3 px-4 text-left text-xs font-medium uppercase tracking-wider ${currentTheme?.theadText || 'text-gray-500'}`}>Total</th>
                                     {currentUser.role === 'teacher' && (
-                                        <th className="py-3 px-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                        <th className={`py-3 px-4 text-center text-xs font-medium uppercase tracking-wider ${currentTheme?.theadText || 'text-gray-500'}`}>Actions</th>
                                     )}
                                 </tr>
                             </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
+                            <tbody className={`${currentTheme?.tbodyBg || 'bg-white'} divide-y ${currentTheme?.divide || 'divide-gray-200'}`}>
                                 {filteredMarks.map((mark) => (
                                     <tr key={mark._id}>
-                                        <td className="py-3 px-4 whitespace-nowrap">{mark.student?.name || 'N/A'}</td>
-                                        <td className="py-3 px-4 whitespace-nowrap">{mark.subject}</td>
-                                        <td className="py-3 px-4 whitespace-nowrap">{mark.marksType}</td>
-                                        <td className="py-3 px-4 whitespace-nowrap">{mark.marksName}</td>
-                                        <td className="py-3 px-4 whitespace-nowrap">{new Date(mark.conductedDate).toLocaleDateString()}</td>
-                                        <td className="py-3 px-4 whitespace-nowrap">{mark.marksObtained}</td>
-                                        <td className="py-3 px-4 whitespace-nowrap">{mark.totalMarks}</td>
+                                        <td className={`py-3 px-4 whitespace-nowrap ${currentTheme?.text || 'text-gray-700'}`}>{mark.student?.name || 'N/A'}</td>
+                                        <td className={`py-3 px-4 whitespace-nowrap ${currentTheme?.text || 'text-gray-700'}`}>{mark.subject}</td>
+                                        <td className={`py-3 px-4 whitespace-nowrap ${currentTheme?.text || 'text-gray-700'}`}>{mark.marksType}</td>
+                                        <td className={`py-3 px-4 whitespace-nowrap ${currentTheme?.text || 'text-gray-700'}`}>{mark.marksName}</td>
+                                        <td className={`py-3 px-4 whitespace-nowrap ${currentTheme?.text || 'text-gray-700'}`}>{new Date(mark.conductedDate).toLocaleDateString()}</td>
+                                        <td className={`py-3 px-4 whitespace-nowrap ${currentTheme?.text || 'text-gray-700'}`}>{mark.marksObtained}</td>
+                                        <td className={`py-3 px-4 whitespace-nowrap ${currentTheme?.text || 'text-gray-700'}`}>{mark.totalMarks}</td>
                                         {currentUser.role === 'teacher' && (
                                             <td className="py-3 px-4 text-center">
                                                 <button
                                                     onClick={() => handleEdit(mark._id)}
-                                                    className="text-indigo-600 hover:text-indigo-800 transition-colors duration-200 p-1 rounded-md hover:bg-indigo-100 mr-2"
+                                                    className={`p-1 rounded-md mr-2 transition-colors duration-200 ${currentTheme?.linkText || 'text-green-600'} hover:${currentTheme?.linkHover || 'text-green-800'}`}
                                                     title="Edit Marks"
                                                 >
                                                     <PencilIcon className="h-5 w-5" />
                                                 </button>
                                                 <button
                                                     onClick={() => handleDelete(mark._id)}
-                                                    className="text-red-600 hover:text-red-800 transition-colors duration-200 p-1 rounded-md hover:bg-red-100"
+                                                    className={`p-1 rounded-md transition-colors duration-200 ${currentTheme?.errorPill || 'text-red-600'} hover:${currentTheme?.errorPillHover || 'text-red-800'}`}
                                                     title="Delete Marks"
                                                 >
                                                     <TrashIcon className="h-5 w-5" />
@@ -1015,7 +1017,7 @@ const MarksList = () => {
                         </table>
                     </div>
                 ) : (
-                    <p className="text-xl text-gray-600 text-center p-4 bg-gray-100 rounded-lg shadow-sm">
+                    <p className={`text-xl text-center p-4 rounded-lg ${currentTheme?.panelBg || 'bg-gray-100'} ${currentTheme?.mutedText || 'text-gray-600'} ${currentTheme?.shadow || 'shadow-sm'}`}>
                         No marks found.
                     </p>
                 )}

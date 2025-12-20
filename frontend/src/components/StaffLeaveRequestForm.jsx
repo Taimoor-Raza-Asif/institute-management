@@ -114,24 +114,25 @@ const StaffLeaveRequestForm = ({ editingLeave, fetchLeaves, staffMembersForForm,
   };
 
   return (
-    <div className="p-6 bg-white rounded-lg shadow-xl max-h-[90vh] overflow-y-auto">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-indigo-700">{editingLeave ? (isViewMode ? 'View Staff Leave Request' : 'Edit Staff Leave Request') : (isStaffMode ? 'Add Staff Leave' : 'Apply for Leave')}</h2>
-        <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
-          <XMarkIcon className="h-6 w-6" />
-        </button>
-      </div>
+    <div className="relative p-6 sm:p-8 lg:p-10 rounded-2xl max-w-full mx-auto max-h-[90vh] overflow-y-auto custom-scrollbar bg-gradient-to-br from-white via-gray-50 to-white shadow-2xl border border-gray-100">
+      <button onClick={onClose} className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 transition-colors duration-200 p-2 rounded-full hover:bg-gray-100">
+        <XMarkIcon className="h-7 w-7" />
+      </button>
+      <h2 className="text-3xl sm:text-4xl font-bold mb-2 text-center bg-gradient-to-r from-green-700 to-emerald-600 bg-clip-text text-transparent">
+        {editingLeave ? (isViewMode ? 'View Staff Leave Request' : 'Edit Staff Leave Request') : (isStaffMode ? 'Add Staff Leave' : 'Apply for Leave')}
+      </h2>
+      <p className="text-center text-gray-500 text-sm mb-6">Manage staff leave requests efficiently</p>
 
       {formError && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative mb-6 shadow-sm" role="alert">
           {formError}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {(isStaffMode && !isViewMode) ? ( // For admin adding/editing, they pick staff
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {(isStaffMode && !isViewMode) ? (
           <div>
-            <label htmlFor="staffId" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="staffId" className="block text-sm font-bold text-gray-700 mb-2">
               Staff Member <span className="text-red-500">*</span>
             </label>
             <select
@@ -139,8 +140,8 @@ const StaffLeaveRequestForm = ({ editingLeave, fetchLeaves, staffMembersForForm,
               name="staffId"
               value={leave.staffId}
               onChange={handleChange}
-              disabled={isViewMode} // Staff cannot change for existing, admin can't change staff ID either
-              className={`mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm ${fieldErrors.staffId ? 'border-red-500' : ''} ${isViewMode || editingLeave ? 'bg-gray-50' : ''}`}
+              disabled={isViewMode}
+              className={`block w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-400 focus:border-green-500 hover:border-gray-300 transition shadow-sm ${fieldErrors.staffId ? 'border-red-500' : ''} ${isViewMode || editingLeave ? 'bg-gray-50' : 'bg-white'}`}
               required
             >
               <option value="">Select Staff</option>
@@ -152,22 +153,24 @@ const StaffLeaveRequestForm = ({ editingLeave, fetchLeaves, staffMembersForForm,
             </select>
             {fieldErrors.staffId && <p className="text-red-500 text-xs mt-1">{fieldErrors.staffId}</p>}
           </div>
-        ) : ( // Staff applying for self, or view mode
-          <input type="hidden" name="staffId" value={leave.staffId} /> // Keep staffId in payload
+        ) : (
+          <input type="hidden" name="staffId" value={leave.staffId} />
         )}
 
-        {isViewMode && editingLeave?.staff && ( // Display staff details in view mode
-          <div className="bg-gray-50 p-4 rounded-md border border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-800 mb-2">Staff Details</h3>
-            <p><span className="font-medium">Name:</span> {editingLeave.staffName}</p>
-            <p><span className="font-medium">Staff Type:</span> {editingLeave.staffType}</p>
-            <p><span className="font-medium">CNIC:</span> {editingLeave.staff.cnic}</p>
+        {isViewMode && editingLeave?.staff && (
+          <div className="bg-gradient-to-br from-blue-50 to-cyan-50 p-6 rounded-xl border-2 border-blue-200 shadow-sm mb-6">
+            <h3 className="text-xl font-bold text-gray-800 mb-4 border-b-2 border-blue-300 pb-2">Staff Details</h3>
+            <div className="space-y-2">
+              <p><span className="font-semibold text-gray-700">Name:</span> <span className="text-gray-600">{editingLeave.staffName}</span></p>
+              <p><span className="font-semibold text-gray-700">Staff Type:</span> <span className="text-gray-600">{editingLeave.staffType}</span></p>
+              <p><span className="font-semibold text-gray-700">CNIC:</span> <span className="text-gray-600">{editingLeave.staff.cnic}</span></p>
+            </div>
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="startDate" className="block text-sm font-bold text-gray-700 mb-2">
               Start Date <span className="text-red-500">*</span>
             </label>
             <input
@@ -176,14 +179,14 @@ const StaffLeaveRequestForm = ({ editingLeave, fetchLeaves, staffMembersForForm,
               name="startDate"
               value={leave.startDate}
               onChange={handleChange}
-              disabled={isViewMode || (!isStaffMode && editingLeave)} // Staff can't edit dates after creation if not admin
-              className={`mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm ${fieldErrors.startDate ? 'border-red-500' : ''} ${isViewMode || (!isStaffMode && editingLeave) ? 'bg-gray-50' : ''}`}
+              disabled={isViewMode || (!isStaffMode && editingLeave)}
+              className={`block w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-400 focus:border-green-500 hover:border-gray-300 transition shadow-sm ${fieldErrors.startDate ? 'border-red-500' : ''} ${isViewMode || (!isStaffMode && editingLeave) ? 'bg-gray-50' : 'bg-white'}`}
               required
             />
             {fieldErrors.startDate && <p className="text-red-500 text-xs mt-1">{fieldErrors.startDate}</p>}
           </div>
           <div>
-            <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="endDate" className="block text-sm font-bold text-gray-700 mb-2">
               End Date <span className="text-red-500">*</span>
             </label>
             <input
@@ -193,24 +196,24 @@ const StaffLeaveRequestForm = ({ editingLeave, fetchLeaves, staffMembersForForm,
               value={leave.endDate}
               onChange={handleChange}
               disabled={isViewMode || (!isStaffMode && editingLeave)}
-              className={`mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm ${fieldErrors.endDate ? 'border-red-500' : ''} ${isViewMode || (!isStaffMode && editingLeave) ? 'bg-gray-50' : ''}`}
+              className={`block w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-400 focus:border-green-500 hover:border-gray-300 transition shadow-sm ${fieldErrors.endDate ? 'border-red-500' : ''} ${isViewMode || (!isStaffMode && editingLeave) ? 'bg-gray-50' : 'bg-white'}`}
               required
             />
             {fieldErrors.endDate && <p className="text-red-500 text-xs mt-1">{fieldErrors.endDate}</p>}
           </div>
           <div>
-            {/* <label htmlFor="leaveTime" className="block text-sm font-medium text-gray-700 mb-1">
-              Leave Time (Optional, if specific time)
+            <label htmlFor="leaveTime" className="block text-sm font-bold text-gray-700 mb-2">
+              Leave Time (on Start Date)
             </label>
             <input
-              type="datetime-local"
+              type="time"
               id="leaveTime"
               name="leaveTime"
               value={leave.leaveTime}
               onChange={handleChange}
               disabled={isViewMode || (!isStaffMode && editingLeave)}
-              className={`mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm ${isViewMode || (!isStaffMode && editingLeave) ? 'bg-gray-50' : ''}`}
-            /> */}
+              className={`mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm ${isViewMode || (!isStaffMode && editingLeave) ? 'bg-gray-50' : ''}`}
+            />
              <label htmlFor="leaveTime" className="block text-sm font-medium text-gray-700 mb-1">
                 Leave Time (on Start Date)
               </label>
@@ -221,41 +224,28 @@ const StaffLeaveRequestForm = ({ editingLeave, fetchLeaves, staffMembersForForm,
                 value={leave.leaveTime}
                 onChange={handleChange}
               disabled={isViewMode || (!isStaffMode && editingLeave)}
-              className={`mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm ${isViewMode || (!isStaffMode && editingLeave) ? 'bg-gray-50' : ''}`}
+              className={`mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm ${isViewMode || (!isStaffMode && editingLeave) ? 'bg-gray-50' : ''}`}
               />
           </div>
           <div>
-            {/* <label htmlFor="expectedReturnTime" className="block text-sm font-medium text-gray-700 mb-1">
-              Expected Return Time <span className="text-red-500">*</span>
+            <label htmlFor="expectedReturnTime" className="block text-sm font-bold text-gray-700 mb-2">
+              Expected Return Time (on End Date)
             </label>
             <input
-              type="datetime-local"
+              type="time"
               id="expectedReturnTime"
               name="expectedReturnTime"
               value={leave.expectedReturnTime}
               onChange={handleChange}
               disabled={isViewMode || (!isStaffMode && editingLeave)}
-              className={`mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm ${fieldErrors.expectedReturnTime ? 'border-red-500' : ''} ${isViewMode || (!isStaffMode && editingLeave) ? 'bg-gray-50' : ''}`}
-              required
-            /> */}
-            <label htmlFor="expectedReturnTime" className="block text-sm font-medium text-gray-700 mb-1">
-                Expected Return Time (on End Date)
-              </label>
-              <input
-                type="time"
-                id="expectedReturnTime"
-                name="expectedReturnTime"
-                value={leave.expectedReturnTime}
-                onChange={handleChange}
-               disabled={isViewMode || (!isStaffMode && editingLeave)}
-              className={`mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm ${isViewMode || (!isStaffMode && editingLeave) ? 'bg-gray-50' : ''}`}
-              />
+              className={`block w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-400 focus:border-green-500 hover:border-gray-300 transition shadow-sm ${isViewMode || (!isStaffMode && editingLeave) ? 'bg-gray-50' : 'bg-white'}`}
+            />
             {fieldErrors.expectedReturnTime && <p className="text-red-500 text-xs mt-1">{fieldErrors.expectedReturnTime}</p>}
           </div>
         </div>
 
         <div>
-          <label htmlFor="addressGoingTo" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="addressGoingTo" className="block text-sm font-bold text-gray-700 mb-2">
             Address (where staff is going - Optional)
           </label>
           <textarea
@@ -265,12 +255,12 @@ const StaffLeaveRequestForm = ({ editingLeave, fetchLeaves, staffMembersForForm,
             onChange={handleChange}
             disabled={isViewMode || (!isStaffMode && editingLeave)}
             rows="2"
-            className={`mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm ${isViewMode || (!isStaffMode && editingLeave) ? 'bg-gray-50' : ''}`}
+            className={`block w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-400 focus:border-green-500 hover:border-gray-300 transition shadow-sm ${isViewMode || (!isStaffMode && editingLeave) ? 'bg-gray-50' : 'bg-white'}`}
           ></textarea>
         </div>
 
         <div>
-          <label htmlFor="reason" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="reason" className="block text-sm font-bold text-gray-700 mb-2">
             Reason for Leave <span className="text-red-500">*</span>
           </label>
           <textarea
@@ -280,18 +270,18 @@ const StaffLeaveRequestForm = ({ editingLeave, fetchLeaves, staffMembersForForm,
             onChange={handleChange}
             disabled={isViewMode || (!isStaffMode && editingLeave)}
             rows="3"
-            className={`mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm ${fieldErrors.reason ? 'border-red-500' : ''} ${isViewMode || (!isStaffMode && editingLeave) ? 'bg-gray-50' : ''}`}
+            className={`block w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-400 focus:border-green-500 hover:border-gray-300 transition shadow-sm ${fieldErrors.reason ? 'border-red-500' : ''} ${isViewMode || (!isStaffMode && editingLeave) ? 'bg-gray-50' : 'bg-white'}`}
             required
           ></textarea>
           {fieldErrors.reason && <p className="text-red-500 text-xs mt-1">{fieldErrors.reason}</p>}
         </div>
 
-        <div className="space-y-4 border p-4 rounded-md bg-blue-50">
-          <h3 className="text-lg font-semibold text-blue-800">Person Picking Up Staff (Optional)</h3>
-          <p className="text-sm text-gray-600">Only fill if someone is picking up the staff member for leave (e.g., sick leave).</p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="border-2 border-purple-200 p-6 rounded-xl bg-gradient-to-br from-purple-50 to-pink-50 shadow-sm">
+          <h3 className="text-xl font-bold text-purple-800 mb-4 border-b-2 border-purple-300 pb-2">Person Picking Up Staff (Optional)</h3>
+          <p className="text-sm text-gray-600 mb-6">Only fill if someone is picking up the staff member for leave (e.g., sick leave).</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label htmlFor="pickerName" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="pickerName" className="block text-sm font-bold text-gray-700 mb-2">
                 Name
               </label>
               <input
@@ -301,11 +291,11 @@ const StaffLeaveRequestForm = ({ editingLeave, fetchLeaves, staffMembersForForm,
                 value={leave.pickerName}
                 onChange={handleChange}
                 disabled={isViewMode || (!isStaffMode && editingLeave)}
-                className={`mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm ${isViewMode || (!isStaffMode && editingLeave) ? 'bg-gray-50' : ''}`}
+                className={`block w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-400 focus:border-green-500 hover:border-gray-300 transition shadow-sm ${isViewMode || (!isStaffMode && editingLeave) ? 'bg-gray-50' : 'bg-white'}`}
               />
             </div>
             <div>
-              <label htmlFor="pickerRelation" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="pickerRelation" className="block text-sm font-bold text-gray-700 mb-2">
                 Relation with Staff
               </label>
               <input
@@ -315,11 +305,11 @@ const StaffLeaveRequestForm = ({ editingLeave, fetchLeaves, staffMembersForForm,
                 value={leave.pickerRelation}
                 onChange={handleChange}
                 disabled={isViewMode || (!isStaffMode && editingLeave)}
-                className={`mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm ${isViewMode || (!isStaffMode && editingLeave) ? 'bg-gray-50' : ''}`}
+                className={`block w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-400 focus:border-green-500 hover:border-gray-300 transition shadow-sm ${isViewMode || (!isStaffMode && editingLeave) ? 'bg-gray-50' : 'bg-white'}`}
               />
             </div>
             <div>
-              <label htmlFor="pickerPhoneNumber" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="pickerPhoneNumber" className="block text-sm font-bold text-gray-700 mb-2">
                 Phone Number
               </label>
               <input
@@ -329,7 +319,7 @@ const StaffLeaveRequestForm = ({ editingLeave, fetchLeaves, staffMembersForForm,
                 value={leave.pickerPhoneNumber}
                 onChange={handleChange}
                 disabled={isViewMode || (!isStaffMode && editingLeave)}
-                className={`mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm ${fieldErrors.pickerPhoneNumber ? 'border-red-500' : ''} ${isViewMode || (!isStaffMode && editingLeave) ? 'bg-gray-50' : ''}`}
+                className={`block w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-400 focus:border-green-500 hover:border-gray-300 transition shadow-sm ${fieldErrors.pickerPhoneNumber ? 'border-red-500' : ''} ${isViewMode || (!isStaffMode && editingLeave) ? 'bg-gray-50' : 'bg-white'}`}
                 maxLength="11"
                 pattern="^\d{11}$"
                 title="Please enter a valid 11-digit phone number"
@@ -337,7 +327,7 @@ const StaffLeaveRequestForm = ({ editingLeave, fetchLeaves, staffMembersForForm,
               {fieldErrors.pickerPhoneNumber && <p className="text-red-500 text-xs mt-1">{fieldErrors.pickerPhoneNumber}</p>}
             </div>
             <div>
-              <label htmlFor="pickerCnicNumber" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="pickerCnicNumber" className="block text-sm font-bold text-gray-700 mb-2">
                 CNIC Number
               </label>
               <input
@@ -347,7 +337,7 @@ const StaffLeaveRequestForm = ({ editingLeave, fetchLeaves, staffMembersForForm,
                 value={leave.pickerCnicNumber}
                 onChange={handleChange}
                 disabled={isViewMode || (!isStaffMode && editingLeave)}
-                className={`mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm ${fieldErrors.pickerCnicNumber ? 'border-red-500' : ''} ${isViewMode || (!isStaffMode && editingLeave) ? 'bg-gray-50' : ''}`}
+                className={`block w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-400 focus:border-green-500 hover:border-gray-300 transition shadow-sm ${fieldErrors.pickerCnicNumber ? 'border-red-500' : ''} ${isViewMode || (!isStaffMode && editingLeave) ? 'bg-gray-50' : 'bg-white'}`}
                 maxLength="13"
                 pattern="^\d{13}$"
                 title="Please enter a valid 13-digit CNIC number"
@@ -357,68 +347,73 @@ const StaffLeaveRequestForm = ({ editingLeave, fetchLeaves, staffMembersForForm,
           </div>
         </div>
 
-        {isStaffMode && ( // Admin can change status and set actual return time
-          <>
-            <div>
-              <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">
-                Status <span className="text-red-500">*</span>
-              </label>
-              <select
-                id="status"
-                name="status"
-                value={leave.status}
-                onChange={handleChange}
-                disabled={isViewMode}
-                className={`mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm ${isViewMode ? 'bg-gray-50' : ''}`}
-              >
-                <option value="Pending">Pending</option>
-                <option value="Approved">Approved</option>
-                <option value="Rejected">Rejected</option>
-              </select>
-            </div>
-            <div>
-              <label htmlFor="actualReturnTime" className="block text-sm font-medium text-gray-700 mb-1">
-                Actual Return Time
-              </label>
-              <input
-                type="datetime-local"
-                id="actualReturnTime"
-                name="actualReturnTime"
-                value={leave.actualReturnTime}
-                onChange={handleChange}
-                disabled={isViewMode}
-                className={`mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm ${isViewMode ? 'bg-gray-50' : ''}`}
-              />
-               {!isViewMode && leave.actualReturnTime && (
-                <button
-                  type="button"
-                  onClick={() => setLeave(prev => ({ ...prev, actualReturnTime: '' }))}
-                  className="mt-2 text-red-600 hover:text-red-800 text-sm"
+        {isStaffMode && (
+          <div className="border-2 border-blue-200 p-6 rounded-xl bg-gradient-to-br from-blue-50 to-cyan-50 shadow-sm">
+            <h3 className="text-xl font-bold text-blue-800 mb-6 border-b-2 border-blue-300 pb-2">Status & Admin Notes</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label htmlFor="status" className="block text-sm font-bold text-gray-700 mb-2">
+                  Status <span className="text-red-500">*</span>
+                </label>
+                <select
+                  id="status"
+                  name="status"
+                  value={leave.status}
+                  onChange={handleChange}
+                  disabled={isViewMode}
+                  className={`block w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-400 focus:border-green-500 hover:border-gray-300 transition shadow-sm ${isViewMode ? 'bg-gray-50' : 'bg-white'}`}
                 >
-                  Clear Actual Return Time
-                </button>
-              )}
+                  <option value="Pending">Pending</option>
+                  <option value="Approved">Approved</option>
+                  <option value="Rejected">Rejected</option>
+                </select>
+              </div>
+              <div>
+                <label htmlFor="actualReturnTime" className="block text-sm font-bold text-gray-700 mb-2">
+                  Actual Return Time
+                </label>
+                <input
+                  type="datetime-local"
+                  id="actualReturnTime"
+                  name="actualReturnTime"
+                  value={leave.actualReturnTime}
+                  onChange={handleChange}
+                  disabled={isViewMode}
+                  className={`block w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-400 focus:border-green-500 hover:border-gray-300 transition shadow-sm ${isViewMode ? 'bg-gray-50' : 'bg-white'}`}
+                />
+                {!isViewMode && leave.actualReturnTime && (
+                  <button
+                    type="button"
+                    onClick={() => setLeave(prev => ({ ...prev, actualReturnTime: '' }))}
+                    className="mt-2 text-red-600 hover:text-red-800 text-sm font-semibold"
+                  >
+                    Clear Actual Return Time
+                  </button>
+                )}
+              </div>
             </div>
             {isViewMode && (
-              <>
+              <div className="mt-6 pt-6 border-t-2 border-blue-300 space-y-3">
                 {editingLeave?.approvedBy && (
-                  <p className="text-sm text-gray-600">
-                    <span className="font-medium">Approved/Rejected By:</span> {editingLeave.approvedBy.name} ({editingLeave.approvedBy.role})
+                  <p className="text-sm">
+                    <span className="font-bold text-blue-800">Approved/Rejected By:</span>{' '}
+                    <span className="text-gray-700">{editingLeave.approvedBy.name} ({editingLeave.approvedBy.role})</span>
                   </p>
                 )}
-                <p className="text-sm text-gray-600">
-                  <span className="font-medium">Requested By:</span> {editingLeave?.requestedBy?.name} ({editingLeave.requestedBy?.role})
+                <p className="text-sm">
+                  <span className="font-bold text-blue-800">Requested By:</span>{' '}
+                  <span className="text-gray-700">{editingLeave?.requestedBy?.name} ({editingLeave.requestedBy?.role})</span>
                 </p>
-              </>
+              </div>
             )}
-          </>
+          </div>
         )}
 
-        <div className="flex justify-end space-x-3 mt-6">
+        <div className="flex justify-end space-x-4 mt-8 pt-6 border-t-2 border-gray-200">
           {!isViewMode && (
             <button
               type="submit"
-              className="bg-indigo-600 text-white px-6 py-2 rounded-md hover:bg-indigo-700 transition duration-200 shadow-md"
+              className="bg-gradient-to-r from-green-600 to-emerald-700 text-white px-8 py-2.5 rounded-lg hover:from-green-700 hover:to-emerald-800 transition shadow-md hover:shadow-lg active:scale-95 font-semibold"
             >
               {editingLeave ? 'Update Leave' : 'Submit Leave Request'}
             </button>
@@ -426,7 +421,7 @@ const StaffLeaveRequestForm = ({ editingLeave, fetchLeaves, staffMembersForForm,
           <button
             type="button"
             onClick={onClose}
-            className="bg-gray-300 text-gray-800 px-6 py-2 rounded-md hover:bg-gray-400 transition duration-200"
+            className="bg-gray-300 text-gray-800 px-8 py-2.5 rounded-lg hover:bg-gray-400 transition shadow-md hover:shadow-lg active:scale-95 font-semibold"
           >
             {isViewMode ? 'Close' : 'Cancel'}
           </button>

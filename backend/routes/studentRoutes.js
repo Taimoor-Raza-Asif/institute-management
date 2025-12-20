@@ -284,6 +284,8 @@ router.put('/:id/demote-semester',protect, authorizeRoles('admin', 'teacher'), d
 router.patch('/promote', protect, authorizeRoles('admin'), promoteStudents); // Changed to patch for partial update
 router.patch('/increase-fee', protect, authorizeRoles('admin'), increaseFee); // Changed to patch
 
+// this file has been modified for testing purposes
+
 // Student fee status update (Admin only for full control)
 router.patch('/:id/fee-status', protect, authorizeRoles('admin'), updateStudentFeeStatus); // Changed to patch
 

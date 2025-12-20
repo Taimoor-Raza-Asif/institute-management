@@ -1,7 +1,9 @@
 // src/components/Message.jsx
 import React from 'react';
+import { useTheme } from '../context/ThemeContext';
 
 const Message = ({ type = 'info', children }) => {
+  const { currentTheme } = useTheme();
   let bgColorClass = '';
   let textColorClass = '';
   let borderColorClass = '';
@@ -32,7 +34,7 @@ const Message = ({ type = 'info', children }) => {
 
   return (
     <div
-      className={`p-4 mb-4 text-sm rounded-lg border ${bgColorClass} ${textColorClass} ${borderColorClass}`}
+      className={`p-4 mb-4 text-sm rounded-lg border ${bgColorClass} ${textColorClass} ${borderColorClass} ${currentTheme.cardBg}`}
       role="alert"
     >
       {children}

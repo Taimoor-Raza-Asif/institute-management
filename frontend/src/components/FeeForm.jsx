@@ -1,8 +1,9 @@
 // src/components/FeeForm.jsx
 import React, { useState, useEffect, useCallback } from 'react';
 import api from '../api';
-import { XMarkIcon, ArrowDownTrayIcon, PrinterIcon, MinusCircleIcon } from '@heroicons/react/24/outline';
+import { ArrowDownTrayIcon, PrinterIcon, MinusCircleIcon } from '@heroicons/react/24/outline';
 import jsPDF from 'jspdf';
+import { useTheme } from '../context/ThemeContext';
 
 const months = [
   "January", "February", "March", "April", "May", "June",
@@ -19,6 +20,7 @@ const generateYearOptions = () => {
 };
 
 const FeeForm = ({ editingFee, fetchFees, studentsForForm, onClose, isViewMode = false, fetchStudents }) => {
+  const { currentTheme } = useTheme();
   const initialState = {
     studentId: '',
     paidBy: '',
@@ -355,7 +357,7 @@ const FeeForm = ({ editingFee, fetchFees, studentsForForm, onClose, isViewMode =
   const getTitle = () => {
     if (isViewMode) return 'Fee Details (Receipt)';
     if (editingFee) return 'Edit Fee Record';
-    return 'Add New Fee Record';
+    return 'New Fee Record';
   };
 
   const handleDownloadReceiptPdf = () => {
@@ -366,8 +368,14 @@ const FeeForm = ({ editingFee, fetchFees, studentsForForm, onClose, isViewMode =
     const studentCnic = selectedStudent ? selectedStudent.cnic : '-';
     const studentClassOrDegree = selectedStudent
       ? (selectedStudent.class === 'Class'
-        ? `${selectedStudent.classNumber} Class`
-        : `${selectedStudent.degreeName} (Semester ${selectedStudent.semester})`)
+        ? `${selectedStudent.classNumber || '-'}`
+        : selectedStudent.class === 'BS'
+        ? `${selectedStudent.degreeName || '-'} (Semester ${selectedStudent.semester || '-'})`
+        : selectedStudent.class === 'Almiya'
+        ? `Almiya - ${selectedStudent.classNumber || '-'}`
+        : selectedStudent.class === 'Hifaz'
+        ? 'Hifaz'
+        : '-')
       : '-';
 
     const savePDF = () => {
@@ -380,7 +388,7 @@ const FeeForm = ({ editingFee, fetchFees, studentsForForm, onClose, isViewMode =
 
       // Logo
       const logo = new Image();
-      logo.src = '/default-avatar.jpg'; // public path logo
+      logo.src = './Jamia Logo.png'; // public path logo
 
       logo.onload = () => {
         doc.addImage(logo, 'JPEG', xStart, yPos, 15, 15); // logo top-right of mini receipt
@@ -388,11 +396,11 @@ const FeeForm = ({ editingFee, fetchFees, studentsForForm, onClose, isViewMode =
         // Institute Info
         doc.setFontSize(10);
         doc.setFont(undefined, 'bold');
-        doc.text('Bright Future Institute', xStart + 17, yPos + 5);
+        doc.text('Jamia Tul Mastwaar', xStart + 17, yPos + 5);
         doc.setFontSize(8);
         doc.setFont(undefined, 'normal');
-        doc.text('123 Education St, Knowledge City', xStart + 17, yPos + 10);
-        doc.text('Phone: (042) 1234567 | Email: info@bfi.edu.pk', xStart + 17, yPos + 14);
+        doc.text('Makhdoom Pur Sharif, Chakwal', xStart + 17, yPos + 10);
+        doc.text('Phone: (042) 1234567 | Email: info.mastwaar@gmail.com', xStart + 17, yPos + 14);
 
         // Divider
         doc.line(xStart, yPos + 18, xStart + 80, yPos + 18);
@@ -497,7 +505,17 @@ const FeeForm = ({ editingFee, fetchFees, studentsForForm, onClose, isViewMode =
 
     const studentName = selectedStudent ? selectedStudent.name : '-';
     const studentCnic = selectedStudent ? selectedStudent.cnic : '-';
-    const studentClassOrDegree = selectedStudent ? (selectedStudent.class === 'Class' ? `${selectedStudent.classNumber} Class` : `${selectedStudent.degreeName} (Semester ${selectedStudent.semester})`) : '-';
+    const studentClassOrDegree = selectedStudent
+      ? (selectedStudent.class === 'Class'
+        ? `${selectedStudent.classNumber || '-'}`
+        : selectedStudent.class === 'BS'
+        ? `${selectedStudent.degreeName || '-'} (Semester ${selectedStudent.semester || '-'})`
+        : selectedStudent.class === 'Almiya'
+        ? `Almiya - ${selectedStudent.classNumber || '-'}`
+        : selectedStudent.class === 'Hifaz'
+        ? 'Hifaz'
+        : '-')
+      : '-';
 
     // Function to load an image and return a Promise
     const loadImage = (src) => {
@@ -542,13 +560,10 @@ const FeeForm = ({ editingFee, fetchFees, studentsForForm, onClose, isViewMode =
           <div class="header-section">
             <img class="logo" src="${loadedLogo ? loadedLogo.src : logoImgSrc}" alt="logo" />
             <div class="inst-info">
-              <strong>Bright Future Institute</strong><br>
-              123 Education St, Knowledge City<br>
-              Phone: (042) 1234567<br>Email: info@bfi.edu.pk
+              <strong>Jamia Tul Mastwaar</strong><br>
+              Makhdoom Pur Sharif, Chakwal<br>
+              Phone: (042) 1234567<br>Email: info.mastwaar@gmail.com
             </div>
-          </div>
-
-          <div class="title">Fee Receipt</div>
           <div class="generated-date">Generated on: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}</div>
           <div class="divider"></div>
 
@@ -790,19 +805,7 @@ const FeeForm = ({ editingFee, fetchFees, studentsForForm, onClose, isViewMode =
 
   return (
     // Main container for the form, now a flex column with responsive width and padding
-    <div className="bg-white p-4 sm:p-6 rounded-lg shadow-xl w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-2xl mx-auto relative flex flex-col h-full">
-      {/* Close Button */}
-      <button
-        onClick={onClose}
-        className="absolute top-3 right-3 text-gray-500 hover:text-gray-700 transition duration-200 p-1 rounded-full hover:bg-gray-100"
-        title="Close"
-      >
-        <XMarkIcon className="h-6 w-6" />
-      </button>
-
-      {/* Header */}
-      <h2 className="text-2xl sm:text-3xl font-bold mb-4 text-center text-green-700 mt-2 sm:mt-0">{getTitle()}</h2>
-      <hr className="mb-4 border-green-200" />
+    <div className={`p-4 sm:p-6 rounded-lg w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-2xl mx-auto relative flex flex-col h-full ${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.shadow || 'shadow-xl'}`}>
 
       {/* Form Error */}
       {formError && (
@@ -813,12 +816,12 @@ const FeeForm = ({ editingFee, fetchFees, studentsForForm, onClose, isViewMode =
 
       {/* Scrollable Form Content */}
       {/* <form onSubmit={handleSubmit} className="flex flex-col flex-grow overflow-y-auto pr-2 custom-scrollbar"> */}
-      <form onSubmit={e => (editingFee && !isEditAllowed) || (!editingFee && !isAddAllowed) ? e.preventDefault() : handleSubmit(e)} className="p-4 bg-white rounded-lg shadow-md">
+      <form onSubmit={e => (editingFee && !isEditAllowed) || (!editingFee && !isAddAllowed) ? e.preventDefault() : handleSubmit(e)} className={`p-4 rounded-lg ${currentTheme?.panelBg || 'bg-white'} ${currentTheme?.shadow || 'shadow-md'}`}>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
           {/* Student */}
           <div>
             <label htmlFor="studentId" className="block text-sm font-medium text-gray-700 mb-1">Student<span className="text-red-500">*</span></label>
-            <select id="studentId" name="studentId" value={fee.studentId} onChange={handleChange} disabled={isViewMode} className="block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring focus:ring-green-200 focus:ring-opacity-50 p-2.5 transition duration-150 ease-in-out">
+            <select id="studentId" name="studentId" value={fee.studentId} onChange={handleChange} disabled={isViewMode} className={`block w-full rounded-md p-2.5 transition duration-150 ease-in-out ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} border ${currentTheme?.inputBorder || 'border-gray-300'}`}>
               <option value="">Select Student</option>
               {studentsForForm.map(student => (
                 <option key={student._id} value={student._id}>{student.name} ({student.cnic})</option>
@@ -828,7 +831,7 @@ const FeeForm = ({ editingFee, fetchFees, studentsForForm, onClose, isViewMode =
           {/* Paid By */}
           <div>
             <label htmlFor="paidBy" className="block text-sm font-medium text-gray-700 mb-1">Paid By<span className="text-red-500">*</span></label>
-            <input type="text" id="paidBy" name="paidBy" value={fee.paidBy} onChange={handleChange} disabled={isViewMode || fee.paymentMethod === 'Deposited Cash'} className="block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring focus:ring-green-200 focus:ring-opacity-50 p-2.5 transition duration-150 ease-in-out" />
+            <input type="text" id="paidBy" name="paidBy" value={fee.paidBy} onChange={handleChange} disabled={isViewMode || fee.paymentMethod === 'Deposited Cash'} className={`block w-full rounded-md p-2.5 transition duration-150 ease-in-out ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} border ${currentTheme?.inputBorder || 'border-gray-300'}`} />
           </div>
           {/* Total Fee (Auto-populated and disabled) */}
           <div>
@@ -840,7 +843,7 @@ const FeeForm = ({ editingFee, fetchFees, studentsForForm, onClose, isViewMode =
               value={fee.totalFee}
               onChange={handleChange}
               disabled={true}
-              className="block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm p-2.5 text-gray-700 cursor-not-allowed"
+              className={`block w-full rounded-md p-2.5 text-gray-700 cursor-not-allowed ${currentTheme?.inputDisabled || 'bg-gray-100'} border ${currentTheme?.inputBorder || 'border-gray-300'}`}
             />
           </div>
           {(!editingFee && !studentAdmissionFeeStatus) && (
@@ -853,7 +856,7 @@ const FeeForm = ({ editingFee, fetchFees, studentsForForm, onClose, isViewMode =
                 value={fee.admissionFee}
                 onChange={handleChange}
                 readOnly={isViewMode || !isEditAllowed && editingFee}
-                className={`block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2.5 transition duration-150 ease-in-out ${isViewMode || !isEditAllowed && editingFee ? 'bg-gray-100' : ''}`}
+                className={`block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring focus:ring-green-200 focus:ring-opacity-50 p-2.5 transition duration-150 ease-in-out ${isViewMode || !isEditAllowed && editingFee ? 'bg-gray-100' : ''}`}
               />
             </div>
           )}
@@ -865,12 +868,12 @@ const FeeForm = ({ editingFee, fetchFees, studentsForForm, onClose, isViewMode =
           {/* Due Amount (Display only) */}
           <div>
             <label htmlFor="dueAmount" className="block text-sm font-medium text-gray-700 mb-1">Due Amount</label>
-            <input type="number" id="dueAmount" name="dueAmount" value={fee.dueAmount.toFixed(2)} disabled className="block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm p-2.5 text-gray-700 cursor-not-allowed" />
+            <input type="number" id="dueAmount" name="dueAmount" value={fee.dueAmount.toFixed(2)} disabled className={`block w-full rounded-md p-2.5 text-gray-700 cursor-not-allowed ${currentTheme?.inputDisabled || 'bg-gray-100'} border ${currentTheme?.inputBorder || 'border-gray-300'}`} />
           </div>
           {/* Month */}
           <div>
             <label htmlFor="month" className="block text-sm font-medium text-gray-700 mb-1">Month<span className="text-red-500">*</span></label>
-            <select id="month" name="month" value={fee.month} onChange={handleChange} disabled={isViewMode} className="block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring focus:ring-green-200 focus:ring-opacity-50 p-2.5 transition duration-150 ease-in-out">
+            <select id="month" name="month" value={fee.month} onChange={handleChange} disabled={isViewMode} className={`block w-full rounded-md p-2.5 transition duration-150 ease-in-out ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} border ${currentTheme?.inputBorder || 'border-gray-300'}`}>
               <option value="">Select Month</option>
               {months.map(monthName => (
                 <option key={monthName} value={monthName}>{monthName}</option>
@@ -880,7 +883,7 @@ const FeeForm = ({ editingFee, fetchFees, studentsForForm, onClose, isViewMode =
           {/* Year */}
           <div>
             <label htmlFor="year" className="block text-sm font-medium text-gray-700 mb-1">Year<span className="text-red-500">*</span></label>
-            <select id="year" name="year" value={fee.year} onChange={handleChange} disabled={isViewMode} className="block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring focus:ring-green-200 focus:ring-opacity-50 p-2.5 transition duration-150 ease-in-out">
+            <select id="year" name="year" value={fee.year} onChange={handleChange} disabled={isViewMode} className={`block w-full rounded-md p-2.5 transition duration-150 ease-in-out ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} border ${currentTheme?.inputBorder || 'border-gray-300'}`}>
               {generateYearOptions().map(year => (
                 <option key={year} value={year}>{year}</option>
               ))}
@@ -889,17 +892,17 @@ const FeeForm = ({ editingFee, fetchFees, studentsForForm, onClose, isViewMode =
           {/* Received Date */}
           <div>
             <label htmlFor="receivedDate" className="block text-sm font-medium text-gray-700 mb-1">Received Date<span className="text-red-500">*</span></label>
-            <input type="date" id="receivedDate" name="receivedDate" value={fee.receivedDate} onChange={handleChange} disabled={isViewMode} className="block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring focus:ring-green-200 focus:ring-opacity-50 p-2.5 transition duration-150 ease-in-out" />
+            <input type="date" id="receivedDate" name="receivedDate" value={fee.receivedDate} onChange={handleChange} disabled={isViewMode} className={`block w-full rounded-md p-2.5 transition duration-150 ease-in-out ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} border ${currentTheme?.inputBorder || 'border-gray-300'}`} />
           </div>
           {/* Received By */}
           <div>
             <label htmlFor="receivedBy" className="block text-sm font-medium text-gray-700 mb-1">Received By<span className="text-red-500">*</span></label>
-            <input type="text" id="receivedBy" name="receivedBy" value={fee.receivedBy} onChange={handleChange} disabled={isViewMode || fee.paymentMethod === 'Deposited Cash'} className="block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring focus:ring-green-200 focus:ring-opacity-50 p-2.5 transition duration-150 ease-in-out" />
+            <input type="text" id="receivedBy" name="receivedBy" value={fee.receivedBy} onChange={handleChange} disabled={isViewMode || fee.paymentMethod === 'Deposited Cash'} className={`block w-full rounded-md p-2.5 transition duration-150 ease-in-out ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} border ${currentTheme?.inputBorder || 'border-gray-300'}`} />
           </div>
           {/* Payment Method */}
           <div>
             <label htmlFor="paymentMethod" className="block text-sm font-medium text-gray-700 mb-1">Payment Method<span className="text-red-500">*</span></label>
-            <select id="paymentMethod" name="paymentMethod" value={fee.paymentMethod} onChange={handleChange} disabled={isViewMode} className="block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring focus:ring-green-200 focus:ring-opacity-50 p-2.5 transition duration-150 ease-in-out">
+            <select id="paymentMethod" name="paymentMethod" value={fee.paymentMethod} onChange={handleChange} disabled={isViewMode} className={`block w-full rounded-md p-2.5 transition duration-150 ease-in-out ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} border ${currentTheme?.inputBorder || 'border-gray-300'}`}>
               <option value="">Select Method</option>
               <option value="Cash">Cash</option>
               <option value="Bank Transfer">Bank Transfer</option>
@@ -918,7 +921,7 @@ const FeeForm = ({ editingFee, fetchFees, studentsForForm, onClose, isViewMode =
               id="depositedAmountDisplay"
               value={`PKR ${parseFloat(studentDepositedAmount).toFixed(2)}`}
               disabled
-              className="block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm p-2.5 text-gray-700 font-bold cursor-not-allowed"
+              className={`block w-full rounded-md p-2.5 text-gray-700 font-bold cursor-not-allowed ${currentTheme?.inputDisabled || 'bg-gray-100'} border ${currentTheme?.inputBorder || 'border-gray-300'}`}
             />
             <button
               onClick={() => {
@@ -933,7 +936,7 @@ const FeeForm = ({ editingFee, fetchFees, studentsForForm, onClose, isViewMode =
                   });
                 }
               }}
-              className="ml-2 text-blue-500 underline text-sm"
+              className={`ml-2 underline text-sm ${currentTheme?.linkText || 'text-green-500'}`}
             >
               + Deposit
             </button>
@@ -949,13 +952,13 @@ const FeeForm = ({ editingFee, fetchFees, studentsForForm, onClose, isViewMode =
                 id="otherDuesDisplay"
                 value={`PKR ${parseFloat(studentOtherDues).toFixed(2)}`}
                 disabled
-                className="block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm p-2.5 text-gray-700 font-bold cursor-not-allowed"
+                className={`block w-full rounded-md p-2.5 text-gray-700 font-bold cursor-not-allowed ${currentTheme?.inputDisabled || 'bg_gray-100'} border ${currentTheme?.inputBorder || 'border-gray-300'}`}
               />
               {!isViewMode && studentOtherDues > 0 && (
                 <button
                   type="button"
                   onClick={handleClearOtherDues}
-                  className="p-2 rounded-full bg-red-500 text-white hover:bg-red-600 transition duration-200 shadow-md flex items-center justify-center"
+                  className={`p-2 rounded-full transition duration-200 flex items-center justify-center ${currentTheme?.errorPill || 'bg-red-500 text-white'} ${currentTheme?.shadow || 'shadow-md'}`}
                   title="Clear Other Dues using Deposited Amount"
                 >
                   <MinusCircleIcon className="h-5 w-5" />
@@ -985,7 +988,7 @@ const FeeForm = ({ editingFee, fetchFees, studentsForForm, onClose, isViewMode =
                     href={`${backendBaseUrl}${fee.billScreenshotUrl}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-blue-600 hover:underline text-sm mt-3 inline-block font-medium"
+                    className="text-green-600 hover:underline text-sm mt-3 inline-block font-medium"
                   >
                     View Full Image
                   </a>
@@ -1015,7 +1018,7 @@ const FeeForm = ({ editingFee, fetchFees, studentsForForm, onClose, isViewMode =
             <button
               type="button"
               onClick={handleDownloadReceiptPdf}
-              className="flex items-center justify-center bg-purple-600 text-white px-6 py-2 rounded-md hover:bg-purple-700 transition duration-200 shadow-md w-full sm:w-auto"
+              className="flex items-center justify-center bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition duration-200 shadow-md w-full sm:w-auto"
               title="Download Fee Receipt as PDF"
             >
               <ArrowDownTrayIcon className="h-5 w-5 mr-2" />
@@ -1024,7 +1027,7 @@ const FeeForm = ({ editingFee, fetchFees, studentsForForm, onClose, isViewMode =
             <button
               type="button"
               onClick={handlePrintReceipt}
-              className="flex items-center justify-center bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition duration-200 shadow-md w-full sm:w-auto"
+              className="flex items-center justify-center bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition duration-200 shadow-md w-full sm:w-auto"
               title="Print Fee Receipt"
             >
               <PrinterIcon className="h-5 w-5 mr-2" />

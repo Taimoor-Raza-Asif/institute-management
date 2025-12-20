@@ -81,7 +81,7 @@ const AttendanceModal = ({ staffMember, onClose, fetchStaff }) => {
             {staffMember.qrCodeSecret && (
               <p className="text-gray-600">QR Secret: {staffMember.qrCodeSecret}</p>
             )}
-            <div className="mt-4 p-3 bg-blue-50 rounded-md text-blue-800">
+            <div className="mt-4 p-3 bg-green-50 rounded-md text-green-800">
               <p className="font-medium">Current Date: {new Date().toLocaleDateString()}</p>
               <p className="font-medium">Current Time: {new Date().toLocaleTimeString()}</p>
             </div>
@@ -145,7 +145,7 @@ const AttendanceModal = ({ staffMember, onClose, fetchStaff }) => {
         </button>
         <button
           onClick={() => handleSubmitAttendance('checkOut')}
-          className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition duration-200 shadow-md"
+          className="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition duration-200 shadow-md"
         >
           Check Out
         </button>

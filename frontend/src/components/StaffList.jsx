@@ -4,6 +4,7 @@ import api from '../api'; // Assuming you have an api.js setup for axios
 import Modal from './Modal'; // Reusing your existing Modal component
 import StaffForm from './StaffForm';
 import AttendanceModal from './AttendanceModal';
+import { useTheme } from '../context/ThemeContext';
 import {
   PencilIcon, TrashIcon, PlusIcon, FunnelIcon, XMarkIcon,
   MagnifyingGlassIcon, EyeIcon, QrCodeIcon, CalendarDaysIcon,
@@ -13,6 +14,7 @@ import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
 
 
 const StaffList = () => {
+  const { currentTheme } = useTheme();
   const [staff, setStaff] = useState([]);
   const [editingStaff, setEditingStaff] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
@@ -166,60 +168,71 @@ const inputRef = useRef(null);
   const canEditOrDeleteStaff = currentUser && currentUser.role === 'admin';
 
   if (loading) return (
-    <div className="container mx-auto p-4 sm:p-6 lg:p-4 min-h-[400px] relative">
+    <div className="container mx-auto p-4 sm:p-6 lg:p-8 min-h-[400px] relative">
       <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10">
         <div className="text-center text-lg text-gray-700">Loading staff records...</div>
       </div>
     </div>
   );
+
   if (error) return <div className="text-center py-4 text-red-500">{error}</div>;
 
   return (
-    <div className="container mx-auto p-4 sm:p-6 lg:p-4">
-      <h1 className="text-3xl sm:text-4xl font-bold text-center text-green-800 mb-14">Staff Management</h1>
-      <div className="mb-6 p-4 bg-gray-50 rounded-lg shadow-sm border border-gray-200">
+    <div className="container mx-auto p-4 sm:p-6 lg:p-8">
+      <div className={`mb-8 p-6 rounded-xl flex items-center justify-between ${currentTheme?.panelBg || 'bg-gradient-to-r from-green-50 to-emerald-50'} ${currentTheme?.shadow || 'shadow-md'}`}>
+        <div>
+          <h1 className={`text-3xl sm:text-4xl font-extrabold ${currentTheme?.title || 'text-green-800'}`}>Staff Management</h1>
+          <p className={`${currentTheme?.mutedText || 'text-gray-600'} mt-1 text-sm`}>Manage staff profiles, salaries, and attendance</p>
+        </div>
+        <div className="hidden sm:flex items-center space-x-2 text-sm text-gray-500">
+          <UserCircleIcon className="h-5 w-5" />
+          <span className="font-medium">{staff.length} Staff</span>
+        </div>
+      </div>
+
+      <div className={`mb-6 p-6 rounded-xl ${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.shadow || 'shadow-lg'} ${currentTheme?.border || 'border border-gray-100'}`}>
         <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-3">
           <div className="relative w-full sm:w-1/2 lg:w-2/3">
             <input
               ref={inputRef}
               type="text"
               placeholder="Search by name, ID, or contact..."
-              className="p-2 pl-10 border border-gray-300 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition ${currentTheme?.inputBg || 'border-gray-300 bg-gray-50'}`}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
             <MagnifyingGlassIcon className="h-5 w-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
           </div>
 
-          <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 w-full sm:w-auto">
+          <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
             <button
               onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-              className="flex items-center justify-center bg-gray-200 text-gray-800 px-5 py-2 rounded-lg hover:bg-gray-300 transition duration-200 shadow-md w-full sm:w-auto"
+              className={`group flex items-center justify-center px-8 py-2 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 w-full sm:w-auto ${showAdvancedFilters ? 'bg-gradient-to-r from-gray-700 to-gray-600 text-white' : 'bg-white text-gray-700 border-2 border-gray-200 hover:border-gray-300'}`}
             >
-              <FunnelIcon className="h-5 w-5 mr-2" />
-              {showAdvancedFilters ? 'Hide Filters' : 'Advanced Filters'}
+              <FunnelIcon className="h-5 w-5 mr-2 transition-transform group-hover:scale-110" />
+              {showAdvancedFilters ? 'Hide' : 'Filters'}
             </button>
 
             {canAddStaff && (
               <button
                 onClick={handleAddStaff}
-                className="flex items-center justify-center bg-green-600 text-white px-5 py-2 rounded-lg hover:bg-green-700 transition duration-200 shadow-md w-full sm:w-auto"
+                className="group flex items-center justify-center px-8 py-2 rounded-xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 text-white transition-all duration-300 shadow-lg hover:shadow-2xl hover:from-green-700 hover:to-emerald-700 transform hover:-translate-y-0.5 w-full sm:w-auto"
               >
-                <PlusIcon className="h-5 w-5 mr-2" />
-                Add New Staff
+                <PlusIcon className="h-5 w-5 mr-2 transition-transform group-hover:rotate-90" />
+                Staff
               </button>
             )}
           </div>
         </div>
 
         {showAdvancedFilters && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 p-4 bg-gray-50 rounded-md shadow-inner">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 p-4 rounded-lg bg-gradient-to-r from-gray-50 to-green-50 border border-gray-100">
             <div>
-              <label htmlFor="filterStaffType" className="block text-sm font-medium text-gray-700 mb-1">Staff Type</label>
+              <label htmlFor="filterStaffType" className="block text-sm font-semibold text-gray-700 mb-2">Staff Type</label>
               <select
                 id="filterStaffType"
                 name="filterStaffType"
-                className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm"
+                className="mt-1 block w-full p-2.5 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm"
                 value={filterStaffType}
                 onChange={(e) => setFilterStaffType(e.target.value)}
               >
@@ -232,26 +245,30 @@ const inputRef = useRef(null);
               </select>
             </div>
             <div>
-              <label htmlFor="filterEducationLevel" className="block text-sm font-medium text-gray-700 mb-1">Education Level</label>
+              <label htmlFor="filterEducationLevel" className="block text-sm font-semibold text-gray-700 mb-2">Education Level</label>
               <select
                 id="filterEducationLevel"
                 name="filterEducationLevel"
-                className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm"
+                className="mt-1 block w-full p-2.5 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm"
                 value={filterEducationLevel}
                 onChange={(e) => setFilterEducationLevel(e.target.value)}
               >
                 <option value="">All Levels</option>
-                <option value="High School">High School</option>
-                <option value="Associate">Associate</option>
-                <option value="Bachelor">Bachelor</option>
-                <option value="Master">Master</option>
+                <option value="Primary">Primary</option>
+                <option value="Middle">Middle</option>
+                <option value="Matric">Matric</option>
+                <option value="Intermediate">Intermediate</option>
+                <option value="Bachelors">Bachelors</option>
+                <option value="Masters">Masters</option>
                 <option value="PhD">PhD</option>
-                <option value="Other">Other</option>
-                <option value="None">None</option>
               </select>
             </div>
-            <div className="col-span-full flex justify-end">
-              <button onClick={handleResetFilters} className="bg-gray-500 text-white px-5 py-2 rounded-lg hover:bg-gray-600 transition duration-200 shadow-md">
+            <div className="flex items-end">
+              <button
+                onClick={handleResetFilters}
+                className="group inline-flex items-center px-6 py-2 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 w-full"
+              >
+                <XMarkIcon className="h-5 w-5 mr-2 transition-transform group-hover:rotate-90" />
                 Reset Filters
               </button>
             </div>
@@ -259,136 +276,109 @@ const inputRef = useRef(null);
         )}
       </div>
 
-      <div className="bg-white shadow md:overflow-visible lg:overflow-visible sm:overflow-auto rounded-lg">
-        <table className="min-w-full table-auto border-separate border-spacing-y-2 border-white shadow-lg rounded-lg overflow-auto">
-          <thead className="bg-green-600 text-white rounded-md">
-            <tr>
-              <th className="p-2 border border-white">Name</th>
-              <th className="p-2 border border-white">CNIC</th>
-              <th className="p-2 border border-white">Type</th>
-              <th className="p-2 border border-white">Contact</th>
-              <th className="p-2 border border-white">Email</th>
-              <th className="p-2 border border-white">Salary</th>
-              <th className="p-2 border border-white">Joined Date</th>
-              <th className="p-2 border border-white">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {staff.length > 0 ? (
-              staff.map((staffMember, index) => (
-                <tr key={staffMember._id} className={`text-center ${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'} py-4 cursor-pointer hover:bg-gray-200 transition-colors duration-150`}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+      <div className={`${currentTheme?.cardBg || 'bg-white'} rounded-xl ${currentTheme?.shadow || 'shadow-lg'} overflow-hidden`}>
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className={`${currentTheme?.theadBg || 'bg-gradient-to-r from-green-600 to-emerald-600'}`}>
+              <tr>
+                <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Name</th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Type</th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Contact</th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Email</th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Salary</th>
+                <th className="px-6 py-4 text-center text-xs font-bold text-white uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody className={`${currentTheme?.tbodyBg || 'bg-white'} divide-y divide-gray-100`}>
+              {staff.map((person, index) => (
+                <tr key={person._id} className={`transition-all duration-150 hover:bg-green-50 hover:shadow-md ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
+                  <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
-                      {staffMember.profilePictureUrl ? (
-                        // If profilePictureUrl exists, render the <img> tag
+                      {person.profilePictureUrl ? (
                         <img
-                          src={`http://localhost:5000${staffMember.profilePictureUrl}`}
-                          alt={`${staffMember.name}'s Profile`}
-                          className="h-8 w-8 rounded-full object-cover mr-2"
-                          onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/32x32/cccccc/ffffff?text=NA'; }}
+                          src={`http://localhost:5000${person.profilePictureUrl}`}
+                          alt={`${person.name}'s Profile`}
+                          className="h-10 w-10 rounded-full object-cover ring-2 ring-green-100 mr-3"
+                          onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/40x40/cccccc/ffffff?text=NA'; }}
                         />
                       ) : (
-                        // If not, render the placeholder icon
-                        <UserCircleIcon className="h-8 w-8 text-gray-400 mr-2" />
+                        <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center mr-3 ring-2 ring-green-200">
+                          <span className="text-green-700 font-bold text-sm">{person.name?.[0] || 'S'}</span>
+                        </div>
                       )}
-                      <span>{staffMember.name}</span>
+                      <div>
+                        <div className="text-sm font-semibold text-gray-900">{person.name}</div>
+                        <div className="text-xs text-gray-500">{person.employeeId || person.staffId || 'No ID'}</div>
+                      </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{staffMember.cnic || 'N/A'}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{staffMember.staffType}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{staffMember.contactNumber}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{staffMember.email || 'N/A'}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">PKR {parseFloat(staffMember.salary).toFixed(2)}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(staffMember.dateOfJoining).toLocaleDateString()}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium flex items-center space-x-2">
-                    <button onClick={() => handleViewDetails(staffMember)} className="text-gray-600 hover:text-gray-800 transition-colors duration-200 p-1 rounded-md hover:bg-gray-100" title="View Staff Details">
-                      <EyeIcon className="h-5 w-5" />
-                    </button>
-                    {canEditOrDeleteStaff && (
-                      <Menu as="div" className="relative inline-block text-left ml-2">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{person.staffType || 'N/A'}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{person.contactNumber || 'N/A'}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{person.email || 'N/A'}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">PKR {person.salary ? person.salary.toLocaleString() : 'N/A'}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                    <div className="flex items-center justify-center space-x-2">
+                      <button onClick={() => handleViewDetails(person)} className="p-2 text-green-600 hover:text-green-900 hover:bg-green-50 rounded-lg transition-colors duration-200" title="View Staff Details">
+                        <EyeIcon className="h-5 w-5" />
+                      </button>
+                      {canEditOrDeleteStaff && (
+                        <>
+                          <button onClick={() => handleEdit(person)} className="p-2 text-yellow-600 hover:text-yellow-800 hover:bg-yellow-50 rounded-lg transition-colors duration-200" title="Edit Staff">
+                            <PencilIcon className="h-5 w-5" />
+                          </button>
+                          <button onClick={() => handleDelete(person._id)} className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors duration-200" title="Delete Staff">
+                            <TrashIcon className="h-5 w-5" />
+                          </button>
+                        </>
+                      )}
+                      <Menu as="div" className="relative inline-block text-left">
                         <div>
-                          <MenuButton className="flex items-center text-gray-400 hover:text-gray-600">
+                          <MenuButton className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors duration-200">
                             <EllipsisVerticalIcon className="h-5 w-5" aria-hidden="true" />
                           </MenuButton>
                         </div>
-                        <MenuItems className="absolute right-0 z-50 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                        <MenuItems className="absolute right-0 z-50 mt-2 w-56 origin-top-right rounded-lg bg-white shadow-xl ring-1 ring-black ring-opacity-5 focus:outline-none">
                           <div className="py-1">
                             <MenuItem>
                               {({ focus }) => (
                                 <button
-                                  onClick={() => handleEdit(staffMember)}
+                                  onClick={() => handleOpenAttendanceModal(person)}
                                   className={`${focus ? 'bg-gray-100 text-gray-900' : 'text-gray-700'} group flex w-full items-center px-4 py-2 text-sm`}
                                 >
-                                  <PencilIcon className="mr-3 h-5 w-5 text-yellow-600 group-hover:text-yellow-900" aria-hidden="true" />
-                                  Edit Staff
+                                  <CalendarDaysIcon className="mr-3 h-5 w-5 text-blue-600 group-hover:text-blue-800" aria-hidden="true" />
+                                  Attendance
                                 </button>
                               )}
                             </MenuItem>
                             <MenuItem>
                               {({ focus }) => (
                                 <button
-                                  onClick={() => handleDelete(staffMember._id)}
+                                  onClick={() => handleViewDetails(person)}
                                   className={`${focus ? 'bg-gray-100 text-gray-900' : 'text-gray-700'} group flex w-full items-center px-4 py-2 text-sm`}
                                 >
-                                  <TrashIcon className="mr-3 h-5 w-5 text-red-600 group-hover:text-red-900" aria-hidden="true" />
-                                  Delete Staff
-                                </button>
-                              )}
-                            </MenuItem>
-                            <MenuItem>
-                              {({ focus }) => (
-                                <button
-                                  onClick={() => handleOpenAttendanceModal(staffMember)}
-                                  className={`${focus ? 'bg-gray-100 text-gray-900' : 'text-gray-700'} group flex w-full items-center px-4 py-2 text-sm`}
-                                >
-                                  <QrCodeIcon className="mr-3 h-5 w-5 text-green-600 group-hover:text-green-900" aria-hidden="true" />
-                                  Mark Attendance
-                                </button>
-                              )}
-                            </MenuItem>
-                            <MenuItem>
-                              {({ focus }) => (
-                                <button
-                                  onClick={() => { }}
-                                  className={`${focus ? 'bg-gray-100 text-gray-900' : 'text-gray-700'} group flex w-full items-center px-4 py-2 text-sm`}
-                                >
-                                  <CalendarDaysIcon className="mr-3 h-5 w-5 text-indigo-600 group-hover:text-indigo-900" aria-hidden="true" />
-                                  Request Leave
+                                  <EyeIcon className="mr-3 h-5 w-5 text-green-600 group-hover:text-green-800" aria-hidden="true" />
+                                  Quick View
                                 </button>
                               )}
                             </MenuItem>
                           </div>
                         </MenuItems>
                       </Menu>
-                    )}
+                    </div>
                   </td>
                 </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="8" className="text-center p-4 text-gray-500">No staff records found. Add a new staff member!</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
-      {/* Staff Form Modal (Add/Edit/View) */}
-      <Modal isOpen={modalOpen} onClose={handleCloseModal}>
+      <Modal isOpen={modalOpen} onClose={handleCloseModal} title={isViewMode ? 'View Staff' : editingStaff ? 'Edit Staff' : 'Add Staff'}>
         <StaffForm
           editingStaff={editingStaff}
           fetchStaff={fetchStaff}
           onClose={handleCloseModal}
           isViewMode={isViewMode}
-        />
-      </Modal>
-
-      {/* Attendance Modal */}
-      <Modal isOpen={attendanceModalOpen} onClose={handleCloseModal}>
-        <AttendanceModal
-          staffMember={selectedStaffForAttendanceOrLeave}
-          onClose={handleCloseModal}
-          fetchStaff={fetchStaff} // To refresh list after attendance update
         />
       </Modal>
     </div>

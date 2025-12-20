@@ -1,0 +1,10 @@
+Color Usage Report for AttendanceModal.jsx
+
+- Uses Tailwind classes for color tokens (not yet fully theme-contexted):
+  - bg-white, shadow-xl, text-gray-500, hover:text-gray-700, hover:bg-gray-100, text-green-700, border-green-200, bg-green-100, border border-green-400, text-green-700, bg-red-100, border border-red-400, text-red-700, text-gray-800, text-gray-600, bg-green-50, text-green-800, border-gray-300, focus:ring-green-500, focus:border-green-500, bg-gray-50, text-gray-400, text-gray-600, bg-green-600, text-white, hover:bg-green-700, bg-gray-300, text-gray-800, hover:bg-gray-400, etc.
+- Color usage locations:
+  - Modal backgrounds, section headers, and close button
+  - Inputs, selects, and textareas
+  - QR code area and info text
+  - Buttons (check in, check out, close)
+  - Error/info messages

@@ -1,10 +1,12 @@
-import React, { useState, useEffect, useContext, useCallback } from 'react';
+import React, { useState, useEffect, useContext, useCallback, useMemo } from 'react';
 import { UserContext } from '../App';
 import api from '../api';
 import Message from '../components/Message';
 import Loader from '../components/Loader';
 import Modal from '../components/Modal';
 import AddEditBillModal from '../components/AddEditBillModal';
+import ConfirmationModal from '../components/ConfirmationModal';
+import { useTheme } from '../context/ThemeContext';
 import {
   PlusIcon, FunnelIcon, MagnifyingGlassIcon, PencilIcon,
   TrashIcon, ArrowDownTrayIcon, EyeIcon
@@ -17,6 +19,7 @@ const billStatuses = ['Paid', 'Unpaid', 'Partial'];
 
 const BillingManagement = () => {
     const { currentUser: user } = useContext(UserContext);
+    const { currentTheme } = useTheme();
     const [bills, setBills] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -55,6 +58,16 @@ const BillingManagement = () => {
     useEffect(() => {
         fetchBills();
     }, [fetchBills]);
+        const totalAmount = useMemo(() => (
+            Array.isArray(bills) ? bills.reduce((sum, b) => sum + (parseFloat(b.amount) || 0), 0) : 0
+        ), [bills]);
+        const paidCount = useMemo(() => (
+            Array.isArray(bills) ? bills.filter(b => b.status === 'Paid').length : 0
+        ), [bills]);
+        const unpaidCount = useMemo(() => (
+            Array.isArray(bills) ? bills.filter(b => b.status !== 'Paid').length : 0
+        ), [bills]);
+
 
     const handleAddBill = () => {
         setSelectedBill(null);
@@ -74,19 +87,28 @@ const BillingManagement = () => {
         setIsModalOpen(true);
     };
 
-    const handleDeleteBill = async (id) => {
-        if (window.confirm('Are you sure you want to delete this bill?')) {
+        const [confirmOpen, setConfirmOpen] = useState(false);
+        const [billIdToDelete, setBillIdToDelete] = useState(null);
+
+        const requestDeleteBill = (id) => {
+            setBillIdToDelete(id);
+            setConfirmOpen(true);
+        };
+
+        const confirmDeleteBill = async () => {
+            if (!billIdToDelete) return;
             setLoading(true);
             try {
-                await api.delete(`/billing/${id}`);
+                await api.delete(`/billing/${billIdToDelete}`);
                 fetchBills();
             } catch (err) {
                 setError('Failed to delete bill.');
             } finally {
                 setLoading(false);
+                setConfirmOpen(false);
+                setBillIdToDelete(null);
             }
-        }
-    };
+        };
 
     const handleDownloadReceipt = async (id) => {
         try {
@@ -114,27 +136,52 @@ const BillingManagement = () => {
 
     const isAllowed = user?.role === 'admin'  || user?.role === 'accountant';
 
-    return (
-        <div className="container mx-auto p-4 sm:p-6 lg:p-4">
-            <h1 className="text-3xl sm:text-4xl font-bold text-center text-green-800 mb-14">Billing Management</h1>
+        return (
+                <div className="container mx-auto p-4 sm:p-6 lg:p-8">
+                        {/* Hero Header */}
+                        <div className={`relative ${currentTheme?.heroBg || 'bg-gradient-to-r from-emerald-50 to-teal-100'} ${currentTheme?.shadow || 'shadow-lg'} rounded-2xl p-8 mb-8 overflow-hidden`}>
+                            <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full -mr-32 -mt-32"></div>
+                            <div className="relative z-10">
+                                <div className="flex items-center justify-between mb-6">
+                                    <div>
+                                        <h1 className={`text-3xl sm:text-4xl font-bold mb-2 ${currentTheme?.heroTitle || 'text-emerald-800'}`}>Billing Management</h1>
+                                        <p className={`${currentTheme?.heroSubtitle || 'text-emerald-700'} text-sm sm:text-base`}>Track institute bills and payments</p>
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div className={`${currentTheme?.statCard || 'bg-white'} ${currentTheme?.border || 'border border-emerald-100'} rounded-lg p-4`}>
+                                        <p className={`${currentTheme?.statLabel || 'text-emerald-700'} text-sm`}>Total Amount</p>
+                                        <p className={`${currentTheme?.statValue || 'text-emerald-800'} text-2xl font-bold`}>PKR {Number(totalAmount).toFixed(2)}</p>
+                                    </div>
+                                    <div className={`${currentTheme?.statCard || 'bg-white'} ${currentTheme?.border || 'border border-emerald-100'} rounded-lg p-4`}>
+                                        <p className={`${currentTheme?.statLabel || 'text-emerald-700'} text-sm`}>Paid Bills</p>
+                                        <p className={`${currentTheme?.statValue || 'text-emerald-800'} text-2xl font-bold`}>{paidCount}</p>
+                                    </div>
+                                    <div className={`${currentTheme?.statCard || 'bg-white'} ${currentTheme?.border || 'border border-emerald-100'} rounded-lg p-4`}>
+                                        <p className={`${currentTheme?.statLabel || 'text-emerald-700'} text-sm`}>Pending/Unpaid</p>
+                                        <p className={`${currentTheme?.statValue || 'text-emerald-800'} text-2xl font-bold`}>{unpaidCount}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
             {error && <Message type="error">{error}</Message>}
 
-            <div className="mb-6 p-4 bg-gray-50 rounded-lg shadow-sm border border-gray-200">
-                <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-3">
-                    <div className="relative w-full sm:w-1/2 lg:w-2/3">
+            <div className={`${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.shadow || 'shadow-md'} rounded-xl p-6 mb-6`}>
+                <div className="flex flex-col lg:flex-row justify-between items-stretch lg:items-center mb-4 gap-4">
+                    <div className="relative flex-1 min-w-0">
                         <input
                             type="text"
                             placeholder="Search by title or paid to..."
-                            className="p-2 pl-10 border border-gray-300 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                            className={`w-full h-12 pl-10 pr-4 rounded-lg ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} border ${currentTheme?.inputBorder || 'border-gray-300'} focus:outline-none`}
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
-                        <MagnifyingGlassIcon className="h-5 w-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                        <MagnifyingGlassIcon className={`h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 ${currentTheme?.iconText || 'text-gray-400'}`} />
                     </div>
-                    <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 w-full sm:w-auto">
+                    <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto flex-shrink-0">
                         <button
                             onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-                            className="flex items-center justify-center bg-gray-200 text-gray-800 px-5 py-2 rounded-lg hover:bg-gray-300 transition duration-200 shadow-md w-full sm:w-auto"
+                            className={`flex items-center justify-center h-12 px-6 rounded-lg font-medium transition-all duration-200 bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-700 hover:to-green-800 ${currentTheme?.shadow || 'shadow-md'} w-full sm:w-auto`}
                         >
                             <FunnelIcon className="h-5 w-5 mr-2" />
                             {showAdvancedFilters ? 'Hide Filters' : 'Advanced Filters'}
@@ -142,7 +189,7 @@ const BillingManagement = () => {
                         {isAllowed && (
                             <button
                                 onClick={handleAddBill}
-                                className="flex items-center justify-center bg-green-600 text-white px-5 py-2 rounded-lg hover:bg-green-700 transition duration-200 shadow-md w-full sm:w-auto"
+                                className={`flex items-center justify-center h-12 px-6 rounded-lg font-medium transition-all duration-200 bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-700 hover:to-green-800 ${currentTheme?.shadow || 'shadow-md'} w-full sm:w-auto`}
                             >
                                 <PlusIcon className="h-5 w-5 mr-2" />
                                 Add New Bill
@@ -204,55 +251,58 @@ const BillingManagement = () => {
                 <Loader />
             ) : (
                 <div className="bg-white shadow overflow-auto rounded-lg">
-                    <table className="min-w-full table-auto border-separate border-spacing-y-2 border-white shadow-lg rounded-lg overflow-auto">
-                        <thead className="bg-green-600 text-white rounded-md">
+                    <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gradient-to-r from-green-600 to-emerald-600 text-white">
                             <tr>
-                                <th className="p-2 border border-white text-left">Title</th>
-                                <th className="p-2 border border-white text-left">Category</th>
-                                <th className="p-2 border border-white text-left">Amount</th>
-                                <th className="p-2 border border-white text-left">Status</th>
-                                <th className="p-2 border border-white text-left">Bill Date</th>
-                                <th className="p-2 border border-white text-left">Paid To</th>
-                                <th className="p-2 border border-white text-left">Actions</th>
+                                <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Title</th>
+                                <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Category</th>
+                                <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Amount</th>
+                                <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Status</th>
+                                <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Bill Date</th>
+                                <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Paid To</th>
+                                <th className="px-6 py-4 text-center text-xs font-bold text-white uppercase tracking-wider">Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
+                        <tbody className="bg-white divide-y divide-gray-100">
                             {bills.length > 0 ? bills.map((bill, index) => (
-                                <tr key={bill._id} className={`text-center ${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'} py-4 cursor-pointer hover:bg-gray-200 transition-colors duration-150`}>
-                                    {/* Updated font size to 'text-base' for better readability */}
-                                    <td className="px-6 py-4 whitespace-nowrap text-base font-medium text-gray-900 text-left">{bill.title}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-base text-gray-500 text-left">{bill.category}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-base text-gray-500 text-left">PKR {bill.amount.toFixed(2)}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-base text-left">
-                                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${bill.status === 'Paid' ? 'bg-green-100 text-green-800' : bill.status === 'Unpaid' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                                <tr
+                                  key={bill._id}
+                                  className={`transition-all duration-150 hover:bg-green-50 hover:shadow-md ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
+                                >
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">{bill.title}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{bill.category}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">PKR {Number(bill.amount).toFixed(2)}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <span className={`px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full ${bill.status === 'Paid' ? 'bg-green-100 text-green-800' : bill.status === 'Unpaid' ? 'bg-red-100 text-red-800' : 'bg-orange-100 text-orange-800'}`}>
                                             {bill.status}
                                         </span>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-base text-gray-500 text-left">{new Date(bill.billDate).toLocaleDateString()}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-base text-gray-500 text-left">{bill.paidTo}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-left text-base font-medium flex items-center space-x-2">
-                                        {/* Added the new View button */}
-                                        <button onClick={() => handleViewBill(bill)} className="text-gray-600 hover:text-gray-800 transition-colors duration-200 p-1 rounded-md hover:bg-gray-100" title="View Bill Details">
-                                            <EyeIcon className="h-5 w-5" />
-                                        </button>
-                                        {isAllowed && (
-                                            <>
-                                                <button onClick={() => handleEditBill(bill)} className="text-blue-600 hover:text-blue-800 transition-colors duration-200 p-1 rounded-md hover:bg-blue-100" title="Edit">
-                                                    <PencilIcon className="h-5 w-5" />
-                                                </button>
-                                                <button onClick={() => handleDeleteBill(bill._id)} className="text-red-600 hover:text-red-800 transition-colors duration-200 p-1 rounded-md hover:bg-red-100" title="Delete">
-                                                    <TrashIcon className="h-5 w-5" />
-                                                </button>
-                                            </>
-                                        )}
-                                            <button onClick={() => handleDownloadReceipt(bill._id)} className="text-purple-600 hover:text-purple-800 transition-colors duration-200 p-1 rounded-md hover:bg-purple-100" title="Download Receipt">
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{new Date(bill.billDate).toLocaleDateString()}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{bill.paidTo}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                                        <div className="flex items-center justify-center space-x-2">
+                                            <button onClick={() => handleViewBill(bill)} className="p-2 text-green-600 hover:text-green-900 hover:bg-green-50 rounded-lg transition-colors duration-200" title="View Bill Details">
+                                                <EyeIcon className="h-5 w-5" />
+                                            </button>
+                                            {isAllowed && (
+                                                <>
+                                                    <button onClick={() => handleEditBill(bill)} className="p-2 text-yellow-600 hover:text-yellow-900 hover:bg-yellow-50 rounded-lg transition-colors duration-200" title="Edit">
+                                                        <PencilIcon className="h-5 w-5" />
+                                                    </button>
+                                                    <button onClick={() => requestDeleteBill(bill._id)} className="p-2 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-lg transition-colors duration-200" title="Delete">
+                                                        <TrashIcon className="h-5 w-5" />
+                                                    </button>
+                                                </>
+                                            )}
+                                            <button onClick={() => handleDownloadReceipt(bill._id)} className="p-2 text-green-600 hover:text-green-900 hover:bg-green-50 rounded-lg transition-colors duration-200" title="Download Receipt">
                                                 <ArrowDownTrayIcon className="h-5 w-5" />
                                             </button>
+                                        </div>
                                     </td>
                                 </tr>
                             )) : (
                                 <tr>
-                                    <td colSpan="7" className="text-center p-4 text-gray-500 text-base">No bills found. {isAllowed && 'Add a new bill!'}</td>
+                                    <td colSpan="7" className="text-center p-4 text-gray-500 text-sm">No bills found. {isAllowed && 'Add a new bill!'}</td>
                                 </tr>
                             )}
                         </tbody>
@@ -269,6 +319,13 @@ const BillingManagement = () => {
                     isViewMode={isViewMode}
                 />
             </Modal>
+
+            <ConfirmationModal
+              isOpen={confirmOpen}
+              onClose={() => { setConfirmOpen(false); setBillIdToDelete(null); }}
+              onConfirm={confirmDeleteBill}
+              message="Are you sure you want to delete this bill?"
+            />
         </div>
     );
 };

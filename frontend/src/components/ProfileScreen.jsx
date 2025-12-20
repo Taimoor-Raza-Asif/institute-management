@@ -3,6 +3,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../api';
 import { UserContext } from '../App';
+import { useTheme } from '../context/ThemeContext';
 import {
     PencilIcon, CheckIcon, XMarkIcon, PhotoIcon, BuildingLibraryIcon, PhoneIcon, EnvelopeIcon, IdentificationIcon, CakeIcon, UserIcon, MapPinIcon, CalendarDaysIcon, AcademicCapIcon, BriefcaseIcon, BanknotesIcon, BookOpenIcon, HomeIcon, ScaleIcon, ClipboardDocumentListIcon
 } from '@heroicons/react/24/outline';
@@ -14,6 +15,7 @@ import StudentForm from '../components/StudentForm';
 
 const ProfileScreen = () => {
     const { currentUser: user, updateCurrentUser } = useContext(UserContext);
+    const { currentTheme } = useTheme();
     const { role, id } = useParams();
     const navigate = useNavigate();
 
@@ -56,173 +58,170 @@ const ProfileScreen = () => {
 
     const handleCancelEdit = () => {
         setIsEditing(false);
-        fetchProfile(); // Re-fetch to discard any unsaved changes
+        fetchProfile();
     };
 
     const handleFormSubmitSuccess = () => {
         setIsEditing(false);
-        fetchProfile(); // Re-fetch to show the updated data
+        fetchProfile();
     };
 
     if (loading) return <Loader />;
     if (error) return <Message type="error">{error}</Message>;
     if (!profile) return <Message type="info">Profile not found.</Message>;
 
-    // Conditionally render the form for editing
     if (isEditing) {
         if (role === 'student') {
             return <StudentForm editingStudent={profile} onClose={handleFormSubmitSuccess} fetchStudents={fetchProfile} />;
-        } else {
-            return <StaffForm editingStaff={profile} onClose={handleFormSubmitSuccess} fetchStaff={fetchProfile} />;
         }
+        return <StaffForm editingStaff={profile} onClose={handleFormSubmitSuccess} fetchStaff={fetchProfile} />;
     }
 
+    const InfoRow = ({ icon: Icon, label, value }) => (
+        <div className="flex items-start gap-3">
+            <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-green-50 text-green-700 ring-1 ring-green-100">
+                <Icon className="h-5 w-5" />
+            </span>
+            <div>
+                <p className="text-xs uppercase tracking-wide text-gray-400 font-semibold">{label}</p>
+                <p className={`text-sm font-semibold ${currentTheme.text || 'text-gray-800'}`}>{value || '—'}</p>
+            </div>
+        </div>
+    );
+
     return (
-        <div className="bg-white p-6 rounded-lg shadow-md mb-8 max-w-4xl mx-auto">
-            <div className="flex justify-between items-center mb-6 border-b pb-4">
-                <h1 className="text-3xl font-bold font-serif text-green-800">
-                    {role === 'student' ? 'Student Profile' : 'Staff Profile'}
-                </h1>
-                {canEdit && (
-                    <button
-                        onClick={handleEditClick}
-                        className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition duration-200 shadow-md flex items-center"
-                    >
-                        <PencilIcon className="h-5 w-5 mr-2" /> Edit Details
-                    </button>
-                )}
-            </div>
+        <div className={`min-h-screen ${currentTheme.pageBg || 'bg-gradient-to-br from-green-50 via-white to-emerald-50'} py-8`}>
+            <div className="max-w-6xl mx-auto px-4 space-y-6">
+                <div className={`${currentTheme.cardBg || 'bg-white'} ${currentTheme.shadow || 'shadow-2xl'} ${currentTheme.border || 'border border-gray-100'} rounded-2xl overflow-hidden relative`}>
+                    <div className="absolute inset-0 bg-gradient-to-r from-green-600/10 via-emerald-500/10 to-green-600/10 pointer-events-none" />
+                    <div className="relative p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+                        <div className="flex items-center gap-5">
+                            <div className="relative">
+                                <div className="h-24 w-24 rounded-2xl overflow-hidden ring-4 ring-white shadow-xl">
+                                    <img
+                                        className="h-full w-full object-cover"
+                                        src={profile.profilePictureUrl ? `${backendBaseUrl}${profile.profilePictureUrl}` : '/default-avatar.jpg'}
+                                        alt={`${profile.name}'s profile picture`}
+                                        onError={(e) => { e.target.src = '/default-avatar.jpg'; }}
+                                    />
+                                </div>
+                                <span className="absolute -bottom-2 left-3 px-3 py-1 text-xs font-bold rounded-full bg-green-600 text-white shadow-lg">
+                                    {role === 'student' ? 'Student' : 'Staff'}
+                                </span>
+                            </div>
+                            <div className="space-y-1">
+                                <div className="flex items-center gap-3">
+                                    <h1 className={`text-3xl font-black tracking-tight ${currentTheme.title || 'text-green-800'}`}>{profile.name}</h1>
+                                    {profile.studentStatus && role === 'student' && (
+                                        <span className="px-3 py-1 rounded-full bg-green-100 text-green-700 text-xs font-semibold">{profile.studentStatus}</span>
+                                    )}
+                                    {profile.staffType && role === 'staff' && (
+                                        <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-semibold">{profile.staffType}</span>
+                                    )}
+                                </div>
+                                <p className={`${currentTheme.mutedText || 'text-gray-600'} text-sm font-medium`}>{profile.email || 'Email not provided'}</p>
+                                <div className="flex flex-wrap gap-3 pt-2">
+                                    <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/70 ring-1 ring-gray-200 text-gray-700 text-sm font-semibold">
+                                        <IdentificationIcon className="h-4 w-4 text-green-600" />
+                                        {profile.cnic || 'CNIC not provided'}
+                                    </span>
+                                    {(profile.class || profile.staffType) && (
+                                        <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/70 ring-1 ring-gray-200 text-gray-700 text-sm font-semibold">
+                                            <AcademicCapIcon className="h-4 w-4 text-green-600" />
+                                            {role === 'student' ? (profile.class === 'BS' ? `${profile.degreeName || 'Degree'} · Sem ${profile.semester || '-'}` : `${profile.class || ''} ${profile.classNumber || ''}`) : profile.staffType}
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
 
-            <div className="flex flex-col sm:flex-row items-center sm:items-start space-y-6 sm:space-y-0 sm:space-x-6">
-                <div className="flex-shrink-0">
-                    <img
-                        className="h-24 w-24 rounded-full object-cover border-4 border-white shadow-lg"
-                        src={profile.profilePictureUrl ? `${backendBaseUrl}${profile.profilePictureUrl}` : '/default-avatar.jpg'}
-                        alt={`${profile.name}'s profile picture`}
-                    />
-                </div>
-                <div className="flex-grow w-full">
-                    <h2 className="text-2xl font-semibold text-gray-900 mb-2">{profile.name}</h2>
-                    <p className="text-gray-600">
-                        {role === 'student' ? profile.class : profile.staffType}
-                    </p>
-                </div>
-            </div>
-
-            <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
-                <div className="space-y-4">
-                    <h3 className="text-xl font-bold text-gray-700 border-b pb-2 mb-4">Personal Information</h3>
-                    <div className="flex items-center text-gray-600">
-                        <UserIcon className="h-5 w-5 mr-3 text-green-500" />
-                        <span>Father's Name: {profile.fatherName}</span>
+                        {canEdit && (
+                            <button
+                                onClick={handleEditClick}
+                                className="group inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 text-white font-semibold shadow-lg hover:shadow-xl hover:from-green-700 hover:to-emerald-700 transform hover:-translate-y-0.5 transition-all duration-200"
+                            >
+                                <PencilIcon className="h-5 w-5 transition-transform group-hover:rotate-6" />
+                                Edit Details
+                            </button>
+                        )}
                     </div>
-                    {profile.cnic && (
-                        <div className="flex items-center text-gray-600">
-                            <IdentificationIcon className="h-5 w-5 mr-3 text-green-500" />
-                            <span>CNIC: {profile.cnic}</span>
-                        </div>
-                    )}
-                    {profile.dob && (
-                        <div className="flex items-center text-gray-600">
-                            <CakeIcon className="h-5 w-5 mr-3 text-green-500" />
-                            <span>Date of Birth: {new Date(profile.dob).toLocaleDateString()}</span>
-                        </div>
-                    )}
-                    <div className="flex items-center text-gray-600">
-                        <EnvelopeIcon className="h-5 w-5 mr-3 text-green-500" />
-                        <span>Email: {profile.email || 'N/A'}</span>
-                    </div>
-                    {profile.gender && (
-                        <div className="flex items-center text-gray-600">
-                            <ScaleIcon className="h-5 w-5 mr-3 text-green-500" />
-                            <span>Gender: {profile.gender}</span>
-                        </div>
-                    )}
                 </div>
 
-                <div className="space-y-4">
-                    <h3 className="text-xl font-bold text-gray-700 border-b pb-2 mb-4">Contact & Address</h3>
-                    <div className="flex items-center text-gray-600">
-                        <PhoneIcon className="h-5 w-5 mr-3 text-green-500" />
-                        <span>Contact: {profile.contactNumber || profile.guardianContact}</span>
-                    </div>
-                    {profile.additionalContact && (
-                        <div className="flex items-center text-gray-600">
-                            <PhoneIcon className="h-5 w-5 mr-3 text-green-500" />
-                            <span>Additional Contact: {profile.additionalContact}</span>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div className={`${currentTheme.cardBg || 'bg-white'} ${currentTheme.shadow || 'shadow-lg'} ${currentTheme.border || 'border border-gray-100'} rounded-2xl p-6 space-y-5 col-span-1 lg:col-span-2`}>
+                        <div className="flex items-center justify-between mb-1">
+                            <h3 className={`text-lg font-bold ${currentTheme.subtitle || 'text-gray-800'}`}>Personal Information</h3>
+                            <span className="text-xs font-semibold uppercase tracking-wide text-gray-400">Core</span>
                         </div>
-                    )}
-                    <div className="flex items-center text-gray-600">
-                        <MapPinIcon className="h-5 w-5 mr-3 text-green-500" />
-                        <span>Address: {profile.address}</span>
+                        <div className="grid sm:grid-cols-2 gap-5">
+                            <InfoRow icon={UserIcon} label="Father's Name" value={profile.fatherName || 'Not provided'} />
+                            <InfoRow icon={ScaleIcon} label="Gender" value={profile.gender} />
+                            <InfoRow icon={EnvelopeIcon} label="Email" value={profile.email || 'Not provided'} />
+                            <InfoRow icon={CakeIcon} label="Date of Birth" value={profile.dob ? new Date(profile.dob).toLocaleDateString() : 'Not provided'} />
+                            <InfoRow icon={IdentificationIcon} label="CNIC" value={profile.cnic} />
+                            <InfoRow icon={MapPinIcon} label="Address" value={profile.address || 'Not provided'} />
+                        </div>
                     </div>
-                </div>
-                {role === 'staff' && (
-                    <>
+
+                    <div className={`${currentTheme.cardBg || 'bg-white'} ${currentTheme.shadow || 'shadow-lg'} ${currentTheme.border || 'border border-gray-100'} rounded-2xl p-6 space-y-4`}>
+                        <div className="flex items-center justify-between mb-1">
+                            <h3 className={`text-lg font-bold ${currentTheme.subtitle || 'text-gray-800'}`}>Contact</h3>
+                            <span className="text-xs font-semibold uppercase tracking-wide text-gray-400">Reach</span>
+                        </div>
                         <div className="space-y-4">
-                            <h3 className="text-xl font-bold text-gray-700 border-b pb-2 mb-4">Professional Information</h3>
-                            <div className="flex items-center text-gray-600">
-                                <BriefcaseIcon className="h-5 w-5 mr-3 text-green-500" />
-                                <span>Type: {profile.staffType}</span>
-                            </div>
-                            <div className="flex items-center text-gray-600">
-                                <CalendarDaysIcon className="h-5 w-5 mr-3 text-green-500" />
-                                <span>Date of Joining: {new Date(profile.dateOfJoining).toLocaleDateString()}</span>
-                            </div>
-                            <div className="flex items-center text-gray-600">
-                                <BanknotesIcon className="h-5 w-5 mr-3 text-green-500" />
-                                <span>Salary: PKR {profile.salary.toLocaleString()}</span>
-                            </div>
-                            <div className="flex items-center text-gray-600">
-                                <BookOpenIcon className="h-5 w-5 mr-3 text-green-500" />
-                                <span>Highest Education: {profile.highestEducationLevel}</span>
-                            </div>
-                            {profile.subjectsTaught && profile.subjectsTaught.length > 0 && (
-                                <div className="flex items-center text-gray-600">
-                                    <ClipboardDocumentListIcon className="h-5 w-5 mr-3 text-green-500" />
-                                    <span>Subjects Taught: {profile.subjectsTaught.join(', ')}</span>
-                                </div>
-                            )}
+                            <InfoRow icon={PhoneIcon} label="Primary Contact" value={profile.contactNumber || profile.guardianContact || 'Not provided'} />
+                            <InfoRow icon={PhoneIcon} label="Additional Contact" value={profile.additionalContact} />
                         </div>
+                    </div>
+                </div>
+
+                {role === 'staff' && (
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div className={`${currentTheme.cardBg || 'bg-white'} ${currentTheme.shadow || 'shadow-lg'} ${currentTheme.border || 'border border-gray-100'} rounded-2xl p-6 space-y-5 col-span-1 lg:col-span-2`}>
+                            <div className="flex items-center justify-between mb-1">
+                                <h3 className={`text-lg font-bold ${currentTheme.subtitle || 'text-gray-800'}`}>Professional Information</h3>
+                                <span className="text-xs font-semibold uppercase tracking-wide text-gray-400">Role</span>
+                            </div>
+                            <div className="grid sm:grid-cols-2 gap-5">
+                                <InfoRow icon={BriefcaseIcon} label="Staff Type" value={profile.staffType} />
+                                <InfoRow icon={CalendarDaysIcon} label="Date of Joining" value={profile.dateOfJoining ? new Date(profile.dateOfJoining).toLocaleDateString() : 'Not provided'} />
+                                <InfoRow icon={BanknotesIcon} label="Salary" value={profile.salary ? `PKR ${Number(profile.salary).toLocaleString()}` : 'Not provided'} />
+                                <InfoRow icon={BookOpenIcon} label="Highest Education" value={profile.highestEducationLevel} />
+                                <InfoRow icon={ClipboardDocumentListIcon} label="Subjects" value={profile.subjectsTaught && profile.subjectsTaught.length ? profile.subjectsTaught.join(', ') : 'Not provided'} />
+                            </div>
+                        </div>
+
                         {profile.bankAccountDetails && (
-                            <div className="space-y-4">
-                                <h3 className="text-xl font-bold text-gray-700 border-b pb-2 mb-4">Bank Details</h3>
-                                <div className="flex items-center text-gray-600">
-                                    <BanknotesIcon className="h-5 w-5 mr-3 text-green-500" />
-                                    <span>Bank Name: {profile.bankAccountDetails.bankName}</span>
+                            <div className={`${currentTheme.cardBg || 'bg-white'} ${currentTheme.shadow || 'shadow-lg'} ${currentTheme.border || 'border border-gray-100'} rounded-2xl p-6 space-y-4`}>
+                                <div className="flex items-center justify-between mb-1">
+                                    <h3 className={`text-lg font-bold ${currentTheme.subtitle || 'text-gray-800'}`}>Bank Details</h3>
+                                    <span className="text-xs font-semibold uppercase tracking-wide text-gray-400">Finance</span>
                                 </div>
-                                <div className="flex items-center text-gray-600">
-                                    <HomeIcon className="h-5 w-5 mr-3 text-green-500" />
-                                    <span>Account Number: {profile.bankAccountDetails.accountNumber}</span>
-                                </div>
-                                <div className="flex items-center text-gray-600">
-                                    <BookOpenIcon className="h-5 w-5 mr-3 text-green-500" />
-                                    <span>IBAN: {profile.bankAccountDetails.iban}</span>
+                                <div className="space-y-4">
+                                    <InfoRow icon={BanknotesIcon} label="Bank Name" value={profile.bankAccountDetails.bankName} />
+                                    <InfoRow icon={HomeIcon} label="Account Number" value={profile.bankAccountDetails.accountNumber} />
+                                    <InfoRow icon={BookOpenIcon} label="IBAN" value={profile.bankAccountDetails.iban} />
                                 </div>
                             </div>
                         )}
-                    </>
+                    </div>
                 )}
+
                 {role === 'student' && (
-                    <div className="space-y-4">
-                        <h3 className="text-xl font-bold text-gray-700 border-b pb-2 mb-4">Academic Information</h3>
-                        <div className="flex items-center text-gray-600">
-                            <AcademicCapIcon className="h-5 w-5 mr-3 text-green-500" />
-                            <span>Status: {profile.studentStatus}</span>
+                    <div className={`${currentTheme.cardBg || 'bg-white'} ${currentTheme.shadow || 'shadow-lg'} ${currentTheme.border || 'border border-gray-100'} rounded-2xl p-6 space-y-5`}>
+                        <div className="flex items-center justify-between mb-1">
+                            <h3 className={`text-lg font-bold ${currentTheme.subtitle || 'text-gray-800'}`}>Academic Information</h3>
+                            <span className="text-xs font-semibold uppercase tracking-wide text-gray-400">Studies</span>
                         </div>
-                        <div className="flex items-center text-gray-600">
-                            <BuildingLibraryIcon className="h-5 w-5 mr-3 text-green-500" />
-                            <span>Admission Date: {new Date(profile.admissionDate).toLocaleDateString()}</span>
-                        </div>
-                        <div className="flex items-center text-gray-600">
-                            <BookOpenIcon className="h-5 w-5 mr-3 text-green-500" />
-                            <span>
-                                Class: {profile.class === 'BS' ? `${profile.degreeName} - Semester ${profile.semester}` : `Class ${profile.classNumber}`}
-                            </span>
-                        </div>
-                        <div className="flex items-center text-gray-600">
-                            <BanknotesIcon className="h-5 w-5 mr-3 text-green-500" />
-                            <span>Fee per Month: PKR {profile.feePerMonth}</span>
+                        <div className="grid sm:grid-cols-2 gap-5">
+                            <InfoRow icon={AcademicCapIcon} label="Status" value={profile.studentStatus} />
+                            <InfoRow icon={BuildingLibraryIcon} label="Admission Date" value={profile.admissionDate ? new Date(profile.admissionDate).toLocaleDateString() : 'Not provided'} />
+                            <InfoRow
+                                icon={BookOpenIcon}
+                                label="Program"
+                                value={profile.class === 'BS' ? `${profile.degreeName || 'Degree'} · Semester ${profile.semester || '-'}` : `Class ${profile.classNumber || '-'}`}
+                            />
+                            <InfoRow icon={BanknotesIcon} label="Fee per Month" value={profile.feePerMonth ? `PKR ${Number(profile.feePerMonth).toLocaleString()}` : 'Not provided'} />
                         </div>
                     </div>
                 )}
@@ -230,5 +229,4 @@ const ProfileScreen = () => {
         </div>
     );
 };
-
 export default ProfileScreen;

@@ -7,6 +7,8 @@ import {
 import Loader from '../components/Loader';
 import Message from '../components/Message';
 import api from '../api';
+import { useTheme } from '../context/ThemeContext';
+import { BanknotesIcon, ExclamationTriangleIcon, UserPlusIcon, WalletIcon, GiftIcon, ClockIcon, DocumentCurrencyDollarIcon, HeartIcon } from '@heroicons/react/24/outline';
 
 // Define the colors for the pie chart
 const PIE_COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#A28FEE', '#FF6666'];
@@ -14,6 +16,22 @@ const PIE_COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#A28FEE', '#FF6
 // Get current month and year for default filter values
 const currentMonth = new Date().getMonth() + 1;
 const currentYear = new Date().getFullYear();
+
+const monthOptions = [
+  { value: 'all', label: 'All months' },
+  { value: 1, label: 'January' },
+  { value: 2, label: 'February' },
+  { value: 3, label: 'March' },
+  { value: 4, label: 'April' },
+  { value: 5, label: 'May' },
+  { value: 6, label: 'June' },
+  { value: 7, label: 'July' },
+  { value: 8, label: 'August' },
+  { value: 9, label: 'September' },
+  { value: 10, label: 'October' },
+  { value: 11, label: 'November' },
+  { value: 12, label: 'December' },
+];
 
 const Reports = () => {
   const [reportsData, setReportsData] = useState({
@@ -26,13 +44,14 @@ const Reports = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('fees');
+  const { currentTheme } = useTheme();
 
   // Filter states
-  const [feesFilters, setFeesFilters] = useState({ year: currentYear });
-  const [salariesFilters, setSalariesFilters] = useState({ year: currentYear });
-  const [billingFilters, setBillingFilters] = useState({ year: currentYear });
-  const [donationsFilters, setDonationsFilters] = useState({ year: currentYear });
-  const [attendanceFilters, setAttendanceFilters] = useState({ type: 'Student', startDate: '', endDate: '' });
+  const [feesFilters, setFeesFilters] = useState({ year: currentYear, month: 'all' });
+  const [salariesFilters, setSalariesFilters] = useState({ year: currentYear, month: 'all' });
+  const [billingFilters, setBillingFilters] = useState({ year: currentYear, month: 'all' });
+  const [donationsFilters, setDonationsFilters] = useState({ year: currentYear, month: 'all' });
+  const [attendanceFilters, setAttendanceFilters] = useState({ type: 'Student', year: currentYear, month: 'all' });
 
   const fetchData = async (url, params = {}) => {
     try {
@@ -48,11 +67,29 @@ const Reports = () => {
     const fetchReports = async () => {
       setLoading(true);
       try {
-        const fees = await fetchData('/fees/reports', feesFilters);
-        const salaries = await fetchData('/salary/reports', salariesFilters);
-        const billing = await fetchData('/billing/reports', billingFilters);
-        const donations = await fetchData('/donations/reports', donationsFilters);
-        const attendance = await fetchData('/attendance/reports', attendanceFilters);
+        const feesParams = { ...feesFilters };
+        if (feesParams.month === 'all') delete feesParams.month;
+
+        const salaryParams = { ...salariesFilters };
+        if (salaryParams.month === 'all') delete salaryParams.month;
+
+        const billingParams = { ...billingFilters };
+        if (billingParams.month === 'all') delete billingParams.month;
+
+        const donationParams = { ...donationsFilters };
+        if (donationParams.month === 'all') delete donationParams.month;
+
+        const fees = await fetchData('/fees/reports', feesParams);
+        const salaries = await fetchData('/salary/reports', salaryParams);
+        const billing = await fetchData('/billing/reports', billingParams);
+        const donations = await fetchData('/donations/reports', donationParams);
+
+        const attendanceParams = {
+          type: attendanceFilters.type,
+          year: attendanceFilters.year,
+          ...(attendanceFilters.month !== 'all' ? { month: attendanceFilters.month } : {})
+        };
+        const attendance = await fetchData('/attendance/reports', attendanceParams);
         setReportsData({ fees, salaries, billing, donations, attendance });
       } catch (err) {
         setError("Failed to load reports. Please check your network connection and server.");
@@ -152,45 +189,53 @@ const Reports = () => {
       case 'fees':
         return (
           <>
-            <div className="flex flex-col sm:flex-row gap-4 mb-6 items-center">
-              <label className="font-semibold text-gray-700">Filter by Year:</label>
-              <select
-                className="p-2 border rounded-md"
-                value={feesFilters.year}
-                onChange={(e) => setFeesFilters({ ...feesFilters, year: parseInt(e.target.value) })}
-              >
-                {getYears().map(year => (
-                  <option key={year} value={year}>{year}</option>
-                ))}
-              </select>
+            <div className="flex flex-col lg:flex-row gap-4 mb-6 items-center">
+              <div className="flex items-center gap-3">
+                <label className="font-semibold text-gray-700">Filter by Year:</label>
+                <select
+                  className={`h-12 px-4 rounded-lg border ${currentTheme?.inputBorder || 'border-gray-300'} ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} focus:outline-none`}
+                  value={feesFilters.year}
+                  onChange={(e) => setFeesFilters({ ...feesFilters, year: parseInt(e.target.value) })}
+                >
+                  {getYears().map(year => (
+                    <option key={year} value={year}>{year}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex items-center gap-3">
+                <label className="font-semibold text-gray-700">Month:</label>
+                <select
+                  className={`h-12 px-4 rounded-lg border ${currentTheme?.inputBorder || 'border-gray-300'} ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} focus:outline-none`}
+                  value={feesFilters.month}
+                  onChange={(e) => setFeesFilters({ ...feesFilters, month: e.target.value })}
+                >
+                  {monthOptions.map(m => (
+                    <option key={m.value} value={m.value}>{m.label}</option>
+                  ))}
+                </select>
+              </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <div className="bg-white p-6 rounded-lg shadow-md flex justify-between items-center">
+              <div className={`${currentTheme?.statCard || 'bg-white'} ${currentTheme?.border || 'border border-emerald-100'} p-6 rounded-lg ${currentTheme?.shadow || 'shadow-md'} flex justify-between items-center`}>
                 <div>
                   <h3 className="text-lg font-semibold text-gray-600">Total Collected</h3>
-                  <p className="text-3xl font-bold text-green-600">Rs. {totalCollected.toLocaleString()}</p>
+                  <p className={`${currentTheme?.statValue || 'text-emerald-800'} text-3xl font-bold`}>Rs. {totalCollected.toLocaleString()}</p>
                 </div>
-                <div className="text-4xl text-green-400">
-                  <i className="fas fa-money-bill-wave"></i>
-                </div>
+                <BanknotesIcon className={`${currentTheme?.iconText || 'text-emerald-600'} h-10 w-10`} />
               </div>
-              <div className="bg-white p-6 rounded-lg shadow-md flex justify-between items-center">
+              <div className={`${currentTheme?.statCard || 'bg-white'} ${currentTheme?.border || 'border border-emerald-100'} p-6 rounded-lg ${currentTheme?.shadow || 'shadow-md'} flex justify-between items-center`}>
                 <div>
                   <h3 className="text-lg font-semibold text-gray-600">Total Due</h3>
                   <p className="text-3xl font-bold text-red-600">Rs. {totalDue.toLocaleString()}</p>
                 </div>
-                <div className="text-4xl text-red-400">
-                  <i className="fas fa-exclamation-triangle"></i>
-                </div>
+                <ExclamationTriangleIcon className="text-red-600 h-10 w-10" />
               </div>
-              <div className="bg-white p-6 rounded-lg shadow-md flex justify-between items-center">
+              <div className={`${currentTheme?.statCard || 'bg-white'} ${currentTheme?.border || 'border border-emerald-100'} p-6 rounded-lg ${currentTheme?.shadow || 'shadow-md'} flex justify-between items-center`}>
                 <div>
                   <h3 className="text-lg font-semibold text-gray-600">Total Admission Fees</h3>
-                  <p className="text-3xl font-bold text-blue-600">Rs. {totalAdmissionFees.toLocaleString()}</p>
+                  <p className={`${currentTheme?.statValue || 'text-emerald-800'} text-3xl font-bold`}>Rs. {totalAdmissionFees.toLocaleString()}</p>
                 </div>
-                <div className="text-4xl text-blue-400">
-                  <i className="fas fa-user-plus"></i>
-                </div>
+                <UserPlusIcon className={`${currentTheme?.iconText || 'text-emerald-600'} h-10 w-10`} />
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
@@ -250,45 +295,53 @@ const Reports = () => {
       case 'salaries':
         return (
           <>
-            <div className="flex flex-col sm:flex-row gap-4 mb-6 items-center">
-              <label className="font-semibold text-gray-700">Filter by Year:</label>
-              <select
-                className="p-2 border rounded-md"
-                value={salariesFilters.year}
-                onChange={(e) => setSalariesFilters({ ...salariesFilters, year: parseInt(e.target.value) })}
-              >
-                {getYears().map(year => (
-                  <option key={year} value={year}>{year}</option>
-                ))}
-              </select>
+            <div className="flex flex-col lg:flex-row gap-4 mb-6 items-center">
+              <div className="flex items-center gap-3">
+                <label className="font-semibold text-gray-700">Filter by Year:</label>
+                <select
+                  className={`h-12 px-4 rounded-lg border ${currentTheme?.inputBorder || 'border-gray-300'} ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} focus:outline-none`}
+                  value={salariesFilters.year}
+                  onChange={(e) => setSalariesFilters({ ...salariesFilters, year: parseInt(e.target.value) })}
+                >
+                  {getYears().map(year => (
+                    <option key={year} value={year}>{year}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex items-center gap-3">
+                <label className="font-semibold text-gray-700">Month:</label>
+                <select
+                  className={`h-12 px-4 rounded-lg border ${currentTheme?.inputBorder || 'border-gray-300'} ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} focus:outline-none`}
+                  value={salariesFilters.month}
+                  onChange={(e) => setSalariesFilters({ ...salariesFilters, month: e.target.value })}
+                >
+                  {monthOptions.map(m => (
+                    <option key={m.value} value={m.value}>{m.label}</option>
+                  ))}
+                </select>
+              </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <div className="bg-white p-6 rounded-lg shadow-md flex justify-between items-center">
+              <div className={`${currentTheme?.statCard || 'bg-white'} ${currentTheme?.border || 'border border-emerald-100'} p-6 rounded-lg ${currentTheme?.shadow || 'shadow-md'} flex justify-between items-center`}>
                 <div>
                   <h3 className="text-lg font-semibold text-gray-600">Total Salary Paid</h3>
-                  <p className="text-3xl font-bold text-green-600">Rs. {totalSalaryPaid.toLocaleString()}</p>
+                  <p className={`${currentTheme?.statValue || 'text-emerald-800'} text-3xl font-bold`}>Rs. {totalSalaryPaid.toLocaleString()}</p>
                 </div>
-                <div className="text-4xl text-green-400">
-                  <i className="fas fa-wallet"></i>
-                </div>
+                <WalletIcon className={`${currentTheme?.iconText || 'text-emerald-600'} h-10 w-10`} />
               </div>
-              <div className="bg-white p-6 rounded-lg shadow-md flex justify-between items-center">
+              <div className={`${currentTheme?.statCard || 'bg-white'} ${currentTheme?.border || 'border border-emerald-100'} p-6 rounded-lg ${currentTheme?.shadow || 'shadow-md'} flex justify-between items-center`}>
                 <div>
                   <h3 className="text-lg font-semibold text-gray-600">Total Bonus</h3>
-                  <p className="text-3xl font-bold text-blue-600">Rs. {totalBonusPaid.toLocaleString()}</p>
+                  <p className={`${currentTheme?.statValue || 'text-emerald-800'} text-3xl font-bold`}>Rs. {totalBonusPaid.toLocaleString()}</p>
                 </div>
-                <div className="text-4xl text-blue-400">
-                  <i className="fas fa-gift"></i>
-                </div>
+                <GiftIcon className={`${currentTheme?.iconText || 'text-emerald-600'} h-10 w-10`} />
               </div>
-              <div className="bg-white p-6 rounded-lg shadow-md flex justify-between items-center">
+              <div className={`${currentTheme?.statCard || 'bg-white'} ${currentTheme?.border || 'border border-emerald-100'} p-6 rounded-lg ${currentTheme?.shadow || 'shadow-md'} flex justify-between items-center`}>
                 <div>
                   <h3 className="text-lg font-semibold text-gray-600">Total Overtime</h3>
                   <p className="text-3xl font-bold text-purple-600">Rs. {totalOvertimePaid.toLocaleString()}</p>
                 </div>
-                <div className="text-4xl text-purple-400">
-                  <i className="fas fa-clock"></i>
-                </div>
+                <ClockIcon className="text-purple-600 h-10 w-10" />
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
@@ -336,27 +389,39 @@ const Reports = () => {
       case 'billing':
         return (
           <>
-            <div className="flex flex-col sm:flex-row gap-4 mb-6 items-center">
-              <label className="font-semibold text-gray-700">Filter by Year:</label>
-              <select
-                className="p-2 border rounded-md"
-                value={billingFilters.year}
-                onChange={(e) => setBillingFilters({ ...billingFilters, year: parseInt(e.target.value) })}
-              >
-                {getYears().map(year => (
-                  <option key={year} value={year}>{year}</option>
-                ))}
-              </select>
+            <div className="flex flex-col lg:flex-row gap-4 mb-6 items-center">
+              <div className="flex items-center gap-3">
+                <label className="font-semibold text-gray-700">Filter by Year:</label>
+                <select
+                  className={`h-12 px-4 rounded-lg border ${currentTheme?.inputBorder || 'border-gray-300'} ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} focus:outline-none`}
+                  value={billingFilters.year}
+                  onChange={(e) => setBillingFilters({ ...billingFilters, year: parseInt(e.target.value) })}
+                >
+                  {getYears().map(year => (
+                    <option key={year} value={year}>{year}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex items-center gap-3">
+                <label className="font-semibold text-gray-700">Month:</label>
+                <select
+                  className={`h-12 px-4 rounded-lg border ${currentTheme?.inputBorder || 'border-gray-300'} ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} focus:outline-none`}
+                  value={billingFilters.month}
+                  onChange={(e) => setBillingFilters({ ...billingFilters, month: e.target.value })}
+                >
+                  {monthOptions.map(m => (
+                    <option key={m.value} value={m.value}>{m.label}</option>
+                  ))}
+                </select>
+              </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-1 gap-6 mb-8">
-              <div className="bg-white p-6 rounded-lg shadow-md flex justify-between items-center">
+              <div className={`${currentTheme?.statCard || 'bg-white'} ${currentTheme?.border || 'border border-emerald-100'} p-6 rounded-lg ${currentTheme?.shadow || 'shadow-md'} flex justify-between items-center`}>
                 <div>
                   <h3 className="text-lg font-semibold text-gray-600">Total Expenses</h3>
                   <p className="text-3xl font-bold text-red-600">Rs. {totalExpenses.toLocaleString()}</p>
                 </div>
-                <div className="text-4xl text-red-400">
-                  <i className="fas fa-file-invoice-dollar"></i>
-                </div>
+                <DocumentCurrencyDollarIcon className="text-red-600 h-10 w-10" />
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
@@ -402,27 +467,39 @@ const Reports = () => {
       case 'donations':
         return (
           <>
-            <div className="flex flex-col sm:flex-row gap-4 mb-6 items-center">
-              <label className="font-semibold text-gray-700">Filter by Year:</label>
-              <select
-                className="p-2 border rounded-md"
-                value={donationsFilters.year}
-                onChange={(e) => setDonationsFilters({ ...donationsFilters, year: parseInt(e.target.value) })}
-              >
-                {getYears().map(year => (
-                  <option key={year} value={year}>{year}</option>
-                ))}
-              </select>
+            <div className="flex flex-col lg:flex-row gap-4 mb-6 items-center">
+              <div className="flex items-center gap-3">
+                <label className="font-semibold text-gray-700">Filter by Year:</label>
+                <select
+                  className={`h-12 px-4 rounded-lg border ${currentTheme?.inputBorder || 'border-gray-300'} ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} focus:outline-none`}
+                  value={donationsFilters.year}
+                  onChange={(e) => setDonationsFilters({ ...donationsFilters, year: parseInt(e.target.value) })}
+                >
+                  {getYears().map(year => (
+                    <option key={year} value={year}>{year}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex items-center gap-3">
+                <label className="font-semibold text-gray-700">Month:</label>
+                <select
+                  className={`h-12 px-4 rounded-lg border ${currentTheme?.inputBorder || 'border-gray-300'} ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} focus:outline-none`}
+                  value={donationsFilters.month}
+                  onChange={(e) => setDonationsFilters({ ...donationsFilters, month: e.target.value })}
+                >
+                  {monthOptions.map(m => (
+                    <option key={m.value} value={m.value}>{m.label}</option>
+                  ))}
+                </select>
+              </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-1 gap-6 mb-8">
-              <div className="bg-white p-6 rounded-lg shadow-md flex justify-between items-center">
+              <div className={`${currentTheme?.statCard || 'bg-white'} ${currentTheme?.border || 'border border-emerald-100'} p-6 rounded-lg ${currentTheme?.shadow || 'shadow-md'} flex justify-between items-center`}>
                 <div>
                   <h3 className="text-lg font-semibold text-gray-600">Total Donations</h3>
-                  <p className="text-3xl font-bold text-green-600">Rs. {totalDonations.toLocaleString()}</p>
+                  <p className={`${currentTheme?.statValue || 'text-emerald-800'} text-3xl font-bold`}>Rs. {totalDonations.toLocaleString()}</p>
                 </div>
-                <div className="text-4xl text-green-400">
-                  <i className="fas fa-hand-holding-heart"></i>
-                </div>
+                <HeartIcon className={`${currentTheme?.iconText || 'text-emerald-600'} h-10 w-10`} />
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
@@ -471,16 +548,42 @@ const Reports = () => {
       case 'attendance':
         return (
           <>
-            <div className="flex flex-col sm:flex-row gap-4 mb-6 items-center">
-              <label className="font-semibold text-gray-700">Filter by Type:</label>
-              <select
-                className="p-2 border rounded-md"
-                value={attendanceFilters.type}
-                onChange={(e) => setAttendanceFilters({ ...attendanceFilters, type: e.target.value })}
-              >
-                <option value="Student">Student</option>
-                <option value="Staff">Staff</option>
-              </select>
+            <div className="flex flex-col lg:flex-row gap-4 mb-6 items-center">
+              <div className="flex items-center gap-3">
+                <label className="font-semibold text-gray-700">Filter by Type:</label>
+                <select
+                  className={`h-12 px-4 rounded-lg border ${currentTheme?.inputBorder || 'border-gray-300'} ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} focus:outline-none`}
+                  value={attendanceFilters.type}
+                  onChange={(e) => setAttendanceFilters({ ...attendanceFilters, type: e.target.value })}
+                >
+                  <option value="Student">Student</option>
+                  <option value="Staff">Staff</option>
+                </select>
+              </div>
+              <div className="flex items-center gap-3">
+                <label className="font-semibold text-gray-700">Year:</label>
+                <select
+                  className={`h-12 px-4 rounded-lg border ${currentTheme?.inputBorder || 'border-gray-300'} ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} focus:outline-none`}
+                  value={attendanceFilters.year}
+                  onChange={(e) => setAttendanceFilters({ ...attendanceFilters, year: parseInt(e.target.value) })}
+                >
+                  {getYears().map(year => (
+                    <option key={year} value={year}>{year}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex items-center gap-3">
+                <label className="font-semibold text-gray-700">Month:</label>
+                <select
+                  className={`h-12 px-4 rounded-lg border ${currentTheme?.inputBorder || 'border-gray-300'} ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} focus:outline-none`}
+                  value={attendanceFilters.month}
+                  onChange={(e) => setAttendanceFilters({ ...attendanceFilters, month: e.target.value })}
+                >
+                  {monthOptions.map(m => (
+                    <option key={m.value} value={m.value}>{m.label}</option>
+                  ))}
+                </select>
+              </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
               <div className="bg-white p-4 sm:p-6 rounded-lg shadow-md">
@@ -523,56 +626,43 @@ const Reports = () => {
 
   return (
     <div className="container mx-auto p-4 sm:p-6 md:p-8 bg-gray-100 min-h-screen">
-      <h1 className="text-3xl text-center sm:text-4xl font-bold text-green-800 mb-6">Financial & Performance Reports</h1>
-      
+      {/* Hero Header */}
+      <div className={`relative ${currentTheme?.heroBg || 'bg-gradient-to-r from-emerald-50 to-teal-100'} ${currentTheme?.shadow || 'shadow-lg'} rounded-2xl p-8 mb-8 overflow-hidden`}>
+        <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full -mr-32 -mt-32"></div>
+        <div className="relative z-10">
+          <h1 className={`text-3xl sm:text-4xl font-bold mb-2 text-left ${currentTheme?.heroTitle || 'text-emerald-800'}`}>Financial & Performance Reports</h1>
+          <p className={`text-left ${currentTheme?.heroSubtitle || 'text-emerald-700'} text-sm sm:text-base`}>Overview of institute finances and attendance</p>
+        </div>
+      </div>
+
       {/* Tab Navigation */}
-      <div className="flex flex-wrap gap-2 mb-6 border-b border-gray-200">
+      <div className="flex flex-wrap gap-2 mb-6">
         <button
-          className={`py-2 px-4 font-semibold text-lg transition-colors duration-200 ${
-            activeTab === 'fees'
-              ? 'border-b-4 border-blue-500 text-blue-600'
-              : 'text-gray-500 hover:text-gray-800'
-          }`}
+          className={`h-12 px-5 rounded-lg font-semibold text-sm sm:text-base transition-all ${activeTab === 'fees' ? 'bg-gradient-to-r from-green-600 to-green-700 text-white shadow-md' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'}`}
           onClick={() => setActiveTab('fees')}
         >
           Fees
         </button>
         <button
-          className={`py-2 px-4 font-semibold text-lg transition-colors duration-200 ${
-            activeTab === 'salaries'
-              ? 'border-b-4 border-blue-500 text-blue-600'
-              : 'text-gray-500 hover:text-gray-800'
-          }`}
+          className={`h-12 px-5 rounded-lg font-semibold text-sm sm:text-base transition-all ${activeTab === 'salaries' ? 'bg-gradient-to-r from-green-600 to-green-700 text-white shadow-md' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'}`}
           onClick={() => setActiveTab('salaries')}
         >
           Salaries
         </button>
         <button
-          className={`py-2 px-4 font-semibold text-lg transition-colors duration-200 ${
-            activeTab === 'billing'
-              ? 'border-b-4 border-blue-500 text-blue-600'
-              : 'text-gray-500 hover:text-gray-800'
-          }`}
+          className={`h-12 px-5 rounded-lg font-semibold text-sm sm:text-base transition-all ${activeTab === 'billing' ? 'bg-gradient-to-r from-green-600 to-green-700 text-white shadow-md' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'}`}
           onClick={() => setActiveTab('billing')}
         >
           Billing
         </button>
         <button
-          className={`py-2 px-4 font-semibold text-lg transition-colors duration-200 ${
-            activeTab === 'donations'
-              ? 'border-b-4 border-blue-500 text-blue-600'
-              : 'text-gray-500 hover:text-gray-800'
-          }`}
+          className={`h-12 px-5 rounded-lg font-semibold text-sm sm:text-base transition-all ${activeTab === 'donations' ? 'bg-gradient-to-r from-green-600 to-green-700 text-white shadow-md' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'}`}
           onClick={() => setActiveTab('donations')}
         >
           Donations
         </button>
         <button
-          className={`py-2 px-4 font-semibold text-lg transition-colors duration-200 ${
-            activeTab === 'attendance'
-              ? 'border-b-4 border-blue-500 text-blue-600'
-              : 'text-gray-500 hover:text-gray-800'
-          }`}
+          className={`h-12 px-5 rounded-lg font-semibold text-sm sm:text-base transition-all ${activeTab === 'attendance' ? 'bg-gradient-to-r from-green-600 to-green-700 text-white shadow-md' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'}`}
           onClick={() => setActiveTab('attendance')}
         >
           Attendance

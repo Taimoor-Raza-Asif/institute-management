@@ -4,6 +4,7 @@ import api from '../api';
 import { UserContext } from '../App'; // Assuming UserContext is provided by App.jsx
 import { PlusIcon, PencilIcon, TrashIcon, EyeIcon, FunnelIcon, XMarkIcon, MagnifyingGlassIcon, UserCircleIcon } from '@heroicons/react/24/outline';
 import Modal from '../components/Modal'; // Assuming a Modal component exists
+import { useTheme } from '../context/ThemeContext';
 
 // UserForm.jsx (Nested component for Add/Edit/View User)
 const UserForm = ({ user, formMode, onClose, students, staffMembers, users }) => {
@@ -17,6 +18,7 @@ const UserForm = ({ user, formMode, onClose, students, staffMembers, users }) =>
 
   const isViewMode = formMode === 'view';
   const isEditMode = formMode === 'edit';
+  const { currentTheme } = useTheme();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -91,9 +93,9 @@ const UserForm = ({ user, formMode, onClose, students, staffMembers, users }) =>
 
 
   return (
-    <div className="fixed inset-0 bg-gray-600 bg-opacity-75 flex justify-center items-center z-50 p-4">
-      <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-md">
-        <h3 className="text-2xl font-bold mb-6 text-gray-800 text-center">{getTitle()}</h3>
+    <div className={`fixed inset-0 flex justify-center items-center z-50 p-4 ${currentTheme.overlayBg || 'bg-gray-600 bg-opacity-75'}`}>
+      <div className={`p-8 rounded-lg w-full max-w-md ${currentTheme.cardBg || 'bg-white'} ${currentTheme.shadow || 'shadow-xl'} ${currentTheme.border || ''}`}>
+        <h3 className={`text-2xl font-bold mb-6 text-center ${currentTheme.title || 'text-gray-800'}`}>{getTitle()}</h3>
         {formError && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
             {formError}
@@ -207,6 +209,7 @@ const UserForm = ({ user, formMode, onClose, students, staffMembers, users }) =>
 
 const UserManagement = () => {
   const { currentUser } = useContext(UserContext);
+  const { currentTheme } = useTheme();
   const [users, setUsers] = useState([]);
   const [students, setStudents] = useState([]);
   const [staffMembers, setStaffMembers] = useState([]);
@@ -321,10 +324,19 @@ const UserManagement = () => {
   });
 
   return (
-    <div className="container mx-auto p-4 sm:p-6 lg:p-4">
-      <h1 className="text-3xl sm:text-4xl font-bold font-serif text-center text-green-800 mb-14">User Account Management</h1>
+    <div className="container mx-auto p-4 sm:p-6 lg:p-8">
+      <div className={`mb-8 p-6 rounded-xl flex items-center justify-between ${currentTheme?.panelBg || 'bg-gradient-to-r from-green-50 to-emerald-50'} ${currentTheme?.shadow || 'shadow-md'}`}>
+        <div>
+          <h1 className={`text-3xl sm:text-4xl font-extrabold ${currentTheme?.title || 'text-green-800'}`}>User Account Management</h1>
+          <p className={`${currentTheme?.mutedText || 'text-gray-600'} mt-1 text-sm`}>Manage user accounts, roles, and edit permissions</p>
+        </div>
+        <div className="hidden sm:flex items-center space-x-2 text-sm text-gray-500">
+          <UserCircleIcon className="h-5 w-5" />
+          <span className="font-medium">{users.length} Users</span>
+        </div>
+      </div>
 
-      <div className="mb-6 p-4 bg-gray-50 rounded-lg shadow-sm border border-gray-200">
+      <div className={`mb-6 p-6 rounded-xl ${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.shadow || 'shadow-lg'} ${currentTheme?.border || 'border border-gray-100'}`}>
         <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-3">
           {/* Search Input */}
           <div className="relative w-full sm:w-3/4">
@@ -333,7 +345,7 @@ const UserManagement = () => {
               id="filterCnic"
               value={filterCnic}
               onChange={(e) => setFilterCnic(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+              className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition ${currentTheme?.inputBg || 'border-gray-300 bg-gray-50'}`}
               placeholder="Search by CNIC..."
             />
             <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -342,24 +354,21 @@ const UserManagement = () => {
           {/* Role Filter and Add User Button */}
           <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
             <div className="w-full sm:w-auto">
-              <select
-                id="filterRole"
-                value={filterRole}
-                onChange={(e) => setFilterRole(e.target.value)}
-                className="w-full sm:w-auto p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-              >
-                <option value="">All Roles</option>
-                {userRoles.map(role => (
-                  <option key={role} value={role}>{role.charAt(0).toUpperCase() + role.slice(1)}</option>
-                ))}
-              </select>
+              <div className="relative">
+                <FunnelIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <select
+                  id="filterRole"
+                  value={filterRole}
+                  onChange={(e) => setFilterRole(e.target.value)}
+                  className={`w-full sm:w-auto pl-10 pr-4 py-2.5 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 ${currentTheme?.inputBg || 'border-gray-300 bg-white'}`}
+                >
+                  <option value="">All Roles</option>
+                  {userRoles.map(role => (
+                    <option key={role} value={role}>{role.charAt(0).toUpperCase() + role.slice(1)}</option>
+                  ))}
+                </select>
+              </div>
             </div>
-            {/* <button
-              onClick={handleAddUser}
-              className="flex items-center justify-center bg-green-600 font-semibold text-white px-5 py-2 rounded-lg hover:bg-green-700 transition duration-200 shadow-md w-full sm:w-auto"
-            >
-              <PlusIcon className="h-5 w-5 mr-2" /> Add New User
-            </button> */}
           </div>
         </div>
       </div>
@@ -369,69 +378,65 @@ const UserManagement = () => {
       ) : error ? (
         <div className="text-center py-4 text-red-500">{error}</div>
       ) : (
-        <div className="bg-white shadow-lg rounded-lg overflow-hidden">
+        <div className={`${currentTheme?.cardBg || 'bg-white'} shadow-lg rounded-xl overflow-hidden`}>
           {filteredUsers.length === 0 ? (
             <p className="p-4 text-center text-gray-500">No user accounts found matching the criteria.</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-green-600">
+                <thead className={`${currentTheme?.theadBg || 'bg-gradient-to-r from-green-600 to-emerald-600'}`}>
                   <tr>
-                    <th scope="col" className="px-6 py-3 text-center text-sm font-base text-white border border-white uppercase tracking-wider">CNIC</th>
-                    <th scope="col" className="px-6 py-3 text-center text-sm font-base text-white border border-white uppercase tracking-wider">Role</th>
-                    <th scope="col" className="px-6 py-3 text-center text-sm font-base text-white border border-white uppercase tracking-wider">Linked Profile</th>
-                    <th scope="col" className="px-6 py-3 text-center text-sm font-base text-white border border-white uppercase tracking-wider">Edit Mode</th>
-                    <th scope="col" className="px-6 py-3 text-center text-sm font-base text-white border border-white uppercase tracking-wider text-center">Actions</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">CNIC</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Role</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Linked Profile</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Edit Mode</th>
+                    <th scope="col" className="px-6 py-3 text-center text-xs font-bold text-white uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-">
-                  {filteredUsers.map((user) => (
-                    <tr key={user._id} className="hover:bg-gray-50">
-                      {/* <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {user.cnic}
-                      </td> */}
-
-                      <td className="px-6 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
+                <tbody className={`${currentTheme?.tbodyBg || 'bg-white'} divide-y divide-gray-100`}>
+                  {filteredUsers.map((user, index) => (
+                    <tr key={user._id} className={`transition-all duration-150 hover:bg-green-50 hover:shadow-md ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
+                      <td className="px-6 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
                         <div className="flex items-center">
-                          {user.profileId.profilePictureUrl ? (
-                            // If profilePictureUrl exists, render the <img> tag
+                          {user.profileId?.profilePictureUrl ? (
                             <img
                               src={`http://localhost:5000${user.profileId.profilePictureUrl}`}
                               alt={`${user.profileId.cnic}'s Profile`}
-                              className="h-8 w-8 rounded-full object-cover mr-2"
-                              onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/32x32/cccccc/ffffff?text=NA'; }}
+                              className="h-9 w-9 rounded-full object-cover mr-3 ring-2 ring-green-100"
+                              onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/36x36/cccccc/ffffff?text=NA'; }}
                             />
                           ) : (
-                            // If not, render the placeholder icon
-                            <UserCircleIcon className="h-8 w-8 text-gray-400 mr-2" />
+                            <div className="h-9 w-9 rounded-full bg-green-100 flex items-center justify-center mr-3 ring-2 ring-green-200">
+                              <span className="text-green-700 font-bold text-xs">{user.profileId?.name?.[0] || 'U'}</span>
+                            </div>
                           )}
-                          <span>{user.profileId.cnic}</span>
+                          <span className="font-semibold">{user.profileId?.cnic || user.cnic}</span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {user.role}
+                      <td className="px-6 py-3 whitespace-nowrap text-sm font-semibold text-gray-700">
+                        <span className="px-2 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold">{user.role}</span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-600">
                         {user.profileId ?
                           `${user.profileId.name || user.profileId.cnic || user.profileId.employeeId} (${user.roleMapping})`
                           : 'N/A'
                         }
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${user.editModeEnabled ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                      <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-600">
+                        <span className={`px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full ${user.editModeEnabled ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                           {user.editModeEnabled ? 'Yes' : 'No'}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium text-center">
+                      <td className="px-6 py-3 whitespace-nowrap text-center text-sm font-medium">
                         <div className="flex items-center justify-center space-x-2">
-                          <button onClick={() => handleViewUser(user)} className="text-gray-600 hover:text-gray-800 transition-colors duration-200 p-1 rounded-md hover:bg-gray-100" title="View User Details">
+                          <button onClick={() => handleViewUser(user)} className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors duration-200" title="View User Details">
                             <EyeIcon className="h-5 w-5" />
                           </button>
-                          <button onClick={() => handleEditUser(user)} className="text-blue-600 hover:text-blue-800 transition-colors duration-200 p-1 rounded-md hover:bg-blue-100" title="Edit User">
+                          <button onClick={() => handleEditUser(user)} className="p-2 text-green-600 hover:text-green-800 hover:bg-green-50 rounded-lg transition-colors duration-200" title="Edit User">
                             <PencilIcon className="h-5 w-5" />
                           </button>
                           {currentUser._id !== user._id && (
-                            <button onClick={() => handleDeleteUser(user._id)} className="text-red-600 hover:text-red-800 transition-colors duration-200 p-1 rounded-md hover:bg-red-100" title="Delete User">
+                            <button onClick={() => handleDeleteUser(user._id)} className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors duration-200" title="Delete User">
                               <TrashIcon className="h-5 w-5" />
                             </button>
                           )}

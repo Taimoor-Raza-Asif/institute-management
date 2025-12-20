@@ -1,0 +1,158 @@
+---
+File: FeeModal.jsx
+- Uses currentTheme tokens for modal overlay, card background, and shadow:
+  - Overlay: `${currentTheme.overlay || 'bg-black bg-opacity-40'}`
+  - Card: `${currentTheme.cardBg || 'bg-white'} ${currentTheme.shadow || 'shadow-xl'} ${currentTheme.border || ''}`
+  - Title: `${currentTheme.title || 'text-gray-800'}`
+  - Error: `${currentTheme.errorBg || 'bg-red-100'} ${currentTheme.errorBorder || 'border border-red-400'} ${currentTheme.errorText || 'text-red-700'}`
+  - Input: `${currentTheme.inputBg || 'border border-gray-300'}`
+  - Disabled: `${currentTheme.inputDisabled || 'bg-gray-100'}`
+  - Button: `${currentTheme.buttonPrimary || 'bg-green-600 text-white'} hover:${currentTheme.buttonPrimaryHover || 'bg-green-700'}`
+  - Cancel: `${currentTheme.buttonSecondary || 'bg-gray-300 text-gray-800'} hover:${currentTheme.buttonSecondaryHover || 'bg-gray-400'}`
+- Inline fallback colors: bg-white, bg-black bg-opacity-40, text-gray-800, bg-red-100, border-red-400, text-red-700, border-gray-300, bg-gray-100, bg-green-600, text-white, bg-green-700, bg-gray-300, text-gray-800, bg-gray-400
+
+---
+File: LeaveRequestForm.jsx
+- Uses currentTheme tokens for card, panel, info panel, error, input, disabled, and button colors:
+  - Card: `${currentTheme.cardBg || 'bg-white'} ${currentTheme.shadow || 'shadow-xl'} ${currentTheme.border || ''}`
+  - Icon: `${currentTheme.iconText || 'text-gray-500'} ${currentTheme.iconHover || 'hover:text-gray-700'}`
+  - Title: `${currentTheme.title || 'text-gray-800'}`
+  - Error: `${currentTheme.errorBg || 'bg-red-100'} ${currentTheme.errorBorder || 'border border-red-400'} ${currentTheme.errorText || 'text-red-700'}`
+  - Panel: `${currentTheme.panelBg || 'bg-gray-50'} ${currentTheme.panelBorder || 'border border-gray-200'}`
+  - Input: `${currentTheme.inputBg || 'border border-gray-300'}`
+  - Disabled: `${currentTheme.inputDisabled || 'bg-gray-100'}`
+  - Info Panel: `${currentTheme.infoPanelBg || 'bg-green-50'} ${currentTheme.infoPanelBorder || 'border-green-200'} ${currentTheme.infoPanelText || 'text-green-800'}`
+  - Button: `bg-green-600 text-white hover:bg-green-700`, `bg-gray-300 text-gray-800 hover:bg-gray-400`
+- Inline fallback colors: bg-white, shadow-xl, border, text-gray-500, hover:text-gray-700, text-gray-800, bg-red-100, border-red-400, text-red-700, bg-gray-50, border-gray-200, border-gray-300, bg-gray-100, bg-green-50, border-green-200, text-green-800, bg-green-600, text-white, bg-green-700, bg-gray-300, text-gray-800, bg-gray-400
+
+---
+File: MarksList.jsx
+- Uses currentTheme tokens for card, title, input, icon, button, table, and panel colors:
+  - Card: `${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.shadow || 'shadow-lg'}`
+  - Title: `${currentTheme?.title || 'text-gray-800'}`
+  - Input: `${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} ${currentTheme?.inputBorder || 'border-gray-300'}`
+  - Icon: `${currentTheme?.iconText || 'text-gray-400'}`
+  - Muted: `${currentTheme?.mutedText || 'text-gray-500'} hover:${currentTheme?.linkHover || 'text-gray-700'}`
+  - Button: `${currentTheme?.buttonSecondary || 'bg-gray-200 text-gray-800'} ${currentTheme?.shadow || 'shadow-sm'}`
+  - Button Muted: `${currentTheme?.buttonMuted || 'bg-red-100 text-red-600'} ${currentTheme?.shadow || 'shadow-sm'}`
+  - Filter Panel: `${currentTheme?.panelBg || 'bg-gray-100'} ${currentTheme?.shadow || 'shadow-sm'}`
+  - Table Head: `${currentTheme?.theadBg || 'bg-gray-100'}` and `${currentTheme?.theadText || 'text-gray-500'}`
+  - Table Body: `${currentTheme?.tbodyBg || 'bg-white'} ${currentTheme?.divide || 'divide-gray-200'}`
+  - Table Text: `${currentTheme?.text || 'text-gray-700'}`
+  - Link: `${currentTheme?.linkText || 'text-green-600'} hover:${currentTheme?.linkHover || 'text-green-800'}`
+  - Error Pill: `${currentTheme?.errorPill || 'text-red-600'} hover:${currentTheme?.errorPillHover || 'text-red-800'}`
+
+---
+File: MyAttendance.jsx
+- Uses currentTheme tokens for card, title, icon, text, input, button, table, and panel colors:
+  - Card: `${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.shadow || 'shadow-lg'} ${currentTheme?.border || ''}`
+  - Title: `${currentTheme?.title || 'text-gray-800'}`
+  - Icon: `${currentTheme?.iconText || 'text-green-600'}`
+  - Text: `${currentTheme?.text || 'text-gray-700'}`
+  - Input: `${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.border || 'border-gray-300'} ${currentTheme?.shadow || 'shadow-sm'}`
+  - Button: `${currentTheme?.buttonPrimary || 'bg-green-500'} ${currentTheme?.buttonText || 'text-white'} ${currentTheme?.shadow || 'shadow-sm'}`
+  - Table Head: `${currentTheme?.theadBg || 'bg-gray-50'}`
+  - Table Body: `${currentTheme?.tbodyBg || 'bg-white'} ${currentTheme?.divide || 'divide-gray-200'}`
+  - Table Text: `${currentTheme?.text || 'text-gray-900'}`
+  - Muted: `${currentTheme?.mutedText || 'text-gray-500'}`
+- Inline fallback colors: bg-white, shadow-lg, border, text-gray-800, text-green-600, text-gray-700, bg-white, border-gray-300, shadow-sm, bg-green-500, text-white, bg-gray-50, bg-white, divide-gray-200, text-gray-900, text-gray-500, bg-green-50, text-green-700, text-green-800, border-green-200, bg-red-50, text-red-700, text-red-800, border-red-200, bg-yellow-50, text-yellow-700, text-yellow-800, border-yellow-200
+- Status color classes (not themed): text-green-600 bg-green-50, text-red-600 bg-red-50, text-yellow-600 bg-yellow-50, text-gray-600 bg-gray-50
+- Status icon classes (not themed): text-green-500, text-red-500, text-yellow-500, text-gray-500
+
+---
+File: MySubjects.jsx
+- Uses currentTheme tokens for title, card, shadow, table, panel, pill, and muted text:
+  - Title: `${currentTheme?.title || 'text-green-800'}`
+  - Card: `${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.shadow || 'shadow'}`
+  - Table Head: `${currentTheme?.theadBg || 'bg-gray-50'} ${currentTheme?.text || 'text-gray-600'}`
+  - Table Border: `${currentTheme?.panelBorder || 'border-gray-200'}`
+  - Table Row: `${currentTheme?.divide || 'border-gray-100'} hover:${currentTheme?.rowHover || 'bg-gray-50'}`
+  - Table Text: `${currentTheme?.text || 'text-gray-800'}`
+  - Muted: `${currentTheme?.mutedText || 'text-gray-600'}`
+  - Panel: `${currentTheme?.panelBg || 'bg-gray-100'} ${currentTheme?.shadow || 'shadow-sm'}`
+  - Pill: `${currentTheme?.pillClass || 'bg-green-100 text-green-800'}`, `${currentTheme?.pillBS || 'bg-green-100 text-green-800'}`, `${currentTheme?.pillAlmiya || 'bg-yellow-100 text-yellow-800'}`, `${currentTheme?.pillOther || 'bg-green-100 text-green-800'}`
+- Inline fallback colors: text-green-800, bg-white, shadow, bg-gray-50, text-gray-600, border-gray-200, border-gray-100, bg-gray-50, text-gray-800, text-gray-600, bg-gray-100, shadow-sm, bg-green-100, text-green-800, bg-yellow-100, text-yellow-800
+
+---
+File: ProfileScreen.jsx
+- Uses currentTheme tokens for card, shadow, border, title, subtitle, link, and text:
+  - Card: `${currentTheme.cardBg || 'bg-white'} ${currentTheme.shadow || 'shadow-md'} ${currentTheme.border || ''}`
+  - Title: `${currentTheme.title || 'text-green-800'}`
+  - Subtitle: `${currentTheme.subtitle || 'text-gray-700'}`
+  - Link: `${currentTheme.linkText || 'text-gray-900'}`
+  - Text: `${currentTheme.text || 'text-gray-600'}`
+- Inline fallback colors: bg-white, shadow-md, border, text-green-800, text-gray-700, text-gray-900, text-gray-600, bg-green-500, text-white, bg-green-700, border-b, pb-4, border-white, shadow-lg, text-green-500
+
+---
+File: SalaryForm.jsx
+- Uses Tailwind color classes directly for most elements (not yet fully themed):
+  - Card: `bg-white shadow-lg rounded-lg` (not themed)
+  - Title: `text-3xl font-bold text-gray-800` (not themed)
+  - Input/Select: `border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm` (not themed)
+  - Button: `bg-green-600 text-white hover:bg-green-700`, `bg-white border border-gray-300 hover:bg-gray-50`, `bg-green-600 text-white`, `bg-green-700`, `bg-green-400`, `bg-gray-300 text-gray-700 hover:bg-gray-50`
+- Inline fallback colors: bg-white, shadow-lg, text-gray-800, border-gray-300, shadow-sm, focus:ring-green-500, focus:border-green-500, text-white, bg-green-600, bg-green-700, bg-green-400, bg-gray-300, text-gray-700, bg-gray-50
+
+---
+File: StaffForm.jsx
+- Uses currentTheme tokens for card, shadow, title, subtitle, label, input, border, button, error, and muted text:
+  - Card: `${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.shadow || 'shadow-xl'}`
+  - Title: `${currentTheme?.title || 'text-green-700'}`
+  - Subtitle: `${currentTheme?.subtitle || 'text-gray-800'}`
+  - Label: `${currentTheme?.label || 'text-gray-700'}`
+  - Input: `${currentTheme?.inputBorder || 'border-gray-300'} ${currentTheme?.inputBg || ''} ${currentTheme?.inputText || ''}`
+  - Disabled: `${currentTheme?.inputDisabled || 'bg-gray-50'}`
+  - Panel Border: `${currentTheme?.panelBorder || 'border-gray-200'}`
+  - Button: `${currentTheme?.buttonPrimary || 'bg-green-600 text-white'} ${currentTheme?.buttonPrimaryHover || 'hover:bg-green-700'} ${currentTheme?.shadow || 'shadow-md'}`
+  - Button Secondary: `${currentTheme?.buttonSecondary || 'bg-gray-300 text-gray-800'} ${currentTheme?.buttonSecondaryHover || 'hover:bg-gray-400'} ${currentTheme?.shadow || 'shadow-md'}`
+  - Error: `${currentTheme?.errorPill || 'bg-red-100 border border-red-400 text-red-700'}`
+  - Muted: `${currentTheme?.mutedText || 'text-gray-500'}`
+- Inline fallback colors: bg-white, shadow-xl, text-green-700, text-gray-800, text-gray-700, border-gray-300, bg-gray-50, border-gray-200, bg-green-600, text-white, hover:bg-green-700, shadow-md, bg-gray-300, text-gray-800, hover:bg-gray-400, bg-red-100, border-red-400, text-red-700, text-gray-500
+- Some legacy/commented code uses direct Tailwind classes (see end of file)
+
+---
+File: StaffLeaveList.jsx
+- Uses Tailwind color classes directly for most elements (not yet fully themed):
+  - Card: `container mx-auto p-4 sm:p-6 lg:p-4`, `bg-gray-50 rounded-lg shadow-sm border border-gray-200`, `bg-white divide-y divide-gray-200`, `hover:bg-gray-50`, `bg-green-100 text-green-800`, `bg-red-100 text-red-800`, `bg-yellow-100 text-yellow-800`, `bg-gray-200 text-gray-800`, `bg-green-600 text-white hover:bg-green-700`, `bg-red-500 hover:bg-red-600`, `bg-green-100 text-green-800`, `bg-red-100 text-red-800`
+  - Title: `text-3xl sm:text-4xl font-bold text-center text-green-800 mb-14`
+  - Input: `border border-gray-300 rounded-md`, `focus:ring-green-500 focus:border-green-500`, `text-gray-400`, `text-gray-500`, `text-gray-900`
+  - Button: `bg-gray-200 text-gray-800 hover:bg-gray-300`, `bg-green-600 text-white hover:bg-green-700`, `bg-red-500 hover:bg-red-600`, `bg-green-100 text-green-800`, `bg-red-100 text-red-800`
+- Inline fallback colors: bg-gray-50, shadow-sm, border-gray-200, bg-white, divide-gray-200, hover:bg-gray-50, bg-green-100, text-green-800, bg-red-100, text-red-800, bg-yellow-100, text-yellow-800, bg-gray-200, text-gray-800, bg-green-600, text-white, hover:bg-green-700, bg-red-500, hover:bg-red-600, text-gray-400, text-gray-500, text-gray-900
+
+---
+File: src/components/StudentForm.jsx
+- Uses Tailwind color classes for backgrounds, borders, text, buttons, and focus states.
+- Key color classes:
+  - bg-white, bg-green-50, bg-green-600, bg-green-700, bg-gray-50, bg-gray-100, bg-gray-200, bg-gray-300, bg-gray-400, bg-gray-500, bg-gray-600, bg-gray-700, bg-gray-800, bg-red-100, bg-red-400, bg-red-500, bg-red-600, bg-black, bg-opacity-50
+  - text-green-700, text-green-600, text-green-800, text-green-900, text-gray-50, text-gray-100, text-gray-200, text-gray-300, text-gray-400, text-gray-500, text-gray-600, text-gray-700, text-gray-800, text-gray-900, text-red-600, text-red-700, text-red-400, text-red-500, text-yellow-600, text-yellow-900, text-white, text-xs, text-sm, text-md, text-lg, text-xl, text-2xl, text-3xl
+  - border-gray-200, border-gray-300, border-gray-400, border-gray-100, border-green-100, border-green-200, border-green-300, border-green-400, border-red-300, border-red-400, border-dashed
+  - hover:bg-green-700, hover:bg-green-100, hover:bg-green-600, hover:bg-green-800, hover:bg-gray-100, hover:bg-gray-200, hover:bg-gray-300, hover:bg-gray-400, hover:bg-red-600, hover:bg-red-700, hover:bg-green-500, hover:bg-green-700, hover:bg-green-800, hover:bg-yellow-900, hover:bg-yellow-700, hover:bg-opacity-75
+  - focus:ring-green-500, focus:border-green-500, focus:border-green-300, focus:ring-green-200, focus:ring-opacity-50
+  - shadow-md, shadow-xl, shadow-2xl, shadow-inner
+- Inline style: none found.
+- Theming: Now uses currentTheme for most major color tokens in buttons, panels, and footer actions, with safe fallbacks.
+
+---
+File: src/components/StudentList.jsx
+- Uses Tailwind color classes for backgrounds, borders, text, buttons, table rows, and focus states.
+- Key color classes:
+  - bg-white, bg-green-50, bg-green-600, bg-green-700, bg-gray-50, bg-gray-100, bg-gray-200, bg-gray-300, bg-gray-400, bg-gray-500, bg-gray-600, bg-gray-800, bg-red-100, bg-red-400, bg-red-500, bg-red-600, bg-orange-500, bg-yellow-600, bg-yellow-900, bg-opacity-75
+  - text-green-700, text-green-600, text-green-800, text-green-900, text-gray-50, text-gray-100, text-gray-200, text-gray-300, text-gray-400, text-gray-500, text-gray-600, text-gray-700, text-gray-800, text-gray-900, text-red-600, text-red-700, text-red-400, text-yellow-600, text-yellow-900, text-white, text-xs, text-sm, text-md, text-lg, text-xl, text-2xl, text-3xl, font-bold, font-semibold, font-medium
+  - border-gray-200, border-gray-300, border-gray-400, border-gray-100, border-green-100, border-green-200, border-green-300, border-green-400, border-red-300, border-red-400, border-dashed, border-white
+  - hover:bg-green-700, hover:bg-green-100, hover:bg-green-600, hover:bg-green-800, hover:bg-gray-100, hover:bg-gray-200, hover:bg-gray-300, hover:bg-gray-400, hover:bg-red-600, hover:bg-red-700, hover:bg-green-500, hover:bg-green-700, hover:bg-green-800, hover:bg-yellow-900, hover:bg-yellow-700, hover:bg-opacity-75
+  - focus:ring-green-500, focus:border-green-500, focus:border-green-300, focus:ring-green-200, focus:ring-opacity-50
+  - shadow-md, shadow-xl, shadow-2xl, shadow-inner
+- Inline style: none found.
+- Theming: Now uses currentTheme for most major color tokens in table, card, row, and button elements, with safe fallbacks.
+
+---
+File: src/pages/AcademicStructurePanel.jsx
+- Uses Tailwind color classes for backgrounds, borders, text, buttons, tabs, and focus states.
+- Key color classes:
+  - bg-white, bg-green-50, bg-green-100, bg-green-200, bg-green-300, bg-green-400, bg-green-500, bg-green-600, bg-green-700, bg-gray-50, bg-gray-100, bg-gray-200, bg-gray-300, bg-gray-400, bg-gray-700, bg-gray-800, bg-yellow-100, bg-yellow-300, bg-red-50, bg-red-300, bg-red-400, bg-red-500, bg-red-700, bg-opacity-75
+  - text-green-700, text-green-600, text-green-800, text-green-900, text-gray-50, text-gray-100, text-gray-200, text-gray-300, text-gray-400, text-gray-500, text-gray-600, text-gray-700, text-gray-800, text-gray-900, text-red-500, text-red-600, text-red-700, text-yellow-700, text-white, text-xs, text-sm, text-md, text-lg, text-xl, text-2xl, text-3xl, font-bold, font-semibold, font-medium, font-extrabold
+  - border-gray-100, border-gray-200, border-gray-300, border-gray-400, border-green-100, border-green-200, border-green-300, border-green-400, border-green-500, border-red-300, border-red-400, border-dashed, border-yellow-300
+  - hover:bg-green-700, hover:bg-green-100, hover:bg-green-600, hover:bg-green-800, hover:bg-gray-100, hover:bg-gray-200, hover:bg-gray-300, hover:bg-gray-400, hover:bg-red-50, hover:bg-red-700, hover:bg-green-500, hover:bg-green-700, hover:bg-green-800, hover:bg-yellow-900, hover:bg-yellow-700, hover:bg-opacity-75
+  - focus:ring-green-500, focus:border-green-500, focus:border-green-300, focus:ring-green-200, focus:ring-opacity-50
+  - shadow-md, shadow-xl, shadow-2xl, shadow-inner, shadow-lg
+- Inline style: none found.
+- Theming: Not yet converted to use currentTheme; all color tokens are still Tailwind classes.

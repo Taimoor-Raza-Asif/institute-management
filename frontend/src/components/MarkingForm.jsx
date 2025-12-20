@@ -149,7 +149,7 @@ const MarkingForm = () => {
                             value={formData.subject}
                             onChange={handleChange}
                             required
-                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500"
                         >
                             <option value="">Select Subject</option>
                             {assignedSubjects.map(subject => (
@@ -166,7 +166,7 @@ const MarkingForm = () => {
                             value={formData.marksType}
                             onChange={handleChange}
                             required
-                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500"
                         >
                             <option value="">Select Type</option>
                             {marksTypes.map(type => (
@@ -185,7 +185,7 @@ const MarkingForm = () => {
                             onChange={handleChange}
                             placeholder="e.g., Quiz 1, Lab 3"
                             required
-                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500"
                         />
                     </div>
 
@@ -199,7 +199,7 @@ const MarkingForm = () => {
                             onChange={handleChange}
                             required
                             min="1"
-                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500"
                         />
                     </div>
                     {/* New field for conducted date */}
@@ -212,7 +212,7 @@ const MarkingForm = () => {
                             value={formData.conductedDate}
                             onChange={handleChange}
                             required
-                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500"
                         />
                     </div>
                 </div>
@@ -280,7 +280,7 @@ const MarkingForm = () => {
                                 value={formData.studentId}
                                 onChange={handleChange}
                                 required
-                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500"
                             >
                                 <option value="">Select Student</option>
                                 {filteredStudents.map(student => (
@@ -300,14 +300,14 @@ const MarkingForm = () => {
                                 required
                                 min="0"
                                 max={totalMarks}
-                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500"
                             />
                         </div>
 
                         <div className="flex justify-end mt-4">
                             <button
                                 type="submit"
-                                className={`bg-indigo-600 text-white px-6 py-2 rounded-md transition-colors ${isFormDisabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-indigo-700'}`}
+                                className={`bg-green-600 text-white px-6 py-2 rounded-md transition-colors ${isFormDisabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-700'}`}
                                 disabled={isFormDisabled}
                             >
                                 <PlusIcon className="h-5 w-5 mr-2" />

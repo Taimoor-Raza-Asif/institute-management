@@ -1,17 +1,20 @@
 // src/components/DonationManagement.jsx
-import React, { useState, useEffect, useContext, useCallback } from 'react';
+import React, { useState, useEffect, useContext, useCallback, useMemo } from 'react';
 import { UserContext } from '../App';
 import api from '../api';
 import Message from '../components/Message';
 import Loader from '../components/Loader';
 import { jsPDF } from 'jspdf';
-import { PencilIcon, TrashIcon, PlusIcon, FunnelIcon, XMarkIcon, MagnifyingGlassIcon, ArrowDownTrayIcon, EyeIcon } from '@heroicons/react/24/outline'; // Added EyeIcon
+import { PencilIcon, TrashIcon, PlusIcon, FunnelIcon, XMarkIcon, MagnifyingGlassIcon, ArrowDownTrayIcon, EyeIcon, CurrencyDollarIcon, BanknotesIcon } from '@heroicons/react/24/outline'; // Added EyeIcon
+import { useTheme } from '../context/ThemeContext';
+import ConfirmationModal from './ConfirmationModal';
 
 import Modal from '../components/Modal';
 import AddDonationModal from '../components/AddDonationModal';
 
 const DonationManagement = () => {
   const { currentUser: user } = useContext(UserContext);
+  const { currentTheme } = useTheme();
   const [donations, setDonations] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -90,15 +93,25 @@ const DonationManagement = () => {
     setSelectedDonation(null);
   };
 
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [toDeleteId, setToDeleteId] = useState(null);
+
   const handleDeleteDonation = async (id) => {
-    if (window.confirm('Are you sure you want to delete this donation?')) {
-      try {
-        await api.delete(`/donations/${id}`);
-        setDonations(donations.filter(d => d._id !== id));
-      } catch (err) {
-        console.error('Error deleting donation:', err);
-        setError(err.response?.data?.message || 'Failed to delete donation.');
-      }
+    setToDeleteId(id);
+    setConfirmOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!toDeleteId) return;
+    try {
+      await api.delete(`/donations/${toDeleteId}`);
+      setDonations(donations.filter(d => d._id !== toDeleteId));
+    } catch (err) {
+      console.error('Error deleting donation:', err);
+      setError(err.response?.data?.message || 'Failed to delete donation.');
+    } finally {
+      setConfirmOpen(false);
+      setToDeleteId(null);
     }
   };
 
@@ -232,35 +245,67 @@ const DonationManagement = () => {
 
 
   return (
-    <div className="container mx-auto p-4 sm:p-6 lg:p-4">
-      <h1 className="text-3xl sm:text-4xl font-bold text-center text-green-800 mb-14">Donation Management</h1>
+    <div className="container mx-auto p-4 sm:p-6 lg:p-8">
+      {/* Hero Header */}
+      <div className={`relative ${currentTheme?.heroBg || 'bg-gradient-to-r from-emerald-50 to-teal-100'} ${currentTheme?.shadow || 'shadow-lg'} rounded-2xl p-8 mb-8 overflow-hidden`}>
+        <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full -mr-32 -mt-32"></div>
+        <div className="relative z-10">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className={`text-3xl sm:text-4xl font-bold mb-2 ${currentTheme?.heroTitle || 'text-emerald-800'}`}>Donation Management</h1>
+              <p className={`${currentTheme?.heroSubtitle || 'text-emerald-700'} text-sm sm:text-base`}>Track donations and generate receipts</p>
+            </div>
+            <CurrencyDollarIcon className={`h-16 w-16 ${currentTheme?.heroIcon || 'text-emerald-600 opacity-80'}`} />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className={`${currentTheme?.statCard || 'bg-white'} ${currentTheme?.border || 'border border-emerald-100'} rounded-lg p-4`}>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className={`text-xs sm:text-sm ${currentTheme?.statLabel || 'text-emerald-700'} mb-1`}>Total Donations</p>
+                  <p className={`text-xl sm:text-2xl font-bold ${currentTheme?.statValue || 'text-emerald-800'}`}>PKR {donations.reduce((sum, d) => sum + parseFloat(d.donationAmount || 0), 0).toFixed(2)}</p>
+                </div>
+                <BanknotesIcon className={`h-8 w-8 ${currentTheme?.statIcon || 'text-emerald-600 opacity-80'}`} />
+              </div>
+            </div>
+            <div className={`${currentTheme?.statCard || 'bg-white'} ${currentTheme?.border || 'border border-emerald-100'} rounded-lg p-4`}>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className={`text-xs sm:text-sm ${currentTheme?.statLabel || 'text-emerald-700'} mb-1`}>Donations Count</p>
+                  <p className={`text-xl sm:text-2xl font-bold ${currentTheme?.statValue || 'text-emerald-800'}`}>{donations.length}</p>
+                </div>
+                <ArrowDownTrayIcon className={`h-8 w-8 ${currentTheme?.statIcon || 'text-emerald-600 opacity-80'}`} />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-      <div className="mb-6 p-4 bg-gray-50 rounded-lg shadow-sm border border-gray-200">
-        <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-3">
+      <div className={`${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.shadow || 'shadow-md'} rounded-xl p-6 mb-6`}>
+        <div className="flex flex-col lg:flex-row justify-between items-stretch lg:items-center mb-4 gap-4">
           {/* Search Input */}
-          <div className="relative w-full sm:w-1/2 lg:w-2/3">
+          <div className="relative flex-1 min-w-0">
             <input
               type="text"
               id="filterDonorName"
               value={filterDonorName}
               onChange={(e) => setFilterDonorName(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+              className={`w-full pl-10 pr-4 h-12 rounded-lg ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} border ${currentTheme?.inputBorder || 'border-gray-300'} focus:outline-none`}
               placeholder="Search by Donor Name..."
             />
-            <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <MagnifyingGlassIcon className={`absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 ${currentTheme?.iconText || 'text-gray-400'}`} />
           </div>
 
           {/* Buttons */}
-          <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-            <button onClick={handleAddDonationClick} className="flex items-center justify-center bg-green-600 font-semibold text-white px-5 py-2 rounded-lg hover:bg-green-700 transition duration-200 shadow-md w-full sm:w-auto">
-              <PlusIcon className="h-5 w-5 mr-2" /> Add New Donation
-            </button>
+          <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto flex-shrink-0">
             <button
               onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-              className="flex items-center justify-center bg-gray-200 text-gray-800 px-5 py-2 rounded-lg hover:bg-gray-300 transition duration-200 shadow-md w-full sm:w-auto"
+              className={`flex items-center justify-center h-12 px-6 rounded-lg font-medium transition-all duration-200 bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-700 hover:to-green-800 ${currentTheme?.shadow || 'shadow-md'} w-full sm:w-auto`}
             >
               <FunnelIcon className="h-5 w-5 mr-2" />
               {showAdvancedFilters ? 'Hide Filters' : 'Show Filters'}
+            </button>
+            <button onClick={handleAddDonationClick} className={`flex items-center justify-center h-12 px-6 rounded-lg font-medium transition-all duration-200 bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-700 hover:to-green-800 ${currentTheme?.shadow || 'shadow-md'} w-full sm:w-auto`}>
+              <PlusIcon className="h-5 w-5 mr-2" /> Add New Donation
             </button>
           </div>
         </div>
@@ -275,7 +320,7 @@ const DonationManagement = () => {
                   id="filterPaymentMethod"
                   value={filterPaymentMethod}
                   onChange={(e) => setFilterPaymentMethod(e.target.value)}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-300 focus:ring focus:ring-green-200 focus:ring-opacity-50 p-2"
                 >
                   <option value="">All Methods</option>
                   {paymentMethods.map(method => (
@@ -290,7 +335,7 @@ const DonationManagement = () => {
                   id="filterStartDate"
                   value={filterStartDate}
                   onChange={(e) => setFilterStartDate(e.target.value)}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-300 focus:ring focus:ring-green-200 focus:ring-opacity-50 p-2"
                 />
               </div>
               <div>
@@ -300,7 +345,7 @@ const DonationManagement = () => {
                   id="filterEndDate"
                   value={filterEndDate}
                   onChange={(e) => setFilterEndDate(e.target.value)}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-300 focus:ring focus:ring-green-200 focus:ring-opacity-50 p-2"
                 />
               </div>
               <div className="flex items-end">
@@ -318,46 +363,51 @@ const DonationManagement = () => {
 
       {error && <Message type="error">{error}</Message>}
 
-      <div className="bg-white shadow-lg rounded-lg overflow-hidden">
+      <div className={`${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.shadow || 'shadow-md'} rounded-xl overflow-hidden`}>
         {loading ? (
           <Loader />
         ) : donations.length === 0 ? (
           <p className="p-4 text-center text-gray-500">No donations found.</p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y border-spacing-y-2 border-white divide-gray-200">
-              <thead className="bg-green-600">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gradient-to-r from-green-600 to-emerald-600">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-white border border-white uppercase tracking-wider">Donor Name</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-white border border-white uppercase tracking-wider">Amount (PKR)</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-white border border-white uppercase tracking-wider">Purpose</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-white border border-white uppercase tracking-wider">Date</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-white border border-white uppercase tracking-wider">Method</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-white border border-white uppercase tracking-wider">Marked By</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-white border border-white uppercase tracking-wider text-center">Actions</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Donor Name</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Amount (PKR)</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Purpose</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Date</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Method</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Marked By</th>
+                  <th className="px-6 py-4 text-center text-xs font-bold text-white uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {donations.map(donation => (
-                  <tr key={donation._id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{donation.donorName || 'Anonymous'}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{parseFloat(donation.donationAmount).toFixed(2)}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{donation.donationPurpose}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(donation.donationDate).toLocaleDateString()}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{donation.paymentMethod}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{donation.markedBy?.profileId?.name} ({donation.markedBy?.role}) {console.log(`marked by name ${donation.markedBy?.profileId?.name}`)}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium text-center">
+              <tbody className="bg-white divide-y divide-gray-100">
+                {donations.map((donation, index) => (
+                  <tr
+                    key={donation._id}
+                    className={`transition-all duration-150 hover:bg-green-50 hover:shadow-md ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
+                  >
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">{donation.donorName || 'Anonymous'}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">PKR {parseFloat(donation.donationAmount).toFixed(2)}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{donation.donationPurpose}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{new Date(donation.donationDate).toLocaleDateString()}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">{donation.paymentMethod}</span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{donation.markedBy?.profileId?.name} ({donation.markedBy?.role})</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
                       <div className="flex items-center justify-center space-x-2">
-                        <button onClick={() => handleViewDonationClick(donation)} className="text-blue-600 hover:text-blue-900">
+                        <button onClick={() => handleViewDonationClick(donation)} className="p-2 text-green-600 hover:text-green-900 hover:bg-green-50 rounded-lg transition-colors duration-200" title="View Donation">
                            <EyeIcon className="h-5 w-5" />
                         </button>
-                        <button onClick={() => handleEditDonationClick(donation)} className="text-indigo-600 hover:text-indigo-900">
+                        <button onClick={() => handleEditDonationClick(donation)} className="p-2 text-yellow-600 hover:text-yellow-900 hover:bg-yellow-50 rounded-lg transition-colors duration-200" title="Edit Donation">
                           <PencilIcon className="h-5 w-5" />
                         </button>
-                        <button onClick={() => handleDeleteDonation(donation._id)} className="text-red-600 hover:text-red-900">
+                        <button onClick={() => handleDeleteDonation(donation._id)} className="p-2 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-lg transition-colors duration-200" title="Delete Donation">
                           <TrashIcon className="h-5 w-5" />
                         </button>
-                        <button onClick={() => handleDownloadReceipt(donation._id)} className="text-green-600 hover:text-green-900">
+                        <button onClick={() => handleDownloadReceipt(donation._id)} className="p-2 text-green-600 hover:text-green-900 hover:bg-green-50 rounded-lg transition-colors duration-200" title="Download Receipt">
                           <ArrowDownTrayIcon className="h-5 w-5" />
                         </button>
                       </div>
@@ -386,6 +436,13 @@ const DonationManagement = () => {
             <AddDonationModal donationToEdit={selectedDonation} onClose={() => setIsViewModalOpen(false)} isViewMode={true} />
         )}
       </Modal>
+
+      <ConfirmationModal
+        isOpen={confirmOpen}
+        onClose={() => { setConfirmOpen(false); setToDeleteId(null); }}
+        onConfirm={confirmDelete}
+        message="Are you sure you want to delete this donation?"
+      />
 
     </div>
   );

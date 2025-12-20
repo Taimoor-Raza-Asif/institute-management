@@ -3,6 +3,8 @@ import api from '../api';
 import { UserContext } from '../App';
 import Loader from '../components/Loader';
 import Message from '../components/Message';
+import ConfirmationModal from '../components/ConfirmationModal';
+import { useTheme } from '../context/ThemeContext';
 import {
     AcademicCapIcon, PlusIcon, TrashIcon, PencilIcon, XMarkIcon,
     ArrowPathIcon, BookmarkSquareIcon, BookOpenIcon, UsersIcon, SparklesIcon, MinusCircleIcon
@@ -93,6 +95,7 @@ const getDefaultStructure = () => {
 
 const AcademicStructurePanel = () => {
     const { currentUser: user } = useContext(UserContext);
+    const { currentTheme } = useTheme();
     const [structure, setStructure] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -100,6 +103,27 @@ const AcademicStructurePanel = () => {
     const [activeTab, setActiveTab] = useState('');
     const [isAddingNewType, setIsAddingNewType] = useState(false);
     const [newType, setNewType] = useState(initialNewType);
+    const [confirmOpen, setConfirmOpen] = useState(false);
+    const [confirmMessage, setConfirmMessage] = useState('');
+    const [confirmHandler, setConfirmHandler] = useState(null);
+
+    const askConfirm = (message, handler) => {
+        setConfirmMessage(message);
+        setConfirmHandler(() => handler);
+        setConfirmOpen(true);
+    };
+
+    const onConfirm = async () => {
+        try {
+            if (confirmHandler) {
+                await confirmHandler();
+            }
+        } finally {
+            setConfirmOpen(false);
+            setConfirmMessage('');
+            setConfirmHandler(null);
+        }
+    };
 
     // Helper to process data from backend to ensure Maps are correctly instantiated
     const processStructureData = (data) => {
@@ -201,12 +225,13 @@ const AcademicStructurePanel = () => {
 
     // FIXED: initializeDefaultStructure now passes the payload directly to handleSaveStructure
     const initializeDefaultStructure = async () => {
-        if (!window.confirm("Are you sure you want to initialize the default structure? This will overwrite any existing configuration.")) return;
-        
         const defaultStructure = getDefaultStructure();
-        
-        // Pass the default structure array directly to the save handler
-        await handleSaveStructure(defaultStructure); 
+        askConfirm(
+            'Initialize default structure? This will overwrite existing configuration.',
+            async () => {
+                await handleSaveStructure(defaultStructure);
+            }
+        );
     };
 
     // --- Dynamic Type Management (Unchanged core logic) ---
@@ -269,14 +294,17 @@ const AcademicStructurePanel = () => {
     };
 
     const handleRemoveType = (slug) => {
-        if (window.confirm(`Are you sure you want to remove the class type with slug: ${slug}? This will affect student data.`)) {
-            setStructure(prev => ({
-                ...prev,
-                classTypes: prev.classTypes.filter(type => type.slug !== slug)
-            }));
-            setActiveTab(prev => prev === slug ? (structure.classTypes.length > 1 ? structure.classTypes[0].slug : '') : prev);
-            toast.warning('Class type removed from config. Click Save to confirm.');
-        }
+        askConfirm(
+            `Remove class type '${slug}'? This will affect student data.`,
+            () => {
+                setStructure(prev => ({
+                    ...prev,
+                    classTypes: prev.classTypes.filter(type => type.slug !== slug)
+                }));
+                setActiveTab(prev => prev === slug ? (structure.classTypes.length > 1 ? structure.classTypes[0].slug : '') : prev);
+                toast.warning('Class type removed from config. Click Save to confirm.');
+            }
+        );
     };
 
     const updateTypeConfig = (slug, configField, newValue) => {
@@ -289,7 +317,7 @@ const AcademicStructurePanel = () => {
     };
 
     // --- Class/Almiya Configuration Component ---
-    const ClassConfigEditor = ({ type, updateConfig }) => {
+    const ClassConfigEditor = ({ type, updateConfig, confirm }) => {
         const isAlmiya = type.slug === 'Almiya';
 
         const handleAddClass = () => {
@@ -346,9 +374,10 @@ const AcademicStructurePanel = () => {
         };
 
         const handleRemoveClass = (classNumber) => {
-            if (window.confirm(`Are you sure you want to remove Class with number: ${classNumber}?`)) {
-                updateConfig('classConfig', type.classConfig.filter(c => c.classNumber !== classNumber));
-            }
+            confirm(
+                `Remove class with number ${classNumber}?`,
+                () => updateConfig('classConfig', type.classConfig.filter(c => c.classNumber !== classNumber))
+            );
         };
 
 
@@ -356,7 +385,7 @@ const AcademicStructurePanel = () => {
             <div className="space-y-6">
                 <button
                     onClick={handleAddClass}
-                    className="flex items-center bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition duration-200 shadow-md"
+                    className="flex items-center bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition duration-200 shadow-md"
                 >
                     <PlusIcon className="h-5 w-5 mr-2" />
                     Add {isAlmiya ? 'Almiya' : 'Regular'} Class
@@ -364,7 +393,7 @@ const AcademicStructurePanel = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     {type.classConfig.sort((a, b) => a.classNumber - b.classNumber).map((cls, classIndex) => (
-                        <div key={cls.classNumber} className="border border-indigo-200 p-4 rounded-lg shadow-md bg-white relative">
+                        <div key={cls.classNumber} className="border border-green-200 p-4 rounded-lg shadow-md bg-white relative">
                             <button
                                 onClick={() => handleRemoveClass(cls.classNumber)}
                                 className="absolute top-2 right-2 text-red-500 hover:text-red-700 p-1 bg-white rounded-full transition"
@@ -372,7 +401,7 @@ const AcademicStructurePanel = () => {
                             >
                                 <TrashIcon className="h-5 w-5" />
                             </button>
-                            <h4 className="text-md font-bold mb-3 pb-2 text-indigo-700 border-b border-indigo-100">
+                            <h4 className="text-md font-bold mb-3 pb-2 text-green-700 border-b border-green-100">
                                 {cls.classIdentifier}
                             </h4>
                             
@@ -393,7 +422,7 @@ const AcademicStructurePanel = () => {
                                         min="1"
                                         value={cls.classNumber}
                                         onChange={(e) => handleUpdateClass(classIndex, 'classNumber', e.target.value)}
-                                        className="mt-1 block w-full px-2 py-1 text-sm border border-gray-300 rounded-md shadow-sm bg-indigo-50"
+                                        className="mt-1 block w-full px-2 py-1 text-sm border border-gray-300 rounded-md shadow-sm bg-green-50"
                                     />
                                 </div>
                             </div>
@@ -441,7 +470,7 @@ const AcademicStructurePanel = () => {
     };
 
     // --- BS Configuration Component ---
-    const DegreeConfigEditor = ({ type, updateConfig }) => {
+    const DegreeConfigEditor = ({ type, updateConfig, confirm }) => {
         const handleAddDegree = () => {
             updateConfig('degreeConfig', [...type.degreeConfig, {
                 degreeName: 'New Program',
@@ -512,9 +541,10 @@ const AcademicStructurePanel = () => {
         };
 
         const handleRemoveDegree = (degreeName) => {
-            if (window.confirm(`Are you sure you want to remove the degree: ${degreeName}?`)) {
-                updateConfig('degreeConfig', type.degreeConfig.filter(d => d.degreeName !== degreeName));
-            }
+            confirm(
+                `Remove degree: ${degreeName}?`,
+                () => updateConfig('degreeConfig', type.degreeConfig.filter(d => d.degreeName !== degreeName))
+            );
         };
         
         const handleRemoveSubject = (degreeIndex, semester, subIndex) => {
@@ -534,7 +564,7 @@ const AcademicStructurePanel = () => {
             <div className="space-y-6">
                 <button
                     onClick={handleAddDegree}
-                    className="flex items-center bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition duration-200 shadow-md"
+                    className="flex items-center bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition duration-200 shadow-md"
                 >
                     <PlusIcon className="h-5 w-5 mr-2" />
                     Add New Degree/Program
@@ -589,7 +619,7 @@ const AcademicStructurePanel = () => {
                                 {Array.from({ length: degree.maxSemester }, (_, i) => i + 1).map(semester => (
                                     // Use a stable key that includes the degree name and semester number
                                     <div key={`${degree.degreeName}-${semester}`} className="border border-gray-200 p-3 rounded-lg bg-gray-50 shadow-sm">
-                                        <h6 className="font-bold text-sm text-indigo-700 mb-2 border-b pb-1">Semester {semester}</h6>
+                                        <h6 className="font-bold text-sm text-green-700 mb-2 border-b pb-1">Semester {semester}</h6>
                                         <div className="space-y-1">
                                             {Array.from(degree.subjectsBySemester.get(String(semester)) || []).map((subject, subIndex) => (
                                                 <div key={subIndex} className="flex items-center space-x-1">
@@ -697,7 +727,7 @@ const AcademicStructurePanel = () => {
                             
                             <button
                                 onClick={() => handleAddSurah(juzIndex)}
-                                className="text-xs text-indigo-600 hover:text-indigo-800 flex items-center mt-2 font-medium"
+                                className="text-xs text-green-600 hover:text-green-800 flex items-center mt-2 font-medium"
                             >
                                 <PlusIcon className="h-4 w-4 mr-1" /> Add Checkpoint
                             </button>
@@ -715,10 +745,29 @@ const AcademicStructurePanel = () => {
     const isStructureEmpty = !structure || structure.classTypes.length === 0;
 
     return (
-        <div className="container mx-auto p-6 bg-white shadow-2xl rounded-xl my-8 max-w-7xl">
-            <h2 className="text-3xl font-extrabold text-gray-900 mb-6 border-b pb-4 flex items-center">
-                <AcademicCapIcon className="h-8 w-8 mr-3 text-indigo-600" /> Academic Structure Panel
-            </h2>
+        <>
+        <div className="container mx-auto p-6 max-w-7xl">
+            {/* Hero Header */}
+            <div className={`relative ${currentTheme?.heroBg || 'bg-gradient-to-r from-emerald-50 to-teal-100'} ${currentTheme?.shadow || 'shadow-lg'} rounded-2xl p-8 mb-8 overflow-hidden`}>
+                <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full -mr-32 -mt-32"></div>
+                <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div className="flex items-center">
+                        <AcademicCapIcon className={`h-8 w-8 mr-3 ${currentTheme?.iconText || 'text-emerald-700'}`} />
+                        <div>
+                            <h2 className={`text-3xl sm:text-4xl font-extrabold ${currentTheme?.heroTitle || 'text-emerald-800'}`}>Academic Structure Panel</h2>
+                            <p className={`${currentTheme?.heroSubtitle || 'text-emerald-700'} text-sm`}>Configure classes, degrees, subjects, and checkpoints for each track.</p>
+                        </div>
+                    </div>
+                    <button
+                        onClick={handleSaveStructure}
+                        disabled={isSaving || isStructureEmpty}
+                        className={`flex items-center justify-center h-12 px-8 rounded-lg font-bold bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-700 hover:to-green-800 ${currentTheme?.shadow || 'shadow-xl'} md:w-auto w-full disabled:bg-gray-400 disabled:shadow-none flex-shrink-0`}
+                    >
+                        <ArrowPathIcon className={`h-5 w-5 mr-3 ${isSaving ? 'animate-spin' : ''}`} />
+                        {isSaving ? 'Saving...' : 'Save Configuration'}
+                    </button>
+                </div>
+            </div>
 
             {/* Initialization Block */}
             {isStructureEmpty && (
@@ -744,7 +793,7 @@ const AcademicStructurePanel = () => {
             )}
 
             {/* FIXED: Responsive layout for Tabs/Add Button and Save Button */}
-            <div className="flex flex-col md:flex-row justify-between items-start mb-6 mt-4 gap-4">
+            <div className="flex flex-col md:flex-row justify-between items-start mb-6 mt-2 gap-4">
                 
                 {/* Tabs and Add Type Button - Takes full width on mobile/tablet, then shrinks on desktop */}
                 <div className="flex space-x-2 overflow-x-auto pb-2 flex-shrink md:flex-grow md:w-auto w-full">
@@ -752,7 +801,7 @@ const AcademicStructurePanel = () => {
                         <button
                             key={type.slug}
                             onClick={() => setActiveTab(type.slug)}
-                            className={`flex-shrink-0 px-5 py-2 text-sm font-semibold rounded-lg transition duration-150 shadow-md ${activeTab === type.slug ? 'bg-indigo-600 text-white transform scale-[1.02] ring-2 ring-indigo-300' : 'bg-gray-200 text-gray-700 hover:bg-indigo-100 hover:text-indigo-800'}`}
+                            className={`flex-shrink-0 h-12 px-5 text-sm font-semibold rounded-lg transition duration-150 ${activeTab === type.slug ? 'bg-gradient-to-r from-green-600 to-green-700 text-white shadow-md' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'}`}
                         >
                             <span className="flex items-center">
                                 <UsersIcon className="h-5 w-5 mr-1" /> {type.name}
@@ -762,40 +811,40 @@ const AcademicStructurePanel = () => {
 
                     <button
                         onClick={() => setIsAddingNewType(true)}
-                        className="flex-shrink-0 px-5 py-2 text-sm font-medium rounded-lg bg-green-500 text-white hover:bg-green-600 transition duration-150 shadow-md flex items-center"
+                        className="flex-shrink-0 h-12 px-5 text-sm font-medium rounded-lg bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-700 hover:to-green-800 shadow-md flex items-center"
                     >
                         <PlusIcon className="h-5 w-5 mr-2" /> Add Type
                     </button>
                 </div>
                 
-                {/* Save Configuration Button - Pushed to the right, takes full width on mobile/tablet */}
+                {/* Save button now in hero; keep secondary quick-save here for long pages */}
                 <button
                     onClick={handleSaveStructure}
                     disabled={isSaving || isStructureEmpty}
-                    className="flex items-center justify-center bg-green-600 text-white px-8 py-3 rounded-lg hover:bg-green-700 transition duration-200 shadow-xl font-bold md:w-auto w-full disabled:bg-gray-400 disabled:shadow-none flex-shrink-0"
+                    className="flex items-center justify-center h-12 px-8 rounded-lg font-bold bg-white text-green-700 border border-green-300 hover:bg-green-50 shadow-sm md:w-auto w-full disabled:bg-gray-200 disabled:text-gray-500"
                 >
                     <ArrowPathIcon className={`h-5 w-5 mr-3 ${isSaving ? 'animate-spin' : ''}`} />
-                    {isSaving ? 'Saving...' : 'Save Configuration'}
+                    {isSaving ? 'Saving...' : 'Quick Save'}
                 </button>
             </div>
 
             {isAddingNewType && (
-                <div className="p-6 mb-6 border border-dashed border-indigo-400 rounded-lg bg-indigo-50 shadow-inner">
-                    <h3 className="text-xl font-semibold mb-4 text-indigo-800">Add New Academic Type</h3>
+                <div className="p-6 mb-6 border border-dashed border-emerald-300 rounded-lg bg-emerald-50 shadow-inner">
+                    <h3 className="text-xl font-semibold mb-4 text-green-800">Add New Academic Type</h3>
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                         <div className="md:col-span-1">
-                            <label className="block text-sm font-medium text-indigo-700">Display Name</label>
-                            <input type="text" name="name" value={newType.name} onChange={handleNewTypeChange} placeholder="e.g., Vocational Training" className="mt-1 block w-full px-3 py-2 border border-indigo-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
+                            <label className="block text-sm font-medium text-green-700">Display Name</label>
+                            <input type="text" name="name" value={newType.name} onChange={handleNewTypeChange} placeholder="e.g., Vocational Training" className="mt-1 block w-full px-3 py-2 border border-green-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500" />
                         </div>
                         <div className="md:col-span-2">
-                            <label className="block text-sm font-medium text-indigo-700">Unique Slug (e.g., Vocational, VT, must be unique)</label>
-                            <input type="text" name="slug" value={newType.slug} onChange={handleNewTypeChange} placeholder="e.g., VT" className="mt-1 block w-full px-3 py-2 border border-indigo-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
+                            <label className="block text-sm font-medium text-green-700">Unique Slug (e.g., Vocational, VT, must be unique)</label>
+                            <input type="text" name="slug" value={newType.slug} onChange={handleNewTypeChange} placeholder="e.g., VT" className="mt-1 block w-full px-3 py-2 border border-green-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500" />
                         </div>
                         <div className="flex items-end space-x-3 md:col-span-1">
-                            <button onClick={handleAddNewType} className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 shadow-md">
+                            <button onClick={handleAddNewType} className="h-12 bg-gradient-to-r from-green-600 to-green-700 text-white px-4 rounded-md hover:from-green-700 hover:to-green-800 shadow-md">
                                 Create Type
                             </button>
-                            <button onClick={() => setIsAddingNewType(false)} className="bg-gray-300 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-400 shadow-sm">
+                            <button onClick={() => setIsAddingNewType(false)} className="h-12 bg-gray-300 text-gray-800 px-4 rounded-md hover:bg-gray-400 shadow-sm">
                                 Cancel
                             </button>
                         </div>
@@ -805,12 +854,12 @@ const AcademicStructurePanel = () => {
 
 
             {/* Active Tab Content */}
-            <div className="mt-6 p-6 border border-gray-200 rounded-xl bg-gray-50 min-h-[500px]">
+            <div className="mt-2 p-6 border border-gray-200 rounded-xl bg-gray-50 min-h-[500px]">
                 {activeType ? (
                     <>
                         <div className="flex justify-between items-center mb-6 pb-2 border-b border-gray-300">
                             <h3 className="text-2xl font-bold text-gray-800">
-                                <UsersIcon className='h-6 w-6 mr-2 inline-block text-indigo-500'/> Configuring: {activeType.name}
+                                <UsersIcon className='h-6 w-6 mr-2 inline-block text-green-500'/> Configuring: {activeType.name}
                             </h3>
                             <button
                                 onClick={() => handleRemoveType(activeType.slug)}
@@ -825,6 +874,7 @@ const AcademicStructurePanel = () => {
                             <ClassConfigEditor
                                 type={activeType}
                                 updateConfig={(field, value) => updateTypeConfig(activeTab, field, value)}
+                                confirm={askConfirm}
                             />
                         )}
 
@@ -832,6 +882,7 @@ const AcademicStructurePanel = () => {
                             <DegreeConfigEditor
                                 type={activeType}
                                 updateConfig={(field, value) => updateTypeConfig(activeTab, field, value)}
+                                confirm={askConfirm}
                             />
                         )}
 
@@ -856,6 +907,13 @@ const AcademicStructurePanel = () => {
                 )}
             </div>
         </div>
+        <ConfirmationModal
+            isOpen={confirmOpen}
+            onClose={() => { setConfirmOpen(false); setConfirmMessage(''); setConfirmHandler(null); }}
+            onConfirm={onConfirm}
+            message={confirmMessage || 'Are you sure?'}
+        />
+        </>
     );
 };
 

@@ -1,0 +1,12 @@
+Color Usage Report for AddDonationModal.jsx
+
+- Uses currentTheme for most color tokens (cardBg, shadow, border, subtitle, panelBorder, panelBg, label, mutedText, fileBg, fileText, buttonCancelText, buttonCancelBg, buttonCancelHover, buttonText, buttonPrimary, buttonPrimaryHover, buttonDisabled).
+- Fallbacks to Tailwind classes:
+  - bg-white, shadow-lg, border border-gray-200, text-gray-800, text-gray-700, text-red-500, bg-gray-200, bg-gray-300, text-white, bg-green-600, hover:bg-green-700, disabled:bg-green-400, text-green-700, bg-green-100, hover:file:bg-green-200, etc.
+- Color usage locations:
+  - Form backgrounds, panels, and cards
+  - Section titles and labels
+  - Inputs, selects, and file inputs
+  - Buttons (primary, cancel, hover, disabled)
+  - Error and info messages
+  - File upload area

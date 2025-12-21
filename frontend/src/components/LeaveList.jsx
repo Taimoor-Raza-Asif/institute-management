@@ -178,6 +178,7 @@ const LeaveList = () => {
       </div>
 
       {/* Search and Filters Card */}
+      {(isAdmin || isTeacher) && (
       <div className="bg-white rounded-xl shadow-xl p-6 mb-6">
         <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-3">
           <div className="relative w-full sm:w-1/2 lg:w-2/3">
@@ -262,6 +263,7 @@ const LeaveList = () => {
           </div>
         )}
       </div>
+      )}
 
       {loading ? (
         <p className="text-center text-gray-600 py-8">Loading...</p>

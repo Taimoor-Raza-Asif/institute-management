@@ -7,7 +7,7 @@ import Loader from './Loader';
 import Message from './Message';
 import { useTheme } from '../context/ThemeContext';
 import {
-  CalendarDaysIcon, ChartBarIcon, UserIcon, CheckCircleIcon, XCircleIcon, ClockIcon
+  CalendarDaysIcon, ChartBarIcon, UserIcon, CheckCircleIcon, XCircleIcon, ClockIcon, ArrowPathIcon
 } from '@heroicons/react/24/outline';
 
 const MyAttendance = () => {
@@ -77,11 +77,11 @@ const MyAttendance = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'Present': return 'text-green-600 bg-green-50';
-      case 'Absent': return 'text-red-600 bg-red-50';
-      case 'Leave': return 'text-yellow-600 bg-yellow-50';
-      case 'Holiday': return 'text-green-600 bg-green-50';
-      default: return 'text-gray-600 bg-gray-50';
+      case 'Present': return 'text-green-700 bg-green-100 border-green-300';
+      case 'Absent': return 'text-red-700 bg-red-100 border-red-300';
+      case 'Leave': return 'text-yellow-700 bg-yellow-100 border-yellow-300';
+      case 'Holiday': return 'text-blue-700 bg-blue-100 border-blue-300';
+      default: return 'text-gray-700 bg-gray-100 border-gray-300';
     }
   };
 
@@ -104,121 +104,220 @@ const MyAttendance = () => {
 
   const years = Array.from({ length: 5 }, (_, i) => currentYear - 2 + i); // Current year +/- 2
 
+  const calculateAttendancePercentage = () => {
+    if (!attendanceSummary || attendanceSummary.totalDays === 0) return 0;
+    return Math.round((attendanceSummary.presentDays / attendanceSummary.totalDays) * 100);
+  };
+
   return (
-    <div className={`container mx-auto p-6 ${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.shadow || 'shadow-lg'} rounded-lg my-8 max-w-6xl ${currentTheme?.border || ''}`}>
-      <h2 className={`text-3xl font-bold ${currentTheme?.title || 'text-gray-800'} mb-6 border-b pb-4 flex items-center`}>
-        <ChartBarIcon className={`h-8 w-8 mr-3 ${currentTheme?.iconText || 'text-green-600'}`} /> My Attendance
-      </h2>
+    <div className={`min-h-screen ${currentTheme?.pageBg || 'bg-gradient-to-br from-gray-50 to-gray-100'} py-8 px-4 sm:px-6 lg:px-8`}>
+      <div className="max-w-7xl mx-auto">
+        {/* Header Section */}
+        <div className={`${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.shadow || 'shadow-xl'} rounded-2xl p-6 mb-6 border ${currentTheme?.border || 'border-gray-200'}`}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className={`p-3 rounded-xl ${currentTheme?.iconBg || 'bg-gradient-to-br from-green-400 to-green-600'}`}>
+                <ChartBarIcon className="h-8 w-8 text-white" />
+              </div>
+              <div>
+                <h1 className={`text-3xl font-bold ${currentTheme?.title || 'text-gray-800'}`}>
+                  My Attendance
+                </h1>
+                <p className={`text-sm ${currentTheme?.mutedText || 'text-gray-500'} mt-1`}>
+                  Track your attendance records and performance
+                </p>
+              </div>
+            </div>
+            {attendanceSummary && (
+              <div className="hidden md:flex items-center space-x-2">
+                <div className="text-right">
+                  <p className={`text-sm ${currentTheme?.mutedText || 'text-gray-500'}`}>Attendance Rate</p>
+                  <p className={`text-2xl font-bold ${calculateAttendancePercentage() >= 75 ? 'text-green-600' : 'text-red-600'}`}>
+                    {calculateAttendancePercentage()}%
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
 
-      {error && <Message type="error">{error}</Message>}
+        {error && (
+          <div className="mb-6 animate-pulse">
+            <Message type="error">{error}</Message>
+          </div>
+        )}
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-          <div>
-          <label htmlFor="monthSelect" className={`block text-sm font-medium ${currentTheme?.text || 'text-gray-700'} mb-1`}>Select Month</label>
-          <select
-            id="monthSelect"
-            value={selectedMonth}
-            onChange={(e) => setSelectedMonth(Number(e.target.value))}
-            className={`mt-1 block w-full px-3 py-2 ${currentTheme?.inputBg || 'bg-white'} border ${currentTheme?.border || 'border-gray-300'} rounded-md ${currentTheme?.shadow || 'shadow-sm'} focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm`}
-          >
-            {months.map(m => (
-              <option key={m.value} value={m.value}>{m.name}</option>
-            ))}
-          </select>
+        {/* Filter Section */}
+        <div className={`${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.shadow || 'shadow-xl'} rounded-2xl p-6 mb-6 border ${currentTheme?.border || 'border-gray-200'}`}>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <label htmlFor="monthSelect" className={`block text-sm font-semibold ${currentTheme?.text || 'text-gray-700'}`}>
+                Select Month
+              </label>
+              <select
+                id="monthSelect"
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(Number(e.target.value))}
+                className={`w-full px-4 py-3 ${currentTheme?.inputBg || 'bg-gray-50'} border ${currentTheme?.border || 'border-gray-300'} rounded-xl ${currentTheme?.shadow || 'shadow-sm'} focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 ${currentTheme?.text || 'text-gray-800'}`}
+              >
+                {months.map(m => (
+                  <option key={m.value} value={m.value}>{m.name}</option>
+                ))}
+              </select>
+            </div>
+            
+            <div className="space-y-2">
+              <label htmlFor="yearSelect" className={`block text-sm font-semibold ${currentTheme?.text || 'text-gray-700'}`}>
+                Select Year
+              </label>
+              <select
+                id="yearSelect"
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(Number(e.target.value))}
+                className={`w-full px-4 py-3 ${currentTheme?.inputBg || 'bg-gray-50'} border ${currentTheme?.border || 'border-gray-300'} rounded-xl ${currentTheme?.shadow || 'shadow-sm'} focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 ${currentTheme?.text || 'text-gray-800'}`}
+              >
+                {years.map(y => (
+                  <option key={y} value={y}>{y}</option>
+                ))}
+              </select>
+            </div>
+            
+            <div className="space-y-2">
+              <label className={`block text-sm font-semibold ${currentTheme?.text || 'text-gray-700'}`}>
+                Action
+              </label>
+              <button
+                onClick={handleMonthYearChange}
+                disabled={loading}
+                className={`w-full h-12 ${currentTheme?.buttonPrimary || 'bg-gradient-to-r from-green-500 to-green-600'} ${currentTheme?.buttonText || 'text-white'} px-6 py-3 rounded-xl font-semibold transition-all duration-200 transform hover:scale-105 ${currentTheme?.shadow || 'shadow-lg hover:shadow-xl'} flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none`}
+              >
+                {loading ? (
+                  <ArrowPathIcon className="h-5 w-5 animate-spin" />
+                ) : (
+                  <>
+                    <CalendarDaysIcon className="h-5 w-5" />
+                    <span>View Attendance</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
         </div>
-        <div>
-          <label htmlFor="yearSelect" className="block text-sm font-medium text-gray-700 mb-1">Select Year</label>
-          <select
-            id="yearSelect"
-            value={selectedYear}
-            onChange={(e) => setSelectedYear(Number(e.target.value))}
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
-          >
-            {years.map(y => (
-              <option key={y} value={y}>{y}</option>
-            ))}
-          </select>
-        </div>
-          <div className="flex items-end">
-          <button
-            onClick={handleMonthYearChange}
-            className={`w-full ${currentTheme?.buttonPrimary || 'bg-green-500'} ${currentTheme?.buttonText || 'text-white'} px-4 py-2 rounded-md transition duration-200 ${currentTheme?.shadow || 'shadow-sm'} flex items-center justify-center`}
-            disabled={loading}
-          >
-            <CalendarDaysIcon className="h-5 w-5 mr-2" /> View Attendance
-          </button>
-        </div>
-      </div>
 
       {loading ? (
-        <Loader />
+        <div className="flex justify-center items-center py-20">
+          <Loader />
+        </div>
       ) : attendanceRecords.length === 0 && !error ? (
-        <Message type="info">No attendance records found for the selected period.</Message>
+        <div className={`${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.shadow || 'shadow-xl'} rounded-2xl p-12 text-center border ${currentTheme?.border || 'border-gray-200'}`}>
+          <CalendarDaysIcon className={`h-16 w-16 mx-auto ${currentTheme?.mutedText || 'text-gray-400'} mb-4`} />
+          <Message type="info">No attendance records found for the selected period.</Message>
+        </div>
       ) : (
         <>
+          {/* Summary Cards */}
           {attendanceSummary && (
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-              <div className="bg-green-50 p-4 rounded-lg shadow-sm border border-green-200 text-center">
-                <p className="text-sm text-green-700">Total Days</p>
-                <p className="text-2xl font-bold text-green-800">{attendanceSummary.totalDays}</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+              <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-2xl shadow-lg border border-blue-200 transform hover:scale-105 transition-all duration-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-blue-600 mb-1">Total Days</p>
+                    <p className="text-3xl font-bold text-blue-800">{attendanceSummary.totalDays}</p>
+                  </div>
+                  <CalendarDaysIcon className="h-12 w-12 text-blue-400" />
+                </div>
               </div>
-              <div className="bg-green-50 p-4 rounded-lg shadow-sm border border-green-200 text-center">
-                <p className="text-sm text-green-700">Present</p>
-                <p className="text-2xl font-bold text-green-800">{attendanceSummary.presentDays}</p>
+              
+              <div className="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-2xl shadow-lg border border-green-200 transform hover:scale-105 transition-all duration-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-green-600 mb-1">Present</p>
+                    <p className="text-3xl font-bold text-green-800">{attendanceSummary.presentDays}</p>
+                  </div>
+                  <CheckCircleIcon className="h-12 w-12 text-green-400" />
+                </div>
               </div>
-              <div className="bg-red-50 p-4 rounded-lg shadow-sm border border-red-200 text-center">
-                <p className="text-sm text-red-700">Absent</p>
-                <p className="text-2xl font-bold text-red-800">{attendanceSummary.absentDays}</p>
+              
+              <div className="bg-gradient-to-br from-red-50 to-red-100 p-6 rounded-2xl shadow-lg border border-red-200 transform hover:scale-105 transition-all duration-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-red-600 mb-1">Absent</p>
+                    <p className="text-3xl font-bold text-red-800">{attendanceSummary.absentDays}</p>
+                  </div>
+                  <XCircleIcon className="h-12 w-12 text-red-400" />
+                </div>
               </div>
-              <div className="bg-yellow-50 p-4 rounded-lg shadow-sm border border-yellow-200 text-center">
-                <p className="text-sm text-yellow-700">On Leave</p>
-                <p className="text-2xl font-bold text-yellow-800">{attendanceSummary.leaveDays}</p>
+              
+              <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 p-6 rounded-2xl shadow-lg border border-yellow-200 transform hover:scale-105 transition-all duration-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-yellow-600 mb-1">On Leave</p>
+                    <p className="text-3xl font-bold text-yellow-800">{attendanceSummary.leaveDays}</p>
+                  </div>
+                  <ClockIcon className="h-12 w-12 text-yellow-400" />
+                </div>
               </div>
             </div>
           )}
 
-          <div className={`overflow-x-auto ${currentTheme?.cardBg || 'bg-white'} rounded-lg ${currentTheme?.shadow || 'shadow-md'} ${currentTheme?.border || 'border-gray-100'}`}>
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className={`${currentTheme?.theadBg || 'bg-gray-50'}`}>
-                <tr>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Date
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Marked By
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Reason
-                  </th>
-                </tr>
-              </thead>
-              <tbody className={`${currentTheme?.tbodyBg || 'bg-white'} divide-y ${currentTheme?.divide || 'divide-gray-200'}`}>
-                {attendanceRecords.map(record => (
-                  <tr key={record._id}>
-                    <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${currentTheme?.text || 'text-gray-900'}`}>
-                      {new Date(record.date).toLocaleDateString()}
-                    </td>
-                    <td className={`px-6 py-4 whitespace-nowrap text-sm`}>
-                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(record.status)} flex items-center`}>
-                        {getStatusIcon(record.status)} {record.status}
-                      </span>
-                    </td>
-                    <td className={`px-6 py-4 whitespace-nowrap text-sm ${currentTheme?.mutedText || 'text-gray-500'}`}>
-                      {record.markedBy?.name || 'N/A'}
-                    </td>
-                    <td className={`px-6 py-4 whitespace-nowrap text-sm ${currentTheme?.mutedText || 'text-gray-500'}`}>
-                      {record.reason || '-'}
-                    </td>
+          {/* Attendance Records Table */}
+          <div className={`${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.shadow || 'shadow-xl'} rounded-2xl overflow-hidden border ${currentTheme?.border || 'border-gray-200'}`}>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className={`${currentTheme?.theadBg || 'bg-gradient-to-r from-gray-50 to-gray-100'}`}>
+                  <tr>
+                    <th scope="col" className={`px-6 py-4 text-left text-xs font-bold ${currentTheme?.text || 'text-gray-700'} uppercase tracking-wider`}>
+                      Date
+                    </th>
+                    <th scope="col" className={`px-6 py-4 text-left text-xs font-bold ${currentTheme?.text || 'text-gray-700'} uppercase tracking-wider`}>
+                      Status
+                    </th>
+                    <th scope="col" className={`px-6 py-4 text-left text-xs font-bold ${currentTheme?.text || 'text-gray-700'} uppercase tracking-wider`}>
+                      Marked By
+                    </th>
+                    <th scope="col" className={`px-6 py-4 text-left text-xs font-bold ${currentTheme?.text || 'text-gray-700'} uppercase tracking-wider`}>
+                      Reason
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className={`${currentTheme?.tbodyBg || 'bg-white'} divide-y ${currentTheme?.divide || 'divide-gray-200'}`}>
+                  {attendanceRecords.map((record, index) => (
+                    <tr key={record._id} className={`hover:bg-gray-50 transition-colors duration-150 ${index % 2 === 0 ? '' : 'bg-gray-25'}`}>
+                      <td className={`px-6 py-4 whitespace-nowrap text-sm font-semibold ${currentTheme?.text || 'text-gray-900'}`}>
+                        <div className="flex items-center">
+                          <CalendarDaysIcon className="h-5 w-5 text-gray-400 mr-2" />
+                          {new Date(record.date).toLocaleDateString('en-US', { 
+                            weekday: 'short', 
+                            year: 'numeric', 
+                            month: 'short', 
+                            day: 'numeric' 
+                          })}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <span className={`px-3 py-1.5 inline-flex items-center text-xs leading-5 font-bold rounded-full border ${getStatusColor(record.status)}`}>
+                          {getStatusIcon(record.status)} 
+                          {record.status}
+                        </span>
+                      </td>
+                      <td className={`px-6 py-4 whitespace-nowrap text-sm ${currentTheme?.mutedText || 'text-gray-600'}`}>
+                        <div className="flex items-center">
+                          <UserIcon className="h-5 w-5 text-gray-400 mr-2" />
+                          {record.markedBy?.name || 'N/A'}
+                        </div>
+                      </td>
+                      <td className={`px-6 py-4 text-sm ${currentTheme?.mutedText || 'text-gray-600'}`}>
+                        {record.reason || '-'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </>
       )}
+      </div>
     </div>
   );
 };

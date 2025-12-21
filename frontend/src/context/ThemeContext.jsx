@@ -20,6 +20,17 @@ export const ThemeProvider = ({ children }) => {
     localStorage.setItem('appTheme', currentThemeName);
   }, [currentThemeName]);
 
+  // Add/remove Tailwind 'dark' class based on selected theme
+  useEffect(() => {
+    const darkThemes = new Set(['General Dark', 'Deep Blue', 'Black & Teal']);
+    const root = document.documentElement;
+    if (darkThemes.has(currentThemeName)) {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+  }, [currentThemeName]);
+
   // Context value to be exported
   const value = {
     currentThemeName,

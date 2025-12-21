@@ -48,7 +48,7 @@ router.get('/student/:id', protect, authorizeRoles('admin', 'teacher', 'student'
 // @desc    Get attendance for a specific staff member (Staff, Admin)
 // @route   GET /api/attendance/staff/:id
 // @access  Private/Staff, Admin
-router.get('/staff/:id', protect, authorizeRoles('admin', 'teacher'), getStaffAttendance);
+router.get('/staff/:id', protect, authorizeRoles('admin', 'teacher', 'accountant', 'cook', 'cleaner'), getStaffAttendance);
 
 // @desc    Get attendance reports (Admin & Accountant)
 // @route   GET /api/attendance/reports

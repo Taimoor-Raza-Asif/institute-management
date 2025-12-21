@@ -1,92 +1,3 @@
-// import React, { useState, useEffect, useCallback, useContext } from 'react';
-// import api from '../api';
-// import { toast } from 'react-toastify';
-// import 'react-toastify/dist/ReactToastify.css';
-// import { UserContext } from '../App';
-// import Loader from './Loader';
-// import Message from './Message';
-
-// const MySubjects = () => {
-//     const { currentUser } = useContext(UserContext);
-//     const [assignedClasses, setAssignedClasses] = useState([]);
-//     const [loading, setLoading] = useState(true);
-//     const [error, setError] = useState('');
-
-//     const fetchTeacherSubjects = useCallback(async () => {
-//         setLoading(true);
-//         setError('');
-//         try {
-//             const teacherProfileResponse = await api.get(`/staff/${currentUser.profileId}`);
-//             setAssignedClasses(teacherProfileResponse.data.assignClasses || []);
-//         } catch (err) {
-//             console.error('Failed to fetch data:', err);
-//             setError('Failed to load subjects. Please try again.');
-//             toast.error('Failed to load subjects.');
-//         } finally {
-//             setLoading(false);
-//         }
-//     }, [currentUser]);
-
-//     useEffect(() => {
-//         if (currentUser?.profileId) {
-//             fetchTeacherSubjects();
-//         }
-//     }, [currentUser, fetchTeacherSubjects]);
-
-//     if (loading) {
-//         return <Loader />;
-//     }
-
-//     if (error) {
-//         return <Message type="error">{error}</Message>;
-//     }
-
-//     return (
-//         <div className="container mx-auto p-4 sm:p-6 lg:p-4">
-//             <h1 className="text-3xl sm:text-4xl font-bold text-center text-green-800 mb-8">My Subjects</h1>
-            
-//             {assignedClasses.length > 0 ? (
-//                 <div className="overflow-x-auto bg-white rounded-lg shadow overflow-y-auto relative mt-6">
-//                     <table className="w-full whitespace-nowrap table-auto">
-//                         <thead className="bg-gray-50 text-gray-600 uppercase text-sm leading-normal">
-//                             <tr>
-//                                 <th className="py-3 px-4 border-b border-gray-200">Class / Semester</th>
-//                                 <th className="py-3 px-4 border-b border-gray-200 text-center">Subjects</th>
-//                             </tr>
-//                         </thead>
-//                         <tbody>
-//                             {assignedClasses.map((assignment, index) => (
-//                                 <tr key={index} className="border-b text-center border-gray-100 hover:bg-gray-50 transition duration-150 ease-in-out">
-//                                     <td className="py-3 px-4 text-gray-800 font-medium">
-//                                         {assignment.type === 'BS' ? `Semester ${assignment.semester} (${assignment.degreeName})` : `Class ${assignment.classNumber}`}
-//                                     </td>
-//                                     <td className="py-3 px-4 text-gray-600 text-center">
-//                                         {assignment.subjects && assignment.subjects.length > 0 ? (
-//                                             assignment.subjects.join(', ')
-//                                         ) : (
-//                                             'No subjects assigned'
-//                                         )}
-//                                     </td>
-//                                 </tr>
-//                             ))}
-//                         </tbody>
-//                     </table>
-//                 </div>
-//             ) : (
-//                 <p className="text-xl text-gray-600 text-center p-4 bg-gray-100 rounded-lg shadow-sm">
-//                     No subjects have been assigned to you yet.
-//                 </p>
-//             )}
-//         </div>
-//     );
-// };
-
-// export default MySubjects;
-
-
-
-
-
 import React, { useState, useEffect, useCallback, useContext } from 'react';
 import api from '../api';
 import { toast } from 'react-toastify';
@@ -161,48 +72,75 @@ const MySubjects = () => {
         return <Message type="error">{error}</Message>;
     }
 
+    const totalAssignments = assignedClasses.length;
+    const totalSubjects = assignedClasses.reduce((sum, a) => sum + (a.subjects?.length || 0), 0);
+    const uniqueTracks = new Set(assignedClasses.map(a => a.type)).size;
+
     return (
-        <div className={`container mx-auto p-4 sm:p-6 lg:p-4`}> 
-            <h1 className={`text-3xl sm:text-4xl font-bold text-center mb-8 ${currentTheme?.title || 'text-green-800'}`}>My Assigned Classes & Subjects</h1>
-            
-            {assignedClasses.length > 0 ? (
-                <div className={`overflow-x-auto ${currentTheme?.cardBg || 'bg-white'} rounded-lg ${currentTheme?.shadow || 'shadow'} overflow-y-auto relative mt-6`}>
-                    <table className="w-full whitespace-nowrap table-auto">
-                        <thead className={`${currentTheme?.theadBg || 'bg-gray-50'} ${currentTheme?.text || 'text-gray-600'} uppercase text-sm leading-normal`}>
-                            <tr>
-                                <th className={`py-3 px-4 border-b ${currentTheme?.panelBorder || 'border-gray-200'}`}>Academic Track</th>
-                                <th className={`py-3 px-4 border-b ${currentTheme?.panelBorder || 'border-gray-200'}`}>Class / Degree / Course</th>
-                                <th className={`py-3 px-4 border-b ${currentTheme?.panelBorder || 'border-gray-200'} text-center`}>Subjects Taught</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {assignedClasses.map((assignment, index) => (
-                                <tr key={index} className={`border-b text-center ${currentTheme?.divide || 'border-gray-100'} hover:${currentTheme?.rowHover || 'bg-gray-50'} transition duration-150 ease-in-out`}>
-                                    <td className={`py-3 px-4 ${currentTheme?.text || 'text-gray-800'} font-medium`}>
-                                        <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${assignment.type === 'Class' ? (currentTheme?.pillClass || 'bg-green-100 text-green-800') : assignment.type === 'BS' ? (currentTheme?.pillBS || 'bg-green-100 text-green-800') : assignment.type === 'Almiya' ? (currentTheme?.pillAlmiya || 'bg-yellow-100 text-yellow-800') : (currentTheme?.pillOther || 'bg-green-100 text-green-800')}`}>
-                                            {assignment.type}
-                                        </span>
-                                    </td>
-                                    <td className={`py-3 px-4 ${currentTheme?.text || 'text-gray-800'} font-medium`}>
-                                        {renderAssignmentDetails(assignment)}
-                                    </td>
-                                    <td className={`py-3 px-4 ${currentTheme?.mutedText || 'text-gray-600'} text-center`}>
-                                        {assignment.subjects && assignment.subjects.length > 0 ? (
-                                            assignment.subjects.join(', ')
-                                        ) : (
-                                            'No subjects specified'
-                                        )}
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+        <div className="min-h-screen bg-gradient-to-b from-emerald-50 via-white to-emerald-50">
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                {/* Hero */}
+                <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 shadow-2xl text-white px-6 sm:px-10 py-8 mb-8">
+                    <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_20%_20%,white,transparent_25%),radial-gradient(circle_at_80%_0%,white,transparent_25%)]" />
+                    <div className="relative flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <h1 className="text-2xl sm:text-3xl font-extrabold leading-tight">My Assigned Classes & Subjects</h1>
+                            <p className="text-emerald-50/90 mt-1 text-sm sm:text-base max-w-2xl">Overview of tracks you handle and subjects you teach.</p>
+                        </div>
+                        <div className="grid grid-cols-3 gap-3">
+                            <div className="rounded-2xl bg-white/10 px-4 py-3 backdrop-blur-md border border-white/20">
+                                <p className="text-[11px] uppercase tracking-wide text-emerald-100">Assignments</p>
+                                <p className="text-lg font-semibold">{totalAssignments}</p>
+                            </div>
+                            <div className="rounded-2xl bg-white/10 px-4 py-3 backdrop-blur-md border border-white/20">
+                                <p className="text-[11px] uppercase tracking-wide text-emerald-100">Tracks</p>
+                                <p className="text-lg font-semibold">{uniqueTracks}</p>
+                            </div>
+                            <div className="rounded-2xl bg-white/10 px-4 py-3 backdrop-blur-md border border-white/20">
+                                <p className="text-[11px] uppercase tracking-wide text-emerald-100">Subjects</p>
+                                <p className="text-lg font-semibold">{totalSubjects}</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            ) : (
-                <p className={`text-xl ${currentTheme?.mutedText || 'text-gray-600'} text-center p-4 ${currentTheme?.panelBg || 'bg-gray-100'} rounded-lg ${currentTheme?.shadow || 'shadow-sm'}`}>
-                    No classes or subjects have been assigned to you yet.
-                </p>
-            )}
+
+                {assignedClasses.length > 0 ? (
+                    <div className={`overflow-x-auto rounded-2xl bg-white shadow-lg overflow-y-auto relative mt-6 border border-emerald-100`}>
+                        <table className="w-full whitespace-nowrap table-auto">
+                            <thead className={`bg-emerald-600 text-white uppercase text-xs leading-normal`}>
+                                <tr>
+                                    <th className="py-3 px-4 text-left font-semibold tracking-wide">Academic Track</th>
+                                    <th className="py-3 px-4 text-left font-semibold tracking-wide">Class / Degree / Course</th>
+                                    <th className="py-3 px-4 text-center font-semibold tracking-wide">Subjects Taught</th>
+                                </tr>
+                            </thead>
+                            <tbody className={`divide-y divide-emerald-50`}>
+                                {assignedClasses.map((assignment, index) => (
+                                    <tr key={index} className={`hover:bg-emerald-50 transition duration-150 ease-in-out`}>
+                                        <td className={`py-3 px-4 text-gray-800 font-medium`}>
+                                            <span className={`px-2 py-1 inline-flex text-[11px] leading-5 font-semibold rounded-full ${assignment.type === 'Class' ? 'bg-emerald-100 text-emerald-800' : assignment.type === 'BS' ? 'bg-blue-100 text-blue-800' : assignment.type === 'Almiya' ? 'bg-amber-100 text-amber-800' : 'bg-teal-100 text-teal-800'}`}>
+                                                {assignment.type}
+                                            </span>
+                                        </td>
+                                        <td className={`py-3 px-4 text-gray-700`}>{renderAssignmentDetails(assignment)}</td>
+                                        <td className={`py-3 px-4 text-gray-600 text-center`}>
+                                            {assignment.subjects && assignment.subjects.length > 0 ? (
+                                                <span className="text-sm">{assignment.subjects.join(', ')}</span>
+                                            ) : (
+                                                <span className="text-sm text-gray-400">No subjects specified</span>
+                                            )}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                ) : (
+                    <p className={`text-xl ${currentTheme?.mutedText || 'text-gray-600'} text-center p-4 ${currentTheme?.panelBg || 'bg-gray-100'} rounded-lg ${currentTheme?.shadow || 'shadow-sm'}`}>
+                        No classes or subjects have been assigned to you yet.
+                    </p>
+                )}
+            </div>
         </div>
     );
 };

@@ -275,6 +275,65 @@ const getSalaryReports = asyncHandler(async (req, res) => {
   }
 });
 
+// @desc    Bulk create salary records
+// @route   POST /api/salary/bulk-create
+// @access  Private/Admin
+const bulkCreateSalaries = asyncHandler(async (req, res) => {
+  const { salaries } = req.body;
+  if (!Array.isArray(salaries) || salaries.length === 0) {
+    res.status(400);
+    throw new Error('No salaries provided for bulk creation.');
+  }
+
+  // Get the admin user for paidBy
+  const paidBy = await User.findById(req.user._id).select('name').lean();
+
+  // Prepare salary records
+  const preparedSalaries = await Promise.all(
+    salaries.map(async (salary) => {
+      const staff = await Staff.findById(salary.staffId).select('name cnic staffType salary').lean();
+      if (!staff) throw new Error(`Staff member with ID ${salary.staffId} not found`);
+
+      return {
+        staff: salary.staffId,
+        staffName: staff.name,
+        staffCnic: staff.cnic,
+        staffRole: staff.staffType.toLowerCase(),
+        salaryPerMonth: staff.salary,
+        month: salary.month,
+        year: salary.year,
+        paidAmount: salary.paidAmount || 0,
+        paidAs: salary.paidAs || 'Cash',
+        paidBy: req.user._id,
+        paidByName: paidBy.name,
+        bonus: salary.bonus || 0,
+        overtime: salary.overtime || 0,
+        paidAt: new Date(),
+        advancedSalary: salary.advancedSalary || 0,
+        status: (salary.paidAmount || 0) === staff.salary ? 'Paid' : (salary.paidAmount || 0) > 0 ? 'Partial Paid' : 'Unpaid',
+        deduction: (staff.salary - (salary.paidAmount || 0)) + (salary.advancedSalary || 0)
+      };
+    })
+  );
+
+  // Check for duplicates and skip existing records
+  const existingRecords = await Salary.find({
+    $or: preparedSalaries.map(s => ({ staff: s.staff, month: s.month, year: s.year }))
+  }).select('staff month year');
+
+  const existingKeySet = new Set(existingRecords.map(r => `${r.staff.toString()}-${r.month}-${r.year}`));
+
+  const toInsert = preparedSalaries.filter(s => !existingKeySet.has(`${s.staff}-${s.month}-${s.year}`));
+  const duplicateCount = preparedSalaries.length - toInsert.length;
+
+  let created = [];
+  if (toInsert.length > 0) {
+    created = await Salary.insertMany(toInsert, { ordered: false });
+  }
+
+  res.status(201).json({ createdCount: created.length, duplicateCount });
+});
+
 // @desc    Delete a salary record
 // @route   DELETE /api/salary/:id
 // @access  Private/Admin
@@ -299,5 +358,6 @@ export {
   getSalaryById,
   getSalaries,
   getSalaryReports,
+  bulkCreateSalaries,
   deleteSalary,
 };

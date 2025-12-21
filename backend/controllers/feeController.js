@@ -10,6 +10,26 @@ import asyncHandler from 'express-async-handler';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+const recomputeStudentFeeStatus = async (studentId) => {
+  const student = await Student.findById(studentId);
+  if (!student) return;
+
+  const allStudentFees = await FeeRecord.find({ studentId });
+
+  let studentNewStatus = 'Unpaid';
+  const hasPartialPaid = allStudentFees.some(f => f.dueAmount > 0 && f.receivedAmount > 0);
+  const hasFullyPaid = allStudentFees.some(f => f.dueAmount === 0 && f.receivedAmount > 0);
+
+  if (hasFullyPaid) {
+    studentNewStatus = 'Paid';
+  } else if (hasPartialPaid) {
+    studentNewStatus = 'Partial Paid';
+  }
+
+  student.feeStatus = studentNewStatus;
+  await student.save({ validateBeforeSave: false });
+};
+
 const getRelativeUploadUrl = (filePath) => {
   if (!filePath) return '';
   const uploadsBaseDir = path.join(__dirname, '..', 'uploads');
@@ -137,6 +157,68 @@ export const createFeeRecord = async (req, res) => {
       return res.status(400).json({ message: 'Fee record validation failed', errors });
     }
     res.status(500).json({ message: 'Failed to save fee record: ' + err.message });
+  }
+};
+
+// --- BULK CREATE FEES ---
+export const bulkCreateFees = async (req, res) => {
+  try {
+    const { fees } = req.body;
+    if (!Array.isArray(fees) || fees.length === 0) {
+      return res.status(400).json({ message: 'No fees provided for bulk creation.' });
+    }
+
+    // Normalize incoming fee payload
+    const preparedFees = fees.map((fee) => {
+      const total = parseFloat(fee.totalFee) + (parseFloat(fee.admissionFee) || 0);
+      const received = parseFloat(fee.receivedAmount) || 0;
+      const dueAmount = Math.max(0, total - received);
+
+      return {
+        studentId: fee.studentId,
+        paidBy: fee.paidBy,
+        month: fee.month,
+        year: parseInt(fee.year),
+        totalFee: total,
+        receivedAmount: received,
+        dueAmount,
+        receivedDate: fee.receivedDate ? new Date(fee.receivedDate) : new Date(),
+        receivedBy: fee.receivedBy || 'Pending',
+        paymentMethod: fee.paymentMethod || 'Cash',
+        billScreenshotUrl: fee.billScreenshotUrl || '',
+        admissionFee: parseFloat(fee.admissionFee) || 0,
+      };
+    });
+
+    // Deduplicate against existing fees for the same student/month/year
+    const uniqueKeys = [...new Set(preparedFees.map(f => `${f.studentId}-${f.month}-${f.year}`))];
+    const existing = await FeeRecord.find({
+      $or: uniqueKeys.map(key => {
+        const [studentId, month, year] = key.split('-');
+        return { studentId, month, year: parseInt(year) };
+      })
+    }).select('studentId month year');
+
+    const existingKeySet = new Set(existing.map(f => `${f.studentId.toString()}-${f.month}-${f.year}`));
+
+    const toInsert = preparedFees.filter(f => !existingKeySet.has(`${f.studentId}-${f.month}-${f.year}`));
+    const duplicateCount = preparedFees.length - toInsert.length;
+
+    let created = [];
+    if (toInsert.length > 0) {
+      created = await FeeRecord.insertMany(toInsert, { ordered: false });
+
+      // Recompute fee status for affected students (dedupe student IDs)
+      const uniqueStudentIds = [...new Set(toInsert.map(f => f.studentId?.toString()))];
+      for (const id of uniqueStudentIds) {
+        await recomputeStudentFeeStatus(id);
+      }
+    }
+
+    res.status(201).json({ createdCount: created.length, duplicateCount });
+  } catch (err) {
+    console.error('Error bulk-creating fee records:', err);
+    res.status(500).json({ message: 'Failed to create bulk fees: ' + err.message });
   }
 };
 

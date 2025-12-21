@@ -15,6 +15,7 @@ const MarkingForm = () => {
     const navigate = useNavigate();
     const [students, setStudents] = useState([]);
     const [teacherData, setTeacherData] = useState(null);
+    const [academicStructure, setAcademicStructure] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [formData, setFormData] = useState({
@@ -28,16 +29,19 @@ const MarkingForm = () => {
     });
     const [marksData, setMarksData] = useState({}); // State for bulk marking
     const [isBulkMode, setIsBulkMode] = useState(false);
+    const [selectedAssignmentIndex, setSelectedAssignmentIndex] = useState(-1);
 
     const fetchInitialData = useCallback(async () => {
         setLoading(true);
         try {
-            const [studentsRes, teacherRes] = await Promise.all([
+            const [studentsRes, teacherRes, structureRes] = await Promise.all([
                 api.get('/students'),
                 api.get(`/staff/${currentUser.profileId}`),
+                api.get('/academic-structure'),
             ]);
             setStudents(studentsRes.data);
             setTeacherData(teacherRes.data);
+            setAcademicStructure(structureRes.data?.classTypes || null);
             setLoading(false);
         } catch (err) {
             console.error('Failed to fetch data:', err);
@@ -114,33 +118,102 @@ const MarkingForm = () => {
     if (loading) return <Loader />;
     if (error) return <Message variant="danger">{error}</Message>;
 
-    const assignedSubjects = teacherData?.assignClasses?.flatMap(ac => ac.subjects) || [];
-    const filteredStudents = students.filter(student =>
-        teacherData?.assignClasses.some(ac =>
-            (ac.type === 'Class' && student.class === 'Class' && student.classNumber === ac.classNumber) ||
-            (ac.type === 'BS' && student.class === 'BS' && student.degreeName === ac.degreeName && student.semester === ac.semester)
-        )
-    );
+    const assignments = teacherData?.assignClasses || [];
+    const selectedAssignment =
+        selectedAssignmentIndex >= 0 && selectedAssignmentIndex < assignments.length
+            ? assignments[selectedAssignmentIndex]
+            : null;
+
+    const getAcademicConfig = (slug) => academicStructure?.find(t => t.slug === slug);
+    const renderAssignmentLabel = (ac) => {
+        if (!ac) return '';
+        switch (ac.type) {
+            case 'Class':
+                return `Class • Grade ${ac.classNumber}`;
+            case 'Almiya': {
+                const almiya = getAcademicConfig('Almiya');
+                const cfg = almiya?.classConfig?.find(c => String(c.classNumber) === String(ac.classNumber));
+                return cfg ? `Almiya • ${cfg.classIdentifier} (Grade ${ac.classNumber})` : `Almiya • Grade ${ac.classNumber}`;
+            }
+            case 'BS':
+                return `BS • ${ac.degreeName} (Sem ${ac.semester})`;
+            case 'Hifaz':
+                return 'Hifaz-ul-Quran';
+            default:
+                return ac.type;
+        }
+    };
+
+    const assignedSubjects = selectedAssignment?.subjects || [];
+    const filteredStudents = students.filter(student => {
+        if (!selectedAssignment) return false;
+        const ac = selectedAssignment;
+        return (
+            (ac.type === 'Class' && student.class === 'Class' && String(student.classNumber) === String(ac.classNumber)) ||
+            (ac.type === 'Almiya' && student.class === 'Almiya' && String(student.classNumber) === String(ac.classNumber)) ||
+            (ac.type === 'BS' && student.class === 'BS' && student.degreeName === ac.degreeName && String(student.semester) === String(ac.semester)) ||
+            (ac.type === 'Hifaz' && student.class === 'Hifaz')
+        );
+    });
 
     const isFormDisabled = !formData.subject || !formData.marksType || !formData.marksName || !formData.totalMarks || !formData.conductedDate;
     const totalMarks = Number(formData.totalMarks);
 
     return (
-        <div className="bg-white p-6 rounded-lg shadow-lg">
-            <h1 className="text-2xl font-bold text-gray-800 mb-6">Add Marks</h1>
+        <div className="min-h-screen bg-gradient-to-b from-emerald-50 via-white to-emerald-50">
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                {/* Hero */}
+                <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 shadow-2xl text-white px-6 sm:px-10 py-8 mb-8">
+                    <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_20%_20%,white,transparent_25%),radial-gradient(circle_at_80%_0%,white,transparent_25%)]" />
+                    <div className="relative flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <h1 className="text-2xl sm:text-3xl font-extrabold leading-tight">Add Marks</h1>
+                            <p className="text-emerald-50/90 mt-1 text-sm sm:text-base max-w-2xl">Record assessments for your assigned students. Use single or bulk entry.</p>
+                        </div>
+                        <div className="inline-flex rounded-xl bg-white/10 p-1 border border-white/20 backdrop-blur-md">
+                            <button
+                                type="button"
+                                onClick={() => setIsBulkMode(false)}
+                                className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition ${!isBulkMode ? 'bg-white text-emerald-700 shadow' : 'text-white hover:bg-white/10'}`}
+                            >
+                                Single Entry
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setIsBulkMode(true)}
+                                className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition ${isBulkMode ? 'bg-white text-emerald-700 shadow' : 'text-white hover:bg-white/10'}`}
+                            >
+                                Bulk Entry
+                            </button>
+                        </div>
+                    </div>
+                </div>
 
-            <div className="flex justify-end mb-4">
-                <button
-                    onClick={() => setIsBulkMode(!isBulkMode)}
-                    className="bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300 transition duration-200"
-                >
-                    Switch to {isBulkMode ? 'Single Entry' : 'Bulk Entry'}
-                </button>
-            </div>
-
-            <div className="space-y-4">
-                {/* Common fields for both modes */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* Common fields card */}
+                <div className="rounded-2xl bg-white border border-emerald-100 shadow-lg px-5 py-5">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+                        {/* Assignment selection */}
+                        <div className="lg:col-span-2">
+                            <label className="block text-sm font-medium text-gray-700">Class / Section</label>
+                            <select
+                                value={selectedAssignmentIndex}
+                                onChange={(e) => {
+                                    const idx = Number(e.target.value);
+                                    setSelectedAssignmentIndex(idx);
+                                    // Reset dependent fields
+                                    setFormData(prev => ({ ...prev, subject: '', studentId: '' }));
+                                    setMarksData({});
+                                }}
+                                className="mt-1 block w-full rounded-xl shadow-sm py-2.5 px-3 bg-emerald-50/60 border border-emerald-200 text-gray-700 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"
+                            >
+                                <option value={-1}>Select Class / Assignment</option>
+                                {assignments.map((ac, idx) => (
+                                    <option key={`${ac.type}-${idx}-${ac.classNumber || ac.semester || 'hz'}`} value={idx}>
+                                        {renderAssignmentLabel(ac)}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
                     <div>
                         <label htmlFor="subject" className="block text-sm font-medium text-gray-700">Subject</label>
                         <select
@@ -149,7 +222,8 @@ const MarkingForm = () => {
                             value={formData.subject}
                             onChange={handleChange}
                             required
-                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500"
+                            disabled={!selectedAssignment}
+                            className="mt-1 block w-full rounded-xl shadow-sm py-2.5 px-3 bg-emerald-50/60 border border-emerald-200 text-gray-700 disabled:opacity-60 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"
                         >
                             <option value="">Select Subject</option>
                             {assignedSubjects.map(subject => (
@@ -166,7 +240,7 @@ const MarkingForm = () => {
                             value={formData.marksType}
                             onChange={handleChange}
                             required
-                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500"
+                            className="mt-1 block w-full rounded-xl shadow-sm py-2.5 px-3 bg-emerald-50/60 border border-emerald-200 text-gray-700 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"
                         >
                             <option value="">Select Type</option>
                             {marksTypes.map(type => (
@@ -185,7 +259,7 @@ const MarkingForm = () => {
                             onChange={handleChange}
                             placeholder="e.g., Quiz 1, Lab 3"
                             required
-                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500"
+                            className="mt-1 block w-full rounded-xl shadow-sm py-2.5 px-3 bg-white border border-emerald-200 text-gray-700 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"
                         />
                     </div>
 
@@ -199,7 +273,7 @@ const MarkingForm = () => {
                             onChange={handleChange}
                             required
                             min="1"
-                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500"
+                            className="mt-1 block w-full rounded-xl shadow-sm py-2.5 px-3 bg-white border border-emerald-200 text-gray-700 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"
                         />
                     </div>
                     {/* New field for conducted date */}
@@ -212,35 +286,35 @@ const MarkingForm = () => {
                             value={formData.conductedDate}
                             onChange={handleChange}
                             required
-                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500"
+                            className="mt-1 block w-full rounded-xl shadow-sm py-2.5 px-3 bg-white border border-emerald-200 text-gray-700 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"
                         />
                     </div>
+                    </div>
                 </div>
-            </div>
 
             {isBulkMode ? (
                 // Bulk Entry Form
-                <div className="bg-gray-50 p-6 rounded-lg mt-6">
+                <div className="border border-emerald-100 bg-white p-5 rounded-2xl mt-6 shadow-lg">
                     <form onSubmit={handleBulkSubmit}>
                         <div className="overflow-x-auto">
-                            <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-gray-100">
+                            <table className="min-w-full divide-y divide-emerald-100">
+                                <thead className="bg-emerald-600 text-white">
                                     <tr>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student Name</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Marks Obtained</th>
+                                        <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide">Student Name</th>
+                                        <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide">Marks Obtained</th>
                                     </tr>
                                 </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
+                                <tbody className="bg-white divide-y divide-emerald-50">
                                     {filteredStudents.length > 0 ? (
                                         filteredStudents.map(student => (
                                             <tr key={student._id}>
-                                                <td className="px-6 py-4 whitespace-nowrap">{student.name}</td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                <td className="px-6 py-3 whitespace-nowrap text-gray-800">{student.name}</td>
+                                                <td className="px-6 py-3 whitespace-nowrap">
                                                     <input
                                                         type="number"
                                                         value={marksData[student._id] || ''}
                                                         onChange={(e) => handleMarksChange(student._id, e.target.value)}
-                                                        className="w-24 p-2 border border-gray-300 rounded-md"
+                                                        className="w-28 p-2 rounded-xl bg-white border border-emerald-200 text-gray-700 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"
                                                         min="0"
                                                         max={totalMarks}
                                                     />
@@ -260,7 +334,7 @@ const MarkingForm = () => {
                         <div className="flex justify-end mt-4">
                             <button
                                 type="submit"
-                                className={`bg-green-600 text-white px-6 py-2 rounded-md transition-colors ${isFormDisabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-700'}`}
+                                className={`inline-flex items-center gap-2 bg-emerald-600 text-white px-5 py-2.5 rounded-xl shadow transition-colors ${isFormDisabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-emerald-700'}`}
                                 disabled={isFormDisabled}
                             >
                                 Save All Marks
@@ -270,7 +344,7 @@ const MarkingForm = () => {
                 </div>
             ) : (
                 // Single Entry Form
-                <div className="bg-gray-50 p-6 rounded-lg mt-6">
+                <div className="border border-emerald-100 bg-white p-5 rounded-2xl mt-6 shadow-lg">
                     <form onSubmit={handleSubmit}>
                         <div>
                             <label htmlFor="studentId" className="block text-sm font-medium text-gray-700">Student</label>
@@ -280,7 +354,8 @@ const MarkingForm = () => {
                                 value={formData.studentId}
                                 onChange={handleChange}
                                 required
-                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500"
+                                disabled={!selectedAssignment}
+                                className="mt-1 block w-full rounded-xl shadow-sm py-2.5 px-3 bg-emerald-50/60 border border-emerald-200 text-gray-700 disabled:opacity-60 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"
                             >
                                 <option value="">Select Student</option>
                                 {filteredStudents.map(student => (
@@ -300,23 +375,24 @@ const MarkingForm = () => {
                                 required
                                 min="0"
                                 max={totalMarks}
-                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500"
+                                className="mt-1 block w-full rounded-xl shadow-sm py-2.5 px-3 bg-white border border-emerald-200 text-gray-700 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"
                             />
                         </div>
 
                         <div className="flex justify-end mt-4">
                             <button
                                 type="submit"
-                                className={`bg-green-600 text-white px-6 py-2 rounded-md transition-colors ${isFormDisabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-700'}`}
+                                className={`inline-flex items-center gap-2 bg-emerald-600 text-white px-5 py-2.5 rounded-xl shadow transition-colors ${isFormDisabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-emerald-700'}`}
                                 disabled={isFormDisabled}
                             >
-                                <PlusIcon className="h-5 w-5 mr-2" />
+                                <PlusIcon className="h-5 w-5" />
                                 Add Marks
                             </button>
                         </div>
                     </form>
                 </div>
             )}
+            </div>
         </div>
     );
 };

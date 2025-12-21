@@ -46,12 +46,14 @@ import {
   createFeeRecord,
   updateFeeRecord,
   deleteFeeRecord,
-  getFeeReports
+  getFeeReports,
+  bulkCreateFees
 } from '../controllers/feeController.js';
 import multer from 'multer';
 import path from 'path';
 import { protect, authorizeRoles } from '../middleware/authMiddleware.js'; // <--- NEW: Import auth middleware
 import { fileURLToPath } from 'url'; // Import fileURLToPath
+import fs from 'fs';
 
 // Helper to get __dirname in ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -83,6 +85,9 @@ router.get('/student/:studentId', protect, authorizeRoles('admin', 'accountant',
 router
   .route('/reports') // <-- New route
   .get(protect, authorizeRoles('admin', 'accountant'), getFeeReports);
+
+// Bulk create fee records (Admin, Accountant)
+router.post('/bulk-create', protect, authorizeRoles('admin', 'accountant'), bulkCreateFees);
 
 // Create a new fee record (Admin, Accountant)
 router.post('/', protect, authorizeRoles('admin', 'accountant'), upload.single('billScreenshot'), createFeeRecord);

@@ -496,7 +496,8 @@ import { UserContext } from '../App';
 import Loader from '../components/Loader';
 import Message from '../components/Message';
 import { toast } from 'react-toastify';
-import { TrashIcon, PencilIcon, MagnifyingGlassIcon, XMarkIcon, FunnelIcon } from '@heroicons/react/24/outline';
+import { TrashIcon, PencilIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { Search, Filter } from 'lucide-react';
 import ConfirmationModal from '../components/ConfirmationModal';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
@@ -540,6 +541,11 @@ const MarksList = () => {
     const { currentUser } = useContext(UserContext);
     const navigate = useNavigate();
     const [marks, setMarks] = useState([]);
+    
+    // Role checks
+    const isAdmin = currentUser?.role === 'admin';
+    const isTeacher = currentUser?.role === 'teacher';
+    const isStudent = currentUser?.role === 'student';
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
@@ -753,24 +759,37 @@ const MarksList = () => {
 
 
     return (
-        <div className={`p-6 rounded-lg ${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.shadow || 'shadow-lg'}`}>
-            <h1 className={`text-2xl font-bold mb-6 ${currentTheme?.title || 'text-gray-800'}`}>Marks List</h1>
+        <div className="min-h-screen bg-gradient-to-b from-emerald-50 via-white to-emerald-50">
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                {/* Hero */}
+                <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 shadow-2xl text-white px-6 sm:px-10 py-8 mb-8">
+                    <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_20%_20%,white,transparent_25%),radial-gradient(circle_at_80%_0%,white,transparent_25%)]" />
+                    <div className="relative flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <h1 className="text-2xl sm:text-3xl font-extrabold leading-tight">Marks List</h1>
+                            <p className="text-emerald-50/90 mt-1 text-sm sm:text-base max-w-2xl">Search, filter and manage marks you have recorded.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div className={`p-5 rounded-2xl ${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.shadow || 'shadow-lg'} border border-emerald-100`}>
 
             {/* Header with Search and Filter Toggle */}
+            {(isAdmin || isTeacher) && (
             <div className="flex flex-col md:flex-row justify-between items-center mb-6 space-y-4 md:space-y-0">
-                <div className="relative w-full md:w-1/3">
+                <div className="relative w-full md:w-1/2">
                     <input
                         type="text"
                         placeholder="Search by student name or roll number..."
                         value={searchQuery}
                         onChange={handleSearchChange}
-                        className={`w-full px-4 py-2 pl-10 rounded-lg transition-all ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} border ${currentTheme?.inputBorder || 'border-gray-300'} focus:outline-none`}
+                        className="w-full px-4 py-2 pl-12 rounded-2xl bg-white/80 backdrop-blur-sm border border-emerald-200 ring-1 ring-emerald-100 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:border-emerald-300 hover:shadow-md transition"
                     />
-                    <MagnifyingGlassIcon className={`h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 ${currentTheme?.iconText || 'text-gray-400'}`} />
+                    <Search className="h-5 w-5 absolute left-4 top-1/2 -translate-y-1/2 text-emerald-600" />
                     {searchQuery && (
                         <button
                             onClick={() => setSearchQuery('')}
-                            className={`absolute right-2 top-1/2 transform -translate-y-1/2 p-1 rounded-full ${currentTheme?.mutedText || 'text-gray-500'} hover:${currentTheme?.linkHover || 'text-gray-700'}`}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-full text-gray-500 hover:text-gray-700"
                             title="Clear search"
                         >
                             <XMarkIcon className="h-4 w-4" />
@@ -780,15 +799,15 @@ const MarksList = () => {
                 <div className="flex space-x-2">
                     <button
                         onClick={() => setShowFilters(!showFilters)}
-                        className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${currentTheme?.buttonSecondary || 'bg-gray-200 text-gray-800'} ${currentTheme?.shadow || 'shadow-sm'}`}
+                        className={`inline-flex items-center gap-2 px-4 py-2 rounded-2xl transition shadow-sm ring-1 ${showFilters ? 'bg-emerald-600 text-white ring-emerald-600 hover:bg-emerald-700' : 'bg-white/80 text-emerald-700 ring-emerald-100 hover:bg-white'} `}
                     >
-                        <FunnelIcon className="h-5 w-5" />
+                        <Filter className="h-5 w-5" />
                         <span>Filters</span>
                     </button>
                     {(Object.values(filter).some(val => val !== '') || searchQuery !== '') && (
                         <button
                             onClick={handleClearFilters}
-                            className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${currentTheme?.buttonMuted || 'bg-red-100 text-red-600'} ${currentTheme?.shadow || 'shadow-sm'}`}
+                            className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl transition shadow-sm bg-rose-50 text-rose-700 ring-1 ring-rose-100 hover:bg-rose-100"
                         >
                             <XMarkIcon className="h-5 w-5" />
                             <span>Clear</span>
@@ -797,9 +816,10 @@ const MarksList = () => {
                 </div>
             </div>
 
+            )}
             {/* Filter Section (MODIFIED FOR DYNAMIC STRUCTURE) */}
-            {showFilters && (
-                <div className={`mb-6 p-4 rounded-lg transition-all duration-300 ease-in-out ${currentTheme?.panelBg || 'bg-gray-100'} ${currentTheme?.shadow || 'shadow-sm'}`}>
+            {(isAdmin || isTeacher) && showFilters && (
+                <div className={`mb-6 p-4 rounded-xl transition-all duration-300 ease-in-out bg-emerald-50/60 ring-1 ring-emerald-100`}>
                     <h2 className={`text-lg font-semibold mb-4 ${currentTheme?.title || 'text-gray-800'}`}>Filter Marks</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                         
@@ -968,43 +988,44 @@ const MarksList = () => {
                 <div className="mt-6 overflow-x-auto">
                 {filteredMarks.length > 0 ? (
                     <div className="overflow-x-auto">
+                        <div className="overflow-hidden rounded-t-2xl">
                         <table className="min-w-full divide-y" >
-                            <thead className={`${currentTheme?.theadBg || 'bg-gray-100'}`}>
+                            <thead className={`bg-emerald-600`}>
                                 <tr>
-                                    <th className={`py-3 px-4 text-left text-xs font-medium uppercase tracking-wider ${currentTheme?.theadText || 'text-gray-500'}`}>Student Name</th>
-                                    <th className={`py-3 px-4 text-left text-xs font-medium uppercase tracking-wider ${currentTheme?.theadText || 'text-gray-500'}`}>Subject</th>
-                                    <th className={`py-3 px-4 text-left text-xs font-medium uppercase tracking-wider ${currentTheme?.theadText || 'text-gray-500'}`}>Marks Type</th>
-                                    <th className={`py-3 px-4 text-left text-xs font-medium uppercase tracking-wider ${currentTheme?.theadText || 'text-gray-500'}`}>Name</th>
-                                    <th className={`py-3 px-4 text-left text-xs font-medium uppercase tracking-wider ${currentTheme?.theadText || 'text-gray-500'}`}>Date</th>
-                                    <th className={`py-3 px-4 text-left text-xs font-medium uppercase tracking-wider ${currentTheme?.theadText || 'text-gray-500'}`}>Obtained</th>
-                                    <th className={`py-3 px-4 text-left text-xs font-medium uppercase tracking-wider ${currentTheme?.theadText || 'text-gray-500'}`}>Total</th>
+                                    <th className={`py-3 px-4 text-left text-xs font-semibold uppercase tracking-wide text-white`}>Student Name</th>
+                                    <th className={`py-3 px-4 text-left text-xs font-semibold uppercase tracking-wide text-white`}>Subject</th>
+                                    <th className={`py-3 px-4 text-left text-xs font-semibold uppercase tracking-wide text-white`}>Marks Type</th>
+                                    <th className={`py-3 px-4 text-left text-xs font-semibold uppercase tracking-wide text-white`}>Name</th>
+                                    <th className={`py-3 px-4 text-left text-xs font-semibold uppercase tracking-wide text-white`}>Date</th>
+                                    <th className={`py-3 px-4 text-left text-xs font-semibold uppercase tracking-wide text-white`}>Obtained</th>
+                                    <th className={`py-3 px-4 text-left text-xs font-semibold uppercase tracking-wide text-white`}>Total</th>
                                     {currentUser.role === 'teacher' && (
-                                        <th className={`py-3 px-4 text-center text-xs font-medium uppercase tracking-wider ${currentTheme?.theadText || 'text-gray-500'}`}>Actions</th>
+                                        <th className={`py-3 px-4 text-center text-xs font-semibold uppercase tracking-wide text-white`}>Actions</th>
                                     )}
                                 </tr>
                             </thead>
-                            <tbody className={`${currentTheme?.tbodyBg || 'bg-white'} divide-y ${currentTheme?.divide || 'divide-gray-200'}`}>
+                            <tbody className={`bg-white divide-y divide-emerald-50`}>
                                 {filteredMarks.map((mark) => (
                                     <tr key={mark._id}>
-                                        <td className={`py-3 px-4 whitespace-nowrap ${currentTheme?.text || 'text-gray-700'}`}>{mark.student?.name || 'N/A'}</td>
-                                        <td className={`py-3 px-4 whitespace-nowrap ${currentTheme?.text || 'text-gray-700'}`}>{mark.subject}</td>
-                                        <td className={`py-3 px-4 whitespace-nowrap ${currentTheme?.text || 'text-gray-700'}`}>{mark.marksType}</td>
-                                        <td className={`py-3 px-4 whitespace-nowrap ${currentTheme?.text || 'text-gray-700'}`}>{mark.marksName}</td>
-                                        <td className={`py-3 px-4 whitespace-nowrap ${currentTheme?.text || 'text-gray-700'}`}>{new Date(mark.conductedDate).toLocaleDateString()}</td>
-                                        <td className={`py-3 px-4 whitespace-nowrap ${currentTheme?.text || 'text-gray-700'}`}>{mark.marksObtained}</td>
-                                        <td className={`py-3 px-4 whitespace-nowrap ${currentTheme?.text || 'text-gray-700'}`}>{mark.totalMarks}</td>
+                                        <td className={`py-3 px-4 whitespace-nowrap text-gray-700`}>{mark.student?.name || 'N/A'}</td>
+                                        <td className={`py-3 px-4 whitespace-nowrap text-gray-700`}>{mark.subject}</td>
+                                        <td className={`py-3 px-4 whitespace-nowrap text-gray-700`}>{mark.marksType}</td>
+                                        <td className={`py-3 px-4 whitespace-nowrap text-gray-700`}>{mark.marksName}</td>
+                                        <td className={`py-3 px-4 whitespace-nowrap text-gray-700`}>{new Date(mark.conductedDate).toLocaleDateString()}</td>
+                                        <td className={`py-3 px-4 whitespace-nowrap text-gray-700`}>{mark.marksObtained}</td>
+                                        <td className={`py-3 px-4 whitespace-nowrap text-gray-700`}>{mark.totalMarks}</td>
                                         {currentUser.role === 'teacher' && (
                                             <td className="py-3 px-4 text-center">
                                                 <button
                                                     onClick={() => handleEdit(mark._id)}
-                                                    className={`p-1 rounded-md mr-2 transition-colors duration-200 ${currentTheme?.linkText || 'text-green-600'} hover:${currentTheme?.linkHover || 'text-green-800'}`}
+                                                    className={`p-1 rounded-md mr-2 transition-colors duration-200 text-emerald-600 hover:text-emerald-800`}
                                                     title="Edit Marks"
                                                 >
                                                     <PencilIcon className="h-5 w-5" />
                                                 </button>
                                                 <button
                                                     onClick={() => handleDelete(mark._id)}
-                                                    className={`p-1 rounded-md transition-colors duration-200 ${currentTheme?.errorPill || 'text-red-600'} hover:${currentTheme?.errorPillHover || 'text-red-800'}`}
+                                                    className={`p-1 rounded-md transition-colors duration-200 text-red-600 hover:text-red-800`}
                                                     title="Delete Marks"
                                                 >
                                                     <TrashIcon className="h-5 w-5" />
@@ -1015,6 +1036,7 @@ const MarksList = () => {
                                 ))}
                             </tbody>
                         </table>
+                        </div>
                     </div>
                 ) : (
                     <p className={`text-xl text-center p-4 rounded-lg ${currentTheme?.panelBg || 'bg-gray-100'} ${currentTheme?.mutedText || 'text-gray-600'} ${currentTheme?.shadow || 'shadow-sm'}`}>
@@ -1029,6 +1051,8 @@ const MarksList = () => {
                 onConfirm={confirmDelete}
                 message="Are you sure you want to delete this marks entry? This action cannot be undone."
             />
+                </div>
+            </div>
         </div>
     );
 };

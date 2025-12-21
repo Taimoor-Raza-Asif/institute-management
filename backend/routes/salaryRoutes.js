@@ -8,6 +8,7 @@ import {
   getSalaryById,
   getStaffForSalary,
   getSalaryReports,
+  bulkCreateSalaries,
   deleteSalary
 } from '../controllers/salaryController.js';
 
@@ -25,6 +26,9 @@ router.get('/my-salaries', protect, authorizeRoles('admin', 'accountant', 'teach
 
 // New route for salary reports
 router.get('/reports', protect, authorizeRoles('admin', 'accountant'), getSalaryReports);
+
+// Bulk create salary records (Admin only)
+router.post('/bulk-create', protect, authorizeRoles('admin', 'accountant'), bulkCreateSalaries);
 
 // Create or update a salary record (Admin only)
 router.post('/', protect, authorizeRoles('admin', 'accountant'), createOrUpdateSalary);

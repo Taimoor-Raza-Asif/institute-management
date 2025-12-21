@@ -5,6 +5,7 @@ import Loader from '../components/Loader';
 import Message from '../components/Message';
 import { toast } from 'react-toastify';
 import { UserContext } from '../App';
+import { X } from 'lucide-react';
 
 const EditMarksForm = () => {
     const { id } = useParams();
@@ -56,6 +57,21 @@ const EditMarksForm = () => {
         e.preventDefault();
         setLoading(true);
         setError('');
+        // Basic validation
+        const obtained = Number(formData.marksObtained);
+        const total = Number(formData.totalMarks);
+        if (Number.isFinite(obtained) && Number.isFinite(total)) {
+            if (obtained > total) {
+                setLoading(false);
+                toast.error('Obtained marks cannot exceed total marks.');
+                return;
+            }
+            if (obtained < 0 || total <= 0) {
+                setLoading(false);
+                toast.error('Marks must be positive, and total must be greater than zero.');
+                return;
+            }
+        }
         try {
             await api.put(`/marks/${id}`, formData);
             setLoading(false);
@@ -77,84 +93,112 @@ const EditMarksForm = () => {
     }
 
     return (
-        <div className="container mx-auto p-4 sm:p-6 lg:p-8">
-            <h1 className="text-3xl font-bold text-center text-green-800 mb-6">Edit Marks</h1>
-            <div className="bg-white p-6 rounded-lg shadow-lg">
-                <form onSubmit={handleSubmit}>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="min-h-screen bg-gradient-to-b from-emerald-50 via-white to-emerald-50">
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                {/* Hero */}
+                <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 shadow-2xl text-white px-6 sm:px-10 py-8 mb-8">
+                    <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_20%_20%,white,transparent_25%),radial-gradient(circle_at_80%_0%,white,transparent_25%)]" />
+                    <div className="relative flex items-start justify-between">
                         <div>
-                            <label htmlFor="subject" className="block text-gray-700 font-bold mb-2">Subject</label>
-                            <input
-                                type="text"
-                                id="subject"
-                                name="subject"
-                                value={formData.subject}
-                                onChange={handleChange}
-                                readOnly // Subject should not be editable to maintain data integrity
-                                className="w-full p-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed"
-                            />
+                            <h1 className="text-2xl sm:text-3xl font-extrabold leading-tight">Edit Marks</h1>
+                            <p className="text-emerald-50/90 mt-1 text-sm sm:text-base max-w-2xl">Update the marks details below. Your changes save instantly.</p>
                         </div>
-                        <div>
-                            <label htmlFor="marksType" className="block text-gray-700 font-bold mb-2">Marks Type</label>
-                            <input
-                                type="text"
-                                id="marksType"
-                                name="marksType"
-                                value={formData.marksType}
-                                onChange={handleChange}
-                                readOnly
-                                className="w-full p-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed"
-                            />
-                        </div>
-                        <div>
-                            <label htmlFor="marksName" className="block text-gray-700 font-bold mb-2">Marks Name</label>
-                            <input
-                                type="text"
-                                id="marksName"
-                                name="marksName"
-                                value={formData.marksName}
-                                onChange={handleChange}
-                                required
-                                className="w-full p-2 border border-gray-300 rounded-md"
-                            />
-                        </div>
-                        <div>
-                            <label htmlFor="totalMarks" className="block text-gray-700 font-bold mb-2">Total Marks</label>
-                            <input
-                                type="number"
-                                id="totalMarks"
-                                name="totalMarks"
-                                value={formData.totalMarks}
-                                onChange={handleChange}
-                                required
-                                min="1"
-                                className="w-full p-2 border border-gray-300 rounded-md"
-                            />
-                        </div>
-                        <div>
-                            <label htmlFor="marksObtained" className="block text-gray-700 font-bold mb-2">Obtained Marks</label>
-                            <input
-                                type="number"
-                                id="marksObtained"
-                                name="marksObtained"
-                                value={formData.marksObtained}
-                                onChange={handleChange}
-                                required
-                                min="0"
-                                max={formData.totalMarks}
-                                className="w-full p-2 border border-gray-300 rounded-md"
-                            />
-                        </div>
-                    </div>
-                    <div className="flex justify-end mt-6">
                         <button
-                            type="submit"
-                            className="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition-colors duration-200"
+                            type="button"
+                            onClick={() => navigate(-1)}
+                            className="inline-flex items-center justify-center rounded-full p-2 bg-white/10 hover:bg-white/20 text-white transition"
+                            title="Close"
                         >
-                            Update Marks
+                            <X className="h-5 w-5" />
                         </button>
                     </div>
-                </form>
+                </div>
+
+                {/* Form Card */}
+                <div className="p-6 sm:p-7 rounded-2xl bg-white border border-emerald-100 shadow-lg">
+                    <form onSubmit={handleSubmit}>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                            <div>
+                                <label htmlFor="subject" className="block text-sm font-medium text-gray-700">Subject</label>
+                                <input
+                                    type="text"
+                                    id="subject"
+                                    name="subject"
+                                    value={formData.subject}
+                                    onChange={handleChange}
+                                    readOnly
+                                    className="mt-1 w-full rounded-lg bg-gray-100 text-gray-700 border border-gray-200 px-3 py-2 cursor-not-allowed"
+                                />
+                            </div>
+                            <div>
+                                <label htmlFor="marksType" className="block text-sm font-medium text-gray-700">Marks Type</label>
+                                <input
+                                    type="text"
+                                    id="marksType"
+                                    name="marksType"
+                                    value={formData.marksType}
+                                    onChange={handleChange}
+                                    readOnly
+                                    className="mt-1 w-full rounded-lg bg-gray-100 text-gray-700 border border-gray-200 px-3 py-2 cursor-not-allowed"
+                                />
+                            </div>
+                            <div>
+                                <label htmlFor="marksName" className="block text-sm font-medium text-gray-700">Marks Name</label>
+                                <input
+                                    type="text"
+                                    id="marksName"
+                                    name="marksName"
+                                    value={formData.marksName}
+                                    onChange={handleChange}
+                                    required
+                                    className="mt-1 w-full rounded-lg bg-white text-gray-700 border border-emerald-200 ring-1 ring-emerald-100 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:border-emerald-300"
+                                />
+                            </div>
+                            <div>
+                                <label htmlFor="totalMarks" className="block text-sm font-medium text-gray-700">Total Marks</label>
+                                <input
+                                    type="number"
+                                    id="totalMarks"
+                                    name="totalMarks"
+                                    value={formData.totalMarks}
+                                    onChange={handleChange}
+                                    required
+                                    min="1"
+                                    className="mt-1 w-full rounded-lg bg-white text-gray-700 border border-emerald-200 ring-1 ring-emerald-100 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:border-emerald-300"
+                                />
+                            </div>
+                            <div>
+                                <label htmlFor="marksObtained" className="block text-sm font-medium text-gray-700">Obtained Marks</label>
+                                <input
+                                    type="number"
+                                    id="marksObtained"
+                                    name="marksObtained"
+                                    value={formData.marksObtained}
+                                    onChange={handleChange}
+                                    required
+                                    min="0"
+                                    max={formData.totalMarks}
+                                    className="mt-1 w-full rounded-lg bg-white text-gray-700 border border-emerald-200 ring-1 ring-emerald-100 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:border-emerald-300"
+                                />
+                            </div>
+                        </div>
+                        <div className="flex justify-end gap-3 mt-6">
+                            <button
+                                type="button"
+                                onClick={() => navigate(-1)}
+                                className="px-5 py-2 rounded-2xl bg-white text-emerald-700 ring-1 ring-emerald-100 hover:bg-emerald-50 shadow-sm"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="submit"
+                                className="px-6 py-2 rounded-2xl bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm"
+                            >
+                                Update Marks
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     );

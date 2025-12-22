@@ -89,10 +89,15 @@ const inputRef = useRef(null);
   }, [fetchStaff]);
 
   useEffect(() => {
-    // Load current user from local storage
-    const userInfo = localStorage.getItem('userInfo');
-    if (userInfo) {
-      setCurrentUser(JSON.parse(userInfo));
+    // Load current user from storage (session first, then local)
+    const raw = sessionStorage.getItem('userInfo') || localStorage.getItem('userInfo');
+    if (raw) {
+      try {
+        setCurrentUser(JSON.parse(raw));
+      } catch {
+        sessionStorage.removeItem('userInfo');
+        localStorage.removeItem('userInfo');
+      }
     }
   }, []);
 
@@ -179,13 +184,13 @@ const inputRef = useRef(null);
 
   return (
     <div className="container mx-auto p-4 sm:p-6 lg:p-8">
-      <div className={`mb-8 p-6 rounded-xl flex items-center justify-between ${currentTheme?.panelBg || 'bg-gradient-to-r from-green-50 to-emerald-50'} ${currentTheme?.shadow || 'shadow-md'}`}>
+      <div className={`mb-8 p-6 rounded-xl flex items-center justify-between ${currentTheme?.heroBg || 'bg-emerald-50'} ${currentTheme?.shadow || 'shadow-md'}`}>
         <div>
-          <h1 className={`text-3xl sm:text-4xl font-extrabold ${currentTheme?.title || 'text-green-800'}`}>Staff Management</h1>
-          <p className={`${currentTheme?.mutedText || 'text-gray-600'} mt-1 text-sm`}>Manage staff profiles, salaries, and attendance</p>
+          <h1 className={`text-3xl sm:text-4xl font-extrabold ${currentTheme?.heroTitle || 'text-green-800'}`}>Staff Management</h1>
+          <p className={`${currentTheme?.heroSubtitle || 'text-gray-600'} mt-1 text-sm`}>Manage staff profiles, salaries, and attendance</p>
         </div>
-        <div className="hidden sm:flex items-center space-x-2 text-sm text-gray-500">
-          <UserCircleIcon className="h-5 w-5" />
+        <div className="hidden sm:flex items-center space-x-2 text-sm text-white">
+          <UserCircleIcon className={`h-5 w-5 ${currentTheme?.heroIcon || 'text-white'}`} />
           <span className="font-medium">{staff.length} Staff</span>
         </div>
       </div>

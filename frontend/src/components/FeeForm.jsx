@@ -74,14 +74,15 @@ const FeeForm = ({ editingFee, fetchFees, studentsForForm, onClose, isViewMode =
   }, [editingFee]);
   // Newly added useEffect hook
   useEffect(() => {
-    const userInfo = localStorage.getItem('userInfo');
+    const userInfo = sessionStorage.getItem('userInfo') || localStorage.getItem('userInfo');
     let user = null;
     if (userInfo) {
       try {
         user = JSON.parse(userInfo);
         setCurrentUser(user);
       } catch (e) {
-        console.error("Failed to parse user info from localStorage", e);
+        console.error("Failed to parse user info from storage", e);
+        sessionStorage.removeItem('userInfo');
         localStorage.removeItem('userInfo');
       }
     }

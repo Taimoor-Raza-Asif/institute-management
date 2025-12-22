@@ -990,7 +990,7 @@ const MarksList = () => {
                     <div className="overflow-x-auto">
                         <div className="overflow-hidden rounded-t-2xl">
                         <table className="min-w-full divide-y" >
-                            <thead className={`bg-emerald-600`}>
+                            <thead className={`${currentTheme?.theadBg || 'bg-emerald-600'} ${currentTheme?.theadText || 'text-white'}`}>
                                 <tr>
                                     <th className={`py-3 px-4 text-left text-xs font-semibold uppercase tracking-wide text-white`}>Student Name</th>
                                     <th className={`py-3 px-4 text-left text-xs font-semibold uppercase tracking-wide text-white`}>Subject</th>

@@ -6,12 +6,14 @@ import api from '../api';
 import Loader from './Loader';
 import Message from './Message';
 import { UserContext } from '../App';
+import { useTheme } from '../context/ThemeContext';
 import { PlusIcon } from '@heroicons/react/24/outline';
 
 const marksTypes = ['Quiz', 'Assignment', 'Midterm 1', 'Midterm 2', 'Final Exam', 'Bonus Activity'];
 
 const MarkingForm = () => {
     const { currentUser } = useContext(UserContext);
+    const { currentTheme } = useTheme();
     const navigate = useNavigate();
     const [students, setStudents] = useState([]);
     const [teacherData, setTeacherData] = useState(null);
@@ -298,7 +300,7 @@ const MarkingForm = () => {
                     <form onSubmit={handleBulkSubmit}>
                         <div className="overflow-x-auto">
                             <table className="min-w-full divide-y divide-emerald-100">
-                                <thead className="bg-emerald-600 text-white">
+                                <thead className={`${currentTheme?.theadBg || 'bg-emerald-600'} ${currentTheme?.theadText || 'text-white'}`}>
                                     <tr>
                                         <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide">Student Name</th>
                                         <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide">Marks Obtained</th>

@@ -1,10 +1,10 @@
 // src/pages/UserManagement.jsx
 import React, { useState, useEffect, useCallback, useContext } from 'react';
 import api from '../api';
-import { UserContext } from '../App'; // Assuming UserContext is provided by App.jsx
+import { UserContext } from '../App';
+import { useTheme } from '../context/ThemeContext'; // Assuming UserContext is provided by App.jsx
 import { PlusIcon, PencilIcon, TrashIcon, EyeIcon, FunnelIcon, XMarkIcon, MagnifyingGlassIcon, UserCircleIcon } from '@heroicons/react/24/outline';
 import Modal from '../components/Modal'; // Assuming a Modal component exists
-import { useTheme } from '../context/ThemeContext';
 
 // UserForm.jsx (Nested component for Add/Edit/View User)
 const UserForm = ({ user, formMode, onClose, students, staffMembers, users }) => {
@@ -325,13 +325,13 @@ const UserManagement = () => {
 
   return (
     <div className="container mx-auto p-4 sm:p-6 lg:p-8">
-      <div className={`mb-8 p-6 rounded-xl flex items-center justify-between ${currentTheme?.panelBg || 'bg-gradient-to-r from-green-50 to-emerald-50'} ${currentTheme?.shadow || 'shadow-md'}`}>
+      <div className={`mb-8 p-6 rounded-xl flex items-center justify-between ${currentTheme?.heroBg || 'bg-emerald-50'} ${currentTheme?.shadow || 'shadow-md'}`}>
         <div>
-          <h1 className={`text-3xl sm:text-4xl font-extrabold ${currentTheme?.title || 'text-green-800'}`}>User Account Management</h1>
-          <p className={`${currentTheme?.mutedText || 'text-gray-600'} mt-1 text-sm`}>Manage user accounts, roles, and edit permissions</p>
+          <h1 className={`text-3xl sm:text-4xl font-extrabold ${currentTheme?.heroTitle || 'text-green-800'}`}>User Account Management</h1>
+          <p className={`${currentTheme?.heroSubtitle || 'text-gray-600'} mt-1 text-sm`}>Manage user accounts, roles, and edit permissions</p>
         </div>
         <div className="hidden sm:flex items-center space-x-2 text-sm text-gray-500">
-          <UserCircleIcon className="h-5 w-5" />
+          <UserCircleIcon className={`h-5 w-5 ${currentTheme?.heroIcon || 'text-gray-500'}`} />
           <span className="font-medium">{users.length} Users</span>
         </div>
       </div>
@@ -384,7 +384,7 @@ const UserManagement = () => {
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
-                <thead className={`${currentTheme?.theadBg || 'bg-gradient-to-r from-green-600 to-emerald-600'}`}>
+                <thead className={`${currentTheme?.theadBg || 'bg-emerald-600'} ${currentTheme?.theadText || 'text-white'}`}>
                   <tr>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">CNIC</th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Role</th>

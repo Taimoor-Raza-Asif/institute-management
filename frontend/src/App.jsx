@@ -44,12 +44,13 @@ const App = () => {
   const [loadingUser, setLoadingUser] = useState(true);
 
   const loadUserFromLocalStorage = useCallback(() => {
-    const userInfo = localStorage.getItem('userInfo');
-    if (userInfo) {
+    const raw = sessionStorage.getItem('userInfo') || localStorage.getItem('userInfo');
+    if (raw) {
       try {
-        setCurrentUser(JSON.parse(userInfo));
+        setCurrentUser(JSON.parse(raw));
       } catch (e) {
-        console.error("Failed to parse user info from localStorage", e);
+        console.error("Failed to parse user info from storage", e);
+        sessionStorage.removeItem('userInfo');
         localStorage.removeItem('userInfo');
         setCurrentUser(null);
       }
@@ -63,10 +64,11 @@ const App = () => {
 
   const handleLogin = (userInfo) => {
     setCurrentUser(userInfo);
-    localStorage.setItem('userInfo', JSON.stringify(userInfo));
+    sessionStorage.setItem('userInfo', JSON.stringify(userInfo));
   };
 
   const handleLogout = () => {
+    sessionStorage.removeItem('userInfo');
     localStorage.removeItem('userInfo');
     setCurrentUser(null);
     window.location.href = '/login';
@@ -91,6 +93,19 @@ const App = () => {
     return <Layout currentUser={currentUser} onLogout={handleLogout}>{children}</Layout>;
   };
 
+  const roleDashboardPath = (role) => {
+    switch (role) {
+      case 'admin': return '/admin/dashboard';
+      case 'teacher': return '/teacher/dashboard';
+      case 'student': return '/student/dashboard';
+      case 'accountant': return '/accountant/dashboard';
+      case 'cook':
+      case 'cleaner':
+        return '/staff/dashboard';
+      default: return '/login';
+    }
+  };
+
   return (
     <ThemeProvider>
     <UserContext.Provider value={{ currentUser, setCurrentUser }}>
@@ -100,8 +115,8 @@ const App = () => {
           <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
           <Route path="/unauthorized" element={<Unauthorized />} />
 
-          {/* Default Route: Redirect based on login status */}
-          <Route path="/" element={currentUser ? <Navigate to="/dashboard" /> : <Navigate to="/login" />} />
+          {/* Default Route: Always start at login */}
+          <Route path="/" element={<Navigate to="/login" replace />} />
 
           {/* Protected Routes - Wrapped by PrivateRoute which includes Layout */}
           <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
@@ -166,8 +181,8 @@ const App = () => {
           {/* General Staff List (only Admin can view all staff) */}
           <Route path="/staff" element={<PrivateRoute roles={['admin']}><StaffList /></PrivateRoute>} />
 
-          {/* Catch all for undefined routes - redirects to dashboard or login */}
-          <Route path="*" element={<Navigate to={currentUser ? "/dashboard" : "/login"} />} />
+          {/* Catch all for undefined routes - redirects to role dashboard or login */}
+          <Route path="*" element={<Navigate to={currentUser ? roleDashboardPath(currentUser.role) : "/login"} replace />} />
         </Routes>
       </Router>
     </UserContext.Provider>

@@ -17,6 +17,14 @@ export const themes = {
     cardBg: 'bg-white', // Generic card/content background for light themes
     border: 'border-gray-300',
     shadow: 'shadow-md',
+    // Shared hero banner styles (non-dashboard pages)
+    heroBg: 'border border-emerald-100/50 shadow-xl animate-rise bg-gradient-to-br from-emerald-200 via-emerald-50 to-emerald-500',
+    heroTitle: 'text-green-800',
+    heroSubtitle: 'text-gray-700',
+    heroIcon: 'text-emerald-700',
+    // Shared table header styles
+    theadBg: 'bg-emerald-600',
+    theadText: 'text-green-50',
   },
   // Theme 2: General Dark (High Contrast Dark Mode)
   'General Dark': {

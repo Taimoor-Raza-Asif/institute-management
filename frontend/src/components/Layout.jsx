@@ -165,7 +165,8 @@ const Layout = ({ children, currentUser, onLogout }) => {
               Jamia Tul Mastwaar
             </h1>
             <div className="mt-3">
-              <ThemeToggle />
+              {/* <ThemeToggle />
+               */}
             </div>
             <button
               onClick={toggleSidebar}
@@ -178,7 +179,7 @@ const Layout = ({ children, currentUser, onLogout }) => {
           <nav className="flex-grow pt-4">
             <ul className={currentTheme.linkText}>
               {/* Theme Selector - Uses Context */}
-              <ThemeSelector />
+              {/* <ThemeSelector /> */}
 
               {/* Dashboard Links */}
               {currentUser.role === 'admin' && (

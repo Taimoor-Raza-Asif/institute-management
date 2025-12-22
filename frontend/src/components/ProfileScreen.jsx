@@ -92,8 +92,7 @@ const ProfileScreen = () => {
     return (
         <div className={`min-h-screen ${currentTheme.pageBg || 'bg-gradient-to-br from-green-50 via-white to-emerald-50'} py-8`}>
             <div className="max-w-6xl mx-auto px-4 space-y-6">
-                <div className={`${currentTheme.cardBg || 'bg-white'} ${currentTheme.shadow || 'shadow-2xl'} ${currentTheme.border || 'border border-gray-100'} rounded-2xl overflow-hidden relative`}>
-                    <div className="absolute inset-0 bg-gradient-to-r from-green-600/10 via-emerald-500/10 to-green-600/10 pointer-events-none" />
+                <div className={`${currentTheme.heroBg || 'bg-emerald-50'} ${currentTheme.shadow || 'shadow-2xl'} ${currentTheme.border || 'border border-gray-100'} rounded-2xl overflow-hidden`}>
                     <div className="relative p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
                         <div className="flex items-center gap-5">
                             <div className="relative">
@@ -111,7 +110,8 @@ const ProfileScreen = () => {
                             </div>
                             <div className="space-y-1">
                                 <div className="flex items-center gap-3">
-                                    <h1 className={`text-3xl font-black tracking-tight ${currentTheme.title || 'text-green-800'}`}>{profile.name}</h1>
+                                    <UserIcon className={`h-6 w-6 ${currentTheme.heroIcon || 'text-gray-500'}`} />
+                                    <h1 className={`text-3xl font-black tracking-tight ${currentTheme.heroTitle || 'text-green-800'}`}>{profile.name}</h1>
                                     {profile.studentStatus && role === 'student' && (
                                         <span className="px-3 py-1 rounded-full bg-green-100 text-green-700 text-xs font-semibold">{profile.studentStatus}</span>
                                     )}
@@ -119,7 +119,7 @@ const ProfileScreen = () => {
                                         <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-semibold">{profile.staffType}</span>
                                     )}
                                 </div>
-                                <p className={`${currentTheme.mutedText || 'text-gray-600'} text-sm font-medium`}>{profile.email || 'Email not provided'}</p>
+                                <p className={`${currentTheme.heroSubtitle || 'text-gray-600'} text-sm font-medium`}>{profile.email || 'Email not provided'}</p>
                                 <div className="flex flex-wrap gap-3 pt-2">
                                     <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/70 ring-1 ring-gray-200 text-gray-700 text-sm font-semibold">
                                         <IdentificationIcon className="h-4 w-4 text-green-600" />

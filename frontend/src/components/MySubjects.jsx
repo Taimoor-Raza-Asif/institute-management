@@ -3,9 +3,9 @@ import api from '../api';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { UserContext } from '../App';
+import { useTheme } from '../context/ThemeContext';
 import Loader from '../components/Loader';
 import Message from '../components/Message';
-import { useTheme } from '../context/ThemeContext';
 
 const MySubjects = () => {
     const { currentUser } = useContext(UserContext);
@@ -84,7 +84,7 @@ const MySubjects = () => {
                     <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_20%_20%,white,transparent_25%),radial-gradient(circle_at_80%_0%,white,transparent_25%)]" />
                     <div className="relative flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                         <div>
-                            <h1 className="text-2xl sm:text-3xl font-extrabold leading-tight">My Assigned Classes & Subjects</h1>
+                            <h1 className="text-2xl sm:text-3xl font-extrabold leading-tight">Assigned Classes & Subjects</h1>
                             <p className="text-emerald-50/90 mt-1 text-sm sm:text-base max-w-2xl">Overview of tracks you handle and subjects you teach.</p>
                         </div>
                         <div className="grid grid-cols-3 gap-3">
@@ -107,7 +107,7 @@ const MySubjects = () => {
                 {assignedClasses.length > 0 ? (
                     <div className={`overflow-x-auto rounded-2xl bg-white shadow-lg overflow-y-auto relative mt-6 border border-emerald-100`}>
                         <table className="w-full whitespace-nowrap table-auto">
-                            <thead className={`bg-emerald-600 text-white uppercase text-xs leading-normal`}>
+                            <thead className={`${currentTheme?.theadBg || 'bg-emerald-600'} ${currentTheme?.theadText || 'text-white'} uppercase text-xs leading-normal`}>
                                 <tr>
                                     <th className="py-3 px-4 text-left font-semibold tracking-wide">Academic Track</th>
                                     <th className="py-3 px-4 text-left font-semibold tracking-wide">Class / Degree / Course</th>

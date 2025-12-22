@@ -20,15 +20,21 @@ export const ThemeProvider = ({ children }) => {
     localStorage.setItem('appTheme', currentThemeName);
   }, [currentThemeName]);
 
-  // Add/remove Tailwind 'dark' class based on selected theme
+  // Add/remove Tailwind 'dark' class based on selected theme, and set data-theme slug
   useEffect(() => {
     const darkThemes = new Set(['General Dark', 'Deep Blue', 'Black & Teal']);
     const root = document.documentElement;
-    if (darkThemes.has(currentThemeName)) {
-      root.classList.add('dark');
-    } else {
-      root.classList.remove('dark');
-    }
+    // Toggle Tailwind dark mode
+    if (darkThemes.has(currentThemeName)) root.classList.add('dark');
+    else root.classList.remove('dark');
+
+    // Set a data-theme attribute for global CSS overrides
+    const slug = currentThemeName
+      .toLowerCase()
+      .replace(/&/g, 'and')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
+    root.setAttribute('data-theme', slug);
   }, [currentThemeName]);
 
   // Context value to be exported

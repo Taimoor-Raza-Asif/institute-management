@@ -166,14 +166,13 @@ const LeaveList = () => {
   return (
     <div className="container mx-auto p-4 sm:p-6 lg:p-8 bg-gray-100 min-h-screen">
       {/* Hero Header */}
-      <div className="relative bg-gradient-to-r from-emerald-50 to-teal-100 shadow-lg rounded-2xl p-8 mb-8 overflow-hidden">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full -mr-32 -mt-32"></div>
-        <div className="relative z-10 text-left">
-          <h1 className="text-3xl sm:text-4xl font-extrabold mb-2 text-emerald-800">
-            <PencilIcon className="h-9 w-9 inline-block mr-3" />
-            Student Leave Requests
-          </h1>
-          <p className="text-emerald-700 text-sm">Manage and track student leave applications</p>
+      <div className={`mb-8 rounded-2xl p-8 ${currentTheme.heroBg || 'bg-emerald-50'} ${currentTheme.shadow || 'shadow-lg'} ${currentTheme.border || 'border border-gray-200'}`}>
+        <div className="flex items-center gap-4">
+          <PencilIcon className={`h-9 w-9 ${currentTheme.heroIcon || 'text-gray-500'}`} />
+          <div>
+            <h1 className={`text-3xl sm:text-4xl font-extrabold mb-2 ${currentTheme.heroTitle || 'text-green-800'}`}>Student Leave Requests</h1>
+            <p className={`${currentTheme.heroSubtitle || 'text-gray-600'} text-sm`}>Manage and track student leave applications</p>
+          </div>
         </div>
       </div>
 
@@ -273,7 +272,7 @@ const LeaveList = () => {
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gradient-to-r from-green-600 to-emerald-600">
+              <thead className={`${currentTheme?.theadBg || 'bg-emerald-600'} ${currentTheme?.theadText || 'text-white'}`}>
                 <tr>
                   <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Student</th>
                   <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Class</th>

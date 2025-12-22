@@ -157,22 +157,22 @@ const AdminDashboard = () => {
 
       <div className="relative z-10 space-y-8 ">
         {/* Header */}
-        <div className="glass-card shine rounded-2xl p-6 sm:p-7 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border border-white/60 shadow-xl animate-rise bg-gradient-to-br from-green-100 via-white to-emerald-100">
+        <div className="glass-card shine rounded-2xl p-6 sm:p-7 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border border-emerald-100/50 shadow-xl animate-rise bg-gradient-to-br from-emerald-200 via-emerald-50 to-emerald-500">
           <div>
-            <div className="inline-flex items-center px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-semibold mb-3 border border-emerald-100 ">
+            <div className="inline-flex items-center px-3 py-1 rounded-full bg-emerald-600/10 text-emerald-800 text-xs font-semibold mb-3 border border-emerald-200">
               <span className="w-2 h-2 rounded-full bg-emerald-500 mr-2 animate-ping-slow" />
               Control Center · {year}
             </div>
-            <h1 className={`text-3xl sm:text-4xl font-extrabold leading-tight ${currentTheme.title || 'text-gray-900'}`}>Admin Dashboard</h1>
-            <p className={`${currentTheme.mutedText || 'text-gray-600'} mt-2 text-base`}>Full control over the Student Management System with a refreshed, modern look.</p>
-            <div className="mt-4 flex flex-wrap gap-2 text-xs text-gray-600">
+            <h1 className={`text-3xl sm:text-4xl font-extrabold leading-tight ${currentTheme.title || 'text-emerald-900'}`}>Admin Dashboard</h1>
+            <p className={`${currentTheme.mutedText || 'text-emerald-700'} mt-2 text-base`}>Full control over the Student Management System with a refreshed, modern look.</p>
+            <div className="mt-4 flex flex-wrap gap-2 text-xs text-emerald-700">
               <Badge icon={<UsersIcon className="h-4 w-4" />} label={`${stats.students} students`} />
               <Badge icon={<BriefcaseIcon className="h-4 w-4" />} label={`${stats.staff} staff`} />
               <Badge icon={<Cog6ToothIcon className="h-4 w-4" />} label="Realtime sync" variant="neutral" />
             </div>
           </div>
           <div className="relative">
-            <div className="absolute inset-0 blur-2xl bg-gradient-to-br from-emerald-200 to-teal-200 opacity-70 animate-floaty" />
+            <div className="absolute inset-0 blur-2xl bg-gradient-to-br from-emerald-300 via-emerald-200 to-green-200 opacity-80 animate-floaty" />
             <img src="/Jamia%20Logo.png" alt="Jamia logo" className="relative w-16 h-16 sm:w-20 sm:h-20 object-contain drop-shadow" />
           </div>
         </div>

@@ -11,7 +11,7 @@ import {
   ArrowLongLeftIcon,
 } from '@heroicons/react/24/outline';
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
-import { UserContext } from '../App'; // Import UserContext
+import { UserContext } from '../App';
 import { useTheme } from '../context/ThemeContext';
 // Assuming you have a Loader component available, otherwise uncomment the note below
 // import Loader from './Loader'; // <-- UNCOMMENT IF YOU HAVE THIS COMPONENT
@@ -23,8 +23,8 @@ const months = [
 ];
 
 const StudentList = () => {
-  const { currentUser } = useContext(UserContext); // Use context
-  const { currentTheme } = useTheme();
+  const { currentUser } = useContext(UserContext);
+  const { currentTheme } = useTheme(); // Use context
   const [students, setStudents] = useState([]);
   const [allFees, setAllFees] = useState([]);
   const [editingStudent, setEditingStudent] = useState(null);
@@ -354,13 +354,13 @@ const StudentList = () => {
   return (
     <div className="container mx-auto p-4 sm:p-6 lg:p-8">
       {/* Enhanced Header */}
-      <div className={`mb-8 p-6 rounded-xl flex items-center justify-between ${currentTheme?.panelBg || 'bg-gradient-to-r from-green-50 to-emerald-50'} ${currentTheme?.shadow || 'shadow-md'}`}>
+      <div className={`mb-8 p-6 rounded-xl flex items-center justify-between ${currentTheme?.heroBg || 'bg-emerald-50'} ${currentTheme?.shadow || 'shadow-md'}`}>
         <div>
-          <h1 className={`text-3xl sm:text-4xl font-extrabold ${currentTheme?.title || 'text-green-800'}`}>Students Management</h1>
-          <p className={`${currentTheme?.mutedText || 'text-gray-600'} mt-1 text-sm`}>Manage student records, fees, and academic progress</p>
+          <h1 className={`text-3xl sm:text-4xl font-extrabold ${currentTheme?.heroTitle || 'text-green-800'}`}>Students Management</h1>
+          <p className={`${currentTheme?.heroSubtitle || 'text-gray-600'} mt-1 text-sm`}>Manage student records, fees, and academic progress</p>
         </div>
-        <div className="hidden sm:flex items-center space-x-2 text-sm text-gray-500">
-          <UsersIcon className="h-5 w-5" />
+        <div className="hidden sm:flex items-center space-x-2 text-sm text-white">
+          <UsersIcon className={`h-5 w-5 ${currentTheme?.heroIcon || 'text-white'}`} />
           <span className="font-medium">{displayedStudents.length} Students</span>
         </div>
       </div>

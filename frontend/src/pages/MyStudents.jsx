@@ -192,7 +192,7 @@ const MyStudents = () => {
                     <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_20%_20%,white,transparent_25%),radial-gradient(circle_at_80%_0%,white,transparent_25%)]" />
                     <div className="relative flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                         <div>
-                            <h1 className="text-2xl sm:text-3xl font-extrabold leading-tight">My Assigned Students</h1>
+                            <h1 className="text-2xl sm:text-3xl font-extrabold leading-tight">Assigned Students</h1>
                             <p className="text-emerald-50/90 mt-1 text-sm sm:text-base max-w-2xl">Search, filter, and review students in your assigned classes.</p>
                         </div>
                         <div className="grid grid-cols-3 gap-3">

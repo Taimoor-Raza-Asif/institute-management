@@ -252,7 +252,7 @@ const BillingManagement = () => {
             ) : (
                 <div className="bg-white shadow overflow-auto rounded-lg">
                     <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gradient-to-r from-green-600 to-emerald-600 text-white">
+                        <thead className={`${currentTheme?.theadBg || 'bg-emerald-600'} ${currentTheme?.theadText || 'text-white'}`}>
                             <tr>
                                 <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Title</th>
                                 <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Category</th>

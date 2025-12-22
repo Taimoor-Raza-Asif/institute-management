@@ -162,6 +162,7 @@ import { Eye, EyeOff, Lock, CreditCard } from 'lucide-react';
 const LoginPage = ({ onLogin }) => {
   const [cnic, setCnic] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -194,7 +195,14 @@ const LoginPage = ({ onLogin }) => {
         editModeEnabled: userData.editModeEnabled,
       };
 
-      localStorage.setItem('userInfo', JSON.stringify(loggedInUser));
+      // Always keep current session
+      sessionStorage.setItem('userInfo', JSON.stringify(loggedInUser));
+      // If Remember me is checked, persist to localStorage as well
+      if (rememberMe) {
+        localStorage.setItem('userInfo', JSON.stringify(loggedInUser));
+      } else {
+        localStorage.removeItem('userInfo');
+      }
       onLogin(loggedInUser);
 
       if (userData.role === 'admin') navigate('/admin/dashboard');
@@ -318,7 +326,19 @@ const LoginPage = ({ onLogin }) => {
               </button>
             </div>
 
-            {/* BUTTON */}
+            {/* REMEMBER ME + BUTTON */}
+            <div className="flex items-center justify-between">
+              <label className="inline-flex items-center gap-2 text-sm text-gray-600">
+                <input
+                  type="checkbox"
+                  className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                />
+                Remember me
+              </label>
+            </div>
+
             <button
               type="submit"
               disabled={loading}

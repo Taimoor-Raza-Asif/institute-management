@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useCallback } from "react";
+import React, { useEffect, useState, useMemo, useCallback, useContext } from "react";
 import api from '../api';
 import { MagnifyingGlassIcon, PlusIcon, TrashIcon, PencilIcon, XMarkIcon, AcademicCapIcon } from '@heroicons/react/24/outline';
 import Loader from "../components/Loader";
@@ -6,8 +6,11 @@ import Message from "../components/Message";
 import { toast } from 'react-toastify';
 import ConfirmationModal from '../components/ConfirmationModal';
 import { useTheme } from '../context/ThemeContext';
+import { UserContext } from '../App';
 
 const AssignClasses = () => {
+    const { currentUser } = useContext(UserContext);
+    const { currentTheme } = useTheme();
     const [academicStructure, setAcademicStructure] = useState(null);
     const [structureLoading, setStructureLoading] = useState(true);
 
@@ -36,7 +39,6 @@ const AssignClasses = () => {
     const [formErrors, setFormErrors] = useState({});
     const [editingAssignmentIndex, setEditingAssignmentIndex] = useState(null);
     const [filterType, setFilterType] = useState("All");
-    const { currentTheme } = useTheme();
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [confirmMessage, setConfirmMessage] = useState('');
     const [confirmHandler, setConfirmHandler] = useState(null);
@@ -741,7 +743,7 @@ const AssignClasses = () => {
                     <div className="bg-white rounded-xl shadow-lg overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-gradient-to-r from-green-600 to-emerald-600 text-white">
+                            <thead className={`${currentTheme?.theadBg || 'bg-emerald-600'} ${currentTheme?.theadText || 'text-white'}`}>
                                 <tr>
                                     <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Teacher</th>
                                     <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Type</th>

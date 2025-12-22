@@ -189,30 +189,32 @@ const Reports = () => {
       case 'fees':
         return (
           <>
-            <div className="flex flex-col lg:flex-row gap-4 mb-6 items-center">
-              <div className="flex items-center gap-3">
-                <label className="font-semibold text-gray-700">Filter by Year:</label>
-                <select
-                  className={`h-12 px-4 rounded-lg border ${currentTheme?.inputBorder || 'border-gray-300'} ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} focus:outline-none`}
-                  value={feesFilters.year}
-                  onChange={(e) => setFeesFilters({ ...feesFilters, year: parseInt(e.target.value) })}
-                >
-                  {getYears().map(year => (
-                    <option key={year} value={year}>{year}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="flex items-center gap-3">
-                <label className="font-semibold text-gray-700">Month:</label>
-                <select
-                  className={`h-12 px-4 rounded-lg border ${currentTheme?.inputBorder || 'border-gray-300'} ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} focus:outline-none`}
-                  value={feesFilters.month}
-                  onChange={(e) => setFeesFilters({ ...feesFilters, month: e.target.value })}
-                >
-                  {monthOptions.map(m => (
-                    <option key={m.value} value={m.value}>{m.label}</option>
-                  ))}
-                </select>
+            <div className="rounded-2xl bg-white/90 border border-emerald-100 shadow-sm p-4 sm:p-5 mb-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Filter by Year</label>
+                  <select
+                    className="w-full px-3 py-2.5 rounded-xl bg-white/80 backdrop-blur-sm border border-emerald-200 ring-1 ring-emerald-100 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:border-emerald-300 text-sm"
+                    value={feesFilters.year}
+                    onChange={(e) => setFeesFilters({ ...feesFilters, year: parseInt(e.target.value) })}
+                  >
+                    {getYears().map(year => (
+                      <option key={year} value={year}>{year}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Month</label>
+                  <select
+                    className="w-full px-3 py-2.5 rounded-xl bg-white/80 backdrop-blur-sm border border-emerald-200 ring-1 ring-emerald-100 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:border-emerald-300 text-sm"
+                    value={feesFilters.month}
+                    onChange={(e) => setFeesFilters({ ...feesFilters, month: e.target.value })}
+                  >
+                    {monthOptions.map(m => (
+                      <option key={m.value} value={m.value}>{m.label}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -271,8 +273,8 @@ const Reports = () => {
                         <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip />
-                    <Legend />
+                    <Tooltip formatter={(value, name) => [value, name]} />
+                    <Legend formatter={(value, entry) => entry?.payload?.name || value} />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
@@ -295,30 +297,32 @@ const Reports = () => {
       case 'salaries':
         return (
           <>
-            <div className="flex flex-col lg:flex-row gap-4 mb-6 items-center">
-              <div className="flex items-center gap-3">
-                <label className="font-semibold text-gray-700">Filter by Year:</label>
-                <select
-                  className={`h-12 px-4 rounded-lg border ${currentTheme?.inputBorder || 'border-gray-300'} ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} focus:outline-none`}
-                  value={salariesFilters.year}
-                  onChange={(e) => setSalariesFilters({ ...salariesFilters, year: parseInt(e.target.value) })}
-                >
-                  {getYears().map(year => (
-                    <option key={year} value={year}>{year}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="flex items-center gap-3">
-                <label className="font-semibold text-gray-700">Month:</label>
-                <select
-                  className={`h-12 px-4 rounded-lg border ${currentTheme?.inputBorder || 'border-gray-300'} ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} focus:outline-none`}
-                  value={salariesFilters.month}
-                  onChange={(e) => setSalariesFilters({ ...salariesFilters, month: e.target.value })}
-                >
-                  {monthOptions.map(m => (
-                    <option key={m.value} value={m.value}>{m.label}</option>
-                  ))}
-                </select>
+            <div className="rounded-2xl bg-white/90 border border-emerald-100 shadow-sm p-4 sm:p-5 mb-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Filter by Year</label>
+                  <select
+                    className="w-full px-3 py-2.5 rounded-xl bg-white/80 backdrop-blur-sm border border-emerald-200 ring-1 ring-emerald-100 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:border-emerald-300 text-sm"
+                    value={salariesFilters.year}
+                    onChange={(e) => setSalariesFilters({ ...salariesFilters, year: parseInt(e.target.value) })}
+                  >
+                    {getYears().map(year => (
+                      <option key={year} value={year}>{year}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Month</label>
+                  <select
+                    className="w-full px-3 py-2.5 rounded-xl bg-white/80 backdrop-blur-sm border border-emerald-200 ring-1 ring-emerald-100 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:border-emerald-300 text-sm"
+                    value={salariesFilters.month}
+                    onChange={(e) => setSalariesFilters({ ...salariesFilters, month: e.target.value })}
+                  >
+                    {monthOptions.map(m => (
+                      <option key={m.value} value={m.value}>{m.label}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -378,8 +382,8 @@ const Reports = () => {
                         <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip />
-                    <Legend />
+                    <Tooltip formatter={(value, name) => [value, name]} />
+                    <Legend formatter={(value, entry) => entry?.payload?.name || value} />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
@@ -389,30 +393,32 @@ const Reports = () => {
       case 'billing':
         return (
           <>
-            <div className="flex flex-col lg:flex-row gap-4 mb-6 items-center">
-              <div className="flex items-center gap-3">
-                <label className="font-semibold text-gray-700">Filter by Year:</label>
-                <select
-                  className={`h-12 px-4 rounded-lg border ${currentTheme?.inputBorder || 'border-gray-300'} ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} focus:outline-none`}
-                  value={billingFilters.year}
-                  onChange={(e) => setBillingFilters({ ...billingFilters, year: parseInt(e.target.value) })}
-                >
-                  {getYears().map(year => (
-                    <option key={year} value={year}>{year}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="flex items-center gap-3">
-                <label className="font-semibold text-gray-700">Month:</label>
-                <select
-                  className={`h-12 px-4 rounded-lg border ${currentTheme?.inputBorder || 'border-gray-300'} ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} focus:outline-none`}
-                  value={billingFilters.month}
-                  onChange={(e) => setBillingFilters({ ...billingFilters, month: e.target.value })}
-                >
-                  {monthOptions.map(m => (
-                    <option key={m.value} value={m.value}>{m.label}</option>
-                  ))}
-                </select>
+            <div className="rounded-2xl bg-white/90 border border-emerald-100 shadow-sm p-4 sm:p-5 mb-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Filter by Year</label>
+                  <select
+                    className="w-full px-3 py-2.5 rounded-xl bg-white/80 backdrop-blur-sm border border-emerald-200 ring-1 ring-emerald-100 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:border-emerald-300 text-sm"
+                    value={billingFilters.year}
+                    onChange={(e) => setBillingFilters({ ...billingFilters, year: parseInt(e.target.value) })}
+                  >
+                    {getYears().map(year => (
+                      <option key={year} value={year}>{year}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Month</label>
+                  <select
+                    className="w-full px-3 py-2.5 rounded-xl bg-white/80 backdrop-blur-sm border border-emerald-200 ring-1 ring-emerald-100 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:border-emerald-300 text-sm"
+                    value={billingFilters.month}
+                    onChange={(e) => setBillingFilters({ ...billingFilters, month: e.target.value })}
+                  >
+                    {monthOptions.map(m => (
+                      <option key={m.value} value={m.value}>{m.label}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-1 gap-6 mb-8">
@@ -456,8 +462,8 @@ const Reports = () => {
                         <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip />
-                    <Legend />
+                    <Tooltip formatter={(value, name) => [value, name]} />
+                    <Legend formatter={(value, entry) => entry?.payload?.name || value} />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
@@ -467,30 +473,32 @@ const Reports = () => {
       case 'donations':
         return (
           <>
-            <div className="flex flex-col lg:flex-row gap-4 mb-6 items-center">
-              <div className="flex items-center gap-3">
-                <label className="font-semibold text-gray-700">Filter by Year:</label>
-                <select
-                  className={`h-12 px-4 rounded-lg border ${currentTheme?.inputBorder || 'border-gray-300'} ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} focus:outline-none`}
-                  value={donationsFilters.year}
-                  onChange={(e) => setDonationsFilters({ ...donationsFilters, year: parseInt(e.target.value) })}
-                >
-                  {getYears().map(year => (
-                    <option key={year} value={year}>{year}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="flex items-center gap-3">
-                <label className="font-semibold text-gray-700">Month:</label>
-                <select
-                  className={`h-12 px-4 rounded-lg border ${currentTheme?.inputBorder || 'border-gray-300'} ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} focus:outline-none`}
-                  value={donationsFilters.month}
-                  onChange={(e) => setDonationsFilters({ ...donationsFilters, month: e.target.value })}
-                >
-                  {monthOptions.map(m => (
-                    <option key={m.value} value={m.value}>{m.label}</option>
-                  ))}
-                </select>
+            <div className="rounded-2xl bg-white/90 border border-emerald-100 shadow-sm p-4 sm:p-5 mb-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Filter by Year</label>
+                  <select
+                    className="w-full px-3 py-2.5 rounded-xl bg-white/80 backdrop-blur-sm border border-emerald-200 ring-1 ring-emerald-100 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:border-emerald-300 text-sm"
+                    value={donationsFilters.year}
+                    onChange={(e) => setDonationsFilters({ ...donationsFilters, year: parseInt(e.target.value) })}
+                  >
+                    {getYears().map(year => (
+                      <option key={year} value={year}>{year}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Month</label>
+                  <select
+                    className="w-full px-3 py-2.5 rounded-xl bg-white/80 backdrop-blur-sm border border-emerald-200 ring-1 ring-emerald-100 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:border-emerald-300 text-sm"
+                    value={donationsFilters.month}
+                    onChange={(e) => setDonationsFilters({ ...donationsFilters, month: e.target.value })}
+                  >
+                    {monthOptions.map(m => (
+                      <option key={m.value} value={m.value}>{m.label}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-1 gap-6 mb-8">
@@ -537,8 +545,8 @@ const Reports = () => {
                         <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip />
-                    <Legend />
+                    <Tooltip formatter={(value, name) => [value, name]} />
+                    <Legend formatter={(value, entry) => entry?.payload?.name || value} />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
@@ -548,41 +556,43 @@ const Reports = () => {
       case 'attendance':
         return (
           <>
-            <div className="flex flex-col lg:flex-row gap-4 mb-6 items-center">
-              <div className="flex items-center gap-3">
-                <label className="font-semibold text-gray-700">Filter by Type:</label>
-                <select
-                  className={`h-12 px-4 rounded-lg border ${currentTheme?.inputBorder || 'border-gray-300'} ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} focus:outline-none`}
-                  value={attendanceFilters.type}
-                  onChange={(e) => setAttendanceFilters({ ...attendanceFilters, type: e.target.value })}
-                >
-                  <option value="Student">Student</option>
-                  <option value="Staff">Staff</option>
-                </select>
-              </div>
-              <div className="flex items-center gap-3">
-                <label className="font-semibold text-gray-700">Year:</label>
-                <select
-                  className={`h-12 px-4 rounded-lg border ${currentTheme?.inputBorder || 'border-gray-300'} ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} focus:outline-none`}
-                  value={attendanceFilters.year}
-                  onChange={(e) => setAttendanceFilters({ ...attendanceFilters, year: parseInt(e.target.value) })}
-                >
-                  {getYears().map(year => (
-                    <option key={year} value={year}>{year}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="flex items-center gap-3">
-                <label className="font-semibold text-gray-700">Month:</label>
-                <select
-                  className={`h-12 px-4 rounded-lg border ${currentTheme?.inputBorder || 'border-gray-300'} ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} focus:outline-none`}
-                  value={attendanceFilters.month}
-                  onChange={(e) => setAttendanceFilters({ ...attendanceFilters, month: e.target.value })}
-                >
-                  {monthOptions.map(m => (
-                    <option key={m.value} value={m.value}>{m.label}</option>
-                  ))}
-                </select>
+            <div className="rounded-2xl bg-white/90 border border-emerald-100 shadow-sm p-4 sm:p-5 mb-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Filter by Type</label>
+                  <select
+                    className="w-full px-3 py-2.5 rounded-xl bg-white/80 backdrop-blur-sm border border-emerald-200 ring-1 ring-emerald-100 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:border-emerald-300 text-sm"
+                    value={attendanceFilters.type}
+                    onChange={(e) => setAttendanceFilters({ ...attendanceFilters, type: e.target.value })}
+                  >
+                    <option value="Student">Student</option>
+                    <option value="Staff">Staff</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Year</label>
+                  <select
+                    className="w-full px-3 py-2.5 rounded-xl bg-white/80 backdrop-blur-sm border border-emerald-200 ring-1 ring-emerald-100 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:border-emerald-300 text-sm"
+                    value={attendanceFilters.year}
+                    onChange={(e) => setAttendanceFilters({ ...attendanceFilters, year: parseInt(e.target.value) })}
+                  >
+                    {getYears().map(year => (
+                      <option key={year} value={year}>{year}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Month</label>
+                  <select
+                    className="w-full px-3 py-2.5 rounded-xl bg-white/80 backdrop-blur-sm border border-emerald-200 ring-1 ring-emerald-100 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:border-emerald-300 text-sm"
+                    value={attendanceFilters.month}
+                    onChange={(e) => setAttendanceFilters({ ...attendanceFilters, month: e.target.value })}
+                  >
+                    {monthOptions.map(m => (
+                      <option key={m.value} value={m.value}>{m.label}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
@@ -627,7 +637,7 @@ const Reports = () => {
   return (
     <div className="container mx-auto p-4 sm:p-6 md:p-8 bg-gray-100 min-h-screen">
       {/* Hero Header */}
-      <div className={`relative ${currentTheme?.heroBg || 'bg-gradient-to-r from-emerald-50 to-teal-100'} ${currentTheme?.shadow || 'shadow-lg'} rounded-2xl p-8 mb-8 overflow-hidden`}>
+      <div className={`relative ${currentTheme?.heroBg || 'bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500'} ${currentTheme?.shadow || 'shadow-lg'} rounded-2xl p-8 mb-8 overflow-hidden`}>
         <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full -mr-32 -mt-32"></div>
         <div className="relative z-10">
           <h1 className={`text-3xl sm:text-4xl font-bold mb-2 text-left ${currentTheme?.heroTitle || 'text-emerald-800'}`}>Financial & Performance Reports</h1>

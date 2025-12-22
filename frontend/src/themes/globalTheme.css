@@ -1,0 +1,53 @@
+/* Global theme overrides to extend theme coverage beyond navbar */
+
+/* General Dark */
+[data-theme='general-dark'] body {
+  background-color: #0b1220;
+  color: #e5e7eb;
+}
+[data-theme='general-dark'] .bg-white { background-color: #111827 !important; }
+[data-theme='general-dark'] .bg-gray-50 { background-color: #0f172a !important; }
+[data-theme='general-dark'] .bg-gray-100 { background-color: #111827 !important; }
+[data-theme='general-dark'] .text-gray-900, 
+[data-theme='general-dark'] .text-gray-800, 
+[data-theme='general-dark'] .text-gray-700 { color: #e5e7eb !important; }
+[data-theme='general-dark'] .text-gray-600 { color: #d1d5db !important; }
+[data-theme='general-dark'] .border-gray-100, 
+[data-theme='general-dark'] .border-gray-200, 
+[data-theme='general-dark'] .border-gray-300 { border-color: #334155 !important; }
+[data-theme='general-dark'] .ring-emerald-100 { --tw-ring-color: rgba(16, 185, 129, 0.25) !important; }
+[data-theme='general-dark'] input, [data-theme='general-dark'] select, [data-theme='general-dark'] textarea {
+  background-color: #0f172a !important;
+  color: #e5e7eb !important;
+  border-color: #334155 !important;
+}
+
+/* Deep Blue */
+[data-theme='deep-blue'] body {
+  background-color: #0b1220;
+  color: #e5e7eb;
+}
+[data-theme='deep-blue'] .bg-white { background-color: #0f172a !important; }
+[data-theme='deep-blue'] .bg-gray-50 { background-color: #0b1220 !important; }
+[data-theme='deep-blue'] .bg-gray-100 { background-color: #0f172a !important; }
+[data-theme='deep-blue'] .text-gray-900, 
+[data-theme='deep-blue'] .text-gray-800, 
+[data-theme='deep-blue'] .text-gray-700 { color: #e5e7eb !important; }
+[data-theme='deep-blue'] .border-gray-100, 
+[data-theme='deep-blue'] .border-gray-200, 
+[data-theme='deep-blue'] .border-gray-300 { border-color: #1e3a8a !important; }
+
+/* Black & Teal */
+[data-theme='black-and-teal'] body {
+  background-color: #0b1220;
+  color: #d1fae5;
+}
+[data-theme='black-and-teal'] .bg-white { background-color: #0f172a !important; }
+[data-theme='black-and-teal'] .bg-gray-50 { background-color: #0b1220 !important; }
+[data-theme='black-and-teal'] .bg-gray-100 { background-color: #0f172a !important; }
+[data-theme='black-and-teal'] .text-gray-900, 
+[data-theme='black-and-teal'] .text-gray-800, 
+[data-theme='black-and-teal'] .text-gray-700 { color: #d1fae5 !important; }
+[data-theme='black-and-teal'] .border-gray-100, 
+[data-theme='black-and-teal'] .border-gray-200, 
+[data-theme='black-and-teal'] .border-gray-300 { border-color: #115e59 !important; }

@@ -3,6 +3,7 @@ import React, { useState, useEffect, useContext, useCallback, useMemo } from 're
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../api';
 import { UserContext } from '../App';
+import { useTheme } from '../context/ThemeContext';
 import Loader from './Loader';
 import Message from './Message';
 import Modal from './Modal';
@@ -14,7 +15,6 @@ import 'react-datepicker/dist/react-datepicker.css';
 import {
   CurrencyDollarIcon, EyeIcon, PencilIcon, TrashIcon, PlusCircleIcon, DocumentArrowDownIcon, XMarkIcon, FunnelIcon, MagnifyingGlassIcon, UserCircleIcon, BanknotesIcon, ClockIcon
 } from '@heroicons/react/24/outline';
-import { useTheme } from '../context/ThemeContext';
 
 const StaffSalaryList = () => {
   const { currentUser: user } = useContext(UserContext);
@@ -325,7 +325,7 @@ const StaffSalaryList = () => {
   return (
     <div className="container mx-auto p-4 sm:p-6 lg:p-8">
       {/* Hero Header */}
-      <div className={`relative ${currentTheme?.heroBg || 'bg-gradient-to-r from-emerald-50 to-teal-100'} ${currentTheme?.shadow || 'shadow-lg'} rounded-2xl p-8 mb-8 overflow-hidden`}>
+      <div className={`relative ${currentTheme?.heroBg || 'bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500'} ${currentTheme?.shadow || 'shadow-lg'} rounded-2xl p-8 mb-8 overflow-hidden`}>
         <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full -mr-32 -mt-32"></div>
         <div className="relative z-10">
           <div className="flex items-center justify-between mb-6">
@@ -512,7 +512,7 @@ const StaffSalaryList = () => {
       ) : salaries.length > 0 ? (
         <div className="bg-white shadow overflow-auto rounded-lg">
           <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gradient-to-r from-green-600 to-emerald-600 text-white">
+            <thead className={`${currentTheme?.theadBg || 'bg-emerald-600'} ${currentTheme?.theadText || 'text-white'}`}>
               <tr>
                 <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Staff Member</th>
                 <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Role</th>

@@ -381,11 +381,12 @@ const FeeList = () => {
   return (
     <div className="p-6 sm:p-8">
       {/* Hero header */}
-      <div className={`mb-6 rounded-2xl p-6 sm:p-8 ${currentTheme.panelBg || 'bg-gradient-to-r from-emerald-50 to-teal-100'} ${currentTheme.shadow || 'shadow'} ${currentTheme.border || 'border border-gray-200'}`}>
-        <div className="flex items-center justify-between">
+      <div className={`mb-6 rounded-2xl p-6 sm:p-8 ${currentTheme.heroBg || 'bg-emerald-50'} ${currentTheme.shadow || 'shadow'} ${currentTheme.border || 'border border-gray-200'}`}>
+        <div className="flex items-center gap-4">
+          <BanknotesIcon className={`h-10 w-10 ${currentTheme.heroIcon || 'text-gray-500'}`} />
           <div>
-            <h1 className={`text-2xl sm:text-3xl font-extrabold ${currentTheme.title || 'text-emerald-800'}`}>Fee Management</h1>
-            <p className={`${currentTheme.mutedText || 'text-gray-600'} mt-2`}>Track collections, dues, and receipts with ease.</p>
+            <h1 className={`text-2xl sm:text-3xl font-extrabold ${currentTheme.heroTitle || 'text-green-800'}`}>Fee Management</h1>
+            <p className={`${currentTheme.heroSubtitle || 'text-gray-600'} mt-2`}>Track collections, dues, and receipts with ease.</p>
           </div>
         </div>
       </div>
@@ -624,7 +625,7 @@ const FeeList = () => {
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gradient-to-r from-green-600 to-emerald-600">
+              <thead className={`${currentTheme?.theadBg || 'bg-emerald-600'} ${currentTheme?.theadText || 'text-white'}`}>
                 <tr>
                   <Th>Student</Th>
                   <Th>Month</Th>

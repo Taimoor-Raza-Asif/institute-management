@@ -120,10 +120,10 @@ const AccessControlPanel = () => {
 
   return (
     <div className={`container mx-auto p-6 sm:p-8 min-h-screen ${currentTheme?.mainBg || "bg-gray-50"}`}>
-      <div className={`mb-8 p-6 rounded-2xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 ${currentTheme?.panelBg || "bg-gradient-to-r from-emerald-50 to-green-50"} ${currentTheme?.shadow || "shadow-lg"}`}>
+      <div className={`mb-8 p-6 rounded-2xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 ${currentTheme?.heroBg || "bg-emerald-50"} ${currentTheme?.shadow || "shadow-lg"}`}>
         <div>
-          <h1 className={`text-3xl sm:text-4xl font-extrabold ${currentTheme?.title || "text-green-800"}`}>Access Control Panel</h1>
-          <p className={`${currentTheme?.mutedText || "text-gray-600"} mt-2 text-sm`}>Search users, filter by role, and toggle edit permissions.</p>
+          <h1 className={`text-3xl sm:text-4xl font-extrabold ${currentTheme?.heroTitle || "text-green-800"}`}>Access Control Panel</h1>
+          <p className={`${currentTheme?.heroSubtitle || "text-gray-600"} mt-2 text-sm`}>Search users, filter by role, and toggle edit permissions.</p>
         </div>
         <div className="flex items-center space-x-3 text-sm text-gray-600">
           <div className="px-3 py-2 rounded-xl bg-white/70 shadow-sm border border-gray-100">

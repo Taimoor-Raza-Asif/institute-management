@@ -1,12 +1,12 @@
 // src/components/DonationManagement.jsx
 import React, { useState, useEffect, useContext, useCallback, useMemo } from 'react';
 import { UserContext } from '../App';
+import { useTheme } from '../context/ThemeContext';
 import api from '../api';
 import Message from '../components/Message';
 import Loader from '../components/Loader';
 import { jsPDF } from 'jspdf';
 import { PencilIcon, TrashIcon, PlusIcon, FunnelIcon, XMarkIcon, MagnifyingGlassIcon, ArrowDownTrayIcon, EyeIcon, CurrencyDollarIcon, BanknotesIcon } from '@heroicons/react/24/outline'; // Added EyeIcon
-import { useTheme } from '../context/ThemeContext';
 import ConfirmationModal from './ConfirmationModal';
 
 import Modal from '../components/Modal';
@@ -371,7 +371,7 @@ const DonationManagement = () => {
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gradient-to-r from-green-600 to-emerald-600">
+              <thead className={`${currentTheme?.theadBg || 'bg-emerald-600'} ${currentTheme?.theadText || 'text-white'}`}>
                 <tr>
                   <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Donor Name</th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Amount (PKR)</th>

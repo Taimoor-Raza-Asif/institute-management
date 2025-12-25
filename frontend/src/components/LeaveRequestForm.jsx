@@ -166,27 +166,27 @@ const LeaveRequestForm = ({ editingLeave, fetchLeaves, studentsForForm, onClose,
 
 
   return (
-    <div className="relative p-6 sm:p-8 lg:p-10 rounded-2xl max-w-full mx-auto max-h-[90vh] overflow-y-auto custom-scrollbar bg-gradient-to-br from-white via-gray-50 to-white shadow-2xl border border-gray-100">
+    <div className={`relative p-6 sm:p-8 lg:p-10 rounded-2xl max-w-full mx-auto max-h-[90vh] overflow-y-auto custom-scrollbar ${currentTheme.cardBg || 'bg-white'} shadow-2xl ${currentTheme.border || 'border border-gray-100'}`}>
       <button
         onClick={onClose}
         className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 transition-colors duration-200 p-2 rounded-full hover:bg-gray-100"
       >
         <XMarkIcon className="h-7 w-7" />
       </button>
-      <h2 className="text-3xl sm:text-4xl font-bold mb-2 text-center bg-gradient-to-r from-green-700 to-emerald-600 bg-clip-text text-transparent">
+      <h2 className={`text-3xl sm:text-4xl font-bold mb-2 text-center ${currentTheme.heroTitle || 'text-gray-800'}`}>
         {isViewMode ? 'Leave Request Details' : (editingLeave ? 'Edit Student Leave Request' : 'New Student Leave Request')}
       </h2>
       <p className="text-center text-gray-500 text-sm mb-6">Manage student leave requests efficiently</p>
 
       {formError && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative mb-6 shadow-sm" role="alert">
+        <div className={`${currentTheme.alertErrorBg || 'bg-red-100'} ${currentTheme.alertErrorBorder || 'border border-red-400'} ${currentTheme.alertErrorText || 'text-red-700'} px-4 py-3 rounded-lg relative mb-6 shadow-sm`} role="alert">
           {formError}
         </div>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {isViewMode && editingLeave && (
-          <div className="bg-gradient-to-br from-blue-50 to-cyan-50 p-6 rounded-xl border-2 border-blue-200 shadow-sm mb-6">
+          <div className={`${currentTheme.panelBg || 'bg-blue-50'} p-6 rounded-xl border-2 ${currentTheme.border || 'border-blue-200'} shadow-sm mb-6`}>
             <h3 className="text-xl font-bold text-gray-800 mb-4 border-b-2 border-blue-300 pb-2">Student Details</h3>
             <div className="space-y-2">
               <p><span className="font-semibold text-gray-700">Name:</span> <span className="text-gray-600">{editingLeave.studentName}</span></p>
@@ -214,7 +214,7 @@ const LeaveRequestForm = ({ editingLeave, fetchLeaves, studentsForForm, onClose,
               name="studentId"
               value={leave.studentId}
               onChange={handleChange}
-              className={`block w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-400 focus:border-green-500 hover:border-gray-300 transition shadow-sm bg-white ${fieldErrors.studentId ? 'border-red-500' : ''}`}
+                className={`block w-full border-2 ${currentTheme.inputBorder || 'border-gray-200'} rounded-lg px-4 py-2 ${currentTheme.inputFocus || 'focus:ring-2 focus:ring-green-400 focus:border-green-500'} hover:border-gray-300 transition shadow-sm ${currentTheme.inputBg || 'bg-white'} ${fieldErrors.studentId ? 'border-red-500' : ''}`}
               required
             >
               <option value="">-- Select Student --</option>
@@ -225,7 +225,7 @@ const LeaveRequestForm = ({ editingLeave, fetchLeaves, studentsForForm, onClose,
               ))}
             </select>
           ) : (
-            <p className="block w-full border-2 border-gray-200 rounded-lg px-4 py-2 bg-gray-50 shadow-sm">
+            <p className={`block w-full border-2 ${currentTheme.inputBorder || 'border-gray-200'} rounded-lg px-4 py-2 ${currentTheme.inputBgDisabled || 'bg-gray-50'} shadow-sm`}>
               {editingLeave?.studentName || user?.name || 'N/A'} (CNIC: {editingLeave?.student?.cnic || user?.cnic || 'N/A'})
             </p>
           )}
@@ -233,7 +233,7 @@ const LeaveRequestForm = ({ editingLeave, fetchLeaves, studentsForForm, onClose,
         </div>
 
         {/* Leave Details Section */}
-        <div className="p-6 rounded-xl border-2 border-green-200 bg-gradient-to-br from-green-50 to-emerald-50 shadow-sm mb-6">
+        <div className={`p-6 rounded-xl border-2 ${currentTheme.border || 'border-green-200'} ${currentTheme.panelBg || 'bg-green-50'} shadow-sm mb-6`}>
           <h3 className="text-xl font-bold mb-6 text-green-800 border-b-2 border-green-300 pb-2">Leave Period & Reason</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
@@ -332,7 +332,7 @@ const LeaveRequestForm = ({ editingLeave, fetchLeaves, studentsForForm, onClose,
         </div>
 
         {/* Person Picking Up Student Section - Conditionally required fields */}
-        <div className="border-2 border-purple-200 p-6 rounded-xl bg-gradient-to-br from-purple-50 to-pink-50 shadow-sm mb-6">
+        <div className={`border-2 ${currentTheme.border || 'border-purple-200'} p-6 rounded-xl ${currentTheme.panelBg || 'bg-purple-50'} shadow-sm mb-6`}>
           <h3 className="text-xl font-bold text-purple-800 mb-6 border-b-2 border-purple-300 pb-2">Person Picking Up Student (Optional unless Leave Time is Set)</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
@@ -410,7 +410,7 @@ const LeaveRequestForm = ({ editingLeave, fetchLeaves, studentsForForm, onClose,
 
         {/* Status and Admin/Teacher Specific Fields */}
         {(isAdminOrTeacher || isViewMode) && (
-          <div className="border-2 border-blue-200 p-6 rounded-xl bg-gradient-to-br from-blue-50 to-cyan-50 shadow-sm mb-6">
+          <div className={`border-2 ${currentTheme.border || 'border-blue-200'} p-6 rounded-xl ${currentTheme.panelBg || 'bg-blue-50'} shadow-sm mb-6`}>
             <h3 className="text-xl font-bold text-blue-800 mb-6 border-b-2 border-blue-300 pb-2">Status & Staff Notes</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
@@ -504,7 +504,7 @@ const LeaveRequestForm = ({ editingLeave, fetchLeaves, studentsForForm, onClose,
           {!isViewMode && (
             <button
               type="submit"
-              className="bg-gradient-to-r from-green-600 to-emerald-700 text-white px-8 py-2.5 rounded-lg hover:from-green-700 hover:to-emerald-800 transition shadow-md hover:shadow-lg active:scale-95 font-semibold"
+              className={`${currentTheme.btnPrimaryBg || 'bg-green-600'} ${currentTheme.btnPrimaryText || 'text-white'} px-8 py-2.5 rounded-lg ${currentTheme.btnPrimaryHover || 'hover:bg-green-700'} transition shadow-md hover:shadow-lg active:scale-95 font-semibold`}
             >
               {editingLeave ? 'Update Leave' : 'Submit Leave Request'}
             </button>

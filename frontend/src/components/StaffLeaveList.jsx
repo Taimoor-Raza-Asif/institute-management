@@ -175,7 +175,7 @@ const StaffLeaveList = () => {
   }
 
   return (
-    <div className="container mx-auto p-4 sm:p-6 lg:p-8 bg-gray-100 min-h-screen">
+    <div className="container mx-auto p-4 sm:p-6 lg:p-8 ">
       <div className={`mb-8 rounded-2xl p-8 ${currentTheme.heroBg || 'bg-emerald-50'} ${currentTheme.shadow || 'shadow-lg'} ${currentTheme.border || 'border border-gray-200'}`}>
         <div className="flex items-center gap-4">
           <ClockIcon className={`h-9 w-9 ${currentTheme.heroIcon || 'text-gray-500'}`} />
@@ -186,13 +186,13 @@ const StaffLeaveList = () => {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-xl p-6 mb-6">
+      <div className={`${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.shadow || 'shadow-xl'} ${currentTheme?.border || 'border border-gray-100'} rounded-xl p-6 mb-6`}>
         <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-3">
           <div className="relative w-full sm:w-1/2 lg:w-2/3">
             <input
               type="text"
               placeholder="Search by name, type, or reason..."
-              className="block w-full h-12 pl-10 pr-4 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className={`block w-full h-12 pl-10 pr-4 rounded-lg ${currentTheme.inputBg || 'bg-white'} ${currentTheme.inputBorder || 'border border-gray-300'} ${currentTheme.inputText || 'text-gray-900'} ${currentTheme.inputPlaceholder || 'placeholder:text-gray-400'} focus:outline-none ${currentTheme.inputRing || 'focus:ring-2 focus:ring-emerald-500 focus:ring-offset-0'} ${currentTheme.inputFocus || 'focus:border-emerald-500'}`}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -201,7 +201,7 @@ const StaffLeaveList = () => {
           <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 w-full sm:w-auto">
             <button
               onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-              className="group flex items-center justify-center h-12 px-6 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 w-full sm:w-auto text-gray-700 border border-gray-300 hover:bg-gray-50from-gray-700 hover:to-gray-800"
+              className={`group flex items-center justify-center h-12 px-6 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 w-full sm:w-auto ${currentTheme.btnSecondaryBg || 'bg-white'} ${currentTheme.btnSecondaryText || 'text-emerald-700'} ${currentTheme.btnSecondaryBorder || 'border border-emerald-200'} ${currentTheme.btnSecondaryHover || 'hover:bg-emerald-50'}`}
             >
               <FunnelIcon className="h-5 w-5 mr-2 transition-transform group-hover:scale-110" />
               {showAdvancedFilters ? 'Hide' : 'Filters'}
@@ -209,7 +209,7 @@ const StaffLeaveList = () => {
             {canCreate && (
               <button
                 onClick={handleAdd}
-                className="group flex items-center justify-center h-12 px-6 rounded-xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 text-white transition-all duration-300 shadow-lg hover:shadow-2xl hover:from-green-700 hover:to-emerald-700 transform hover:-translate-y-0.5 w-full sm:w-auto"
+                className={`group flex items-center justify-center h-12 px-6 rounded-xl font-bold transition-all duration-300 shadow-lg hover:shadow-2xl transform hover:-translate-y-0.5 w-full sm:w-auto ${currentTheme.btnPrimaryBg || 'bg-emerald-600'} ${currentTheme.btnPrimaryHover || 'hover:bg-emerald-700'} ${currentTheme.btnPrimaryText || 'text-white'} ${currentTheme.btnPrimaryBorder || 'border border-emerald-700'}`}
               >
                 <PlusIcon className="h-5 w-5 mr-2 transition-transform group-hover:rotate-90" />
                 Request
@@ -226,7 +226,7 @@ const StaffLeaveList = () => {
                 id="status"
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
-                className="block w-full h-12 px-4 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className={`block w-full h-12 px-4 rounded-lg ${currentTheme.inputBg || 'bg-white'} ${currentTheme.inputBorder || 'border border-gray-300'} ${currentTheme.inputText || 'text-gray-900'} focus:outline-none ${currentTheme.inputRing || 'focus:ring-2 focus:ring-emerald-500 focus:ring-offset-0'} ${currentTheme.inputFocus || 'focus:border-emerald-500'}`}
               >
                 <option value="">All</option>
                 <option value="Pending">Pending</option>
@@ -240,7 +240,7 @@ const StaffLeaveList = () => {
                 id="staffType"
                 value={filterStaffType}
                 onChange={(e) => setFilterStaffType(e.target.value)}
-                className="block w-full h-12 px-4 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className={`block w-full h-12 px-4 rounded-lg ${currentTheme.inputBg || 'bg-white'} ${currentTheme.inputBorder || 'border border-gray-300'} ${currentTheme.inputText || 'text-gray-900'} focus:outline-none ${currentTheme.inputRing || 'focus:ring-2 focus:ring-emerald-500 focus:ring-offset-0'} ${currentTheme.inputFocus || 'focus:border-emerald-500'}`}
               >
                 <option value="">All</option>
                 <option value="Teacher">Teacher</option>
@@ -255,7 +255,7 @@ const StaffLeaveList = () => {
                 id="isReturned"
                 value={filterIsReturned}
                 onChange={(e) => setFilterIsReturned(e.target.value)}
-                className="block w-full h-12 px-4 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className={`block w-full h-12 px-4 rounded-lg ${currentTheme.inputBg || 'bg-white'} ${currentTheme.inputBorder || 'border border-gray-300'} ${currentTheme.inputText || 'text-gray-900'} focus:outline-none ${currentTheme.inputRing || 'focus:ring-2 focus:ring-emerald-500 focus:ring-offset-0'} ${currentTheme.inputFocus || 'focus:border-emerald-500'}`}
               >
                 <option value="">All</option>
                 <option value="true">Returned</option>
@@ -267,72 +267,74 @@ const StaffLeaveList = () => {
       </div>
 
       {loading ? (
-        <p className="text-center text-gray-600 py-8">Loading...</p>
+        <p className={`text-center ${currentTheme?.text || 'text-gray-600'} py-8`}>Loading...</p>
       ) : error ? (
         <p className="text-center text-red-500 py-8">{error}</p>
       ) : (
-        <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-          <div className="overflow-x-auto">
+        <div className={`p-6 rounded-2xl ${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.shadow || 'shadow-lg'} ${currentTheme?.border || 'border border-gray-100'}`}>
+          <div className="overflow-x-auto rounded-xl overflow-hidden">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead className={`${currentTheme?.theadBg || 'bg-emerald-600'} ${currentTheme?.theadText || 'text-white'}`}>
+              <thead className={`${currentTheme?.theadBg || 'bg-gradient-to-r from-green-600 to-emerald-600'}`}>
                 <tr>
-                  <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Staff Name</th>
+                  <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider rounded-tl-xl">Staff Name</th>
                   <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Staff Type</th>
                   <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Reason</th>
                   <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Period</th>
                   <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Status</th>
                   <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Returned</th>
-                  <th scope="col" className="px-6 py-4 text-right text-xs font-bold text-white uppercase tracking-wider">Actions</th>
+                  <th scope="col" className="px-6 py-4 text-center text-xs font-bold text-white uppercase tracking-wider rounded-tr-xl">Actions</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-100">
+              <tbody className={`${currentTheme?.tbodyBg || 'bg-white'} divide-y divide-gray-100`}>
                 {leaveRequests.length > 0 ? (
                   leaveRequests.map((leave, index) => (
                     <tr
                       key={leave._id}
-                      className={`transition-all duration-150 hover:bg-green-50 hover:shadow-md ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
+                      className={`transition-all duration-150 ${currentTheme.tableHover || 'hover:bg-green-50'} ${index % 2 === 0 ? (currentTheme.tbodyBg || 'bg-white') : (currentTheme.tableStripedBg || 'bg-gray-50')} hover:shadow-md`}
                     >
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{leave.staffName}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{leave.staffType}</td>
-                      <td className="px-6 py-4 text-sm text-gray-700 max-w-xs truncate" title={leave.reason}>{leave.reason}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                      <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${currentTheme?.text || 'text-gray-900'}`}>{leave.staffName}</td>
+                      <td className={`px-6 py-4 whitespace-nowrap text-sm ${currentTheme?.text || 'text-gray-700'}`}>{leave.staffType}</td>
+                      <td className={`px-6 py-4 text-sm ${currentTheme?.text || 'text-gray-700'} max-w-xs truncate`} title={leave.reason}>{leave.reason}</td>
+                      <td className={`px-6 py-4 whitespace-nowrap text-sm ${currentTheme?.text || 'text-gray-700'}`}>
                         {formatDate(leave.startDate)} to {formatDate(leave.endDate)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          leave.status === 'Approved' ? 'bg-green-100 text-green-800' :
-                          leave.status === 'Rejected' ? 'bg-red-100 text-red-800' :
-                          'bg-yellow-100 text-yellow-800'
+                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full border ${currentTheme?.badgeBorder || 'border-gray-200'} ${
+                          leave.status === 'Approved'
+                            ? `${currentTheme.badgeSuccessBg || 'bg-green-100'} ${currentTheme.badgeSuccessText || 'text-green-800'}`
+                            : leave.status === 'Rejected'
+                            ? `${currentTheme.badgeDangerBg || 'bg-red-100'} ${currentTheme.badgeDangerText || 'text-red-800'}`
+                            : `${currentTheme.badgeWarningBg || 'bg-amber-100'} ${currentTheme.badgeWarningText || 'text-amber-800'}`
                         }`}>
                           {leave.status}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${leave.isReturned ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full border ${currentTheme?.badgeBorder || 'border-gray-200'} ${leave.isReturned ? `${currentTheme.badgeSuccessBg || 'bg-green-100'} ${currentTheme.badgeSuccessText || 'text-green-800'}` : `${currentTheme.badgeDangerBg || 'bg-red-100'} ${currentTheme.badgeDangerText || 'text-red-800'}`}`}>
                           {leave.isReturned ? 'Yes' : 'No'}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <div className="flex items-center justify-end space-x-2">
+                      <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                        <div className="flex items-center justify-center space-x-2">
                           <button
                             onClick={(e) => { e.stopPropagation(); handleView(leave); }}
-                            className="group p-1 rounded-md transition-all duration-200 text-blue-600 hover:bg-blue-100 hover:shadow-md transform hover:scale-110"
+                            className={`p-1 rounded-md transition-all duration-200 ${currentTheme?.iconText || 'text-blue-600'} hover:opacity-80`}
                             title="View Details"
                           >
-                            <EyeIcon className="h-5 w-5 transition-transform group-hover:scale-125" />
+                            <EyeIcon className="h-5 w-5" />
                           </button>
                           {leave.status === 'Pending' && canApproveReject && (
                             <>
                               <button
                                 onClick={() => handleUpdateStatus(leave._id, 'Approved')}
-                                className="group flex items-center justify-center px-3 py-1 text-xs font-medium rounded-md transition-all duration-300 bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-700 hover:to-green-800 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                                className={`px-3 py-1 text-xs font-medium rounded-md transition-all duration-300 shadow-md hover:shadow-lg ${currentTheme.btnPrimaryBg || 'bg-emerald-600'} ${currentTheme.btnPrimaryHover || 'hover:bg-emerald-700'} ${currentTheme.btnPrimaryText || 'text-white'} ${currentTheme.btnPrimaryBorder || 'border border-emerald-700'}`}
                                 title="Approve Leave"
                               >
                                 Approve
                               </button>
                               <button
                                 onClick={() => handleUpdateStatus(leave._id, 'Rejected')}
-                                className="group flex items-center justify-center px-3 py-1 text-xs font-medium rounded-md transition-all duration-300 bg-gradient-to-r from-red-600 to-red-700 text-white hover:from-red-700 hover:to-red-800 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                                className={`group flex items-center justify-center px-3 py-1 text-xs font-medium rounded-md transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 ${currentTheme.btnDangerBg || 'bg-red-600'} ${currentTheme.btnDangerHover || 'hover:bg-red-700'} ${currentTheme.btnDangerText || 'text-white'} ${currentTheme.btnDangerBorder || 'border border-red-700'}`}
                                 title="Reject Leave"
                               >
                                 Reject

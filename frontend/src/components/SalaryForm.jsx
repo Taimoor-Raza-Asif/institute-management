@@ -7,10 +7,12 @@ import Loader from './Loader';
 import { CurrencyDollarIcon, UserIcon, CalendarDaysIcon, ClockIcon, CheckIcon } from '@heroicons/react/24/outline';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSpinner } from '@fortawesome/free-solid-svg-icons';
+import { useTheme } from '../context/ThemeContext';
 
 const SalaryForm = ({ salaryToEdit, isViewMode, onAdd, onEdit, onClose }) => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const { currentTheme } = useTheme();
     const [staffList, setStaffList] = useState([]);
     const [selectedStaff, setSelectedStaff] = useState('');
     const [salaryPerMonth, setSalaryPerMonth] = useState('');
@@ -116,15 +118,15 @@ const SalaryForm = ({ salaryToEdit, isViewMode, onAdd, onEdit, onClose }) => {
         try {
             const salaryData = {
                 staffId: selectedStaff,
-                salaryPerMonth,
+                salaryPerMonth: parseInt(String(salaryPerMonth || '0'), 10),
                 month,
                 year,
                 status,
-                paidAmount,
+                paidAmount: parseInt(String(paidAmount || '0'), 10),
                 paidAs,
-                bonus,
-                overtime,
-                advancedSalary: parseFloat(advancedSalary),
+                bonus: parseInt(String(bonus || '0'), 10),
+                overtime: parseInt(String(overtime || '0'), 10),
+                advancedSalary: parseInt(String(advancedSalary || '0'), 10),
             };
 
             try {
@@ -152,25 +154,25 @@ const SalaryForm = ({ salaryToEdit, isViewMode, onAdd, onEdit, onClose }) => {
             setLoading(false);
         }
     };
-    const inputBase = 'w-full rounded-lg border border-gray-200 bg-white/80 px-3.5 py-2.5 text-sm text-gray-800 shadow-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed';
-    const labelBase = 'text-sm font-semibold text-gray-700 flex items-center gap-2 mb-1';
-    const sectionBase = 'p-4 md:p-5 bg-gray-50/70 border border-gray-100 rounded-xl space-y-4';
+    const inputBase = `w-full rounded-lg border ${currentTheme?.inputBorder || 'border-gray-200'} ${currentTheme?.inputBg || 'bg-white/80'} px-3.5 py-2.5 text-sm ${currentTheme?.inputText || 'text-gray-800'} ${currentTheme?.shadow || 'shadow-sm'} focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed`;
+    const labelBase = `text-sm font-semibold ${currentTheme?.subtitle || 'text-gray-700'} flex items-center gap-2 mb-1`;
+    const sectionBase = `p-4 md:p-5 ${currentTheme?.panelBg || 'bg-gray-50/70'} ${currentTheme?.border || 'border border-gray-100'} rounded-xl space-y-4`;
     const titleText = isViewMode ? 'Salary Details' : (id || salaryToEdit ? 'Edit Staff Salary' : 'Add Staff Salary');
     const showHero = !isViewMode; // Hide hero when modal view already supplies a title
 
     return (
-        <div className="relative overflow-hidden rounded-2xl bg-white/90 backdrop-blur shadow-2xl border border-emerald-50 p-6 sm:p-8">
+        <div className={`relative overflow-hidden rounded-2xl ${currentTheme?.cardBg || 'bg-white/90'} backdrop-blur ${currentTheme?.shadow || 'shadow-2xl'} ${currentTheme?.border || 'border border-emerald-50'} p-6 sm:p-8`}>
             <div className="absolute inset-0 pointer-events-none bg-gradient-to-br from-emerald-100/50 via-white to-teal-50/40" aria-hidden />
             <div className="relative">
                 {showHero && (
                     <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
                         <div>
-                            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-600">Payroll</p>
-                            <h2 className="text-3xl sm:text-4xl font-bold text-green-800 mt-1">{titleText}</h2>
-                            <p className="text-sm text-gray-500 mt-2">Record payouts, adjustments, and status in one streamlined view.</p>
+                            <p className={`text-xs font-semibold uppercase tracking-[0.2em] ${currentTheme?.heroSubtitle || 'text-emerald-600'}`}>Payroll</p>
+                            <h2 className={`text-3xl sm:text-4xl font-bold mt-1 ${currentTheme?.heroTitle || 'text-green-800'}`}>{titleText}</h2>
+                            <p className={`${currentTheme?.mutedText || 'text-gray-500'} text-sm mt-2`}>Record payouts, adjustments, and status in one streamlined view.</p>
                         </div>
                         <div className="flex items-center gap-3">
-                            <span className={`px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm border ${status === 'Paid' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : status === 'Partial Paid' ? 'bg-amber-50 text-amber-700 border-amber-100' : 'bg-rose-50 text-rose-700 border-rose-100'}`}>
+                            <span className={`px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm border ${status === 'Paid' ? `${currentTheme.badgeSuccessBg || 'bg-emerald-50'} ${currentTheme.badgeSuccessText || 'text-emerald-700'} ${currentTheme?.border || 'border-emerald-100'}` : status === 'Partial Paid' ? `${currentTheme.badgeWarningBg || 'bg-amber-50'} ${currentTheme.badgeWarningText || 'text-amber-700'} ${currentTheme?.border || 'border-amber-100'}` : `${currentTheme.badgeDangerBg || 'bg-rose-50'} ${currentTheme.badgeDangerText || 'text-rose-700'} ${currentTheme?.border || 'border-rose-100'}`}`}>
                                 {status || 'Status'}
                             </span>
                             {loading && <FontAwesomeIcon icon={faSpinner} className="h-5 w-5 text-emerald-600 animate-spin" />}
@@ -214,10 +216,12 @@ const SalaryForm = ({ salaryToEdit, isViewMode, onAdd, onEdit, onClose }) => {
                                     <CurrencyDollarIcon className="h-4 w-4 text-emerald-600" /> Salary Per Month
                                 </label>
                                 <input
-                                    type="number"
+                                    type="text"
+                                    inputMode="numeric"
+                                    pattern="\d*"
                                     id="salaryPerMonth"
                                     value={salaryPerMonth}
-                                    onChange={(e) => setSalaryPerMonth(e.target.value)}
+                                    onChange={(e) => setSalaryPerMonth(String(e.target.value || '').replace(/\D/g, ''))}
                                     required
                                     disabled={isViewMode}
                                     className={inputBase}
@@ -229,10 +233,12 @@ const SalaryForm = ({ salaryToEdit, isViewMode, onAdd, onEdit, onClose }) => {
                                     <CurrencyDollarIcon className="h-4 w-4 text-emerald-600" /> Paid Amount
                                 </label>
                                 <input
-                                    type="number"
+                                    type="text"
+                                    inputMode="numeric"
+                                    pattern="\d*"
                                     id="paidAmount"
                                     value={paidAmount}
-                                    onChange={(e) => setPaidAmount(e.target.value)}
+                                    onChange={(e) => setPaidAmount(String(e.target.value || '').replace(/\D/g, ''))}
                                     disabled={isViewMode}
                                     className={inputBase}
                                 />
@@ -266,10 +272,12 @@ const SalaryForm = ({ salaryToEdit, isViewMode, onAdd, onEdit, onClose }) => {
                             <div className="space-y-1">
                                 <label htmlFor="advancedSalary" className={labelBase}>Advanced Salary</label>
                                 <input
-                                    type="number"
+                                    type="text"
+                                    inputMode="numeric"
+                                    pattern="\d*"
                                     id="advancedSalary"
                                     value={advancedSalary}
-                                    onChange={(e) => setAdvancedSalary(e.target.value)}
+                                    onChange={(e) => setAdvancedSalary(String(e.target.value || '').replace(/\D/g, ''))}
                                     disabled={isViewMode}
                                     className={inputBase}
                                 />
@@ -351,10 +359,12 @@ const SalaryForm = ({ salaryToEdit, isViewMode, onAdd, onEdit, onClose }) => {
                             <div className="space-y-1">
                                 <label htmlFor="bonus" className={labelBase}>Bonus</label>
                                 <input
-                                    type="number"
+                                    type="text"
+                                    inputMode="numeric"
+                                    pattern="\d*"
                                     id="bonus"
                                     value={bonus}
-                                    onChange={(e) => setBonus(e.target.value)}
+                                    onChange={(e) => setBonus(String(e.target.value || '').replace(/\D/g, ''))}
                                     disabled={isViewMode}
                                     className={inputBase}
                                 />
@@ -362,10 +372,12 @@ const SalaryForm = ({ salaryToEdit, isViewMode, onAdd, onEdit, onClose }) => {
                             <div className="space-y-1">
                                 <label htmlFor="overtime" className={labelBase}>Overtime</label>
                                 <input
-                                    type="number"
+                                    type="text"
+                                    inputMode="numeric"
+                                    pattern="\d*"
                                     id="overtime"
                                     value={overtime}
-                                    onChange={(e) => setOvertime(e.target.value)}
+                                    onChange={(e) => setOvertime(String(e.target.value || '').replace(/\D/g, ''))}
                                     disabled={isViewMode}
                                     className={inputBase}
                                 />
@@ -377,7 +389,7 @@ const SalaryForm = ({ salaryToEdit, isViewMode, onAdd, onEdit, onClose }) => {
                         <button
                             type="button"
                             onClick={handleCancel}
-                            className="inline-flex items-center justify-center px-5 py-2.5 text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-lg shadow-sm hover:bg-gray-50 transition"
+                            className={`inline-flex items-center justify-center px-5 py-2.5 text-sm font-semibold rounded-lg transition ${currentTheme.btnSecondaryBg || 'bg-white'} ${currentTheme.btnSecondaryText || 'text-gray-700'} ${currentTheme.btnSecondaryBorder || 'border border-gray-200'} ${currentTheme.btnSecondaryHover || 'hover:bg-gray-50'} ${currentTheme?.shadow || 'shadow-sm'}`}
                         >
                             Cancel
                         </button>
@@ -386,7 +398,7 @@ const SalaryForm = ({ salaryToEdit, isViewMode, onAdd, onEdit, onClose }) => {
                                 type="submit"
                                 onClick={handleSubmit}
                                 disabled={loading}
-                                className="inline-flex items-center justify-center px-6 py-2.5 text-sm font-semibold text-white rounded-lg shadow-md bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 transition disabled:from-emerald-400 disabled:to-emerald-400"
+                                className={`inline-flex items-center justify-center px-6 py-2.5 text-sm font-semibold rounded-lg ${currentTheme.btnPrimaryBg || 'bg-emerald-600'} ${currentTheme.btnPrimaryHover || 'hover:bg-emerald-700'} ${currentTheme.btnPrimaryText || 'text-white'} ${currentTheme.btnPrimaryBorder || 'border border-emerald-700'} ${currentTheme?.shadow || 'shadow-md'} transition disabled:opacity-70`}
                             >
                                 {loading ? (
                                     <>

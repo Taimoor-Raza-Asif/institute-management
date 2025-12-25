@@ -218,10 +218,10 @@ const AccountantDashboard = () => {
 
   if (!currentUser || currentUser.role !== 'accountant') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 to-red-100">
-        <div className="text-center py-12 px-8 bg-white rounded-2xl shadow-2xl border border-red-200">
-          <h2 className="text-3xl font-bold text-red-600 mb-4">Access Denied</h2>
-          <p className="text-gray-600 text-lg">You do not have accountant privileges to view this page.</p>
+      <div className={`min-h-screen flex items-center justify-center ${currentTheme?.pageBg || 'bg-gradient-to-br from-red-50 to-red-100'}`}>
+        <div className={`text-center py-12 px-8 ${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.shadow || 'shadow-2xl'} ${currentTheme?.border || 'border border-red-200'} rounded-2xl`}>
+          <h2 className={`text-3xl font-bold ${currentTheme?.heroTitle || 'text-red-600'} mb-4`}>Access Denied</h2>
+          <p className={`${currentTheme?.mutedText || 'text-gray-600'} text-lg`}>You do not have accountant privileges to view this page.</p>
         </div>
       </div>
     );
@@ -232,20 +232,20 @@ const AccountantDashboard = () => {
   const totalIncome = stats.totalRevenue + stats.totalDonations;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50 py-8 px-4 sm:px-6 lg:px-8">
+    <div className={`min-h-screen ${currentTheme?.pageBg || 'bg-gradient-to-br from-green-50 via-blue-50 to-green-50'} py-8 px-4 sm:px-6 lg:px-8`}>
       <div className="max-w-7xl mx-auto">
         {/* Header Section */}
         <div className="mb-8">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="p-4 bg-gradient-to-br from-green-500 to-green-700 rounded-2xl shadow-lg">
-                <ChartPieIcon className="h-10 w-10 text-white" />
+            <div className="flex items-center space-x-4 animate-rise">
+              <div className={`p-4 rounded-2xl ${currentTheme?.heroBg || 'bg-gradient-to-br from-emerald-500 to-teal-600'} ${currentTheme?.shadow || 'shadow-lg'} animate-floaty`}>
+                <ChartPieIcon className={`h-10 w-10 ${currentTheme?.heroIcon || 'text-white'}`} />
               </div>
               <div>
-                <h1 className="text-4xl font-bold bg-gradient-to-r from-green-600 to-green-600 bg-clip-text text-transparent">
+                <h1 className={`text-4xl font-bold ${currentTheme?.heroTitle || 'text-emerald-800'}`}>
                   Accountant Dashboard
                 </h1>
-                <p className="text-gray-600 mt-1">
+                <p className={`${currentTheme?.heroSubtitle || 'text-gray-600'} mt-1`}>
                   Manage all financial aspects of the institution.
                 </p>
               </div>
@@ -253,7 +253,7 @@ const AccountantDashboard = () => {
             <button
               onClick={fetchDashboardData}
               disabled={loading}
-              className="mt-4 md:mt-0 flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 disabled:opacity-50"
+              className={`mt-4 md:mt-0 flex items-center space-x-2 px-6 py-3 rounded-xl transform hover:scale-105 transition-all duration-200 disabled:opacity-50 ${currentTheme.btnPrimaryBg || 'bg-emerald-600'} ${currentTheme.btnPrimaryHover || 'hover:bg-emerald-700'} ${currentTheme.btnPrimaryText || 'text-white'} ${currentTheme.btnPrimaryBorder || 'border border-emerald-700'} ${currentTheme?.shadow || 'shadow-lg'}`}
             >
               <ArrowPathIcon className={`h-5 w-5 ${loading ? 'animate-spin' : ''}`} />
               <span>Refresh</span>
@@ -272,66 +272,70 @@ const AccountantDashboard = () => {
               <StatCard
                 title="Total Fee Revenue"
                 value={`Rs ${stats.totalRevenue.toLocaleString()}`}
-                icon={<ArrowTrendingUpIcon className="h-8 w-8" />}
-                bgGradient="from-green-400 to-green-600"
+                icon={<ArrowTrendingUpIcon className={`h-8 w-8 ${currentTheme?.iconText || 'text-white'}`} />}
+                bgGradient={currentTheme?.heroBg || 'from-emerald-500 to-teal-600'}
                 trend={stats.revenueTrend}
                 trendUp={parseFloat(stats.revenueTrend) >= 0}
+                theme={currentTheme}
               />
               <StatCard
                 title="Total Expenses"
                 value={`Rs ${stats.totalExpenses.toLocaleString()}`}
-                icon={<ArrowTrendingDownIcon className="h-8 w-8" />}
+                icon={<ArrowTrendingDownIcon className={`h-8 w-8 ${currentTheme?.iconText || 'text-white'}`} />}
                 bgGradient="from-red-400 to-red-600"
                 trend={stats.expensesTrend}
                 trendUp={parseFloat(stats.expensesTrend) <= 0}
+                theme={currentTheme}
               />
               <StatCard
                 title="Pending Fees"
                 value={`Rs ${stats.pendingFees.toLocaleString()}`}
-                icon={<ReceiptPercentIcon className="h-8 w-8" />}
+                icon={<ReceiptPercentIcon className={`h-8 w-8 ${currentTheme?.iconText || 'text-white'}`} />}
                 bgGradient="from-yellow-400 to-yellow-600"
                 trend={stats.donationsTrend}
                 trendUp={parseFloat(stats.donationsTrend) <= 50}
+                theme={currentTheme}
               />
               <StatCard
                 title="Total Donations"
                 value={`Rs ${stats.totalDonations.toLocaleString()}`}
-                icon={<GiftIcon className="h-8 w-8" />}
+                icon={<GiftIcon className={`h-8 w-8 ${currentTheme?.iconText || 'text-white'}`} />}
                 bgGradient="from-blue-400 to-blue-600"
                 trend={stats.donationsTrend}
                 trendUp={true}
+                theme={currentTheme}
               />
             </div>
 
             {/* Net Income & Monthly Overview */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-              <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+              <div className={`${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.shadow || 'shadow-xl'} ${currentTheme?.border || 'border border-gray-100'} rounded-2xl p-8`}>
                 <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-2xl font-bold text-gray-800">Net Income</h3>
-                  <CurrencyDollarIcon className="h-8 w-8 text-green-600" />
+                  <h3 className={`text-2xl font-bold ${currentTheme?.title || 'text-gray-800'}`}>Net Income</h3>
+                  <CurrencyDollarIcon className={`h-8 w-8 ${currentTheme?.iconText || 'text-green-600'}`} />
                 </div>
                 <div className="space-y-4">
-                  <div className={`text-5xl font-bold ${netIncome >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  <div className={`text-5xl font-bold ${netIncome >= 0 ? (currentTheme?.heroTitle || 'text-emerald-700') : 'text-red-600'}`}>
                     Rs {netIncome.toLocaleString()}
                   </div>
                   <div className="flex items-center space-x-4 text-sm">
                     <div className="flex items-center">
-                      <div className="w-3 h-3 bg-orange-500 rounded-full mr-2"></div>
-                      <span className="text-gray-600">Total Revenue: Rs {totalIncome.toLocaleString()}</span>
+                      <div className={`w-3 h-3 rounded-full mr-2 ${currentTheme?.badgeWarningBg || 'bg-orange-500'}`}></div>
+                      <span className={`${currentTheme?.mutedText || 'text-gray-600'}`}>Total Revenue: Rs {totalIncome.toLocaleString()}</span>
                     </div>
                     <div className="flex items-center">
-                      <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-                      <span className="text-gray-600">Net Income: Rs {netIncome.toLocaleString()}</span>
+                      <div className={`w-3 h-3 rounded-full mr-2 ${currentTheme?.badgeSuccessBg || 'bg-green-500'}`}></div>
+                      <span className={`${currentTheme?.mutedText || 'text-gray-600'}`}>Net Income: Rs {netIncome.toLocaleString()}</span>
                     </div>
                     <div className="flex items-center">
-                      <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
-                      <span className="text-gray-600">Expenses: Rs {stats.totalExpenses.toLocaleString()}</span>
+                      <div className={`w-3 h-3 rounded-full mr-2 ${currentTheme?.badgeDangerBg || 'bg-red-500'}`}></div>
+                      <span className={`${currentTheme?.mutedText || 'text-gray-600'}`}>Expenses: Rs {stats.totalExpenses.toLocaleString()}</span>
                     </div>
                   </div>
                   <div className="mt-6">
                     <div className="bg-gray-200 rounded-full h-4 overflow-hidden flex">
                       <div
-                        className="bg-gradient-to-r from-green-400 to-green-600 h-full transition-all duration-500"
+                        className={`${currentTheme?.heroBg || 'bg-gradient-to-r from-emerald-500 to-teal-600'} h-full transition-all duration-500`}
                         style={{ width: `${Math.min((netIncome / (stats.totalRevenue + stats.totalDonations)) * 100, 100)}%` }}
                       ></div>
                       <div
@@ -343,29 +347,29 @@ const AccountantDashboard = () => {
                 </div>
               </div>
 
-              <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+              <div className={`${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.shadow || 'shadow-xl'} ${currentTheme?.border || 'border border-gray-100'} rounded-2xl p-8`}>
                 <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-2xl font-bold text-gray-800">This Month</h3>
-                  <CalendarDaysIcon className="h-8 w-8 text-green-600" />
+                  <h3 className={`text-2xl font-bold ${currentTheme?.title || 'text-gray-800'}`}>This Month</h3>
+                  <CalendarDaysIcon className={`h-8 w-8 ${currentTheme?.iconText || 'text-green-600'}`} />
                 </div>
                 <div className="space-y-6">
-                  <div className="flex justify-between items-center p-4 bg-green-50 rounded-xl border border-green-200">
+                  <div className={`flex justify-between items-center p-4 rounded-xl ${currentTheme?.alertSuccessBg || 'bg-green-50'} ${currentTheme?.alertSuccessBorder || 'border border-green-200'}`}>
                     <div>
-                      <p className="text-sm text-green-700 font-medium">Monthly Revenue</p>
-                      <p className="text-2xl font-bold text-green-800">Rs {stats.monthlyRevenue.toLocaleString()}</p>
+                      <p className={`text-sm font-medium ${currentTheme?.alertSuccessText || 'text-green-700'}`}>Monthly Revenue</p>
+                      <p className={`text-2xl font-bold ${currentTheme?.alertSuccessText || 'text-green-800'}`}>Rs {stats.monthlyRevenue.toLocaleString()}</p>
                     </div>
-                    <ArrowTrendingUpIcon className="h-10 w-10 text-green-500" />
+                    <ArrowTrendingUpIcon className={`h-10 w-10 ${currentTheme?.iconText || 'text-green-500'}`} />
                   </div>
-                  <div className="flex justify-between items-center p-4 bg-red-50 rounded-xl border border-red-200">
+                  <div className={`flex justify-between items-center p-4 rounded-xl ${currentTheme?.alertErrorBg || 'bg-red-50'} ${currentTheme?.alertErrorBorder || 'border border-red-200'}`}>
                     <div>
-                      <p className="text-sm text-red-700 font-medium">Monthly Expenses</p>
-                      <p className="text-2xl font-bold text-red-800">Rs {stats.monthlyExpenses.toLocaleString()}</p>
+                      <p className={`text-sm font-medium ${currentTheme?.alertErrorText || 'text-red-700'}`}>Monthly Expenses</p>
+                      <p className={`text-2xl font-bold ${currentTheme?.alertErrorText || 'text-red-800'}`}>Rs {stats.monthlyExpenses.toLocaleString()}</p>
                     </div>
-                    <ArrowTrendingDownIcon className="h-10 w-10 text-red-500" />
+                    <ArrowTrendingDownIcon className={`h-10 w-10 ${currentTheme?.iconText || 'text-red-500'}`} />
                   </div>
-                  <div className={`p-4 rounded-xl border-2 ${monthlyNet >= 0 ? 'bg-blue-50 border-blue-300' : 'bg-orange-50 border-orange-300'}`}>
-                    <p className={`text-sm font-medium ${monthlyNet >= 0 ? 'text-blue-700' : 'text-orange-700'}`}>Net This Month</p>
-                    <p className={`text-3xl font-bold ${monthlyNet >= 0 ? 'text-blue-800' : 'text-orange-800'}`}>
+                  <div className={`p-4 rounded-xl border-2 ${monthlyNet >= 0 ? `${currentTheme?.alertInfoBg || 'bg-blue-50'} ${currentTheme?.alertInfoBorder || 'border-blue-300'}` : `${currentTheme?.alertWarningBg || 'bg-orange-50'} ${currentTheme?.alertWarningBorder || 'border-orange-300'}`}`}>
+                    <p className={`text-sm font-medium ${monthlyNet >= 0 ? (currentTheme?.alertInfoText || 'text-blue-700') : (currentTheme?.alertWarningText || 'text-orange-700')}`}>Net This Month</p>
+                    <p className={`text-3xl font-bold ${monthlyNet >= 0 ? (currentTheme?.alertInfoText || 'text-blue-800') : (currentTheme?.alertWarningText || 'text-orange-800')}`}>
                       Rs {monthlyNet.toLocaleString()}
                     </p>
                   </div>
@@ -375,15 +379,15 @@ const AccountantDashboard = () => {
 
             {/* Charts Section */}
             <div className="mb-8">
-              <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center">
-                <ChartBarIcon className="h-7 w-7 mr-3 text-purple-600" />
+              <h2 className={`text-2xl font-bold ${currentTheme?.title || 'text-gray-800'} mb-6 flex items-center`}>
+                <ChartBarIcon className={`h-7 w-7 mr-3 ${currentTheme?.title || 'text-gray-800'}`} />
                 Analytics & Reports
               </h2>
               
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
                 {/* Monthly Revenue vs Expenses Chart */}
-                <div className="bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
-                  <h3 className="text-xl font-bold text-gray-800 mb-4">Monthly Trend</h3>
+                <div className={`${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.shadow || 'shadow-xl'} ${currentTheme?.border || 'border border-gray-100'} rounded-2xl p-6`}>
+                  <h3 className={`text-xl font-bold ${currentTheme?.title || 'text-gray-800'} mb-4`}>Monthly Trend</h3>
                   <ResponsiveContainer width="100%" height={300}>
                     <LineChart data={stats.chartData.monthlyData}>
                       <CartesianGrid strokeDasharray="3 3" />
@@ -398,8 +402,8 @@ const AccountantDashboard = () => {
                 </div>
 
                 {/* Expense Categories Pie Chart */}
-                <div className="bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
-                  <h3 className="text-xl font-bold text-gray-800 mb-4">Expense Breakdown</h3>
+                <div className={`${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.shadow || 'shadow-xl'} ${currentTheme?.border || 'border border-gray-100'} rounded-2xl p-6`}>
+                  <h3 className={`text-xl font-bold ${currentTheme?.title || 'text-gray-800'} mb-4`}>Expense Breakdown</h3>
                   <ResponsiveContainer width="100%" height={300}>
                     <PieChart>
                       <Pie
@@ -423,8 +427,8 @@ const AccountantDashboard = () => {
               </div>
 
               {/* Fee Collection Status */}
-              <div className="bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
-                <h3 className="text-xl font-bold text-gray-800 mb-4">Fee Collection Status</h3>
+              <div className={`${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.shadow || 'shadow-xl'} ${currentTheme?.border || 'border border-gray-100'} rounded-2xl p-6`}>
+                <h3 className={`text-xl font-bold ${currentTheme?.title || 'text-gray-800'} mb-4`}>Fee Collection Status</h3>
                 <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={stats.chartData.feeStatus}>
                     <CartesianGrid strokeDasharray="3 3" />
@@ -443,8 +447,8 @@ const AccountantDashboard = () => {
 
             {/* Quick Actions Grid */}
             <div className="mb-8">
-              <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center">
-                <BriefcaseIcon className="h-7 w-7 mr-3 text-green-600" />
+              <h2 className={`text-2xl font-bold ${currentTheme?.title || 'text-gray-800'} mb-6 flex items-center`}>
+                <BriefcaseIcon className={`h-7 w-7 mr-3 ${currentTheme?.title || 'text-gray-800'}`} />
                 Quick Actions
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -456,6 +460,7 @@ const AccountantDashboard = () => {
                   gradient="from-green-500 to-green-700"
                   iconBg="bg-green-100"
                   iconColor="text-green-600"
+                  theme={currentTheme}
                 />
                 <ActionCard
                   title="My Profile"
@@ -465,6 +470,7 @@ const AccountantDashboard = () => {
                   gradient="from-green-500 to-green-700"
                   iconBg="bg-green-100"
                   iconColor="text-green-600"
+                  theme={currentTheme}
                 />
                 <ActionCard
                   title="Bill Management"
@@ -474,6 +480,7 @@ const AccountantDashboard = () => {
                   gradient="from-red-500 to-red-700"
                   iconBg="bg-red-100"
                   iconColor="text-red-600"
+                  theme={currentTheme}
                 />
                 <ActionCard
                   title="Donation Management"
@@ -483,6 +490,7 @@ const AccountantDashboard = () => {
                   gradient="from-yellow-500 to-yellow-700"
                   iconBg="bg-yellow-100"
                   iconColor="text-yellow-600"
+                  theme={currentTheme}
                 />
                 <ActionCard
                   title="Financial Reports"
@@ -492,6 +500,7 @@ const AccountantDashboard = () => {
                   gradient="from-teal-500 to-teal-700"
                   iconBg="bg-teal-100"
                   iconColor="text-teal-600"
+                  theme={currentTheme}
                 />
                 <ActionCard
                   title="My Attendance"
@@ -501,6 +510,7 @@ const AccountantDashboard = () => {
                   gradient="from-green-500 to-green-700"
                   iconBg="bg-green-100"
                   iconColor="text-green-600"
+                  theme={currentTheme}
                 />
               </div>
             </div>
@@ -511,39 +521,44 @@ const AccountantDashboard = () => {
   );
 };
 
-const StatCard = ({ title, value, icon, bgGradient, trend, trendUp }) => (
-  <div className="bg-white rounded-2xl shadow-xl p-6 border border-gray-100 transform hover:scale-105 transition-all duration-200">
+const StatCard = ({ title, value, icon, bgGradient, trend, trendUp, theme }) => (
+  <div className={`animate-rise ${theme?.cardBg || 'bg-white'} ${theme?.shadow || 'shadow-xl'} ${theme?.border || 'border border-gray-100'} rounded-2xl p-6 transform hover:scale-105 hover:-translate-y-1 transition-all duration-300`}>
     <div className="flex items-center justify-between mb-4">
-      <div className={`p-3 bg-gradient-to-br ${bgGradient} rounded-xl shadow-lg`}>
-        <div className="text-white">{icon}</div>
+      <div className={`p-3 ${theme?.heroBg || `bg-gradient-to-br ${bgGradient}`} rounded-xl ${theme?.shadow || 'shadow-lg'}`}>
+        <div className={theme?.heroText || 'text-white'}>{icon}</div>
       </div>
       {trend && (
-        <span className={`text-sm font-semibold px-3 py-1 rounded-full ${trendUp ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+        <span className={`text-sm font-semibold px-3 py-1 rounded-full ${trendUp ? `${theme?.badgeSuccessBg || 'bg-green-100'} ${theme?.badgeSuccessText || 'text-green-700'}` : `${theme?.badgeDangerBg || 'bg-red-100'} ${theme?.badgeDangerText || 'text-red-700'}`}`}>
           {trend}
         </span>
       )}
     </div>
-    <h3 className="text-sm font-medium text-gray-600 mb-1">{title}</h3>
-    <p className="text-2xl font-bold text-gray-900">{value}</p>
+    <h3 className={`${theme?.subtitle || 'text-gray-600'} text-sm font-medium mb-1`}>{title}</h3>
+    <p className={`${theme?.title || 'text-gray-900'} text-2xl font-bold`}>{value}</p>
   </div>
 );
 
-const ActionCard = ({ title, description, icon, link, gradient, iconBg, iconColor }) => (
-  <Link 
-    to={link} 
-    className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-200 overflow-hidden transform hover:-translate-y-2"
-  >
-    <div className={`h-2 bg-gradient-to-r ${gradient}`}></div>
-    <div className="p-6">
-      <div className={`inline-flex p-4 ${iconBg} rounded-xl mb-4 group-hover:scale-110 transition-transform duration-300`}>
-        <div className={iconColor}>{icon}</div>
+const ActionCard = ({ title, description, icon, link, gradient, iconBg, iconColor, theme }) => {
+  const barBg = gradient ? `bg-gradient-to-r ${gradient}` : theme?.heroBg || 'bg-gradient-to-r from-emerald-500 to-teal-500';
+  return (
+    <Link 
+      to={link} 
+      className={`group relative overflow-hidden ${theme?.cardBg || 'bg-white'} ${theme?.shadow || 'shadow-lg'} ${theme?.cardBorder || 'border border-gray-200'} rounded-2xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2`}
+    >
+      <div className={`h-2 ${barBg}`}></div>
+      <div className="absolute inset-0 bg-gradient-to-r from-white/10 via-transparent to-white/5 opacity-0 group-hover:opacity-100 transition duration-500" />
+      <div className="p-6 relative z-10">
+        <div className={`inline-flex p-4 ${iconBg || theme?.pillBg || 'bg-white'} rounded-xl mb-4 group-hover:scale-110 transition-transform duration-300 ${theme?.shadow || 'shadow-sm'}`}>
+          <div className={iconColor || theme?.iconText || 'text-emerald-600'}>{icon}</div>
+        </div>
+        <h3 className={`${theme?.title || 'text-gray-800'} text-xl font-bold mb-2 transition-colors`}>
+          {title}
+        </h3>
+        <p className={`${theme?.mutedText || 'text-gray-600'} text-sm leading-relaxed`}>{description}</p>
       </div>
-      <h3 className="text-xl font-bold text-gray-800 mb-2 group-hover:text-green-600 transition-colors">
-        {title}
-      </h3>
-      <p className="text-gray-600 text-sm leading-relaxed">{description}</p>
-    </div>
-  </Link>
-);
+      <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-gradient-to-r from-emerald-400/70 via-teal-400/70 to-cyan-400/70 opacity-0 group-hover:opacity-100 transition duration-500" />
+    </Link>
+  );
+};
 
 export default AccountantDashboard;

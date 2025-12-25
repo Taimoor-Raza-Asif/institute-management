@@ -141,11 +141,11 @@ const DonationManagement = () => {
 
         doc.setFontSize(10);
         doc.setFont(undefined, 'bold');
-        doc.text('Bright Future Institute', xStart + 17, yPos + 5);
+        doc.text('Jamia Tul Mastwaar', xStart + 17, yPos + 5);
         doc.setFontSize(8);
         doc.setFont(undefined, 'normal');
-        doc.text('123 Education St, Knowledge City', xStart + 17, yPos + 10);
-        doc.text('Phone: (042) 1234567 | Email: info@bfi.edu.pk', xStart + 17, yPos + 14);
+        doc.text('Makhdoom Pur Sharif, Chakwal', xStart + 17, yPos + 10);
+        doc.text('(0334) 8724125 | jamiatulmastwaar@gmail.com', xStart + 17, yPos + 14);
 
         doc.line(xStart, yPos + 18, xStart + 80, yPos + 18);
 
@@ -258,22 +258,22 @@ const DonationManagement = () => {
             <CurrencyDollarIcon className={`h-16 w-16 ${currentTheme?.heroIcon || 'text-emerald-600 opacity-80'}`} />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className={`${currentTheme?.statCard || 'bg-white'} ${currentTheme?.border || 'border border-emerald-100'} rounded-lg p-4`}>
+            <div className={`${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.cardBorder || currentTheme?.border || 'border border-emerald-100'} ${currentTheme?.shadow || ''} rounded-lg p-4`}>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className={`text-xs sm:text-sm ${currentTheme?.statLabel || 'text-emerald-700'} mb-1`}>Total Donations</p>
-                  <p className={`text-xl sm:text-2xl font-bold ${currentTheme?.statValue || 'text-emerald-800'}`}>PKR {donations.reduce((sum, d) => sum + parseFloat(d.donationAmount || 0), 0).toFixed(2)}</p>
+                  <p className={`text-xs sm:text-sm ${currentTheme?.statCardLabel || currentTheme?.mutedText || 'text-gray-600'} mb-1`}>Total Donations</p>
+                  <p className={`text-xl sm:text-2xl font-bold ${currentTheme?.statCardValue || currentTheme?.text || 'text-white'}`}>PKR {donations.reduce((sum, d) => sum + parseFloat(d.donationAmount || 0), 0).toFixed(2)}</p>
                 </div>
-                <BanknotesIcon className={`h-8 w-8 ${currentTheme?.statIcon || 'text-emerald-600 opacity-80'}`} />
+                <BanknotesIcon className={`h-8 w-8 ${currentTheme?.kpiGood || 'text-emerald-600'} opacity-80`} />
               </div>
             </div>
-            <div className={`${currentTheme?.statCard || 'bg-white'} ${currentTheme?.border || 'border border-emerald-100'} rounded-lg p-4`}>
+            <div className={`${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.cardBorder || currentTheme?.border || 'border border-emerald-100'} ${currentTheme?.shadow || ''} rounded-lg p-4`}>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className={`text-xs sm:text-sm ${currentTheme?.statLabel || 'text-emerald-700'} mb-1`}>Donations Count</p>
-                  <p className={`text-xl sm:text-2xl font-bold ${currentTheme?.statValue || 'text-emerald-800'}`}>{donations.length}</p>
+                  <p className={`text-xs sm:text-sm ${currentTheme?.statCardLabel || currentTheme?.mutedText || 'text-gray-600'} mb-1`}>Donations Count</p>
+                  <p className={`text-xl sm:text-2xl font-bold ${currentTheme?.statCardValue || currentTheme?.text || 'text-white'}`}>{donations.length}</p>
                 </div>
-                <ArrowDownTrayIcon className={`h-8 w-8 ${currentTheme?.statIcon || 'text-emerald-600 opacity-80'}`} />
+                <ArrowDownTrayIcon className={`h-8 w-8 ${currentTheme?.kpiGood || 'text-emerald-600'} opacity-80`} />
               </div>
             </div>
           </div>
@@ -299,12 +299,12 @@ const DonationManagement = () => {
           <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto flex-shrink-0">
             <button
               onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-              className={`flex items-center justify-center h-12 px-6 rounded-lg font-medium transition-all duration-200 bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-700 hover:to-green-800 ${currentTheme?.shadow || 'shadow-md'} w-full sm:w-auto`}
+              className={`flex items-center justify-center h-12 px-6 rounded-lg font-medium transition-all duration-200 ${currentTheme.btnSecondaryBg || 'bg-white'} ${currentTheme.btnSecondaryText || 'text-emerald-700'} ${currentTheme.btnSecondaryBorder || 'border border-emerald-200'} ${currentTheme.btnSecondaryHover || 'hover:bg-emerald-50'} ${currentTheme?.shadow || 'shadow-md'} w-full sm:w-auto`}
             >
               <FunnelIcon className="h-5 w-5 mr-2" />
               {showAdvancedFilters ? 'Hide Filters' : 'Show Filters'}
             </button>
-            <button onClick={handleAddDonationClick} className={`flex items-center justify-center h-12 px-6 rounded-lg font-medium transition-all duration-200 bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-700 hover:to-green-800 ${currentTheme?.shadow || 'shadow-md'} w-full sm:w-auto`}>
+            <button onClick={handleAddDonationClick} className={`flex items-center justify-center h-12 px-6 rounded-lg font-medium transition-all duration-200 ${currentTheme.btnPrimaryBg || 'bg-emerald-600'} ${currentTheme.btnPrimaryHover || 'hover:bg-emerald-700'} ${currentTheme.btnPrimaryText || 'text-white'} ${currentTheme.btnPrimaryBorder || 'border border-emerald-700'} ${currentTheme?.shadow || 'shadow-md'} w-full sm:w-auto`}>
               <PlusIcon className="h-5 w-5 mr-2" /> Add New Donation
             </button>
           </div>
@@ -312,15 +312,15 @@ const DonationManagement = () => {
 
         {/* Advanced Filters */}
         {showAdvancedFilters && (
-          <div className="mt-4 pt-4 border-t border-gray-300">
+          <div className={`mt-4 pt-4 border-t ${currentTheme?.border || 'border-gray-300'}`}>
             <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-4">
               <div>
-                <label htmlFor="filterPaymentMethod" className="block text-sm font-medium text-gray-700">Payment Method</label>
+                <label htmlFor="filterPaymentMethod" className={`block text-sm font-medium ${currentTheme?.title || 'text-gray-700'}`}>Payment Method</label>
                 <select
                   id="filterPaymentMethod"
                   value={filterPaymentMethod}
                   onChange={(e) => setFilterPaymentMethod(e.target.value)}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-300 focus:ring focus:ring-green-200 focus:ring-opacity-50 p-2"
+                  className={`mt-1 block w-full rounded-md p-2 ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} border ${currentTheme?.inputBorder || 'border-gray-300'} focus:outline-none ${currentTheme?.inputRing || 'focus:ring-2 focus:ring-green-500'}`}
                 >
                   <option value="">All Methods</option>
                   {paymentMethods.map(method => (
@@ -329,29 +329,29 @@ const DonationManagement = () => {
                 </select>
               </div>
               <div>
-                <label htmlFor="filterStartDate" className="block text-sm font-medium text-gray-700">Start Date</label>
+                <label htmlFor="filterStartDate" className={`block text-sm font-medium ${currentTheme?.title || 'text-gray-700'}`}>Start Date</label>
                 <input
                   type="date"
                   id="filterStartDate"
                   value={filterStartDate}
                   onChange={(e) => setFilterStartDate(e.target.value)}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-300 focus:ring focus:ring-green-200 focus:ring-opacity-50 p-2"
+                  className={`mt-1 block w-full rounded-md p-2 ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} border ${currentTheme?.inputBorder || 'border-gray-300'} focus:outline-none ${currentTheme?.inputRing || 'focus:ring-2 focus:ring-green-500'}`}
                 />
               </div>
               <div>
-                <label htmlFor="filterEndDate" className="block text-sm font-medium text-gray-700">End Date</label>
+                <label htmlFor="filterEndDate" className={`block text-sm font-medium ${currentTheme?.title || 'text-gray-700'}`}>End Date</label>
                 <input
                   type="date"
                   id="filterEndDate"
                   value={filterEndDate}
                   onChange={(e) => setFilterEndDate(e.target.value)}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-300 focus:ring focus:ring-green-200 focus:ring-opacity-50 p-2"
+                  className={`mt-1 block w-full rounded-md p-2 ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} border ${currentTheme?.inputBorder || 'border-gray-300'} focus:outline-none ${currentTheme?.inputRing || 'focus:ring-2 focus:ring-green-500'}`}
                 />
               </div>
               <div className="flex items-end">
                 <button
                   onClick={handleResetFilters}
-                  className="w-full bg-red-500 text-white py-2 px-4 rounded-lg shadow-md hover:bg-red-600 transition duration-200"
+                  className={`w-full py-2 px-4 rounded-lg ${currentTheme?.btnSecondaryBg || 'bg-white'} ${currentTheme?.btnSecondaryText || 'text-emerald-700'} ${currentTheme?.btnSecondaryBorder || 'border border-emerald-200'} ${currentTheme?.btnSecondaryHover || 'hover:bg-emerald-50'} ${currentTheme?.shadow || 'shadow-md'} transition duration-200`}
                 >
                   Reset Filters
                 </button>
@@ -363,51 +363,51 @@ const DonationManagement = () => {
 
       {error && <Message type="error">{error}</Message>}
 
-      <div className={`${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.shadow || 'shadow-md'} rounded-xl overflow-hidden`}>
+      <div className={`p-6 rounded-2xl ${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.shadow || 'shadow-lg'} ${currentTheme?.border || 'border border-gray-100'}`}>
         {loading ? (
           <Loader />
         ) : donations.length === 0 ? (
-          <p className="p-4 text-center text-gray-500">No donations found.</p>
+          <p className={`p-4 text-center ${currentTheme?.mutedText || 'text-gray-500'}`}>No donations found.</p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className={`${currentTheme?.theadBg || 'bg-emerald-600'} ${currentTheme?.theadText || 'text-white'}`}>
+          <div className="overflow-x-auto rounded-xl overflow-hidden">
+            <table className={`min-w-full divide-y ${currentTheme?.border || 'divide-gray-200'}`}>
+              <thead className={`${currentTheme?.theadBg || 'bg-gradient-to-r from-green-600 to-emerald-600'}`}>
                 <tr>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Donor Name</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Amount (PKR)</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Purpose</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Date</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Method</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Marked By</th>
-                  <th className="px-6 py-4 text-center text-xs font-bold text-white uppercase tracking-wider">Actions</th>
+                  <th scope="col" className={`px-6 py-4 text-left text-xs font-bold ${currentTheme?.theadText || 'text-white'} uppercase tracking-wider rounded-tl-xl`}>Donor Name</th>
+                  <th scope="col" className={`px-6 py-4 text-left text-xs font-bold ${currentTheme?.theadText || 'text-white'} uppercase tracking-wider`}>Amount (PKR)</th>
+                  <th scope="col" className={`px-6 py-4 text-left text-xs font-bold ${currentTheme?.theadText || 'text-white'} uppercase tracking-wider`}>Purpose</th>
+                  <th scope="col" className={`px-6 py-4 text-left text-xs font-bold ${currentTheme?.theadText || 'text-white'} uppercase tracking-wider`}>Date</th>
+                  <th scope="col" className={`px-6 py-4 text-left text-xs font-bold ${currentTheme?.theadText || 'text-white'} uppercase tracking-wider`}>Method</th>
+                  <th scope="col" className={`px-6 py-4 text-left text-xs font-bold ${currentTheme?.theadText || 'text-white'} uppercase tracking-wider`}>Marked By</th>
+                  <th scope="col" className={`px-6 py-4 text-center text-xs font-bold ${currentTheme?.theadText || 'text-white'} uppercase tracking-wider rounded-tr-xl`}>Actions</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-100">
-                {donations.map((donation, index) => (
+              <tbody className={`divide-y ${currentTheme?.border || 'divide-gray-100'}`}>
+                {donations.map((donation) => (
                   <tr
                     key={donation._id}
-                    className={`transition-all duration-150 hover:bg-green-50 hover:shadow-md ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
+                    className={`transition-all duration-150 ${currentTheme?.tbodyBg || 'bg-white'} ${currentTheme?.tableStripedBg || 'odd:bg-white even:bg-gray-50'} ${currentTheme?.tableHover || 'hover:bg-emerald-50'} hover:shadow-md`}
                   >
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">{donation.donorName || 'Anonymous'}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">PKR {parseFloat(donation.donationAmount).toFixed(2)}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{donation.donationPurpose}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{new Date(donation.donationDate).toLocaleDateString()}</td>
+                    <td className={`px-6 py-4 whitespace-nowrap text-sm font-semibold ${currentTheme?.text || 'text-gray-900'}`}>{donation.donorName || 'Anonymous'}</td>
+                    <td className={`px-6 py-4 whitespace-nowrap text-sm font-semibold ${currentTheme?.text || 'text-gray-900'}`}>PKR {parseFloat(donation.donationAmount).toFixed(2)}</td>
+                    <td className={`px-6 py-4 whitespace-nowrap text-sm ${currentTheme?.text || 'text-gray-600'}`}>{donation.donationPurpose}</td>
+                    <td className={`px-6 py-4 whitespace-nowrap text-sm ${currentTheme?.text || 'text-gray-600'}`}>{new Date(donation.donationDate).toLocaleDateString()}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">{donation.paymentMethod}</span>
+                      <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${currentTheme.pillBg || 'bg-gray-100'} ${currentTheme.pillText || 'text-gray-800'} ${currentTheme.pillBorder || 'border border-gray-200'}`}>{donation.paymentMethod}</span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{donation.markedBy?.profileId?.name} ({donation.markedBy?.role})</td>
+                    <td className={`px-6 py-4 whitespace-nowrap text-sm ${currentTheme?.text || 'text-gray-600'}`}>{donation.markedBy?.profileId?.name} ({donation.markedBy?.role})</td>
                     <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
                       <div className="flex items-center justify-center space-x-2">
-                        <button onClick={() => handleViewDonationClick(donation)} className="p-2 text-green-600 hover:text-green-900 hover:bg-green-50 rounded-lg transition-colors duration-200" title="View Donation">
+                        <button onClick={() => handleViewDonationClick(donation)} className={`p-2 ${currentTheme?.iconText || 'text-emerald-700'} hover:opacity-80 transition-opacity duration-200`} title="View Donation">
                            <EyeIcon className="h-5 w-5" />
                         </button>
-                        <button onClick={() => handleEditDonationClick(donation)} className="p-2 text-yellow-600 hover:text-yellow-900 hover:bg-yellow-50 rounded-lg transition-colors duration-200" title="Edit Donation">
+                        <button onClick={() => handleEditDonationClick(donation)} className={`p-2 ${currentTheme?.iconText || 'text-emerald-700'} hover:opacity-80 transition-opacity duration-200`} title="Edit Donation">
                           <PencilIcon className="h-5 w-5" />
                         </button>
-                        <button onClick={() => handleDeleteDonation(donation._id)} className="p-2 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-lg transition-colors duration-200" title="Delete Donation">
+                        <button onClick={() => handleDeleteDonation(donation._id)} className={`p-2 ${currentTheme?.iconText || 'text-emerald-700'} hover:opacity-80 transition-opacity duration-200`} title="Delete Donation">
                           <TrashIcon className="h-5 w-5" />
                         </button>
-                        <button onClick={() => handleDownloadReceipt(donation._id)} className="p-2 text-green-600 hover:text-green-900 hover:bg-green-50 rounded-lg transition-colors duration-200" title="Download Receipt">
+                        <button onClick={() => handleDownloadReceipt(donation._id)} className={`p-2 ${currentTheme?.iconText || 'text-emerald-700'} hover:opacity-80 transition-opacity duration-200`} title="Download Receipt">
                           <ArrowDownTrayIcon className="h-5 w-5" />
                         </button>
                       </div>

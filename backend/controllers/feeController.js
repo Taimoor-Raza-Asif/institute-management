@@ -80,6 +80,11 @@ export const createFeeRecord = async (req, res) => {
     const total = parseFloat(totalFee) + (parseFloat(admissionFee) || 0);
     const received = parseFloat(receivedAmount);
     const dueAmount = Math.max(0, total - received);
+    // Prevent duplicate fee for same student/month/year
+    const existing = await FeeRecord.findOne({ studentId, month, year: parseInt(year) });
+    if (existing) {
+      return res.status(409).json({ message: `Fee record for this student for ${month} ${year} already exists.` });
+    }
 
     const newFeeRecord = new FeeRecord({
       studentId,
@@ -149,6 +154,9 @@ export const createFeeRecord = async (req, res) => {
         if (unlinkErr) console.error('Error deleting bill screenshot file after failed fee record creation:', unlinkErr);
       });
     }
+    if (err && err.code === 11000) {
+      return res.status(409).json({ message: 'A fee record for this student and period already exists.' });
+    }
     if (err.name === 'ValidationError') {
       const errors = {};
       for (let field in err.errors) {
@@ -202,11 +210,20 @@ export const bulkCreateFees = async (req, res) => {
     const existingKeySet = new Set(existing.map(f => `${f.studentId.toString()}-${f.month}-${f.year}`));
 
     const toInsert = preparedFees.filter(f => !existingKeySet.has(`${f.studentId}-${f.month}-${f.year}`));
-    const duplicateCount = preparedFees.length - toInsert.length;
+    const duplicates = preparedFees.filter(f => existingKeySet.has(`${f.studentId}-${f.month}-${f.year}`));
 
     let created = [];
     if (toInsert.length > 0) {
-      created = await FeeRecord.insertMany(toInsert, { ordered: false });
+      try {
+        created = await FeeRecord.insertMany(toInsert, { ordered: false });
+      } catch (insertErr) {
+        // If some inserts failed due to race-condition duplicates, ignore and continue
+        if (insertErr.code === 11000) {
+          console.warn('Duplicate key error during bulk insert, some records were skipped.');
+        } else {
+          throw insertErr;
+        }
+      }
 
       // Recompute fee status for affected students (dedupe student IDs)
       const uniqueStudentIds = [...new Set(toInsert.map(f => f.studentId?.toString()))];
@@ -215,7 +232,10 @@ export const bulkCreateFees = async (req, res) => {
       }
     }
 
-    res.status(201).json({ createdCount: created.length, duplicateCount });
+    // Provide detailed feedback: created count and list of skipped students (with month/year)
+    const skipped = duplicates.map(d => ({ studentId: d.studentId, month: d.month, year: d.year }));
+
+    res.status(201).json({ createdCount: created.length, skippedCount: skipped.length, skipped });
   } catch (err) {
     console.error('Error bulk-creating fee records:', err);
     res.status(500).json({ message: 'Failed to create bulk fees: ' + err.message });
@@ -225,15 +245,55 @@ export const bulkCreateFees = async (req, res) => {
 // --- GET ALL FEES ---
 export const getAllFees = async (req, res) => {
   try {
-    const { searchTerm, month, year, receivedBy, paymentMethod } = req.query;
+    const { searchTerm, month, year, receivedBy, paymentMethod, classType, classDetail, degreeName, feeStatus } = req.query;
 
     const filter = {};
 
-    // For Accountant, they can see all fees. Admin too.
-    // Students can only see their own fees (handled by getFeesByStudent or a dedicated route)
+    // Build student filter when academic filters or feeStatus/searchTerm require it
+    let studentFilter = null;
 
-    if (searchTerm) {
-      // Search by student name or CNIC (requires population)
+    // If any academic/class filters or feeStatus are present, restrict by matching students
+    if (classType || classDetail || degreeName || feeStatus || searchTerm) {
+      studentFilter = {};
+      if (searchTerm) {
+        studentFilter.$or = [
+          { name: { $regex: searchTerm, $options: 'i' } },
+          { cnic: { $regex: searchTerm, $options: 'i' } }
+        ];
+      }
+
+      if (classType) {
+        studentFilter.class = classType;
+
+        if (classType === 'Class' || classType === 'Almiya') {
+          if (classDetail) studentFilter.classNumber = classDetail;
+        } else if (classType === 'BS') {
+          if (degreeName) studentFilter.degreeName = degreeName;
+          if (classDetail) studentFilter.semester = parseInt(classDetail);
+        }
+        // Hifaz has no secondary detail
+      }
+
+      if (feeStatus) {
+        // Normalize common frontend labels to stored values (frontend may use 'Pending' meaning 'Unpaid')
+        let normalizedStatus = feeStatus === 'Pending' ? 'Unpaid' : feeStatus;
+        if (feeStatus === 'Partial') normalizedStatus = 'Partial Paid';
+        // Match students by their computed feeStatus field
+        studentFilter.feeStatus = normalizedStatus;
+      }
+
+      // Find matching students and restrict FeeRecord query by their IDs
+      const matchedStudents = await Student.find(studentFilter).select('_id');
+      const studentIds = matchedStudents.map(s => s._id);
+      // If no students match, return empty list early
+      if (studentIds.length === 0) {
+        return res.json([]);
+      }
+      filter.studentId = { $in: studentIds };
+    }
+
+    // If searchTerm was provided but studentFilter wasn't built (should be covered above), handle fallback
+    if (searchTerm && !studentFilter) {
       const students = await Student.find({
         $or: [
           { name: { $regex: searchTerm, $options: 'i' } },
@@ -310,6 +370,16 @@ export const updateFeeRecord = async (req, res) => {
     const total = parseFloat(totalFee);
     const received = parseFloat(receivedAmount);
     const dueAmount = Math.max(0, total - received);
+    // Ensure uniqueness for student/month/year on update (if changed)
+    const conflict = await FeeRecord.findOne({ studentId, month, year: parseInt(year), _id: { $ne: id } });
+    if (conflict) {
+      if (req.file) {
+        fs.unlink(req.file.path, (unlinkErr) => {
+          if (unlinkErr) console.error('Error deleting newly uploaded bill screenshot after uniqueness conflict:', unlinkErr);
+        });
+      }
+      return res.status(409).json({ message: `Another fee record already exists for this student for ${month} ${year}.` });
+    }
 
     let billScreenshotUrl = handleBillScreenshotUpload(req.file, existingBillScreenshotUrl, currentFeeRecord.billScreenshotUrl);
 

@@ -56,7 +56,15 @@ const AddDonationModal = ({ onAdd, onEdit, onClose, donationToEdit, isViewMode =
   const handleChange = (e) => {
     if (isViewMode) return;
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    // sanitize digit-only fields
+    const digitOnlyFields = ['donationAmount', 'contactNumber', 'cnic'];
+    let newVal = value;
+    if (digitOnlyFields.includes(name)) {
+      newVal = String(value || '').replace(/\D/g, '');
+      if (name === 'cnic') newVal = newVal.slice(0, 13);
+      if (name === 'contactNumber') newVal = newVal.slice(0, 11);
+    }
+    setFormData(prev => ({ ...prev, [name]: newVal }));
   };
 
   const handleFileChange = (e) => {
@@ -70,6 +78,23 @@ const AddDonationModal = ({ onAdd, onEdit, onClose, donationToEdit, isViewMode =
 
     setLoading(true);
     setError(null);
+
+    // Client-side validation
+    if (!/^\d+$/.test(String(formData.donationAmount || '')) || parseInt(formData.donationAmount || '0', 10) < 0) {
+      setError('Donation amount must be a non-negative integer.');
+      setLoading(false);
+      return;
+    }
+    if (formData.contactNumber && !/^\d{11}$/.test(formData.contactNumber)) {
+      setError('Contact number must be 11 digits.');
+      setLoading(false);
+      return;
+    }
+    if (formData.cnic && !/^\d{13}$/.test(formData.cnic)) {
+      setError('CNIC must be 13 digits.');
+      setLoading(false);
+      return;
+    }
 
     const data = new FormData();
     for (const key in formData) {
@@ -102,21 +127,21 @@ const AddDonationModal = ({ onAdd, onEdit, onClose, donationToEdit, isViewMode =
     }
   };
 
-  const inputBase = 'w-full rounded-lg border border-gray-200 bg-white/80 px-3.5 py-2.5 text-sm text-gray-900 shadow-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed';
-  const labelBase = 'text-sm font-semibold text-gray-700 mb-1 flex items-center gap-2';
-  const sectionBase = 'p-4 md:p-5 bg-gray-50/70 border border-gray-100 rounded-xl space-y-4';
+  const inputBase = `w-full rounded-lg ${currentTheme.inputBorder || 'border border-gray-200'} ${currentTheme.inputBg || 'bg-white/80'} px-3.5 py-2.5 text-sm ${currentTheme.inputText || 'text-gray-900'} ${currentTheme.shadow || 'shadow-sm'} ${currentTheme.inputRing || 'focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200'} transition disabled:${currentTheme.inputDisabled || 'bg-gray-100'} disabled:cursor-not-allowed`;
+  const labelBase = `text-sm font-semibold ${currentTheme.subtitle || 'text-gray-700'} mb-1 flex items-center gap-2`;
+  const sectionBase = `p-4 md:p-5 ${currentTheme.panelBg || 'bg-gray-50/70'} ${currentTheme.panelBorder || 'border border-gray-100'} rounded-xl space-y-4`;
 
   return (
-    <form onSubmit={handleSubmit} className="relative overflow-hidden rounded-2xl bg-white/95 backdrop-blur border border-emerald-50 shadow-2xl p-5 sm:p-7 space-y-5">
+    <form onSubmit={handleSubmit} className={`relative overflow-hidden rounded-2xl backdrop-blur p-5 sm:p-7 space-y-5 ${currentTheme.cardBg || 'bg-white/95'} ${currentTheme.cardBorder || 'border border-emerald-50'} ${currentTheme.shadow || 'shadow-2xl'}`}>
       <div className="absolute inset-0 pointer-events-none bg-gradient-to-br from-emerald-100/60 via-white to-teal-50/50" aria-hidden />
       <div className="relative space-y-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-600">Donations</p>
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mt-1">{isViewMode ? 'View Donation' : donationToEdit ? 'Edit Donation' : 'Add New Donation'}</h2>
-            <p className="text-sm text-gray-500 mt-1">Capture donation details, donor info, and payment in one flow.</p>
+            <p className={`text-xs font-semibold uppercase tracking-[0.18em] ${currentTheme.heroIcon || 'text-emerald-600'}`}>Donations</p>
+            <h2 className={`text-2xl sm:text-3xl font-bold mt-1 ${currentTheme.title || 'text-gray-900'}`}>{isViewMode ? 'View Donation' : donationToEdit ? 'Edit Donation' : 'Add New Donation'}</h2>
+            <p className={`text-sm mt-1 ${currentTheme.mutedText || 'text-gray-500'}`}>Capture donation details, donor info, and payment in one flow.</p>
           </div>
-          <span className="px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm border bg-emerald-50 text-emerald-700 border-emerald-100">Secure</span>
+          <span className={`px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm border ${currentTheme.badgeSuccessBg || 'bg-emerald-50'} ${currentTheme.badgeSuccessText || 'text-emerald-700'} ${currentTheme.badgeBorder || 'border-emerald-100'}`}>Secure</span>
         </div>
 
         {error && <Message type="error">{error}</Message>}
@@ -127,15 +152,17 @@ const AddDonationModal = ({ onAdd, onEdit, onClose, donationToEdit, isViewMode =
             <div className="space-y-1">
               <label htmlFor="donationAmount" className={labelBase}>Donation Amount<span className="text-red-500">*</span></label>
               <input
-                type="number"
+                type="text"
+                inputMode="numeric"
+                pattern="\d*"
                 id="donationAmount"
                 name="donationAmount"
                 value={formData.donationAmount}
                 onChange={handleChange}
                 readOnly={isViewMode}
                 required={!isViewMode}
-                min="0"
                 className={inputBase}
+                placeholder="Amount in PKR"
               />
             </div>
             <div className="space-y-1">
@@ -197,6 +224,10 @@ const AddDonationModal = ({ onAdd, onEdit, onClose, donationToEdit, isViewMode =
                 onChange={handleChange}
                 readOnly={isViewMode}
                 className={inputBase}
+                inputMode="numeric"
+                pattern="\d*"
+                maxLength={11}
+                placeholder="03XXXXXXXXX"
               />
             </div>
             <div className="space-y-1">
@@ -221,6 +252,10 @@ const AddDonationModal = ({ onAdd, onEdit, onClose, donationToEdit, isViewMode =
                 onChange={handleChange}
                 readOnly={isViewMode}
                 className={inputBase}
+                inputMode="numeric"
+                pattern="\d*"
+                maxLength={13}
+                placeholder="13 digits"
               />
             </div>
             <div className="space-y-1 md:col-span-2">

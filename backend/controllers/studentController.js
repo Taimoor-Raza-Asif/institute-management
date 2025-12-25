@@ -2,11 +2,95 @@
 
 import Student from '../models/Student.js';
 import Staff from '../models/Staff.js'; // Import Staff model to get teacher's subjects
+import AcademicStructure from '../models/AcademicStructure.js';
+import CohortCounter from '../models/CohortCounter.js';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { createInternalUser } from './userController.js';
 import asyncHandler from 'express-async-handler';
+
+// Helper: build cohort filter object from provided academic fields
+const buildCohortFilter = ({ studentClass, classNumber, degreeName, semester }) => {
+  const filter = {};
+  if (!studentClass) return filter;
+  filter.class = studentClass;
+  if (['Class', 'Almiya'].includes(studentClass)) {
+    filter.classNumber = classNumber || null;
+  } else if (studentClass === 'BS') {
+    filter.degreeName = degreeName || null;
+    filter.semester = semester !== undefined && semester !== null ? parseInt(semester) : null;
+  } else if (studentClass === 'Hifaz') {
+    // group Hifaz by class only for roll allocation
+  }
+  return filter;
+};
+
+// Helper: find smallest available positive integer roll in cohort (slots)
+const findNextAvailableRoll = async (cohortFilter) => {
+  // Find students in cohort and extract trailing numeric part from rollNumber
+  const students = await Student.find(cohortFilter).select('rollNumber');
+  const used = new Set();
+  students.forEach(s => {
+    if (s.rollNumber) {
+      const m = String(s.rollNumber).match(/(\d+)$/);
+      if (m) {
+        const n = parseInt(m[1], 10);
+        if (!isNaN(n) && n > 0) used.add(n);
+      }
+    }
+  });
+  let i = 1;
+  while (true) {
+    if (!used.has(i)) return i;
+    i += 1;
+  }
+};
+
+// Helper: compute cohort prefix using AcademicStructure config (falls back to simple codes)
+const computeCohortPrefix = async ({ studentClass, classNumber, degreeName, semester }) => {
+  try {
+    const config = await AcademicStructure.findOne({ key: 'ACADEMIC_CONFIG' });
+    const type = config?.classTypes?.find(t => t.slug === studentClass);
+    if (!type) {
+      // fallback: use class slug and identifier/degree
+      if (studentClass === 'BS') return `BS-${(degreeName || 'GEN').replace(/\s+/g,'').toUpperCase()}`;
+      if (['Class','Almiya'].includes(studentClass)) return `${studentClass.toUpperCase()}-${String(classNumber || '').toUpperCase()}`;
+      return studentClass.toUpperCase();
+    }
+
+    if (['Class','Almiya'].includes(studentClass)) {
+      const cls = type.classConfig?.find(c => String(c.classNumber) === String(classNumber));
+      const id = cls?.classIdentifier || String(classNumber || '');
+      return `${type.slug.toUpperCase()}-${String(id).replace(/\s+/g,'').toUpperCase()}`;
+    }
+    if (studentClass === 'BS') {
+      const deg = type.degreeConfig?.find(d => d.degreeName === degreeName);
+      const degCode = deg?.degreeName ? deg.degreeName.split(' ').map(w=>w[0]).join('') : (degreeName || 'GEN');
+      return `BS-${String(degCode).toUpperCase()}-S${String(semester || '')}`;
+    }
+    if (studentClass === 'Hifaz') {
+      return `HIF`;
+    }
+    return (studentClass || 'COHORT').toString().toUpperCase();
+  } catch (err) {
+    // On any error, fall back to basic prefix
+    if (studentClass === 'BS') return `BS-${(degreeName || 'GEN').replace(/\s+/g,'').toUpperCase()}`;
+    if (['Class','Almiya'].includes(studentClass)) return `${studentClass.toUpperCase()}-${String(classNumber || '').toUpperCase()}`;
+    return (studentClass || 'COHORT').toString().toUpperCase();
+  }
+};
+
+// Helper: get next atomic sequence for a cohort prefix
+const getNextCohortSequence = async (prefix) => {
+  if (!prefix) prefix = 'DEFAULT';
+  const result = await CohortCounter.findOneAndUpdate(
+    { key: prefix },
+    { $inc: { seq: 1 } },
+    { new: true, upsert: true }
+  );
+  return result.seq;
+};
 
 // Helper to get __dirname in ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -109,6 +193,15 @@ export const updateStudent = async (req, res) => {
     if (depositedAmount !== undefined) updateFields.depositedAmount = depositedAmount;
     if (otherDues !== undefined) updateFields.otherDues = otherDues;
 
+    // Determine if cohort is changing so we can reassign rollNumber if needed
+    const cohortRelatedFields = ['class', 'classNumber', 'degreeName', 'semester'];
+    let cohortWillChange = false;
+    // If any of these fields are present in request and differ from currentStudent, mark change
+    if (studentClass !== undefined && studentClass !== currentStudent.class) cohortWillChange = true;
+    if (classNumber !== undefined && String(classNumber) !== String(currentStudent.classNumber)) cohortWillChange = true;
+    if (degreeName !== undefined && degreeName !== currentStudent.degreeName) cohortWillChange = true;
+    if (semester !== undefined && parseInt(semester) !== currentStudent.semester) cohortWillChange = true;
+
     // Handle studentStatus and reason
     if (studentStatus !== undefined) {
       updateFields.studentStatus = studentStatus;
@@ -183,6 +276,32 @@ export const updateStudent = async (req, res) => {
       // If class is not explicitly updated, still handle Hifaz fields if they are present in req.body
        if (currentJuz !== undefined) updateFields.currentJuz = parseInt(currentJuz) || 0;
        if (currentSurah !== undefined) updateFields.currentSurah = currentSurah;
+    }
+
+    // If cohort will change, assign a new rollNumber slot in target cohort
+    if (cohortWillChange) {
+      const targetClass = studentClass !== undefined ? studentClass : currentStudent.class;
+      const targetClassNumber = classNumber !== undefined ? classNumber : currentStudent.classNumber;
+      const targetDegreeName = degreeName !== undefined ? degreeName : currentStudent.degreeName;
+      const targetSemester = semester !== undefined ? parseInt(semester) : currentStudent.semester;
+
+      const cohort = buildCohortFilter({ studentClass: targetClass, classNumber: targetClassNumber, degreeName: targetDegreeName, semester: targetSemester });
+      const prefix = await computeCohortPrefix({ studentClass: targetClass, classNumber: targetClassNumber, degreeName: targetDegreeName, semester: targetSemester });
+      const seq = await getNextCohortSequence(prefix);
+      const padded = String(seq).padStart(3, '0');
+      updateFields.rollNumber = `${prefix}-${padded}`;
+    } else if (rollNumber !== undefined) {
+      // If rollNumber explicitly provided, validate uniqueness within cohort
+      const targetClass = studentClass !== undefined ? studentClass : currentStudent.class;
+      const targetClassNumber = classNumber !== undefined ? classNumber : currentStudent.classNumber;
+      const targetDegreeName = degreeName !== undefined ? degreeName : currentStudent.degreeName;
+      const targetSemester = semester !== undefined ? parseInt(semester) : currentStudent.semester;
+      const cohort = buildCohortFilter({ studentClass: targetClass, classNumber: targetClassNumber, degreeName: targetDegreeName, semester: targetSemester });
+      const existing = await Student.findOne({ ...cohort, rollNumber: String(rollNumber), _id: { $ne: currentStudent._id } });
+      if (existing) {
+        return res.status(400).json({ message: 'Provided roll number is already taken in the selected cohort.' });
+      }
+      updateFields.rollNumber = String(rollNumber);
     }
 
     // --- Document Upload Fields ---
@@ -561,6 +680,25 @@ export const createStudent = async (req, res) => {
       class10ResultUrl, //
       class12ResultUrl, //
     });
+
+    // If rollNumber not provided, auto-generate a unique prefixed roll within cohort (slot allocation)
+    const cohort = buildCohortFilter({ studentClass, classNumber, degreeName, semester });
+    const prefix = await computeCohortPrefix({ studentClass, classNumber, degreeName, semester });
+
+    if (!newStudent.rollNumber || String(newStudent.rollNumber).trim() === '') {
+      const seq = await getNextCohortSequence(prefix);
+      const padded = String(seq).padStart(3, '0');
+      newStudent.rollNumber = `${prefix}-${padded}`;
+    } else {
+      // If provided, ensure it's not already used in that cohort
+      const exists = await Student.findOne({ ...cohort, rollNumber: String(newStudent.rollNumber) });
+      if (exists) {
+        // cleanup uploaded files
+        if (req.files) Object.values(req.files).flat().forEach(f => fs.unlink(f.path, () => {}));
+        return res.status(400).json({ message: 'Provided roll number is already taken in the selected cohort.' });
+      }
+      // provided roll is unique within cohort; keep as-is
+    }
 
     const savedStudent = await newStudent.save();
 

@@ -6,11 +6,13 @@ import Message from '../components/Message';
 import { toast } from 'react-toastify';
 import { UserContext } from '../App';
 import { X } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
 
 const EditMarksForm = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const { currentUser } = useContext(UserContext);
+    const { currentTheme } = useTheme();
 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -47,9 +49,14 @@ const EditMarksForm = () => {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
+        const digitOnlyFields = ['marksObtained', 'totalMarks'];
+        let newVal = value;
+        if (digitOnlyFields.includes(name)) {
+            newVal = String(value || '').replace(/\D/g, '');
+        }
         setFormData({
             ...formData,
-            [name]: value,
+            [name]: newVal,
         });
     };
 
@@ -93,20 +100,20 @@ const EditMarksForm = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-emerald-50 via-white to-emerald-50">
+        <div className={`min-h-screen ${currentTheme.pageBg || 'bg-gradient-to-b from-emerald-50 via-white to-emerald-50'}`}>
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
                 {/* Hero */}
-                <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 shadow-2xl text-white px-6 sm:px-10 py-8 mb-8">
+                <div className={`relative overflow-hidden rounded-3xl px-6 sm:px-10 py-8 mb-8 ${currentTheme.dashHeroBg || currentTheme.heroBg || 'bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500'} ${currentTheme.dashHeroShadow || currentTheme.heroShadow || 'shadow-2xl'}`}>
                     <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_20%_20%,white,transparent_25%),radial-gradient(circle_at_80%_0%,white,transparent_25%)]" />
                     <div className="relative flex items-start justify-between">
                         <div>
-                            <h1 className="text-2xl sm:text-3xl font-extrabold leading-tight">Edit Marks</h1>
-                            <p className="text-emerald-50/90 mt-1 text-sm sm:text-base max-w-2xl">Update the marks details below. Your changes save instantly.</p>
+                            <h1 className={`text-2xl sm:text-3xl font-extrabold leading-tight ${currentTheme.dashHeroTitle || currentTheme.heroTitle || 'text-white'}`}>Edit Marks</h1>
+                            <p className={`${currentTheme.dashHeroSubtitle || currentTheme.heroSubtitle || 'text-emerald-50/90'} mt-1 text-sm sm:text-base max-w-2xl`}>Update the marks details below. Your changes save instantly.</p>
                         </div>
                         <button
                             type="button"
                             onClick={() => navigate(-1)}
-                            className="inline-flex items-center justify-center rounded-full p-2 bg-white/10 hover:bg-white/20 text-white transition"
+                            className={`inline-flex items-center justify-center rounded-full p-2 ${currentTheme.dashHeroPillBg || currentTheme.heroPillBg || 'bg-white/10'} hover:opacity-90 ${currentTheme.dashHeroPillText || currentTheme.heroPillText || 'text-white'} transition`}
                             title="Close"
                         >
                             <X className="h-5 w-5" />
@@ -157,27 +164,28 @@ const EditMarksForm = () => {
                             <div>
                                 <label htmlFor="totalMarks" className="block text-sm font-medium text-gray-700">Total Marks</label>
                                 <input
-                                    type="number"
+                                    type="text"
+                                    inputMode="numeric"
+                                    pattern="\d*"
                                     id="totalMarks"
                                     name="totalMarks"
                                     value={formData.totalMarks}
                                     onChange={handleChange}
                                     required
-                                    min="1"
                                     className="mt-1 w-full rounded-lg bg-white text-gray-700 border border-emerald-200 ring-1 ring-emerald-100 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:border-emerald-300"
                                 />
                             </div>
                             <div>
                                 <label htmlFor="marksObtained" className="block text-sm font-medium text-gray-700">Obtained Marks</label>
                                 <input
-                                    type="number"
+                                    type="text"
+                                    inputMode="numeric"
+                                    pattern="\d*"
                                     id="marksObtained"
                                     name="marksObtained"
                                     value={formData.marksObtained}
                                     onChange={handleChange}
                                     required
-                                    min="0"
-                                    max={formData.totalMarks}
                                     className="mt-1 w-full rounded-lg bg-white text-gray-700 border border-emerald-200 ring-1 ring-emerald-100 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:border-emerald-300"
                                 />
                             </div>

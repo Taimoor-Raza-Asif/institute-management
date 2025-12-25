@@ -59,7 +59,7 @@ const Layout = ({ children, currentUser, onLogout }) => {
 
   // Helper: active tab styles per theme and shared class builder for NavLink
   const activeClassesMap = {
-    'Green': 'bg-green-600 text-white',
+    'Green': `${currentTheme?.btnPrimaryBg || 'bg-green-600'} ${currentTheme?.btnPrimaryText || 'text-white'}`,
     'General Dark': 'bg-gray-600 text-white',
     'Deep Blue': 'bg-blue-800 text-white',
     'Royal Purple': 'bg-purple-600 text-white',
@@ -67,7 +67,7 @@ const Layout = ({ children, currentUser, onLogout }) => {
     'Black & Teal': 'bg-teal-700 text-white',
     'Vibrant Magenta': 'bg-pink-600 text-white',
   };
-  const activeClasses = activeClassesMap[currentThemeName] || 'bg-green-600 text-white';
+  const activeClasses = activeClassesMap[currentThemeName] || `${currentTheme?.btnPrimaryBg || 'bg-green-600'} ${currentTheme?.btnPrimaryText || 'text-white'}`;
   const navClass = ({ isActive }) => `flex items-center p-2 text-sm md:text-base rounded-md ${currentTheme.linkHover} transition duration-200 ${currentTheme.linkText} ${isActive ? activeClasses : ''}`;
 
   // Component for theme selection UI
@@ -170,7 +170,7 @@ const Layout = ({ children, currentUser, onLogout }) => {
             </div>
             <button
               onClick={toggleSidebar}
-              className="md:hidden p-2 rounded-md absolute top-2 right-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+              className={`md:hidden p-2 rounded-md absolute top-2 right-2 focus:outline-none ${currentTheme?.inputRing || 'focus:ring-2 focus:ring-green-500'}`}
               aria-label="Close sidebar"
             >
               <XMarkIcon className={`h-6 w-6 ${currentTheme.headerText}`} />
@@ -179,7 +179,7 @@ const Layout = ({ children, currentUser, onLogout }) => {
           <nav className="flex-grow pt-4">
             <ul className={currentTheme.linkText}>
               {/* Theme Selector - Uses Context */}
-              {/* <ThemeSelector /> */}
+              <ThemeSelector />
 
               {/* Dashboard Links */}
               {currentUser.role === 'admin' && (
@@ -552,7 +552,7 @@ const Layout = ({ children, currentUser, onLogout }) => {
             </ul>
           </nav>
           <div className={`mt-auto pt-4 border-t ${currentTheme.border}`}>
-            <p className={`text-sm mb-2 truncate ${currentTheme.linkText}`} title={currentUser.cnic}>Logged in as: {currentUser.cnic})</p>
+            <p className={`text-sm mb-2 truncate ${currentTheme.linkText}`} title={currentUser.cnic}>Logged in as: {currentUser.name} - ({currentUser.role})</p>
             <button
               onClick={onLogout}
               className="flex items-center justify-center w-full p-2 rounded-md bg-red-600 hover:bg-red-700 transition duration-200 text-white"

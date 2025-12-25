@@ -154,46 +154,46 @@ const LeaveList = () => {
   const getStatusColor = (status) => {
     switch (status) {
       case 'Approved':
-        return 'bg-green-100 text-green-800';
+        return `${currentTheme?.badgeSuccessBg || 'bg-green-100'} ${currentTheme?.badgeSuccessText || 'text-green-800'}`;
       case 'Rejected':
-        return 'bg-red-100 text-red-800';
+        return `${currentTheme?.badgeDangerBg || 'bg-red-100'} ${currentTheme?.badgeDangerText || 'text-red-800'}`;
       case 'Pending':
       default:
-        return 'bg-yellow-100 text-yellow-800';
+        return `${currentTheme?.badgeWarningBg || 'bg-amber-100'} ${currentTheme?.badgeWarningText || 'text-amber-800'}`;
     }
   };
 
   return (
-    <div className="container mx-auto p-4 sm:p-6 lg:p-8 bg-gray-100 min-h-screen">
+    <div className={`container mx-auto p-4 sm:p-6 lg:p-8 ${currentTheme?.mainBg || 'bg-gray-50'}`}>
       {/* Hero Header */}
-      <div className={`mb-8 rounded-2xl p-8 ${currentTheme.heroBg || 'bg-emerald-50'} ${currentTheme.shadow || 'shadow-lg'} ${currentTheme.border || 'border border-gray-200'}`}>
+      <div className={`mb-8 rounded-2xl p-8 ${currentTheme?.heroBg || 'bg-emerald-50'} ${currentTheme?.shadow || 'shadow-lg'} ${currentTheme?.border || 'border border-gray-200'}`}>
         <div className="flex items-center gap-4">
-          <PencilIcon className={`h-9 w-9 ${currentTheme.heroIcon || 'text-gray-500'}`} />
+          <PencilIcon className={`h-9 w-9 ${currentTheme?.heroIcon || 'text-gray-500'}`} />
           <div>
-            <h1 className={`text-3xl sm:text-4xl font-extrabold mb-2 ${currentTheme.heroTitle || 'text-green-800'}`}>Student Leave Requests</h1>
-            <p className={`${currentTheme.heroSubtitle || 'text-gray-600'} text-sm`}>Manage and track student leave applications</p>
+            <h1 className={`text-3xl sm:text-4xl font-extrabold mb-2 ${currentTheme?.heroTitle || 'text-green-800'}`}>Student Leave Requests</h1>
+            <p className={`${currentTheme?.heroSubtitle || 'text-gray-600'} text-sm`}>Manage and track student leave applications</p>
           </div>
         </div>
       </div>
 
       {/* Search and Filters Card */}
       {(isAdmin || isTeacher) && (
-      <div className="bg-white rounded-xl shadow-xl p-6 mb-6">
+      <div className={`${currentTheme?.cardBg || 'bg-white'} rounded-xl ${currentTheme?.shadow || 'shadow-xl'} p-6 mb-6 ${currentTheme?.border || 'border border-gray-100'}`}>
         <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-3">
           <div className="relative w-full sm:w-1/2 lg:w-2/3">
             <input
               type="text"
               placeholder="Search by student name or reason..."
-              className="block w-full h-12 pl-10 pr-4 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className={`block w-full h-12 pl-10 pr-4 rounded-lg ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputBorder || 'border border-gray-300'} ${currentTheme?.inputText || 'text-gray-900'} ${currentTheme?.inputPlaceholder || 'placeholder:text-gray-400'} focus:outline-none ${currentTheme?.inputRing || 'focus:ring-2 focus:ring-emerald-500 focus:ring-offset-0'} ${currentTheme?.inputFocus || 'focus:border-emerald-500'}`}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
-            <MagnifyingGlassIcon className="h-5 w-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <MagnifyingGlassIcon className={`h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 ${currentTheme?.mutedText || 'text-gray-400'}`} />
           </div>
           <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 w-full sm:w-auto">
             <button
               onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-              className="group flex items-center justify-center h-12 px-6 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 w-full sm:w-auto text-gray-700 hover:from-gray-700 hover:to-gray-800"
+              className={`group flex items-center justify-center h-12 px-6 rounded-xl font-semibold transition-all duration-300 ${currentTheme?.shadow || 'shadow-lg'} hover:shadow-xl transform hover:-translate-y-0.5 w-full sm:w-auto ${currentTheme?.btnSecondaryBg || 'bg-white'} ${currentTheme?.btnSecondaryText || 'text-emerald-700'} ${currentTheme?.btnSecondaryBorder || 'border border-emerald-200'} ${currentTheme?.btnSecondaryHover || 'hover:bg-emerald-50'}`}
             >
               <FunnelIcon className="h-5 w-5 mr-2 transition-transform group-hover:scale-110" />
               {showAdvancedFilters ? 'Hide' : 'Filters'}
@@ -201,7 +201,7 @@ const LeaveList = () => {
             {(isAdmin || isTeacher) && (
               <button
                 onClick={handleAdd}
-                className="group flex items-center justify-center h-12 px-6 rounded-xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 text-white transition-all duration-300 shadow-lg hover:shadow-2xl hover:from-green-700 hover:to-emerald-700 transform hover:-translate-y-0.5 w-full sm:w-auto"
+                className={`group flex items-center justify-center h-12 px-6 rounded-xl font-bold transition-all duration-300 ${currentTheme?.shadow || 'shadow-lg'} hover:shadow-2xl transform hover:-translate-y-0.5 w-full sm:w-auto ${currentTheme?.btnPrimaryBg || 'bg-emerald-600'} ${currentTheme?.btnPrimaryHover || 'hover:bg-emerald-700'} ${currentTheme?.btnPrimaryText || 'text-white'} ${currentTheme?.btnPrimaryBorder || 'border border-emerald-700'}`}
               >
                 <PlusIcon className="h-5 w-5 mr-2 transition-transform group-hover:rotate-90" />
                 Request
@@ -211,14 +211,14 @@ const LeaveList = () => {
         </div>
 
         {showAdvancedFilters && (
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-6 pt-6 border-t border-gray-200">
+          <div className={`grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-6 pt-6 border-t ${currentTheme?.border || 'border-gray-200'}`}>
             <div>
-              <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+              <label htmlFor="status" className={`block text-sm font-medium mb-2 ${currentTheme?.mutedText || 'text-gray-700'}`}>Status</label>
               <select
                 id="status"
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
-                className="block w-full h-12 px-4 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className={`block w-full h-12 px-4 rounded-lg ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputBorder || 'border border-gray-300'} ${currentTheme?.inputText || 'text-gray-900'} focus:outline-none ${currentTheme?.inputRing || 'focus:ring-2 focus:ring-emerald-500 focus:ring-offset-0'} ${currentTheme?.inputFocus || 'focus:border-emerald-500'}`}
               >
                 <option value="">All</option>
                 <option value="Pending">Pending</option>
@@ -227,32 +227,32 @@ const LeaveList = () => {
               </select>
             </div>
             <div>
-              <label htmlFor="studentName" className="block text-sm font-medium text-gray-700 mb-2">Student Name</label>
+              <label htmlFor="studentName" className={`block text-sm font-medium mb-2 ${currentTheme.mutedText || 'text-gray-700'}`}>Student Name</label>
               <input
                 type="text"
                 id="studentName"
                 value={filterStudentName}
                 onChange={(e) => setFilterStudentName(e.target.value)}
-                className="block w-full h-12 px-4 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className={`block w-full h-12 px-4 rounded-lg ${currentTheme.inputBg || 'bg-white'} ${currentTheme.inputBorder || 'border border-gray-300'} ${currentTheme.inputText || 'text-gray-900'} ${currentTheme.inputPlaceholder || 'placeholder:text-gray-400'} focus:outline-none ${currentTheme.inputRing || 'focus:ring-2 focus:ring-emerald-500 focus:ring-offset-0'} ${currentTheme.inputFocus || 'focus:border-emerald-500'}`}
               />
             </div>
             <div>
-              <label htmlFor="class" className="block text-sm font-medium text-gray-700 mb-2">Class</label>
+              <label htmlFor="class" className={`block text-sm font-medium mb-2 ${currentTheme.mutedText || 'text-gray-700'}`}>Class</label>
               <input
                 type="text"
                 id="class"
                 value={filterClass}
                 onChange={(e) => setFilterClass(e.target.value)}
-                className="block w-full h-12 px-4 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className={`block w-full h-12 px-4 rounded-lg ${currentTheme.inputBg || 'bg-white'} ${currentTheme.inputBorder || 'border border-gray-300'} ${currentTheme.inputText || 'text-gray-900'} ${currentTheme.inputPlaceholder || 'placeholder:text-gray-400'} focus:outline-none ${currentTheme.inputRing || 'focus:ring-2 focus:ring-emerald-500 focus:ring-offset-0'} ${currentTheme.inputFocus || 'focus:border-emerald-500'}`}
               />
             </div>
             <div>
-              <label htmlFor="isReturned" className="block text-sm font-medium text-gray-700 mb-2">Return Status</label>
+              <label htmlFor="isReturned" className={`block text-sm font-medium mb-2 ${currentTheme.mutedText || 'text-gray-700'}`}>Return Status</label>
               <select
                 id="isReturned"
                 value={filterIsReturned}
                 onChange={(e) => setFilterIsReturned(e.target.value)}
-                className="block w-full h-12 px-4 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className={`block w-full h-12 px-4 rounded-lg ${currentTheme.inputBg || 'bg-white'} ${currentTheme.inputBorder || 'border border-gray-300'} ${currentTheme.inputText || 'text-gray-900'} focus:outline-none ${currentTheme.inputRing || 'focus:ring-2 focus:ring-emerald-500 focus:ring-offset-0'} ${currentTheme.inputFocus || 'focus:border-emerald-500'}`}
               >
                 <option value="">All</option>
                 <option value="true">Returned</option>
@@ -265,44 +265,44 @@ const LeaveList = () => {
       )}
 
       {loading ? (
-        <p className="text-center text-gray-600 py-8">Loading...</p>
+        <p className={`text-center ${currentTheme?.mutedText || 'text-gray-600'} py-8`}>Loading...</p>
       ) : error ? (
         <p className="text-center text-red-500 py-8">{error}</p>
       ) : (
-        <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div className={`${currentTheme?.cardBg || 'bg-white'} rounded-xl ${currentTheme?.shadow || 'shadow-lg'} overflow-hidden ${currentTheme?.border || 'border border-gray-100'}`}>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className={`${currentTheme?.theadBg || 'bg-emerald-600'} ${currentTheme?.theadText || 'text-white'}`}>
                 <tr>
-                  <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Student</th>
-                  <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Class</th>
-                  <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Dates</th>
-                  <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Reason</th>
-                  <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Status</th>
-                  <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Returned</th>
-                  <th scope="col" className="px-6 py-4 text-right text-xs font-bold text-white uppercase tracking-wider">Actions</th>
+                  <th scope="col" className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider">Student</th>
+                  <th scope="col" className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider">Class</th>
+                  <th scope="col" className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider">Dates</th>
+                  <th scope="col" className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider">Reason</th>
+                  <th scope="col" className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider">Status</th>
+                  <th scope="col" className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider">Returned</th>
+                  <th scope="col" className="px-6 py-4 text-right text-xs font-bold uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-100">
+              <tbody className={`${currentTheme?.tbodyBg || 'bg-white'} divide-y divide-gray-100`}>
                 {leaveRequests.length > 0 ? (
                   leaveRequests.map((leave, index) => (
                     <tr 
-                      key={leave._id} 
-                      className={`transition-all duration-150 hover:bg-green-50 hover:shadow-md ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
+                      key={leave._id}
+                      className={`transition-all duration-150 ${currentTheme?.tableHover || 'hover:bg-emerald-50'} ${currentTheme?.tableStripedBg || currentTheme?.tableStripe || 'odd:bg-gray-50'} ${currentTheme?.tbodyBg || 'bg-white'}`}
                     >
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{leave.studentName}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{leave.studentClass}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                      <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${currentTheme?.text || 'text-gray-900'}`}>{leave.studentName}</td>
+                      <td className={`px-6 py-4 whitespace-nowrap text-sm ${currentTheme?.mutedText || 'text-gray-700'}`}>{leave.studentClass}</td>
+                      <td className={`px-6 py-4 whitespace-nowrap text-sm ${currentTheme?.mutedText || 'text-gray-700'}`}>
                         {new Date(leave.startDate).toLocaleDateString()} to {new Date(leave.endDate).toLocaleDateString()}
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-700">{leave.reason}</td>
+                      <td className={`px-6 py-4 text-sm ${currentTheme?.mutedText || 'text-gray-700'}`}>{leave.reason}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(leave.status)}`}>
+                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full border ${getStatusColor(leave.status)}`}>
                           {leave.status}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${leave.isReturned ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full border ${leave.isReturned ? `${currentTheme?.badgeSuccessBg || 'bg-green-100'} ${currentTheme?.badgeSuccessText || 'text-green-800'}` : `${currentTheme?.badgeDangerBg || 'bg-red-100'} ${currentTheme?.badgeDangerText || 'text-red-800'}`}`}>
                           {leave.isReturned ? 'Yes' : 'No'}
                         </span>
                       </td>
@@ -310,7 +310,7 @@ const LeaveList = () => {
                         <div className="flex items-center justify-end space-x-2">
                           <button 
                             onClick={(e) => { e.stopPropagation(); handleView(leave); }} 
-                            className="group p-1 rounded-md transition-all duration-200 text-blue-600 hover:bg-blue-100 hover:shadow-md transform hover:scale-110" 
+                            className={`group p-1 rounded-md transition-all duration-200 ${currentTheme?.iconText || 'text-blue-600'} ${currentTheme?.hoverBg || 'hover:bg-blue-100'} hover:shadow-md transform hover:scale-110`} 
                             title="View Details"
                           >
                             <EyeIcon className="h-5 w-5 transition-transform group-hover:scale-125" />
@@ -319,14 +319,14 @@ const LeaveList = () => {
                             <>
                               <button 
                                 onClick={() => handleUpdateStatus(leave._id, 'Approved')} 
-                                className="group flex items-center justify-center px-3 py-1 text-xs font-medium rounded-md transition-all duration-300 bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-700 hover:to-green-800 shadow-md hover:shadow-lg transform hover:-translate-y-0.5" 
+                                className={`group flex items-center justify-center px-3 py-1 text-xs font-medium rounded-md transition-all duration-300 ${currentTheme?.btnPrimaryBg || 'bg-emerald-600'} ${currentTheme?.btnPrimaryText || 'text-white'} ${currentTheme?.btnPrimaryHover || 'hover:bg-emerald-700'} shadow-md transform hover:-translate-y-0.5`} 
                                 title="Approve Leave"
                               >
                                 Approve
                               </button>
                               <button 
                                 onClick={() => handleUpdateStatus(leave._id, 'Rejected')} 
-                                className="group flex items-center justify-center px-3 py-1 text-xs font-medium rounded-md transition-all duration-300 bg-gradient-to-r from-red-600 to-red-700 text-white hover:from-red-700 hover:to-red-800 shadow-md hover:shadow-lg transform hover:-translate-y-0.5" 
+                                className={`group flex items-center justify-center px-3 py-1 text-xs font-medium rounded-md transition-all duration-300 ${currentTheme?.btnDangerBg || 'bg-red-600'} ${currentTheme?.btnDangerText || 'text-white'} ${currentTheme?.btnDangerHover || 'hover:bg-red-700'} shadow-md transform hover:-translate-y-0.5`} 
                                 title="Reject Leave"
                               >
                                 Reject
@@ -337,14 +337,14 @@ const LeaveList = () => {
                             <>
                               <button 
                                 onClick={(e) => { e.stopPropagation(); handleEdit(leave); }} 
-                                className="group p-1 rounded-md transition-all duration-200 text-green-600 hover:bg-green-100 hover:shadow-md transform hover:scale-110" 
+                                className={`group p-1 rounded-md transition-all duration-200 ${currentTheme?.iconText || 'text-green-600'} ${currentTheme?.hoverBg || 'hover:bg-green-100'} hover:shadow-md transform hover:scale-110`} 
                                 title="Edit Leave"
                               >
                                 <PencilIcon className="h-5 w-5 transition-transform group-hover:rotate-12" />
                               </button>
                               <button 
                                 onClick={(e) => { e.stopPropagation(); handleDelete(leave._id); }} 
-                                className="group p-1 rounded-md transition-all duration-200 text-red-600 hover:bg-red-100 hover:shadow-md transform hover:scale-110" 
+                                className={`group p-1 rounded-md transition-all duration-200 ${currentTheme?.iconDanger || 'text-red-600'} ${currentTheme?.hoverBgDanger || 'hover:bg-red-100'} hover:shadow-md transform hover:scale-110`} 
                                 title="Delete Leave"
                               >
                                 <TrashIcon className="h-5 w-5 transition-transform group-hover:scale-125" />
@@ -357,7 +357,7 @@ const LeaveList = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={7} className="text-center p-8 text-gray-500">No leave requests found.</td>
+                    <td colSpan={7} className={`text-center p-8 ${currentTheme?.mutedText || 'text-gray-500'}`}>No leave requests found.</td>
                   </tr>
                 )}
               </tbody>

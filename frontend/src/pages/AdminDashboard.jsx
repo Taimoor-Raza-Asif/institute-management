@@ -43,9 +43,10 @@ const AdminDashboard = () => {
         setLoading(true);
         setError('');
 
-        const [studentsRes, staffRes, feesReportRes, leavesRes, staffLeavesRes, attendanceRes] = await Promise.all([
+        const [studentsRes, staffRes, feesListRes, feesReportRes, leavesRes, staffLeavesRes, attendanceRes] = await Promise.all([
           api.get('/students'),
           api.get('/staff'),
+          api.get('/fees', { params: { year } }),
           api.get('/fees/reports', { params: { year } }),
           api.get('/leave', { params: { status: 'Pending' } }),
           api.get('/staff-leave', { params: { status: 'Pending' } }),
@@ -54,6 +55,7 @@ const AdminDashboard = () => {
 
         const students = studentsRes.data || [];
         const staff = staffRes.data || [];
+        const feesList = feesListRes.data || []; // raw fee records for counting payment methods
         const feeReports = feesReportRes.data || {};
         const monthlyReport = feeReports.monthlyReport || [];
         const paymentMethodReport = feeReports.paymentMethodReport || [];
@@ -89,11 +91,28 @@ const AdminDashboard = () => {
         const totalMarked = studentToday.length;
         const attendanceTodayRate = totalMarked ? Math.round((presentCount / totalMarked) * 100) : 0;
 
-        // Payment method breakdown (for horizontal bars)
-        const paymentMethodBreakdown = paymentMethodReport.map((p) => ({
-          method: p.paymentMethod || 'Unknown',
-          amount: p.totalAmount || 0,
-        }));
+        // Payment method breakdown (compute frequency-based percentages)
+        let paymentMethodBreakdown = [];
+        const totalFeesCount = feesList.length || 0;
+        if (totalFeesCount > 0) {
+          const counts = {};
+          feesList.forEach((f) => {
+            const m = f.paymentMethod || 'Unknown';
+            counts[m] = (counts[m] || 0) + 1;
+          });
+          paymentMethodBreakdown = Object.entries(counts).map(([method, count]) => ({
+            method,
+            count,
+            percent: parseFloat(((count / totalFeesCount) * 100).toFixed(2)),
+          }));
+        } else {
+          // Fallback: if no raw fees fetched, keep report-based structure but show zero percentages
+          paymentMethodBreakdown = paymentMethodReport.map((p) => ({
+            method: p.paymentMethod || 'Unknown',
+            count: 0,
+            percent: 0,
+          }));
+        }
 
         // Recent 5 pending leaves
         // Combine student + staff pending leaves; show first 5
@@ -131,9 +150,9 @@ const AdminDashboard = () => {
 
   if (!currentUser || currentUser.role !== 'admin') {
     return (
-      <div className="text-center py-8 text-red-600">
-        <h2 className="text-2xl font-bold">Access Denied</h2>
-        <p className="mt-2">You do not have administrative privileges to view this page.</p>
+      <div className={`text-center py-8 ${currentTheme?.mutedText || 'text-red-600'}`}>
+        <h2 className={`text-2xl font-bold ${currentTheme?.title || 'text-gray-800'}`}>Access Denied</h2>
+        <p className={`mt-2 ${currentTheme?.mutedText || 'text-gray-600'}`}>You do not have administrative privileges to view this page.</p>
       </div>
     );
   }
@@ -141,38 +160,38 @@ const AdminDashboard = () => {
   const currency = (n) => new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PKR', maximumFractionDigits: 0 }).format(n || 0);
 
   const kpis = [
-    { title: 'Total Students', value: stats.students, icon: <AcademicCapIcon className="h-8 w-8 text-emerald-600" /> },
-    { title: 'Total Staff', value: stats.staff, icon: <BriefcaseIcon className="h-8 w-8 text-emerald-600" /> },
-    { title: 'Fees Collected (Month)', value: currency(stats.feesCollectedThisMonth), icon: <BanknotesIcon className="h-8 w-8 text-green-600" /> },
+    { title: 'Total Students', value: stats.students, icon: <AcademicCapIcon className={`h-8 w-8 ${currentTheme.iconText || 'text-emerald-600'}`} /> },
+    { title: 'Total Staff', value: stats.staff, icon: <BriefcaseIcon className={`h-8 w-8 ${currentTheme.iconText || 'text-emerald-600'}`} /> },
+    { title: 'Fees Collected (Month)', value: currency(stats.feesCollectedThisMonth), icon: <BanknotesIcon className={`h-8 w-8 ${currentTheme.iconText || 'text-green-600'}`} /> },
     { title: 'Outstanding Dues (Month)', value: currency(stats.feesDueThisMonth), icon: <WalletIconLite /> },
-    { title: 'Attendance Today', value: `${stats.attendanceTodayRate}%`, icon: <ArrowTrendingUpIcon className="h-8 w-8 text-teal-600" /> },
+    { title: 'Attendance Today', value: `${stats.attendanceTodayRate}%`, icon: <ArrowTrendingUpIcon className={`h-8 w-8 ${currentTheme.iconText || 'text-teal-600'}`} /> },
     { title: 'Pending Leave Requests', value: stats.pendingLeaves, icon: <ClockIcon className="h-8 w-8 text-orange-500" /> },
   ];
 
   return (
-    <div className="relative -m-6 sm:-m-8 p-6 sm:p-8 dash-shell min-h-screen overflow-hidden">
+    <div className={`relative -m-6 sm:-m-8 p-6 sm:p-8 dash-shell min-h-screen overflow-hidden ${currentTheme?.pageBg || 'bg-slate-950'}`}>
       <div className="dash-accent top-0 left-10" />
       <div className="dash-accent bottom-10 right-8" />
       <div className="absolute inset-0 dash-grid pointer-events-none" />
 
       <div className="relative z-10 space-y-8 ">
         {/* Header */}
-        <div className="glass-card shine rounded-2xl p-6 sm:p-7 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border border-emerald-100/50 shadow-xl animate-rise bg-gradient-to-br from-emerald-200 via-emerald-50 to-emerald-500">
+        <div className={`glass-card shine rounded-2xl p-6 sm:p-7 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 animate-rise ${currentTheme?.heroBg || 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900'} ${currentTheme?.heroBorder || currentTheme?.cardBorder || 'border border-emerald-100/50'} ${currentTheme?.shadow || 'shadow-xl'}`}>
           <div>
-            <div className="inline-flex items-center px-3 py-1 rounded-full bg-emerald-600/10 text-emerald-800 text-xs font-semibold mb-3 border border-emerald-200">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 mr-2 animate-ping-slow" />
+            <div className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold mb-3 ${currentTheme?.heroPillBg || 'bg-emerald-50'} ${currentTheme?.heroPillText || 'text-emerald-800'} ${currentTheme?.heroPillBorder || 'border border-emerald-100'}`}>
+              <span className={`w-2 h-2 rounded-full mr-2 animate-ping-slow ${currentTheme.btnPrimaryBg || 'bg-emerald-500'}`} />
               Control Center · {year}
             </div>
-            <h1 className={`text-3xl sm:text-4xl font-extrabold leading-tight ${currentTheme.title || 'text-emerald-900'}`}>Admin Dashboard</h1>
-            <p className={`${currentTheme.mutedText || 'text-emerald-700'} mt-2 text-base`}>Full control over the Student Management System with a refreshed, modern look.</p>
-            <div className="mt-4 flex flex-wrap gap-2 text-xs text-emerald-700">
-              <Badge icon={<UsersIcon className="h-4 w-4" />} label={`${stats.students} students`} />
-              <Badge icon={<BriefcaseIcon className="h-4 w-4" />} label={`${stats.staff} staff`} />
-              <Badge icon={<Cog6ToothIcon className="h-4 w-4" />} label="Realtime sync" variant="neutral" />
+            <h1 className={`text-3xl sm:text-4xl font-extrabold leading-tight ${currentTheme.dashHeroTitle || currentTheme.title || 'text-emerald-900'}`}>Admin Dashboard</h1>
+            <p className={`${currentTheme.dashHeroSubtitle || currentTheme.mutedText || 'text-emerald-700'} mt-2 text-base`}>Full control over the Student Management System with a refreshed, modern look.</p>
+            <div className="mt-4 flex flex-wrap gap-2 text-xs">
+              <Badge icon={<UsersIcon className={`h-4 w-4 ${currentTheme.iconText || 'text-emerald-600'}`} />} label={`${stats.students} students`} />
+              <Badge icon={<BriefcaseIcon className={`h-4 w-4 ${currentTheme.iconText || 'text-emerald-600'}`} />} label={`${stats.staff} staff`} />
+              <Badge icon={<Cog6ToothIcon className={`h-4 w-4 ${currentTheme.iconText || 'text-blue-600'}`} />} label="Realtime sync" variant="neutral" />
             </div>
           </div>
           <div className="relative">
-            <div className="absolute inset-0 blur-2xl bg-gradient-to-br from-emerald-300 via-emerald-200 to-green-200 opacity-80 animate-floaty" />
+            <div className={`absolute inset-0 blur-2xl bg-gradient-to-br ${currentTheme.dashHeroGlow || 'from-emerald-200 to-teal-200'} opacity-80 animate-floaty`} />
             <img src="/Jamia%20Logo.png" alt="Jamia logo" className="relative w-16 h-16 sm:w-20 sm:h-20 object-contain drop-shadow" />
           </div>
         </div>
@@ -196,25 +215,25 @@ const AdminDashboard = () => {
           <>
             {/* Analytics */}
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-              <div className="col-span-2 glass-card rounded-2xl p-6 border border-white/60 shadow-xl animate-rise" style={{ animationDelay: '120ms' }}>
+              <div className={`col-span-2 rounded-2xl p-6 animate-rise ${currentTheme?.cardBg || 'bg-slate-900/60'} ${currentTheme?.cardBorder || currentTheme?.border || 'border border-emerald-100/50'} ${currentTheme?.shadow || 'shadow-xl'}`} style={{ animationDelay: '120ms' }}>
                 <div className="flex items-center justify-between mb-4">
                   <h3 className={`text-xl font-semibold ${currentTheme.title || 'text-gray-900'}`}>Fees Trend ({year})</h3>
                   <span className={`${currentTheme.mutedText || 'text-gray-500'} text-sm flex items-center gap-2`}>
-                    <span className="inline-flex items-center gap-1 text-emerald-600"><span className="w-2 h-2 rounded-full bg-emerald-500" /> Collected</span>
-                    <span className="inline-flex items-center gap-1 text-amber-600"><span className="w-2 h-2 rounded-full bg-amber-500" /> Due</span>
+                    <span className={`inline-flex items-center gap-1 ${currentTheme?.text || 'text-emerald-300'}`}><span className={`w-2 h-2 rounded-full ${currentTheme?.btnPrimaryBg || 'bg-emerald-500'}`} /> Collected</span>
+                    <span className={`inline-flex items-center gap-1 ${currentTheme?.mutedText || 'text-amber-400'}`}><span className="w-2 h-2 rounded-full bg-amber-500" /> Due</span>
                   </span>
                 </div>
                 <Sparkline data={stats.monthlyFeesSeries} theme={currentTheme} />
               </div>
 
-              <div className="glass-card rounded-2xl p-6 border border-white/60 shadow-xl animate-rise" style={{ animationDelay: '200ms' }}>
+              <div className={`rounded-2xl p-6 animate-rise ${currentTheme?.cardBg || 'bg-slate-900/60'} ${currentTheme?.cardBorder || currentTheme?.border || 'border border-emerald-100/50'} ${currentTheme?.shadow || 'shadow-xl'}`} style={{ animationDelay: '200ms' }}>
                 <h3 className={`text-xl font-semibold mb-4 ${currentTheme.title || 'text-gray-900'}`}>Payment Methods</h3>
                 <div className="space-y-4">
                   {stats.paymentMethodBreakdown.length === 0 ? (
                     <p className={`${currentTheme.mutedText || 'text-gray-500'}`}>No payment data</p>
                   ) : (
                     stats.paymentMethodBreakdown.map((pm) => (
-                      <BarRow key={pm.method} label={pm.method} value={pm.amount} max={Math.max(...stats.paymentMethodBreakdown.map((x) => x.amount)) || 1} />
+                      <BarRow key={pm.method} label={`${pm.method} (${pm.count || 0})`} value={pm.percent} max={100} theme={currentTheme} />
                     ))
                   )}
                 </div>
@@ -223,38 +242,38 @@ const AdminDashboard = () => {
 
             {/* Recent activity + Quick links */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="glass-card rounded-2xl p-6 border border-white/60 shadow-xl animate-rise" style={{ animationDelay: '240ms' }}>
+              <div className={`rounded-2xl p-6 animate-rise ${currentTheme?.cardBg || 'bg-slate-900/60'} ${currentTheme?.cardBorder || currentTheme?.border || 'border border-emerald-100/50'} ${currentTheme?.shadow || 'shadow-xl'}`} style={{ animationDelay: '240ms' }}>
                 <div className="flex items-center justify-between mb-4">
                   <h3 className={`text-xl font-semibold ${currentTheme.title || 'text-gray-900'}`}>Recent Pending Leaves</h3>
-                  <span className="text-xs px-2 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-100">Live feed</span>
+                  <span className={`text-xs px-2 py-1 rounded-full ${currentTheme?.badgeWarningBg || 'bg-amber-100'} ${currentTheme?.badgeWarningText || 'text-amber-800'} ${currentTheme?.badgeWarningBorder || 'border border-amber-200'}`}>Live feed</span>
                 </div>
-                <ul className="divide-y divide-gray-200/70">
+                <ul className={`divide-y ${currentTheme?.border || 'divide-gray-200/70'}`}>
                   {stats.recentLeaves.length === 0 ? (
                     <li className={`${currentTheme.mutedText || 'text-gray-500'}`}>No pending requests</li>
                   ) : (
                     stats.recentLeaves.map((l, i) => (
                       <li key={l.id} className="py-3 flex items-center justify-between animate-rise" style={{ animationDelay: `${80 * i}ms` }}>
                         <div>
-                          <p className="font-semibold text-gray-900">{l.studentName}</p>
+                          <p className={`font-semibold ${currentTheme?.text || 'text-white'}`}>{l.studentName}</p>
                           <p className={`${currentTheme.mutedText || 'text-gray-500'} text-sm`}>{new Date(l.startDate).toLocaleDateString()} → {new Date(l.endDate).toLocaleDateString()}</p>
                         </div>
-                        <span className="text-xs px-3 py-1 rounded-full bg-yellow-100 text-yellow-800 border border-yellow-200">{l.status}</span>
+                        <span className={`text-xs px-3 py-1 rounded-full ${currentTheme?.badgeWarningBg || 'bg-amber-100'} ${currentTheme?.badgeWarningText || 'text-amber-800'} ${currentTheme?.badgeWarningBorder || 'border border-amber-200'}`}>{l.status}</span>
                       </li>
                     ))
                   )}
                 </ul>
               </div>
 
-              <div className="glass-card rounded-2xl p-6 border border-white/60 shadow-xl animate-rise" style={{ animationDelay: '280ms' }}>
+              <div className={`rounded-2xl p-6 animate-rise ${currentTheme?.cardBg || 'bg-slate-900/60'} ${currentTheme?.cardBorder || currentTheme?.border || 'border border-emerald-100/50'} ${currentTheme?.shadow || 'shadow-xl'}`} style={{ animationDelay: '280ms' }}>
                 <div className="flex items-center justify-between mb-4">
                   <h3 className={`text-xl font-semibold ${currentTheme.title || 'text-gray-900'}`}>Quick Actions</h3>
-                  <span className="text-xs text-emerald-700 bg-emerald-50 px-2 py-1 rounded-full border border-emerald-100">Always at hand</span>
+                  <span className={`text-xs px-2 py-1 rounded-full ${currentTheme?.badgeInfoBg || 'bg-emerald-50'} ${currentTheme?.badgeInfoText || 'text-emerald-700'} ${currentTheme?.badgeInfoBorder || 'border border-emerald-100'}`}>Always at hand</span>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <DashboardCard title="Students" description="Manage student records" icon={<AcademicCapIcon className="h-6 w-6 text-emerald-600" />} link="/students" />
-                  <DashboardCard title="Staff" description="View and edit staff" icon={<BriefcaseIcon className="h-6 w-6 text-emerald-600" />} link="/staff" />
-                  <DashboardCard title="Fees" description="Review payments" icon={<BanknotesIcon className="h-6 w-6 text-green-600" />} link="/fees" />
-                  <DashboardCard title="Reports" description="Financial & attendance" icon={<ChartBarIcon className="h-6 w-6 text-teal-600" />} link="/reports" />
+                  <DashboardCard title="Students" description="Manage student records" icon={<AcademicCapIcon className={`h-6 w-6 ${currentTheme?.iconText || 'text-emerald-600'}`} />} link="/students" />
+                  <DashboardCard title="Staff" description="View and edit staff" icon={<BriefcaseIcon className={`h-6 w-6 ${currentTheme?.iconText || 'text-emerald-600'}`} />} link="/staff" />
+                  <DashboardCard title="Fees" description="Review payments" icon={<BanknotesIcon className={`h-6 w-6 ${currentTheme?.iconText || 'text-green-600'}`} />} link="/fees" />
+                  <DashboardCard title="Reports" description="Financial & attendance" icon={<ChartBarIcon className={`h-6 w-6 ${currentTheme?.iconText || 'text-teal-600'}`} />} link="/reports" />
                 </div>
               </div>
             </div>
@@ -267,27 +286,37 @@ const AdminDashboard = () => {
 
 const KpiCard = ({ title, value, icon, theme, delay = 0 }) => (
   <div
-    className={`relative glass-card shine rounded-2xl p-5 flex items-center justify-between border border-white/60 shadow-xl hover:-translate-y-1 transition duration-500 hover:shadow-2xl animate-rise`}
+    className={`relative glass-card shine rounded-2xl p-5 flex items-center justify-between ${theme?.cardBg || 'bg-slate-900/60'} ${theme?.cardBorder || theme?.border || 'border border-emerald-100/50'} ${theme?.shadow || 'shadow-xl'} hover:-translate-y-1 transition duration-500 hover:shadow-2xl animate-rise`}
     style={{ animationDelay: `${delay}ms` }}
   >
     <div>
-      <p className={`${theme.mutedText || 'text-gray-600'} text-sm`}>{title}</p>
-      <p className={`text-2xl font-bold ${theme.title || 'text-gray-900'}`}>{value}</p>
+      <p className={`${theme?.mutedText || 'text-gray-400'} text-sm`}>{title}</p>
+      <p className={`text-2xl font-bold ${theme?.statCardValue || theme?.text || 'text-white'}`}>{value}</p>
     </div>
-    <div className="p-3 rounded-full bg-gradient-to-br from-emerald-50 to-white shadow-inner animate-floaty border border-emerald-50">
+    <div className={`p-3 rounded-full ${theme?.pillBg || 'bg-emerald-50/80'} ${theme?.pillBorder || 'border border-emerald-100/70'} shadow-inner animate-floaty`}>
       {icon}
     </div>
-    <div className="absolute -right-3 -top-3 w-16 h-16 bg-gradient-to-br from-emerald-200/30 to-white/10 rounded-full blur-2xl pointer-events-none" />
+    <div className="absolute -right-3 -top-3 w-16 h-16 bg-gradient-to-br from-emerald-200/20 to-white/5 rounded-full blur-2xl pointer-events-none" />
   </div>
 );
 
-const WalletIconLite = () => <svg className="h-8 w-8 text-rose-600" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path strokeWidth="1.5" d="M3 7a2 2 0 012-2h12a2 2 0 012 2v1H7a2 2 0 00-2 2v6H5a2 2 0 01-2-2V7z"/><rect x="7" y="8" width="14" height="9" rx="2" strokeWidth="1.5"/><circle cx="16" cy="12.5" r="1"/></svg>;
+const WalletIconLite = () => {
+  const { currentTheme } = useTheme();
+  return (
+    <svg className={`h-8 w-8 ${currentTheme?.iconText || 'text-rose-500'}`} viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <path strokeWidth="1.5" d="M3 7a2 2 0 012-2h12a2 2 0 012 2v1H7a2 2 0 00-2 2v6H5a2 2 0 01-2-2V7z" />
+      <rect x="7" y="8" width="14" height="9" rx="2" strokeWidth="1.5" />
+      <circle cx="16" cy="12.5" r="1" />
+    </svg>
+  );
+};
 
 const Badge = ({ icon, label, variant = 'accent' }) => {
+  const { currentTheme } = useTheme();
   const colors =
     variant === 'neutral'
-      ? 'bg-gray-50 text-gray-600 border border-gray-200'
-      : 'bg-emerald-50 text-emerald-700 border border-emerald-100';
+      ? `${currentTheme?.pillBg || currentTheme?.badgeInfoBg || 'bg-emerald-500/15'} ${currentTheme?.pillText || currentTheme?.badgeInfoText || 'text-emerald-100'} ${currentTheme?.pillBorder || currentTheme?.badgeInfoBorder || 'border border-emerald-400/30'}`
+      : `${currentTheme?.pillBg || currentTheme?.badgeBg || 'bg-emerald-500/15'} ${currentTheme?.pillText || currentTheme?.badgeText || 'text-emerald-100'} ${currentTheme?.pillBorder || currentTheme?.badgeBorder || 'border border-emerald-400/30'}`;
   return (
     <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium ${colors}`}>
       {icon}
@@ -314,15 +343,25 @@ const SkeletonGrid = () => (
   </div>
 );
 
-const DashboardCard = ({ title, description, icon, link }) => (
-  <Link to={link} className="block p-4 rounded-lg bg-white border border-gray-200 hover:shadow-md transition">
-    <div className="flex items-center mb-2">
-      {icon}
-      <h4 className="text-lg font-semibold ml-2">{title}</h4>
-    </div>
-    <p className="text-sm text-gray-600">{description}</p>
-  </Link>
-);
+const DashboardCard = ({ title, description, icon, link }) => {
+  const { currentTheme } = useTheme();
+  return (
+    <Link
+      to={link}
+      className={`group relative overflow-hidden block p-4 rounded-lg ${currentTheme?.cardBg || 'bg-slate-900/60'} ${currentTheme?.cardBorder || currentTheme?.border || 'border border-emerald-100/50'} ${currentTheme?.shadow || 'shadow-md'} transition-all duration-400 hover:-translate-y-1 hover:shadow-2xl`}
+    >
+      <div className="absolute inset-0 bg-gradient-to-r from-white/10 via-transparent to-white/5 opacity-0 group-hover:opacity-100 transition duration-500" />
+      <div className="flex items-center mb-2 relative z-10">
+        <span className="p-2 rounded-full bg-white/5 group-hover:scale-105 transition-transform duration-300">
+          {icon}
+        </span>
+        <h4 className={`text-lg font-semibold ml-2 ${currentTheme?.text || 'text-white'}`}>{title}</h4>
+      </div>
+      <p className={`text-sm relative z-10 ${currentTheme?.mutedText || 'text-gray-400'}`}>{description}</p>
+      <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-gradient-to-r from-emerald-400/70 via-teal-400/70 to-cyan-400/70 opacity-0 group-hover:opacity-100 transition duration-500" />
+    </Link>
+  );
+};
 
 // Minimal SVG sparkline for 12 months: collected vs due
 const Sparkline = ({ data, theme }) => {
@@ -345,13 +384,13 @@ const Sparkline = ({ data, theme }) => {
         <line x1={padding} y1={height - padding} x2={width - padding} y2={height - padding} stroke="#e5e7eb" />
         <line x1={padding} y1={padding} x2={padding} y2={height - padding} stroke="#e5e7eb" />
         {/* Due line */}
-        <path d={linePath('due')} fill="none" stroke="#f59e0b" strokeWidth="2" />
+        <path d={linePath('due')} fill="none" stroke="#f59e0b" strokeWidth="2" className="sparkline-path" style={{ animationDelay: '60ms' }} />
         {/* Collected line */}
-        <path d={linePath('collected')} fill="none" stroke="#10b981" strokeWidth="2.5" />
+        <path d={linePath('collected')} fill="none" stroke="#10b981" strokeWidth="2.5" className="sparkline-path" style={{ animationDelay: '120ms' }} />
         {/* Month dots */}
         {data.map((d, i) => {
           const [xC, yC] = toPoint(i, d.collected);
-          return <circle key={`c-${i}`} cx={xC} cy={yC} r="3" fill="#10b981" />;
+          return <circle key={`c-${i}`} cx={xC} cy={yC} r="3" fill="#10b981" className="spark-dot" style={{ animationDelay: `${140 + i * 40}ms` }} />;
         })}
       </svg>
       <div className="flex justify-between text-xs mt-2 px-2">
@@ -364,13 +403,36 @@ const Sparkline = ({ data, theme }) => {
 };
 
 // Horizontal bar row for payment methods
-const BarRow = ({ label, value, max }) => {
-  const pct = Math.round((value / (max || 1)) * 100);
+const BarRow = ({ label, value, max, theme }) => {
+  const pct = (value / (max || 1)) * 100; // supports value already being a percent when max=100
+  const pctLabel = Number.isFinite(pct) ? pct.toFixed(1) : '0.0';
+  // Extract gradient using theme primary button colors instead of hardcoded green
+  const getGradientStyle = () => {
+    if (theme?.chartGradient) {
+      return theme.chartGradient;
+    }
+    // Use theme button colors for gradient if available
+    if (theme?.btnPrimaryBg && theme?.btnPrimaryHover) {
+      return `${theme.btnPrimaryBg} ${theme.btnPrimaryHover}`;
+    }
+    // Fallback to theme primary or emerald
+    return theme?.btnPrimaryBg ? theme.btnPrimaryBg : 'bg-gradient-to-r from-emerald-500 to-teal-600';
+  };
+  
+  // Build inline style for gradient if we can't use classes
+  const barStyle = {
+    width: `${pct}%`,
+    background: !theme?.btnPrimaryBg ? undefined : 'linear-gradient(to right, var(--color-primary), var(--color-primary-hover))',
+  };
+  
   return (
     <div>
-      <div className="flex justify-between text-sm mb-1"><span className="font-medium">{label}</span><span className="text-gray-600">{pct}%</span></div>
-      <div className="h-3 rounded bg-gray-200">
-        <div className="h-3 rounded bg-green-500" style={{ width: `${pct}%` }} />
+      <div className="flex justify-between text-sm mb-1"><span className={`font-medium ${theme?.text || 'text-white'}`}>{label}</span><span className={`${theme?.mutedText || 'text-gray-400'}`}>{pctLabel}%</span></div>
+      <div className={`h-3 rounded ${theme?.panelBorder || 'bg-gray-700/60'}`}>
+        <div
+          className={`h-3 rounded bar-animate ${getGradientStyle()}`}
+          style={{ width: `${pct}%`, animationDelay: '120ms' }}
+        />
       </div>
     </div>
   );

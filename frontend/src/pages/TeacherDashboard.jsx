@@ -4,6 +4,7 @@ import { UserContext } from '../App';
 import { Link } from 'react-router-dom';
 import { AcademicCapIcon, UserCircleIcon, CalendarDaysIcon, BookOpenIcon } from '@heroicons/react/24/outline';
 import api from '../api';
+import { useTheme } from '../context/ThemeContext';
 
 const TeacherDashboard = () => {
   const { currentUser } = useContext(UserContext);
@@ -109,34 +110,35 @@ const TeacherDashboard = () => {
     fetchAnalytics();
   }, [currentUser]);
 
+  const { currentTheme } = useTheme();
   if (!currentUser || currentUser.role !== 'teacher') {
     return (
-      <div className="text-center py-8 text-red-600">
-        <h2 className="text-2xl font-bold">Access Denied</h2>
-        <p className="mt-2">You do not have teacher privileges to view this page.</p>
+      <div className={`text-center py-8 ${currentTheme?.mutedText || 'text-red-600'}`}>
+        <h2 className={`text-2xl font-bold ${currentTheme?.title || 'text-gray-800'}`}>Access Denied</h2>
+        <p className={`mt-2 ${currentTheme?.mutedText || 'text-gray-600'}`}>You do not have teacher privileges to view this page.</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-emerald-50 via-white to-emerald-50">
+    <div className={`min-h-screen ${currentTheme?.pageBg || 'bg-gradient-to-b from-emerald-50 via-white to-emerald-50'}`}>
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {/* Hero */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 shadow-2xl text-white px-6 sm:px-10 py-10 mb-10">
+        <div className={`relative overflow-hidden rounded-3xl ${currentTheme?.heroBg || 'bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500'} ${currentTheme?.shadow || 'shadow-2xl'} ${currentTheme?.title || 'text-white'} px-6 sm:px-10 py-10 mb-10`}>
           <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_20%_20%,white,transparent_25%),radial-gradient(circle_at_80%_0%,white,transparent_25%)]" />
           <div className="relative flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="uppercase tracking-[0.2em] text-emerald-100 text-xs font-semibold mb-2">Teacher Workspace</p>
-              <h1 className="text-3xl sm:text-4xl font-extrabold leading-tight">Welcome back, {currentUser.name || 'Teacher'}</h1>
-              <p className="text-emerald-50/90 mt-3 text-base sm:text-lg max-w-2xl">Stay on top of your profile, classes, students, and attendance with a clean, consistent control center.</p>
+              <p className={`uppercase tracking-[0.2em] text-xs font-semibold mb-2 ${currentTheme?.heroSubtitle || 'text-emerald-100'}`}>Teacher Workspace</p>
+              <h1 className={`text-3xl sm:text-4xl font-extrabold leading-tight ${currentTheme?.heroTitle || 'text-white'}`}>Welcome back, {currentUser.name || 'Teacher'}</h1>
+              <p className={`mt-3 text-base sm:text-lg max-w-2xl ${currentTheme?.heroSubtitle || 'text-emerald-50/90'}`}>Stay on top of your profile, classes, students, and attendance with a clean, consistent control center.</p>
             </div>
-            <div className="flex items-center gap-3 bg-white/10 backdrop-blur-md px-5 py-4 rounded-2xl border border-white/20 shadow-lg">
-              <div className="h-12 w-12 flex items-center justify-center rounded-xl bg-white/20 text-white">
+            <div className={`flex items-center gap-3 backdrop-blur-md px-5 py-4 rounded-2xl border shadow-lg ${currentTheme?.cardBg || 'bg-white/10 border-white/20'}`}>
+              <div className={`h-12 w-12 flex items-center justify-center rounded-xl ${currentTheme?.panelBg || 'bg-white/20'} ${currentTheme?.title || 'text-white'}`}>
                 <UserCircleIcon className="h-8 w-8" />
               </div>
               <div>
-                <p className="text-xs uppercase tracking-wide text-emerald-100">Role</p>
-                <p className="text-lg font-semibold">Teacher</p>
+                <p className={`text-xs uppercase tracking-wide ${currentTheme?.heroSubtitle || 'text-emerald-100'}`}>Role</p>
+                <p className={`text-lg font-semibold ${currentTheme?.title || 'text-white'}`}>Teacher</p>
               </div>
             </div>
           </div>
@@ -149,31 +151,31 @@ const TeacherDashboard = () => {
             <AnalyticsCard title="This Month Salary" subtitle={analytics.salary.month}>
               <div className="flex items-center justify-between mb-2">
                 <div>
-                  <p className="text-sm text-gray-500">Status</p>
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700 ring-1 ring-amber-200">
+                  <p className={`text-sm ${currentTheme?.mutedText || 'text-gray-500'}`}>Status</p>
+                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ring-1 ${currentTheme?.badgeWarningBg || 'bg-amber-100 text-amber-700 ring-amber-200'}`}>
                     {analytics.salary.status}
                   </span>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm text-gray-500">Amount</p>
-                  <p className="text-xl font-semibold text-emerald-700">{analytics.salary.amount}</p>
-                  <p className="text-xs text-gray-500">Expected by {analytics.salary.expectedDate}</p>
+                  <p className={`text-sm ${currentTheme?.mutedText || 'text-gray-500'}`}>Amount</p>
+                  <p className={`text-xl font-semibold ${currentTheme?.statCardValue || 'text-emerald-700'}`}>{analytics.salary.amount}</p>
+                  <p className={`text-xs ${currentTheme?.mutedText || 'text-gray-500'}`}>Expected by {analytics.salary.expectedDate}</p>
                 </div>
               </div>
             </AnalyticsCard>
 
             <AnalyticsCard title="My Leave Requests" subtitle="Current month">
               <div className="flex items-center justify-between text-sm">
-                <Metric label="Pending" value={analytics.myLeaves.pending} accent="bg-amber-100 text-amber-700" />
-                <Metric label="Approved" value={analytics.myLeaves.approved} accent="bg-emerald-100 text-emerald-700" />
-                <Metric label="Rejected" value={analytics.myLeaves.rejected} accent="bg-rose-100 text-rose-700" />
+                <Metric label="Pending" value={analytics.myLeaves.pending} accentType="warning" />
+                <Metric label="Approved" value={analytics.myLeaves.approved} accentType="success" />
+                <Metric label="Rejected" value={analytics.myLeaves.rejected} accentType="danger" />
               </div>
             </AnalyticsCard>
 
             <AnalyticsCard title="Students' Leave Requests" subtitle="Assigned classes">
               <div className="flex items-center justify-between text-sm">
-                <Metric label="Pending" value={analytics.studentLeaves.pending} accent="bg-amber-100 text-amber-700" />
-                <Metric label="Today" value={analytics.studentLeaves.today} accent="bg-emerald-100 text-emerald-700" />
+                <Metric label="Pending" value={analytics.studentLeaves.pending} accentType="warning" />
+                <Metric label="Today" value={analytics.studentLeaves.today} accentType="success" />
               </div>
             </AnalyticsCard>
           </div>
@@ -184,12 +186,12 @@ const TeacherDashboard = () => {
               <div className="space-y-4">
                 {analytics.attendance.map((item) => (
                   <div key={item.label} className="space-y-1">
-                    <div className="flex items-center justify-between text-sm text-gray-700">
-                      <span className="font-medium text-emerald-800">{item.label}</span>
-                      <span className="text-emerald-700 font-semibold">{item.percent}%</span>
+                    <div className={`flex items-center justify-between text-sm ${currentTheme?.text || 'text-gray-700'}`}>
+                      <span className={`font-medium ${currentTheme?.title || 'text-emerald-800'}`}>{item.label}</span>
+                      <span className={`font-semibold ${currentTheme?.statCardValue || 'text-emerald-700'}`}>{item.percent}%</span>
                     </div>
-                    <div className="h-2.5 rounded-full bg-emerald-50 overflow-hidden ring-1 ring-emerald-100">
-                      <div className="h-full bg-gradient-to-r from-emerald-500 to-teal-500" style={{ width: `${item.percent}%` }} />
+                    <div className={`h-2.5 rounded-full overflow-hidden ring-1 ${currentTheme?.pillBg || 'bg-emerald-50 ring-emerald-100'}`}>
+                      <div className={`h-full ${currentTheme?.btnPrimaryBg || 'bg-gradient-to-r from-emerald-500 to-teal-500'}`} style={{ width: `${item.percent}%` }} />
                     </div>
                   </div>
                 ))}
@@ -210,26 +212,26 @@ const TeacherDashboard = () => {
           <DashboardCard
             title="My Profile"
             description="Review and update your staff details."
-            icon={<UserCircleIcon className="h-9 w-9 text-emerald-600" />}
+            icon={<UserCircleIcon className={`h-9 w-9 ${currentTheme?.iconText || 'text-emerald-600'}`} />}
             link={`/profile/staff/${currentUser.profileId}`}
           />
           
           <DashboardCard
             title="My Students"
             description="See assigned students and manage their records."
-            icon={<AcademicCapIcon className="h-9 w-9 text-emerald-600" />}
+            icon={<AcademicCapIcon className={`h-9 w-9 ${currentTheme?.iconText || 'text-emerald-600'}`} />}
             link="/students"
           />
           <DashboardCard
             title="My Attendance"
             description="Check your attendance history and status."
-            icon={<CalendarDaysIcon className="h-9 w-9 text-emerald-600" />}
+            icon={<CalendarDaysIcon className={`h-9 w-9 ${currentTheme?.iconText || 'text-emerald-600'}`} />}
             link="/staff/my-data"
           />
           <DashboardCard
             title="My Subjects"
             description="Track the subjects you teach and related info."
-            icon={<BookOpenIcon className="h-9 w-9 text-emerald-600" />}
+            icon={<BookOpenIcon className={`h-9 w-9 ${currentTheme?.iconText || 'text-emerald-600'}`} />}
             link="/teacher/subjects"
           />
         </div>
@@ -238,54 +240,73 @@ const TeacherDashboard = () => {
   );
 };
 
-const DashboardCard = ({ title, description, icon, link }) => (
-  <Link
-    to={link}
-    className="group relative overflow-hidden rounded-2xl bg-white shadow-lg border border-emerald-100 px-5 py-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl h-full flex flex-col"
-  >
-    <div className="absolute inset-0 bg-gradient-to-br from-emerald-50 to-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-    <div className="relative flex items-start gap-4 flex-1">
-      <div className="h-12 w-12 flex items-center justify-center rounded-xl bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100 flex-shrink-0">
-        {icon}
+const DashboardCard = ({ title, description, icon, link }) => {
+  const { currentTheme } = useTheme();
+  return (
+    <Link
+      to={link}
+      className={`group relative overflow-hidden rounded-2xl ${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.shadow || 'shadow-lg'} ${currentTheme?.border || 'border border-emerald-100'} px-5 py-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl h-full flex flex-col`}
+    >
+      <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${currentTheme?.panelBg || 'bg-gradient-to-br from-emerald-50 to-white'}`} />
+      <div className="relative flex items-start gap-4 flex-1">
+        <div className={`h-12 w-12 flex items-center justify-center rounded-xl ${currentTheme?.panelBg || 'bg-emerald-50'} ${currentTheme?.iconText || 'text-emerald-700'} ${currentTheme?.border || 'ring-1 ring-emerald-100'} flex-shrink-0`}>
+          {icon}
+        </div>
+        <div className="flex-1">
+          <h3 className={`text-base font-semibold ${currentTheme?.title || 'text-emerald-900'}`}>{title}</h3>
+          <p className={`text-sm ${currentTheme?.mutedText || 'text-gray-600'} mt-1 leading-relaxed`}>{description}</p>
+        </div>
       </div>
-      <div className="flex-1">
-        <h3 className="text-base font-semibold text-emerald-900">{title}</h3>
-        <p className="text-sm text-gray-600 mt-1 leading-relaxed">{description}</p>
+      <div className={`mt-4 inline-flex items-center gap-2 text-xs font-semibold ${currentTheme?.iconText || 'text-emerald-700'}`}>
+        Open
+        <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
       </div>
-    </div>
-    <div className="mt-4 inline-flex items-center gap-2 text-xs font-semibold text-emerald-700 group-hover:text-emerald-800">
-      Open
-      <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
-    </div>
-  </Link>
-);
+    </Link>
+  );
+};
 
-const AnalyticsCard = ({ title, subtitle, children }) => (
-  <div className="relative overflow-hidden rounded-2xl bg-white border border-emerald-100 shadow-sm px-5 py-4">
-    <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/60 via-white to-white opacity-70" />
-    <div className="relative flex items-center justify-between mb-3">
-      <div>
-        <p className="text-xs uppercase tracking-wide text-emerald-600 font-semibold">{title}</p>
-        {subtitle && <p className="text-sm text-gray-500">{subtitle}</p>}
+const AnalyticsCard = ({ title, subtitle, children }) => {
+  const { currentTheme } = useTheme();
+  return (
+    <div className={`relative overflow-hidden rounded-2xl ${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.border || 'border border-emerald-100'} ${currentTheme?.shadow || 'shadow-sm'} px-5 py-4`}>
+      <div className={`absolute inset-0 opacity-70 ${currentTheme?.panelBg ? 'via-transparent to-transparent' : 'bg-gradient-to-br from-emerald-50/60 via-white to-white'}`} />
+      <div className="relative flex items-center justify-between mb-3">
+        <div>
+          <p className={`text-xs uppercase tracking-wide font-semibold ${currentTheme?.iconText || 'text-emerald-600'}`}>{title}</p>
+          {subtitle && <p className={`text-sm ${currentTheme?.mutedText || 'text-gray-500'}`}>{subtitle}</p>}
+        </div>
+        <span className={`h-2 w-2 rounded-full shadow-md ${currentTheme?.btnPrimaryBg || 'bg-emerald-500'}`} />
       </div>
-      <span className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_0_4px_rgba(16,185,129,0.2)]" />
+      <div className="relative">{children}</div>
     </div>
-    <div className="relative">{children}</div>
-  </div>
-);
+  );
+};
 
-const Metric = ({ label, value, accent }) => (
-  <div className="flex flex-col items-start gap-0.5">
-    <span className={`px-2 py-0.5 rounded-full text-[11px] font-semibold ${accent}`}>{label}</span>
-    <span className="text-lg font-semibold text-emerald-800">{value}</span>
-  </div>
-);
+const Metric = ({ label, value, accentType }) => {
+  const { currentTheme } = useTheme();
+  
+  const accentMap = {
+    warning: `${currentTheme?.badgeWarningBg || 'bg-amber-100 text-amber-700'} ring-1`,
+    success: `${currentTheme?.badgeSuccessBg || 'bg-emerald-100 text-emerald-700'} ring-1`,
+    danger: `${currentTheme?.badgeDangerBg || 'bg-rose-100 text-rose-700'} ring-1`,
+  };
+  
+  return (
+    <div className="flex flex-col items-start gap-0.5">
+      <span className={`px-2 py-0.5 rounded-full text-[11px] font-semibold ${accentMap[accentType] || accentMap.warning}`}>{label}</span>
+      <span className={`text-lg font-semibold ${currentTheme?.statCardValue || 'text-emerald-800'}`}>{value}</span>
+    </div>
+  );
+};
 
-const SmallStat = ({ label, value }) => (
-  <div className="rounded-xl border border-emerald-100 bg-white px-4 py-3 shadow-sm">
-    <p className="text-xs text-gray-500 mb-1">{label}</p>
-    <p className="text-lg font-bold text-emerald-700">{value}</p>
-  </div>
-);
+const SmallStat = ({ label, value }) => {
+  const { currentTheme } = useTheme();
+  return (
+    <div className={`rounded-xl ${currentTheme?.border || 'border border-emerald-100'} ${currentTheme?.cardBg || 'bg-white'} px-4 py-3 ${currentTheme?.shadow || 'shadow-sm'}`}>
+      <p className={`text-xs ${currentTheme?.mutedText || 'text-gray-500'} mb-1`}>{label}</p>
+      <p className={`text-lg font-bold ${currentTheme?.statCardValue || 'text-emerald-700'}`}>{value}</p>
+    </div>
+  );
+};
 
 export default TeacherDashboard;

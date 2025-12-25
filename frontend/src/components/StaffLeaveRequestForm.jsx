@@ -3,9 +3,11 @@ import React, { useState, useEffect, useContext } from 'react'; // Added useCont
 import api from '../api';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { UserContext } from '../App'; // <--- Changed from AuthContext
+import { useTheme } from '../context/ThemeContext';
 
 const StaffLeaveRequestForm = ({ editingLeave, fetchLeaves, staffMembersForForm, onClose, isViewMode = false, isStaffMode = false }) => {
   const { currentUser: user } = useContext(UserContext); // <--- Changed to useContext(UserContext)
+  const { currentTheme } = useTheme();
   const initialState = {
     staffId: '',
     startDate: '',
@@ -114,17 +116,17 @@ const StaffLeaveRequestForm = ({ editingLeave, fetchLeaves, staffMembersForForm,
   };
 
   return (
-    <div className="relative p-6 sm:p-8 lg:p-10 rounded-2xl max-w-full mx-auto max-h-[90vh] overflow-y-auto custom-scrollbar bg-gradient-to-br from-white via-gray-50 to-white shadow-2xl border border-gray-100">
-      <button onClick={onClose} className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 transition-colors duration-200 p-2 rounded-full hover:bg-gray-100">
+    <div className={`relative p-6 sm:p-8 lg:p-10 rounded-2xl max-w-full mx-auto max-h-[90vh] overflow-y-auto custom-scrollbar ${currentTheme.cardBg || 'bg-gradient-to-br from-white via-gray-50 to-white'} ${currentTheme.shadow || 'shadow-2xl'} ${currentTheme.cardBorder || 'border border-gray-100'}`}>
+      <button onClick={onClose} className={`absolute top-4 right-4 transition-colors duration-200 p-2 rounded-full ${currentTheme.iconText || 'text-gray-500'} ${currentTheme.iconHover || 'hover:text-gray-700'} ${currentTheme.btnGhostHover || 'hover:bg-gray-100'}`}>
         <XMarkIcon className="h-7 w-7" />
       </button>
-      <h2 className="text-3xl sm:text-4xl font-bold mb-2 text-center bg-gradient-to-r from-green-700 to-emerald-600 bg-clip-text text-transparent">
+      <h2 className={`text-3xl sm:text-4xl font-bold mb-2 text-center ${currentTheme.heroTitle || 'bg-gradient-to-r from-green-700 to-emerald-600 bg-clip-text text-transparent'}`}>
         {editingLeave ? (isViewMode ? 'View Staff Leave Request' : 'Edit Staff Leave Request') : (isStaffMode ? 'Add Staff Leave' : 'Apply for Leave')}
       </h2>
-      <p className="text-center text-gray-500 text-sm mb-6">Manage staff leave requests efficiently</p>
+      <p className={`text-center text-sm mb-6 ${currentTheme.mutedText || 'text-gray-500'}`}>Manage staff leave requests efficiently</p>
 
       {formError && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative mb-6 shadow-sm" role="alert">
+        <div className={`px-4 py-3 rounded-lg relative mb-6 shadow-sm ${currentTheme.alertErrorBg || 'bg-red-100'} ${currentTheme.alertErrorBorder || 'border border-red-400'} ${currentTheme.alertErrorText || 'text-red-700'}`} role="alert">
           {formError}
         </div>
       )}

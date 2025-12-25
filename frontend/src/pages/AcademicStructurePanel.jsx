@@ -385,7 +385,7 @@ const AcademicStructurePanel = () => {
             <div className="space-y-6">
                 <button
                     onClick={handleAddClass}
-                    className="flex items-center bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition duration-200 shadow-md"
+                    className={`flex items-center px-4 py-2 rounded-md transition duration-200 ${currentTheme?.btnPrimaryBg || 'bg-green-600'} ${currentTheme?.btnPrimaryText || 'text-white'} ${currentTheme?.btnPrimaryHover || 'hover:bg-green-700'} ${currentTheme?.shadow || 'shadow-md'}`}
                 >
                     <PlusIcon className="h-5 w-5 mr-2" />
                     Add {isAlmiya ? 'Almiya' : 'Regular'} Class
@@ -393,41 +393,41 @@ const AcademicStructurePanel = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     {type.classConfig.sort((a, b) => a.classNumber - b.classNumber).map((cls, classIndex) => (
-                        <div key={cls.classNumber} className="border border-green-200 p-4 rounded-lg shadow-md bg-white relative">
+                        <div key={cls.classNumber} className={`p-4 rounded-lg relative ${currentTheme.cardBg || 'bg-white'} ${currentTheme.cardBorder || 'border border-green-200'} ${currentTheme.shadow || 'shadow-md'}`}>
                             <button
                                 onClick={() => handleRemoveClass(cls.classNumber)}
-                                className="absolute top-2 right-2 text-red-500 hover:text-red-700 p-1 bg-white rounded-full transition"
+                                className={`absolute top-2 right-2 p-1 rounded-full transition ${currentTheme?.btnDangerText || 'text-red-500'} ${currentTheme?.btnDangerHover || 'hover:text-red-700 hover:bg-red-50'}`}
                                 title="Remove Class"
                             >
                                 <TrashIcon className="h-5 w-5" />
                             </button>
-                            <h4 className="text-md font-bold mb-3 pb-2 text-green-700 border-b border-green-100">
+                            <h4 className={`text-md font-bold mb-3 pb-2 ${currentTheme.heroTitle || 'text-green-700'} ${currentTheme.divider || 'border-b border-green-100'}`}>
                                 {cls.classIdentifier}
                             </h4>
                             
                             <div className="space-y-3">
                                 <div>
-                                    <label className="block text-xs font-medium text-gray-700">Class Identifier</label>
+                                    <label className={`block text-xs font-medium ${currentTheme.subtitle || 'text-gray-700'}`}>Class Identifier</label>
                                     <input
                                         type="text"
                                         value={cls.classIdentifier}
                                         onChange={(e) => handleUpdateClass(classIndex, 'classIdentifier', e.target.value)}
-                                        className="mt-1 block w-full px-2 py-1 text-sm border border-gray-300 rounded-md shadow-sm"
+                                        className={`mt-1 block w-full px-2 py-1 text-sm rounded-md ${currentTheme.inputBorder || 'border border-gray-300'} ${currentTheme.shadow || 'shadow-sm'}`}
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-medium text-gray-700">Class Number (Unique ID)</label>
+                                    <label className={`block text-xs font-medium ${currentTheme.subtitle || 'text-gray-700'}`}>Class Number (Unique ID)</label>
                                     <input
                                         type="number"
                                         min="1"
                                         value={cls.classNumber}
                                         onChange={(e) => handleUpdateClass(classIndex, 'classNumber', e.target.value)}
-                                        className="mt-1 block w-full px-2 py-1 text-sm border border-gray-300 rounded-md shadow-sm bg-green-50"
+                                        className={`mt-1 block w-full px-2 py-1 text-sm rounded-md ${currentTheme.inputBorder || 'border border-gray-300'} ${currentTheme.shadow || 'shadow-sm'} ${currentTheme.panelBg || 'bg-green-50'}`}
                                     />
                                 </div>
                             </div>
                             
-                            <h5 className="font-semibold text-sm mt-4 mb-2 text-gray-800 border-t pt-2">Subjects</h5>
+                            <h5 className={`font-semibold text-sm mt-4 mb-2 border-t pt-2 ${currentTheme.subtitle || 'text-gray-800'}`}>Subjects</h5>
                             <div className="space-y-1">
                                 {cls.subjects.map((subject, subIndex) => (
                                     <div key={subIndex} className="flex items-center space-x-2">
@@ -435,7 +435,7 @@ const AcademicStructurePanel = () => {
                                             type="text"
                                             value={subject}
                                             onChange={(e) => handleUpdateSubject(classIndex, subIndex, e.target.value)}
-                                            className="block w-full px-2 py-1 text-xs border border-gray-300 rounded-md shadow-sm"
+                                            className={`block w-full px-2 py-1 text-xs rounded-md ${currentTheme.inputBorder || 'border border-gray-300'} ${currentTheme.shadow || 'shadow-sm'}`}
                                             placeholder={`Subject ${subIndex + 1}`}
                                         />
                                         <button
@@ -449,7 +449,7 @@ const AcademicStructurePanel = () => {
                                                     return c;
                                                 }));
                                             }}
-                                            className="text-red-400 hover:text-red-600 p-1"
+                                            className={`p-1 ${currentTheme.btnDangerText || 'text-red-400'} ${currentTheme.btnDangerHover || 'hover:text-red-600'}`}
                                         >
                                             <MinusCircleIcon className="h-4 w-4" />
                                         </button>
@@ -458,7 +458,7 @@ const AcademicStructurePanel = () => {
                             </div>
                             <button
                                 onClick={() => handleAddSubject(classIndex)}
-                                className="text-xs text-green-600 hover:text-green-800 flex items-center mt-2 font-medium"
+                                className={`text-xs flex items-center mt-2 font-medium ${currentTheme.heroIcon || 'text-green-600'} ${currentTheme.btnGhostHover || 'hover:text-green-800'}`}
                             >
                                 <PlusIcon className="h-4 w-4 mr-1" /> Add Subject
                             </button>
@@ -564,7 +564,7 @@ const AcademicStructurePanel = () => {
             <div className="space-y-6">
                 <button
                     onClick={handleAddDegree}
-                    className="flex items-center bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition duration-200 shadow-md"
+                    className={`flex items-center px-4 py-2 rounded-md transition duration-200 ${currentTheme?.btnPrimaryBg || 'bg-green-600'} ${currentTheme?.btnPrimaryText || 'text-white'} ${currentTheme?.btnPrimaryHover || 'hover:bg-green-700'} ${currentTheme?.shadow || 'shadow-md'}`}
                 >
                     <PlusIcon className="h-5 w-5 mr-2" />
                     Add New Degree/Program
@@ -573,53 +573,53 @@ const AcademicStructurePanel = () => {
                 <div className="space-y-8">
                     {type.degreeConfig.map((degree, degreeIndex) => (
                         // Use degree name/slug as key to ensure stable mounting
-                        <div key={degree.degreeName} className="border border-green-300 p-6 rounded-lg shadow-xl bg-white relative">
+                        <div key={degree.degreeName} className={`p-6 rounded-lg relative ${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.cardBorder || 'border border-gray-200'} ${currentTheme?.shadow || 'shadow-lg'}`}>
                             <button
                                 onClick={() => handleRemoveDegree(degree.degreeName)}
-                                className="absolute top-2 right-2 text-red-500 hover:text-red-700 p-1 bg-white rounded-full transition"
+                                className={`absolute top-2 right-2 p-1 rounded-full transition ${currentTheme?.btnDangerText || 'text-red-500'} ${currentTheme?.btnDangerHover || 'hover:text-red-700 hover:bg-red-50'}`}
                                 title="Remove Degree"
                             >
                                 <TrashIcon className="h-5 w-5" />
                             </button>
-                            <h4 className="text-xl font-bold text-green-700 mb-4">{degree.degreeName}</h4>
-                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4 border-b pb-4 border-gray-100">
+                            <h4 className={`text-xl font-bold mb-4 ${currentTheme?.title || 'text-gray-800'}`}>{degree.degreeName}</h4>
+                            <div className={`grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 pb-4 ${currentTheme?.divider || 'border-b border-gray-200'}`}>
                                 <div className="md:col-span-2">
-                                    <label className="block text-sm font-medium text-gray-700">Degree Name</label>
+                                    <label className={`block text-sm font-medium ${currentTheme?.subtitle || 'text-gray-700'}`}>Degree Name</label>
                                     <input
                                         type="text"
                                         value={degree.degreeName}
                                         onChange={(e) => handleUpdateDegree(degreeIndex, 'degreeName', e.target.value)}
-                                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"
+                                        className={`mt-1 block w-full px-3 py-2 rounded-md ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-900'} ${currentTheme?.inputBorder || 'border border-gray-300'} ${currentTheme?.inputRing || 'focus:ring-emerald-500 focus:border-emerald-500'} ${currentTheme?.shadow || 'shadow-sm'}`}
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Total Years</label>
+                                    <label className={`block text-sm font-medium ${currentTheme?.subtitle || 'text-gray-700'}`}>Total Years</label>
                                     <input
                                         type="number"
                                         min="1"
                                         value={degree.years}
                                         onChange={(e) => handleUpdateDegree(degreeIndex, 'years', e.target.value)}
-                                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-green-50"
+                                        className={`mt-1 block w-full px-3 py-2 rounded-md ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-900'} ${currentTheme?.inputBorder || 'border border-gray-300'} ${currentTheme?.inputRing || 'focus:ring-emerald-500 focus:border-emerald-500'} ${currentTheme?.shadow || 'shadow-sm'}`}
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Max Semester</label>
+                                    <label className={`block text-sm font-medium ${currentTheme?.subtitle || 'text-gray-700'}`}>Max Semester</label>
                                     <input
                                         type="number"
                                         min="1"
                                         value={degree.maxSemester}
                                         onChange={(e) => handleUpdateDegree(degreeIndex, 'maxSemester', e.target.value)}
-                                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-green-50"
+                                        className={`mt-1 block w-full px-3 py-2 rounded-md ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-900'} ${currentTheme?.inputBorder || 'border border-gray-300'} ${currentTheme?.inputRing || 'focus:ring-emerald-500 focus:border-emerald-500'} ${currentTheme?.shadow || 'shadow-sm'}`}
                                     />
                                 </div>
                             </div>
 
-                            <h5 className="font-semibold text-gray-800 mb-3 flex items-center"><BookOpenIcon className="h-5 w-5 mr-2 text-green-600" /> Semester-wise Subjects</h5>
+                            <h5 className={`font-semibold mb-3 flex items-center ${currentTheme?.subtitle || 'text-gray-700'}`}><BookOpenIcon className={`h-5 w-5 mr-2 ${currentTheme?.iconText || 'text-gray-700'}`} /> Semester-wise Subjects</h5>
                             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                                 {Array.from({ length: degree.maxSemester }, (_, i) => i + 1).map(semester => (
                                     // Use a stable key that includes the degree name and semester number
-                                    <div key={`${degree.degreeName}-${semester}`} className="border border-gray-200 p-3 rounded-lg bg-gray-50 shadow-sm">
-                                        <h6 className="font-bold text-sm text-green-700 mb-2 border-b pb-1">Semester {semester}</h6>
+                                    <div key={`${degree.degreeName}-${semester}`} className={`p-3 rounded-lg shadow-sm ${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.cardBorder || 'border border-gray-200'}`}>
+                                        <h6 className={`font-bold text-sm mb-2 pb-1 ${currentTheme?.subtitle || 'text-gray-700'} ${currentTheme?.divider || 'border-b border-gray-200'}`}>Semester {semester}</h6>
                                         <div className="space-y-1">
                                             {Array.from(degree.subjectsBySemester.get(String(semester)) || []).map((subject, subIndex) => (
                                                 <div key={subIndex} className="flex items-center space-x-1">
@@ -627,13 +627,13 @@ const AcademicStructurePanel = () => {
                                                         type="text"
                                                         value={subject}
                                                         onChange={(e) => handleUpdateSemesterSubject(degreeIndex, semester, subIndex, e.target.value)}
-                                                        className="w-full px-2 py-1 text-xs border border-gray-300 rounded-md"
+                                                        className={`w-full px-2 py-1 text-xs rounded-md ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-900'} ${currentTheme?.inputBorder || 'border border-gray-300'} ${currentTheme?.inputRing || 'focus:ring-emerald-500 focus:border-emerald-500'}`}
                                                         placeholder="Subject Name"
                                                     />
                                                     <button
                                                         type="button"
                                                         onClick={() => handleRemoveSubject(degreeIndex, semester, subIndex)}
-                                                        className="text-red-400 hover:text-red-600 p-1"
+                                                        className={`p-1 ${currentTheme?.btnDangerText || 'text-red-500'} ${currentTheme?.btnDangerHover || 'hover:text-red-700'}`}
                                                     >
                                                         <MinusCircleIcon className="h-4 w-4" />
                                                     </button>
@@ -642,7 +642,7 @@ const AcademicStructurePanel = () => {
                                         </div>
                                         <button
                                             onClick={() => handleAddSemesterSubject(degreeIndex, semester)}
-                                            className="text-xs text-green-500 hover:text-green-700 flex items-center mt-2 font-medium"
+                                            className={`text-xs flex items-center mt-2 font-medium ${currentTheme?.btnPrimaryText || 'text-green-600'} ${currentTheme?.btnPrimaryHover || 'hover:text-green-800'}`}
                                         >
                                             <PlusIcon className="h-3 w-3 mr-1" /> Add Subject
                                         </button>
@@ -692,18 +692,18 @@ const AcademicStructurePanel = () => {
 
         return (
             <div className="space-y-6">
-                <p className="text-gray-700 bg-yellow-100 p-3 rounded-md border border-yellow-300 flex items-center">
-                    <BookmarkSquareIcon className="h-5 w-5 mr-2 text-yellow-700" />
+                <p className={`p-3 rounded-md flex items-center ${currentTheme?.alertWarningBg || 'bg-yellow-50'} ${currentTheme?.alertWarningBorder || 'border border-yellow-300'} ${currentTheme?.alertWarningText || 'text-yellow-800'}`}>
+                    <BookmarkSquareIcon className={`h-5 w-5 mr-2 ${currentTheme?.alertWarningIcon || 'text-yellow-600'}`} />
                     Hifaz structure tracks the 30 Juz (Chapters). Configure the major Surahs within each Juz as checkpoints for student progress.
                 </p>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                     {type.hifazConfig.map((juz, juzIndex) => (
                         // Use juzNumber as key for stable mapping
-                        <div key={juz.juzNumber} className="border border-green-200 p-4 rounded-lg shadow-sm bg-white">
-                            <h4 className="text-lg font-bold mb-3 pb-2 text-green-700 border-b border-green-100">Juz (Chapter) {juz.juzNumber}</h4>
+                        <div key={juz.juzNumber} className={`p-4 rounded-lg shadow-sm ${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.cardBorder || 'border border-gray-200'}`}>
+                            <h4 className={`text-lg font-bold mb-3 pb-2 ${currentTheme?.title || 'text-gray-800'} ${currentTheme?.divider || 'border-b border-gray-200'}`}>Juz (Chapter) {juz.juzNumber}</h4>
 
-                            <h5 className="font-semibold text-sm mt-2 mb-2 text-gray-800 flex items-center">Surahs/Checkpoints</h5>
+                            <h5 className={`font-semibold text-sm mt-2 mb-2 ${currentTheme?.subtitle || 'text-gray-700'} flex items-center`}>Surahs/Checkpoints</h5>
                             <div className="space-y-1">
                                 {juz.surahs.map((surah, surahIndex) => (
                                     <div key={surahIndex} className="flex items-center space-x-2">
@@ -711,13 +711,13 @@ const AcademicStructurePanel = () => {
                                             type="text"
                                             value={surah}
                                             onChange={(e) => handleUpdateSurah(juzIndex, surahIndex, e.target.value)}
-                                            className="block w-full px-2 py-1 text-xs border border-gray-300 rounded-md shadow-sm"
+                                            className={`block w-full px-2 py-1 text-xs rounded-md shadow-sm ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-900'} ${currentTheme?.inputBorder || 'border border-gray-300'} ${currentTheme?.inputRing || 'focus:ring-emerald-500 focus:border-emerald-500'}`}
                                             placeholder={`Checkpoint ${surahIndex + 1}`}
                                         />
                                         <button
                                              type="button"
                                              onClick={() => handleRemoveSurah(juzIndex, surahIndex)}
-                                             className="text-red-400 hover:text-red-600 p-1"
+                                             className={`p-1 ${currentTheme?.btnDangerText || 'text-red-500'} ${currentTheme?.btnDangerHover || 'hover:text-red-700'}`}
                                          >
                                             <MinusCircleIcon className="h-4 w-4" />
                                         </button>
@@ -727,7 +727,7 @@ const AcademicStructurePanel = () => {
                             
                             <button
                                 onClick={() => handleAddSurah(juzIndex)}
-                                className="text-xs text-green-600 hover:text-green-800 flex items-center mt-2 font-medium"
+                                className={`text-sm flex items-center mt-2 font-medium ${currentTheme?.btnPrimaryText || 'text-green-600'} ${currentTheme?.btnPrimaryHover || 'hover:text-green-800'}`}
                             >
                                 <PlusIcon className="h-4 w-4 mr-1" /> Add Checkpoint
                             </button>
@@ -761,7 +761,7 @@ const AcademicStructurePanel = () => {
                     <button
                         onClick={handleSaveStructure}
                         disabled={isSaving || isStructureEmpty}
-                        className={`flex items-center justify-center h-12 px-8 rounded-lg font-bold bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-700 hover:to-green-800 ${currentTheme?.shadow || 'shadow-xl'} md:w-auto w-full disabled:bg-gray-400 disabled:shadow-none flex-shrink-0`}
+                        className={`flex items-center justify-center h-12 px-8 rounded-lg font-bold ${currentTheme?.btnPrimaryBg || 'bg-green-600'} ${currentTheme?.btnPrimaryText || 'text-white'} ${currentTheme?.btnPrimaryHover || 'hover:bg-green-700'} ${currentTheme?.shadow || 'shadow-xl'} md:w-auto w-full disabled:${currentTheme?.inputDisabled || 'bg-gray-400'} disabled:shadow-none flex-shrink-0`}
                     >
                         <ArrowPathIcon className={`h-5 w-5 mr-3 ${isSaving ? 'animate-spin' : ''}`} />
                         {isSaving ? 'Saving...' : 'Save Configuration'}
@@ -777,7 +777,7 @@ const AcademicStructurePanel = () => {
                     </Message>
                     <button
                         onClick={initializeDefaultStructure}
-                        className="flex items-center justify-center mx-auto bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition duration-200 shadow-lg font-bold"
+                        className={`flex items-center justify-center mx-auto px-6 py-3 rounded-lg transition duration-200 font-bold ${currentTheme?.btnPrimaryBg || 'bg-green-600'} ${currentTheme?.btnPrimaryText || 'text-white'} ${currentTheme?.btnPrimaryHover || 'hover:bg-green-700'} ${currentTheme?.shadow || 'shadow-lg'}`}
                         disabled={isSaving}
                     >
                         <SparklesIcon className={`h-6 w-6 mr-3 ${isSaving ? 'animate-bounce' : ''}`} />
@@ -801,7 +801,7 @@ const AcademicStructurePanel = () => {
                         <button
                             key={type.slug}
                             onClick={() => setActiveTab(type.slug)}
-                            className={`flex-shrink-0 h-12 px-5 text-sm font-semibold rounded-lg transition duration-150 ${activeTab === type.slug ? 'bg-gradient-to-r from-green-600 to-green-700 text-white shadow-md' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'}`}
+                            className={`flex-shrink-0 h-12 px-5 text-sm font-semibold rounded-lg transition duration-150 ${activeTab === type.slug ? `${currentTheme?.btnPrimaryBg || 'bg-green-600'} ${currentTheme?.btnPrimaryText || 'text-white'} ${currentTheme?.shadow || 'shadow-md'}` : `${currentTheme?.btnSecondaryBg || 'bg-white'} ${currentTheme?.btnSecondaryText || 'text-gray-700'} ${currentTheme?.btnSecondaryBorder || 'border border-gray-300'} ${currentTheme?.btnSecondaryHover || 'hover:bg-gray-50'}`}`}
                         >
                             <span className="flex items-center">
                                 <UsersIcon className="h-5 w-5 mr-1" /> {type.name}
@@ -811,7 +811,7 @@ const AcademicStructurePanel = () => {
 
                     <button
                         onClick={() => setIsAddingNewType(true)}
-                        className="flex-shrink-0 h-12 px-5 text-sm font-medium rounded-lg bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-700 hover:to-green-800 shadow-md flex items-center"
+                        className={`flex-shrink-0 h-12 px-5 text-sm font-medium rounded-lg flex items-center ${currentTheme?.btnPrimaryBg || 'bg-green-600'} ${currentTheme?.btnPrimaryText || 'text-white'} ${currentTheme?.btnPrimaryHover || 'hover:bg-green-700'} ${currentTheme?.shadow || 'shadow-md'}`}
                     >
                         <PlusIcon className="h-5 w-5 mr-2" /> Add Type
                     </button>
@@ -821,7 +821,7 @@ const AcademicStructurePanel = () => {
                 <button
                     onClick={handleSaveStructure}
                     disabled={isSaving || isStructureEmpty}
-                    className="flex items-center justify-center h-12 px-8 rounded-lg font-bold bg-white text-green-700 border border-green-300 hover:bg-green-50 shadow-sm md:w-auto w-full disabled:bg-gray-200 disabled:text-gray-500"
+                    className={`flex items-center justify-center h-12 px-8 rounded-lg font-bold md:w-auto w-full ${currentTheme?.btnSecondaryBg || 'bg-white'} ${currentTheme?.btnSecondaryText || 'text-gray-700'} ${currentTheme?.btnSecondaryBorder || 'border border-gray-300'} ${currentTheme?.btnSecondaryHover || 'hover:bg-gray-50'} ${currentTheme?.shadow || 'shadow-sm'} disabled:${currentTheme?.inputDisabled || 'bg-gray-200'} disabled:text-gray-500`}
                 >
                     <ArrowPathIcon className={`h-5 w-5 mr-3 ${isSaving ? 'animate-spin' : ''}`} />
                     {isSaving ? 'Saving...' : 'Quick Save'}
@@ -829,22 +829,22 @@ const AcademicStructurePanel = () => {
             </div>
 
             {isAddingNewType && (
-                <div className="p-6 mb-6 border border-dashed border-emerald-300 rounded-lg bg-emerald-50 shadow-inner">
-                    <h3 className="text-xl font-semibold mb-4 text-green-800">Add New Academic Type</h3>
+                <div className={`p-6 mb-6 rounded-lg shadow-inner ${currentTheme?.panelBg || 'bg-emerald-50'} ${currentTheme?.panelBorder || 'border border-dashed border-emerald-300'}`}>
+                    <h3 className={`text-xl font-semibold mb-4 ${currentTheme?.heroTitle || 'text-green-800'}`}>Add New Academic Type</h3>
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                         <div className="md:col-span-1">
-                            <label className="block text-sm font-medium text-green-700">Display Name</label>
-                            <input type="text" name="name" value={newType.name} onChange={handleNewTypeChange} placeholder="e.g., Vocational Training" className="mt-1 block w-full px-3 py-2 border border-green-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500" />
+                            <label className={`block text-sm font-medium ${currentTheme?.subtitle || 'text-gray-700'}`}>Display Name</label>
+                            <input type="text" name="name" value={newType.name} onChange={handleNewTypeChange} placeholder="e.g., Vocational Training" className={`mt-1 block w-full px-3 py-2 rounded-md ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-900'} ${currentTheme?.inputBorder || 'border border-gray-300'} ${currentTheme?.inputRing || 'focus:ring-emerald-500 focus:border-emerald-500'} ${currentTheme?.shadow || 'shadow-sm'}`} />
                         </div>
                         <div className="md:col-span-2">
-                            <label className="block text-sm font-medium text-green-700">Unique Slug (e.g., Vocational, VT, must be unique)</label>
-                            <input type="text" name="slug" value={newType.slug} onChange={handleNewTypeChange} placeholder="e.g., VT" className="mt-1 block w-full px-3 py-2 border border-green-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500" />
+                            <label className={`block text-sm font-medium ${currentTheme?.subtitle || 'text-gray-700'}`}>Unique Slug (e.g., Vocational, VT, must be unique)</label>
+                            <input type="text" name="slug" value={newType.slug} onChange={handleNewTypeChange} placeholder="e.g., VT" className={`mt-1 block w-full px-3 py-2 rounded-md ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-900'} ${currentTheme?.inputBorder || 'border border-gray-300'} ${currentTheme?.inputRing || 'focus:ring-emerald-500 focus:border-emerald-500'} ${currentTheme?.shadow || 'shadow-sm'}`} />
                         </div>
                         <div className="flex items-end space-x-3 md:col-span-1">
-                            <button onClick={handleAddNewType} className="h-12 bg-gradient-to-r from-green-600 to-green-700 text-white px-4 rounded-md hover:from-green-700 hover:to-green-800 shadow-md">
+                            <button onClick={handleAddNewType} className={`h-12 px-4 rounded-md ${currentTheme?.btnPrimaryBg || 'bg-green-600'} ${currentTheme?.btnPrimaryText || 'text-white'} ${currentTheme?.btnPrimaryHover || 'hover:bg-green-700'} ${currentTheme?.shadow || 'shadow-md'}`}>
                                 Create Type
                             </button>
-                            <button onClick={() => setIsAddingNewType(false)} className="h-12 bg-gray-300 text-gray-800 px-4 rounded-md hover:bg-gray-400 shadow-sm">
+                            <button onClick={() => setIsAddingNewType(false)} className={`h-12 px-4 rounded-md ${currentTheme?.btnSecondaryBg || 'bg-gray-200'} ${currentTheme?.btnSecondaryText || 'text-gray-800'} ${currentTheme?.btnSecondaryHover || 'hover:bg-gray-300'} ${currentTheme?.shadow || 'shadow-sm'}`}>
                                 Cancel
                             </button>
                         </div>
@@ -854,16 +854,16 @@ const AcademicStructurePanel = () => {
 
 
             {/* Active Tab Content */}
-            <div className="mt-2 p-6 border border-gray-200 rounded-xl bg-gray-50 min-h-[500px]">
+            <div className={`mt-2 p-6 rounded-xl min-h-[500px] ${currentTheme?.panelBg || 'bg-gray-50'} ${currentTheme?.panelBorder || 'border border-gray-200'}`}>
                 {activeType ? (
                     <>
-                        <div className="flex justify-between items-center mb-6 pb-2 border-b border-gray-300">
-                            <h3 className="text-2xl font-bold text-gray-800">
-                                <UsersIcon className='h-6 w-6 mr-2 inline-block text-green-500'/> Configuring: {activeType.name}
+                        <div className={`flex justify-between items-center mb-6 pb-2 ${currentTheme?.divider || 'border-b border-gray-300'}`}>
+                            <h3 className={`text-2xl font-bold ${currentTheme?.title || 'text-gray-800'}`}>
+                                <UsersIcon className={`h-6 w-6 mr-2 inline-block ${currentTheme?.iconText || 'text-gray-700'}`}/> Configuring: {activeType.name}
                             </h3>
                             <button
                                 onClick={() => handleRemoveType(activeType.slug)}
-                                className="flex items-center text-sm text-red-500 hover:text-red-700 font-medium p-2 rounded-lg transition hover:bg-red-50"
+                                className={`flex items-center text-sm font-medium p-2 rounded-lg transition ${currentTheme?.btnDangerText || 'text-red-500'} ${currentTheme?.btnDangerHover || 'hover:text-red-700'} hover:${currentTheme?.alertErrorBg || 'bg-red-50'}`}
                             >
                                 <TrashIcon className="h-4 w-4 mr-1" /> Remove {activeType.name} Type
                             </button>

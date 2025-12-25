@@ -38,6 +38,8 @@ const StaffForm = ({ editingStaff, fetchStaff, onClose, isViewMode = false }) =>
   const [profilePictureFile, setProfilePictureFile] = useState(null);
   const [formError, setFormError] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
+  const [currentUser, setCurrentUser] = useState(null);
+  const [isSelfEdit, setIsSelfEdit] = useState(false);
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState(''); // State to hold the QR code data URL
   const backendBaseUrl = 'http://localhost:5000';
 
@@ -51,11 +53,14 @@ const StaffForm = ({ editingStaff, fetchStaff, onClose, isViewMode = false }) =>
 
     if (stepIdx === 0) {
       // Personal step validation
-      ['name', 'staffType', 'contactNumber', 'dateOfJoining', 'salary', 'address'].forEach((f) => {
+      ['name', 'staffType', 'contactNumber', 'dateOfJoining', 'salary', 'address', 'email', 'cnic'].forEach((f) => {
         if (!staff[f]) { newFieldErrors[f] = 'This field is required.'; ok = false; }
       });
-      if (staff.email && !/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(staff.email)) {
+      if (!/^[\w.-]+@([\w-]+\.)+[\w-]{2,4}$/.test(staff.email || '')) {
         newFieldErrors.email = 'Please enter a valid email address.'; ok = false;
+      }
+      if (!/^\d{13}$/.test(staff.cnic || '')) {
+        newFieldErrors.cnic = 'CNIC must be 13 digits.'; ok = false;
       }
       if (isNaN(parseFloat(staff.salary)) || parseFloat(staff.salary) <= 0) {
         newFieldErrors.salary = 'Salary must be a positive number.'; ok = false;
@@ -127,6 +132,27 @@ const StaffForm = ({ editingStaff, fetchStaff, onClose, isViewMode = false }) =>
     setFieldErrors({});
   }, [editingStaff]);
 
+  // Load current user and detect if editing own profile
+  useEffect(() => {
+    const userInfo = sessionStorage.getItem('userInfo') || localStorage.getItem('userInfo');
+    let user = null;
+    if (userInfo) {
+      try {
+        user = JSON.parse(userInfo);
+        setCurrentUser(user);
+      } catch (e) {
+        console.error('Failed to parse userInfo', e);
+      }
+    }
+    if (user && editingStaff) {
+      // If the logged in user's profileId matches the editing staff _id and user is not admin, treat as self-edit
+      const self = (String(user.profileId) === String(editingStaff._id)) && user.role !== 'admin';
+      setIsSelfEdit(!!self);
+    } else {
+      setIsSelfEdit(false);
+    }
+  }, [editingStaff]);
+
   // Generate QR code for newly created staff if secret is available
   useEffect(() => {
     if (!editingStaff && staff.qrCodeSecret) {
@@ -149,7 +175,17 @@ const StaffForm = ({ editingStaff, fetchStaff, onClose, isViewMode = false }) =>
         }
       }));
     } else {
-      setStaff(prev => ({ ...prev, [name]: value }));
+      // sanitize digit-only fields
+      const digitOnlyFields = ['cnic', 'contactNumber', 'emergencyContact', 'salary'];
+      let newVal = value;
+      if (digitOnlyFields.includes(name)) {
+        newVal = String(value || '').replace(/\D/g, '');
+      }
+      // enforce maxlength for cnic/contact
+      if (name === 'cnic') newVal = newVal.slice(0, 13);
+      if (name === 'contactNumber' || name === 'emergencyContact') newVal = newVal.slice(0, 11);
+
+      setStaff(prev => ({ ...prev, [name]: newVal }));
     }
     setFieldErrors(prev => ({ ...prev, [name]: '' })); // Clear error on change
     setFormError('');
@@ -214,7 +250,7 @@ const StaffForm = ({ editingStaff, fetchStaff, onClose, isViewMode = false }) =>
     let hasError = false;
 
     // Basic validation
-    const requiredFields = ['name', 'staffType', 'contactNumber', 'address', 'dateOfJoining', 'salary'];
+    const requiredFields = ['name', 'staffType', 'contactNumber', 'address', 'dateOfJoining', 'salary', 'email', 'cnic'];
     requiredFields.forEach(field => {
       if (!staff[field]) {
         newFieldErrors[field] = 'This field is required.';
@@ -226,12 +262,20 @@ const StaffForm = ({ editingStaff, fetchStaff, onClose, isViewMode = false }) =>
       newFieldErrors.contactNumber = 'Contact number must be 11 digits.';
       hasError = true;
     }
-    if (staff.email && !/^[\w.-]+@([\w-]+\.)+[\w-]{2,4}$/.test(staff.email)) {
+    if (!/^\d{13}$/.test(staff.cnic || '')) {
+      newFieldErrors.cnic = 'CNIC must be 13 digits.';
+      hasError = true;
+    }
+    if (staff.emergencyContact && !/^\d{11}$/.test(staff.emergencyContact)) {
+      newFieldErrors.emergencyContact = 'Emergency contact must be 11 digits.';
+      hasError = true;
+    }
+    if (!/^[\w.-]+@([\w-]+\.)+[\w-]{2,4}$/.test(staff.email || '')) {
       newFieldErrors.email = 'Please enter a valid email address.';
       hasError = true;
     }
-    if (isNaN(parseFloat(staff.salary)) || parseFloat(staff.salary) < 0) {
-      newFieldErrors.salary = 'Salary must be a non-negative number.';
+    if (!/^\d+$/.test(String(staff.salary || '')) || parseInt(staff.salary || '0', 10) < 0) {
+      newFieldErrors.salary = 'Salary must be a non-negative integer.';
       hasError = true;
     }
 
@@ -531,7 +575,7 @@ const StaffForm = ({ editingStaff, fetchStaff, onClose, isViewMode = false }) =>
         )}
 
         {formError && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative mb-4 shadow-sm" role="alert">
+          <div className={`${currentTheme.alertErrorBg || 'bg-red-100'} ${currentTheme.alertErrorBorder || 'border border-red-400'} ${currentTheme.alertErrorText || 'text-red-700'} px-4 py-3 rounded-lg relative mb-4 shadow-sm`} role="alert">
             {formError}
           </div>
         )}
@@ -564,7 +608,7 @@ const StaffForm = ({ editingStaff, fetchStaff, onClose, isViewMode = false }) =>
                     <button
                       type="button"
                       onClick={handleRemoveProfilePicture}
-                      className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1.5 text-xs hover:bg-red-600 transition-all shadow-md hover:shadow-lg active:scale-95"
+                      className={`absolute top-2 right-2 ${currentTheme.btnDangerBg || 'bg-red-500'} ${currentTheme.btnDangerText || 'text-white'} rounded-full p-1.5 text-xs ${currentTheme.btnDangerHover || 'hover:bg-red-600'} transition-all shadow-md hover:shadow-lg active:scale-95`}
                       aria-label="Remove Profile Picture"
                     >
                       <MinusCircleIcon className="h-5 w-5" />
@@ -626,7 +670,8 @@ const StaffForm = ({ editingStaff, fetchStaff, onClose, isViewMode = false }) =>
                   name="staffType" 
                   value={staff.staffType} 
                   onChange={handleChange} 
-                  disabled={isViewMode} 
+                  disabled={isViewMode || isSelfEdit} 
+                  title={isSelfEdit ? 'You cannot change your role while editing your own profile.' : undefined}
                   className={`block w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-400 focus:border-green-500 hover:border-gray-300 transition shadow-sm ${isViewMode ? 'bg-gray-50' : 'bg-white'}`}
                 >
                   <option value="">Select Type</option>
@@ -639,14 +684,19 @@ const StaffForm = ({ editingStaff, fetchStaff, onClose, isViewMode = false }) =>
 
               {/* CNIC */}
               <div>
-                <label htmlFor="cnic" className="block text-sm font-bold text-gray-700 mb-2">CNIC</label>
+                <label htmlFor="cnic" className="block text-sm font-bold text-gray-700 mb-2">CNIC <span className="text-red-500">*</span></label>
                 <input 
                   type="text" 
+                  inputMode="numeric"
+                  pattern="\d*"
+                  maxLength={13}
+                  placeholder="13 digits"
                   id="cnic" 
                   name="cnic" 
                   value={staff.cnic} 
                   onChange={handleChange} 
                   readOnly={isViewMode} 
+                  required={!isViewMode}
                   className={`block w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-400 focus:border-green-500 hover:border-gray-300 transition shadow-sm ${isViewMode ? 'bg-gray-50' : 'bg-white'}`}
                 />
                 {fieldErrors.cnic && <p className="mt-1 text-sm text-red-600">{fieldErrors.cnic}</p>}
@@ -657,6 +707,10 @@ const StaffForm = ({ editingStaff, fetchStaff, onClose, isViewMode = false }) =>
                 <label htmlFor="contactNumber" className="block text-sm font-bold text-gray-700 mb-2">Contact Number<span className="text-red-500">*</span></label>
                 <input 
                   type="text" 
+                  inputMode="numeric"
+                  pattern="\d*"
+                  maxLength={11}
+                  placeholder="03XXXXXXXXX"
                   id="contactNumber" 
                   name="contactNumber" 
                   value={staff.contactNumber} 
@@ -669,7 +723,7 @@ const StaffForm = ({ editingStaff, fetchStaff, onClose, isViewMode = false }) =>
 
               {/* Email */}
               <div>
-                <label htmlFor="email" className="block text-sm font-bold text-gray-700 mb-2">Email</label>
+                <label htmlFor="email" className="block text-sm font-bold text-gray-700 mb-2">Email <span className="text-red-500">*</span></label>
                 <input 
                   type="email" 
                   id="email" 
@@ -677,6 +731,7 @@ const StaffForm = ({ editingStaff, fetchStaff, onClose, isViewMode = false }) =>
                   value={staff.email} 
                   onChange={handleChange} 
                   readOnly={isViewMode} 
+                  required={!isViewMode}
                   className={`block w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-400 focus:border-green-500 hover:border-gray-300 transition shadow-sm ${isViewMode ? 'bg-gray-50' : 'bg-white'}`}
                 />
                 {fieldErrors.email && <p className="mt-1 text-sm text-red-600">{fieldErrors.email}</p>}
@@ -701,7 +756,10 @@ const StaffForm = ({ editingStaff, fetchStaff, onClose, isViewMode = false }) =>
               <div>
                 <label htmlFor="salary" className="block text-sm font-bold text-gray-700 mb-2">Salary (PKR)<span className="text-red-500">*</span></label>
                 <input 
-                  type="number" 
+                  type="text" 
+                  inputMode="numeric"
+                  pattern="\d*"
+                  placeholder="e.g. 50000"
                   id="salary" 
                   name="salary" 
                   value={staff.salary} 
@@ -717,6 +775,10 @@ const StaffForm = ({ editingStaff, fetchStaff, onClose, isViewMode = false }) =>
                 <label htmlFor="emergencyContact" className="block text-sm font-bold text-gray-700 mb-2">Emergency Contact</label>
                 <input 
                   type="text" 
+                  inputMode="numeric"
+                  pattern="\d*"
+                  maxLength={11}
+                  placeholder="Emergency contact (11 digits)"
                   id="emergencyContact" 
                   name="emergencyContact" 
                   value={staff.emergencyContact} 
@@ -941,8 +1003,8 @@ const StaffForm = ({ editingStaff, fetchStaff, onClose, isViewMode = false }) =>
         </div>
 
         {/* Step 3: Review */}
-        <div className={currentStep === 3 || isViewMode ? 'animate-fade-in' : 'hidden'}>
-          <h3 className="text-2xl font-bold mb-6 bg-gradient-to-r from-green-700 to-emerald-600 bg-clip-text text-transparent">Review & Submit</h3>
+        <div className={currentStep === 3 || !isViewMode ? 'animate-fade-in' : 'hidden'}>
+          <h3 className="text-2xl font-bold mb-6 bg-gradient-to-r from-green-700 to-emerald-600 bg-clip-text text-transparent">Review Form</h3>
           <p className="text-gray-600 mb-6 text-center">Please review the information below before submitting</p>
           
           <div className="bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 p-8 rounded-2xl border-2 border-green-200 shadow-lg">
@@ -977,14 +1039,6 @@ const StaffForm = ({ editingStaff, fetchStaff, onClose, isViewMode = false }) =>
                 </div>
               </div>
             </div>
-
-            {/* QR Code Display (if in view mode and QR exists) */}
-            {isViewMode && qrCodeDataUrl && (
-              <div className="mt-6 pt-6 border-t-2 border-green-300 text-center">
-                <h4 className="text-lg font-bold text-gray-800 mb-3">Staff QR Code</h4>
-                <img src={qrCodeDataUrl} alt="Staff QR Code" className="mx-auto w-48 h-48 border-2 border-gray-300 rounded-lg shadow-md" />
-              </div>
-            )}
           </div>
         </div>
       </form>

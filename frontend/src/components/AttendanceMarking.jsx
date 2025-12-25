@@ -633,7 +633,7 @@ const AttendanceMarking = () => {
 
 
   return (
-    <div className="container mx-auto p-4 sm:p-6 lg:p-8 bg-gray-100 min-h-screen">
+    <div className={`container mx-auto p-4 sm:p-6 lg:p-8 ${currentTheme?.mainBg || 'bg-gray-50'}`}>
       {/* Hero Header */}
       <div className={`relative ${currentTheme?.heroBg || 'bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500'} ${currentTheme?.shadow || 'shadow-lg'} rounded-2xl p-8 mb-8 overflow-hidden`}>
         <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full -mr-32 -mt-32"></div>
@@ -649,29 +649,29 @@ const AttendanceMarking = () => {
       {error && <Message type="error">{error}</Message>}
 
       {/* Date and Type Selection Card */}
-      <div className={`${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.shadow || 'shadow-xl'} rounded-xl p-6 mb-6`}>
+      <div className={`${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.shadow || 'shadow-xl'} rounded-xl p-6 mb-6 ${currentTheme?.border || 'border border-gray-100'}`}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="flex flex-col">
-            <label htmlFor="attendanceDate" className="block text-sm font-medium text-gray-700 mb-2">
-              <CalendarDaysIcon className="h-5 w-5 inline-block mr-2 text-green-600" /> Select Date
+            <label htmlFor="attendanceDate" className={`block text-sm font-medium ${currentTheme?.mutedText || 'text-gray-700'} mb-2`}>
+              <CalendarDaysIcon className={`h-5 w-5 inline-block mr-2 ${currentTheme?.iconText || 'text-green-600'}`} /> Select Date
             </label>
             <input
               type="date"
               id="attendanceDate"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="block w-full h-12 px-4 rounded-lg border border-gray-300 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+              className={`block w-full h-12 px-4 rounded-lg ${currentTheme?.inputBorder || 'border border-gray-300'} ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} focus:outline-none ${currentTheme?.inputRing || 'focus:ring-2 focus:ring-green-500'}`}
             />
           </div>
           <div className="flex flex-col">
-            <label htmlFor="attendanceType" className="block text-sm font-medium text-gray-700 mb-2">
-              <UserGroupIcon className="h-5 w-5 inline-block mr-2 text-green-600" /> Select Type
+            <label htmlFor="attendanceType" className={`block text-sm font-medium ${currentTheme?.mutedText || 'text-gray-700'} mb-2`}>
+              <UserGroupIcon className={`h-5 w-5 inline-block mr-2 ${currentTheme?.iconText || 'text-green-600'}`} /> Select Type
             </label>
             <select
               id="attendanceType"
               value={attendanceType}
               onChange={handleAttendanceTypeChange}
-              className="block w-full h-12 px-4 rounded-lg border border-gray-300 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+              className={`block w-full h-12 px-4 rounded-lg ${currentTheme?.inputBorder || 'border border-gray-300'} ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} focus:outline-none ${currentTheme?.inputRing || 'focus:ring-2 focus:ring-green-500'}`}
               disabled={isTeacher}
             >
               <option value="Student">Students</option>
@@ -682,9 +682,9 @@ const AttendanceMarking = () => {
       </div>
 
       {/* Filters Card */}
-      <div className="bg-white rounded-xl shadow-xl p-6 mb-6">
-        <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center border-b pb-3">
-          <FunnelIcon className="h-6 w-6 mr-2 text-green-600" /> Filters
+      <div className={`${currentTheme?.cardBg || 'bg-white'} rounded-xl ${currentTheme?.shadow || 'shadow-xl'} p-6 mb-6 ${currentTheme?.border || 'border border-gray-100'}`}>
+        <h3 className={`text-xl font-bold ${currentTheme?.title || currentTheme?.text || 'text-gray-900'} mb-6 flex items-center border-b pb-3`}>
+          <FunnelIcon className={`h-6 w-6 mr-2 ${currentTheme?.iconText || 'text-green-600'}`} /> Filters
         </h3>
 
         {attendanceType === 'Student' && (isAdmin || isTeacher) && (
@@ -704,7 +704,7 @@ const AttendanceMarking = () => {
                     setFilterSemester('');
                     setFilterMajorSubject('');
                   }}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
+                  className={`mt-1 block w-full px-3 py-2 rounded-md ${currentTheme?.inputBorder || 'border border-gray-300'} ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} focus:outline-none ${currentTheme?.inputRing || 'focus:ring-green-500'} sm:text-sm`}
                 >
                   <option value="">Select Type</option>
                   {academicStructure?.map(type => (
@@ -722,7 +722,7 @@ const AttendanceMarking = () => {
                   id="filterClassNumber"
                   value={filterClassNumber}
                   onChange={(e) => setFilterClassNumber(e.target.value)}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
+                  className={`mt-1 block w-full px-3 py-2 rounded-md ${currentTheme?.inputBorder || 'border border-gray-300'} ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} focus:outline-none ${currentTheme?.inputRing || 'focus:ring-green-500'} sm:text-sm`}
                 >
                   <option value="">All Grades</option>
                   {selectedAcademicType.classConfig?.sort((a, b) => a.classNumber - b.classNumber).map((cls) => (
@@ -742,7 +742,7 @@ const AttendanceMarking = () => {
                     id="filterDegreeName"
                     value={filterDegreeName}
                     onChange={(e) => { setFilterDegreeName(e.target.value); setFilterSemester(''); }}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
+                    className={`mt-1 block w-full px-3 py-2 rounded-md ${currentTheme?.inputBorder || 'border border-gray-300'} ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} focus:outline-none ${currentTheme?.inputRing || 'focus:ring-green-500'} sm:text-sm`}
                   >
                     <option value="">All Degrees</option>
                     {selectedAcademicType.degreeConfig?.map(degree => (
@@ -757,7 +757,7 @@ const AttendanceMarking = () => {
                       id="filterSemester"
                       value={filterSemester}
                       onChange={(e) => setFilterSemester(e.target.value)}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
+                      className={`mt-1 block w-full px-3 py-2 rounded-md ${currentTheme?.inputBorder || 'border border-gray-300'} ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} focus:outline-none ${currentTheme?.inputRing || 'focus:ring-green-500'} sm:text-sm`}
                     >
                       <option value="">All Semesters</option>
                       {Array.from({ length: selectedAcademicType.degreeConfig?.find(d => d.degreeName === filterDegreeName)?.maxSemester || 0 }, (_, i) => i + 1).map(sem => (
@@ -776,10 +776,10 @@ const AttendanceMarking = () => {
             )}
             
             {isAdmin && attendanceType === 'Student' && (
-              <div className="flex items-end lg:col-span-1 md:col-span-2">
+                <div className="flex items-end lg:col-span-1 md:col-span-2">
                 <button 
                   onClick={handleFilterChange} 
-                  className="w-full h-12 flex items-center justify-center px-6 rounded-lg font-medium transition-all duration-200 bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-700 hover:to-green-800 shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                  className={`w-full h-12 flex items-center justify-center px-6 rounded-lg font-medium transition-all duration-200 ${currentTheme?.btnPrimaryBg || 'bg-gradient-to-r from-green-600 to-green-700'} ${currentTheme?.btnPrimaryText || 'text-white'} ${currentTheme?.btnPrimaryHover || 'hover:from-green-700 hover:to-green-800'} ${currentTheme?.shadow || 'shadow-md'} disabled:opacity-50 disabled:cursor-not-allowed`}
                   disabled={!filterClassType}
                 >
                   <FunnelIcon className="h-5 w-5 mr-2" /> Load Members
@@ -809,7 +809,7 @@ const AttendanceMarking = () => {
               </select>
             </div>
             <div className="flex items-end">
-              <button onClick={handleFilterChange} className="w-full h-12 flex items-center justify-center px-6 rounded-lg font-medium transition-all duration-200 bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-700 hover:to-green-800 shadow-md">
+              <button onClick={handleFilterChange} className={`w-full h-12 flex items-center justify-center px-6 rounded-lg font-medium transition-all duration-200 ${currentTheme?.btnPrimaryBg || 'bg-emerald-600'} ${currentTheme?.btnPrimaryHover || 'hover:bg-emerald-700'} ${currentTheme?.btnPrimaryText || 'text-white'} ${currentTheme?.btnPrimaryBorder || 'border border-emerald-700'} shadow-md`}>
                 <FunnelIcon className="h-5 w-5 mr-2" /> Load Staff
               </button>
             </div>
@@ -819,8 +819,8 @@ const AttendanceMarking = () => {
 
       {/* Members List */}
       <div className="mt-8">
-        <h3 className="text-2xl font-bold text-gray-900 mb-4 px-1 flex items-center">
-            <UserIcon className='h-6 w-6 mr-2 text-gray-700'/> {attendanceType === 'Student' ? 'Student List' : 'Staff List'}
+        <h3 className={`text-2xl font-bold ${currentTheme?.title || currentTheme?.text || 'text-gray-900'} mb-4 px-1 flex items-center`}>
+            <UserIcon className={`h-6 w-6 mr-2 ${currentTheme?.iconText || 'text-gray-700'}`}/> {attendanceType === 'Student' ? 'Student List' : 'Staff List'}
         </h3>
 
         {loading ? (
@@ -831,23 +831,23 @@ const AttendanceMarking = () => {
           </Message>
         ) : (
           <form onSubmit={handleSubmitAttendance}>
-            <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+            <div className={`${currentTheme?.cardBg || 'bg-white'} rounded-xl ${currentTheme?.shadow || 'shadow-lg'} overflow-hidden ${currentTheme?.border || 'border border-gray-100'}`}>
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className={`${currentTheme?.theadBg || 'bg-emerald-600'} ${currentTheme?.theadText || 'text-white'}`}>
                   <tr>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Name</th>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">ID</th>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Class Info</th>
-                    <th className="px-6 py-4 text-center text-xs font-bold text-white uppercase tracking-wider">Status</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider">Name</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider">ID</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider">Class Info</th>
+                    <th className="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider">Status</th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-100">
-                  {members.map((member, index) => (
-                    <tr key={member._id} className={`transition-all duration-150 hover:bg-green-50 hover:shadow-md ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">{member.name}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{member.cnic}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                <tbody className={`${currentTheme?.tbodyBg || 'bg-white'} divide-y divide-gray-100`}>
+                  {members.map((member) => (
+                    <tr key={member._id} className={`transition-all duration-150 ${currentTheme?.tableHover || 'hover:bg-emerald-50'} ${currentTheme?.tableStripedBg || currentTheme?.tableStripe || 'odd:bg-gray-50'} ${currentTheme?.tbodyBg || 'bg-white'}`}>
+                      <td className={`px-6 py-4 whitespace-nowrap text-sm font-semibold ${currentTheme?.text || 'text-gray-900'}`}>{member.name}</td>
+                      <td className={`px-6 py-4 whitespace-nowrap text-sm ${currentTheme?.mutedText || 'text-gray-600'}`}>{member.cnic}</td>
+                      <td className={`px-6 py-4 whitespace-nowrap text-sm ${currentTheme?.mutedText || 'text-gray-600'}`}>
                         {attendanceType === 'Student' ? getClassInfo(member) : member.staffType}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
@@ -855,7 +855,7 @@ const AttendanceMarking = () => {
                           <button
                             type="button"
                             onClick={() => handleStatusChange(member._id, 'Present')}
-                            className={`p-2 rounded-full ${attendanceStatuses[member._id] === 'Present' ? 'bg-green-100 text-green-800 ring-2 ring-green-600' : 'text-gray-400 hover:text-green-600'}`}
+                            className={`p-2 rounded-full ${attendanceStatuses[member._id] === 'Present' ? `${currentTheme?.badgeSuccessBg || 'bg-green-100'} ${currentTheme?.badgeSuccessText || 'text-green-800'} ring-2 ring-green-600` : `${currentTheme?.iconText || 'text-gray-400'} hover:${currentTheme?.linkText || 'text-green-600'}`}`}
                             title="Present"
                           >
                             <CheckIcon className="h-5 w-5" />
@@ -863,7 +863,7 @@ const AttendanceMarking = () => {
                           <button
                             type="button"
                             onClick={() => handleStatusChange(member._id, 'Absent')}
-                            className={`p-2 rounded-full ${attendanceStatuses[member._id] === 'Absent' ? 'bg-red-100 text-red-800 ring-2 ring-red-600' : 'text-gray-400 hover:text-red-600'}`}
+                            className={`p-2 rounded-full ${attendanceStatuses[member._id] === 'Absent' ? `${currentTheme?.badgeDangerBg || 'bg-red-100'} ${currentTheme?.badgeDangerText || 'text-red-800'} ring-2 ring-red-600` : `${currentTheme?.iconText || 'text-gray-400'} hover:${currentTheme?.linkText || 'text-red-600'}`}`}
                             title="Absent"
                           >
                             <XMarkIcon className="h-5 w-5" />
@@ -871,7 +871,7 @@ const AttendanceMarking = () => {
                           <button
                             type="button"
                             onClick={() => handleStatusChange(member._id, 'Leave')}
-                            className={`p-2 rounded-full ${attendanceStatuses[member._id] === 'Leave' ? 'bg-yellow-100 text-yellow-800 ring-2 ring-yellow-600' : 'text-gray-400 hover:text-yellow-600'}`}
+                            className={`p-2 rounded-full ${attendanceStatuses[member._id] === 'Leave' ? `${currentTheme?.badgeWarningBg || 'bg-yellow-100'} ${currentTheme?.badgeWarningText || 'text-yellow-800'} ring-2 ring-yellow-600` : `${currentTheme?.iconText || 'text-gray-400'} hover:${currentTheme?.linkText || 'text-yellow-600'}`}`}
                             title="Leave"
                           >
                             <UserGroupIcon className="h-5 w-5" />
@@ -887,7 +887,7 @@ const AttendanceMarking = () => {
             <div className="mt-6 flex justify-end">
               <button
                 type="submit"
-                className="flex items-center justify-center h-12 px-8 rounded-lg font-bold bg-gradient-to-r from-green-600 to-emerald-600 text-white transition-all duration-300 shadow-lg hover:shadow-xl hover:from-green-700 hover:to-emerald-700 transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                className={`flex items-center justify-center h-12 px-8 rounded-lg font-bold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none ${currentTheme?.btnPrimaryBg || 'bg-emerald-600'} ${currentTheme?.btnPrimaryHover || 'hover:bg-emerald-700'} ${currentTheme?.btnPrimaryText || 'text-white'} ${currentTheme?.btnPrimaryBorder || 'border border-emerald-700'}`}
                 disabled={loading}
               >
                 <ClipboardDocumentCheckIcon className="h-5 w-5 mr-2" />

@@ -33,7 +33,7 @@ const AddEditBillModal = ({ onAdd, onEdit, onClose, billToEdit, isViewMode }) =>
       setFormData({
         title: billToEdit.title,
         category: billToEdit.category,
-        amount: billToEdit.amount,
+        amount: billToEdit.amount !== undefined ? String(billToEdit.amount) : '',
         status: billToEdit.status,
         billDate: new Date(billToEdit.billDate),
         paymentDate: billToEdit.paymentDate ? new Date(billToEdit.paymentDate) : null,
@@ -59,7 +59,13 @@ const AddEditBillModal = ({ onAdd, onEdit, onClose, billToEdit, isViewMode }) =>
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    // sanitize numeric fields to digits only
+    const digitOnlyFields = ['amount'];
+    let newVal = value;
+    if (digitOnlyFields.includes(name)) {
+      newVal = String(value || '').replace(/\D/g, '');
+    }
+    setFormData(prev => ({ ...prev, [name]: newVal }));
   };
 
   const handleDateChange = (date, name) => {
@@ -74,6 +80,13 @@ const AddEditBillModal = ({ onAdd, onEdit, onClose, billToEdit, isViewMode }) =>
     e.preventDefault();
     setLoading(true);
     setError(null);
+
+    // Client-side validation: amount must be a non-negative integer
+    if (!/^\d+$/.test(String(formData.amount || '')) || parseInt(formData.amount || '0', 10) < 0) {
+      setError('Amount must be a non-negative whole number.');
+      setLoading(false);
+      return;
+    }
 
     const data = new FormData();
     // Append form data
@@ -111,21 +124,21 @@ const AddEditBillModal = ({ onAdd, onEdit, onClose, billToEdit, isViewMode }) =>
     }
   };
 
-  const inputBase = 'w-full rounded-lg border border-gray-200 bg-white/70 px-3.5 py-2.5 text-sm text-gray-900 shadow-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition disabled:bg-gray-100 disabled:text-gray-500';
-  const labelBase = 'text-sm font-semibold text-gray-700 mb-1 flex items-center gap-2';
-  const sectionBase = 'p-4 md:p-5 bg-gray-50/70 border border-gray-100 rounded-xl space-y-4';
+  const inputBase = `w-full rounded-lg ${currentTheme.inputBorder || 'border border-gray-200'} ${currentTheme.inputBg || 'bg-white/70'} px-3.5 py-2.5 text-sm ${currentTheme.inputText || 'text-gray-900'} ${currentTheme.shadow || 'shadow-sm'} ${currentTheme.inputRing || 'focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200'} transition disabled:${currentTheme.inputDisabled || 'bg-gray-100'}`;
+  const labelBase = `text-sm font-semibold ${currentTheme.subtitle || 'text-gray-700'} mb-1 flex items-center gap-2`;
+  const sectionBase = `p-4 md:p-5 ${currentTheme.panelBg || 'bg-gray-50/70'} ${currentTheme.panelBorder || 'border border-gray-100'} rounded-xl space-y-4`;
 
   return (
-    <form onSubmit={handleSubmit} className="relative overflow-hidden rounded-2xl bg-white/95 backdrop-blur border border-emerald-50 shadow-2xl p-5 sm:p-7 space-y-5">
+    <form onSubmit={handleSubmit} className={`relative overflow-hidden rounded-2xl backdrop-blur p-5 sm:p-7 space-y-5 ${currentTheme.cardBg || 'bg-white/95'} ${currentTheme.cardBorder || 'border border-emerald-50'} ${currentTheme.shadow || 'shadow-2xl'}`}>
       <div className="absolute inset-0 pointer-events-none bg-gradient-to-br from-emerald-100/60 via-white to-teal-50/50" aria-hidden />
       <div className="relative space-y-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-600">Billing</p>
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mt-1">{billToEdit ? (isViewMode ? 'Bill Details' : 'Edit Bill') : 'Add New Bill'}</h2>
-            <p className="text-sm text-gray-500 mt-1">Keep your bill records tidy with payment status and attachments.</p>
+            <p className={`text-xs font-semibold uppercase tracking-[0.18em] ${currentTheme.heroIcon || 'text-emerald-600'}`}>Billing</p>
+            <h2 className={`text-2xl sm:text-3xl font-bold mt-1 ${currentTheme.title || 'text-gray-900'}`}>{billToEdit ? (isViewMode ? 'Bill Details' : 'Edit Bill') : 'Add New Bill'}</h2>
+            <p className={`text-sm mt-1 ${currentTheme.mutedText || 'text-gray-500'}`}>Keep your bill records tidy with payment status and attachments.</p>
           </div>
-          <span className={`px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm border ${formData.status === 'Paid' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : formData.status === 'Partial' ? 'bg-amber-50 text-amber-700 border-amber-100' : 'bg-rose-50 text-rose-700 border-rose-100'}`}>
+          <span className={`px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm border ${formData.status === 'Paid' ? `${currentTheme.badgeSuccessBg || 'bg-emerald-50'} ${currentTheme.badgeSuccessText || 'text-emerald-700'} ${currentTheme.badgeBorder || 'border-emerald-100'}` : formData.status === 'Partial' ? `${currentTheme.badgeWarningBg || 'bg-amber-50'} ${currentTheme.badgeWarningText || 'text-amber-700'} ${currentTheme.badgeBorder || 'border-amber-100'}` : `${currentTheme.badgeDangerBg || 'bg-rose-50'} ${currentTheme.badgeDangerText || 'text-rose-700'} ${currentTheme.badgeBorder || 'border-rose-100'}`}`}>
             {formData.status}
           </span>
         </div>
@@ -197,17 +210,18 @@ const AddEditBillModal = ({ onAdd, onEdit, onClose, billToEdit, isViewMode }) =>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
             <div className="space-y-1">
               <label htmlFor="amount" className={labelBase}>Amount (PKR)</label>
-              <input
-                type="number"
-                id="amount"
-                name="amount"
-                value={formData.amount}
-                onChange={handleChange}
-                readOnly={isViewMode}
-                min="0"
-                step="0.01"
-                className={inputBase}
-              />
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="\d*"
+                  id="amount"
+                  name="amount"
+                  value={formData.amount}
+                  onChange={handleChange}
+                  readOnly={isViewMode}
+                  className={inputBase}
+                  placeholder="Amount in PKR"
+                />
             </div>
             <div className="space-y-1">
               <label htmlFor="billDate" className={labelBase}>Bill Date</label>

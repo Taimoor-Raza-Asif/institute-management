@@ -375,7 +375,7 @@ const StudentList = () => {
                 id="searchTerm"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition ${currentTheme?.inputBg || 'border-gray-300 bg-gray-50'}`}
+                className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none transition ${currentTheme?.inputBg || 'border-gray-300 bg-gray-50'} ${currentTheme?.inputRing || 'focus:ring-2 focus:ring-green-500'}`}
                 placeholder="Search by Name or CNIC..."
               />
               <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -384,13 +384,13 @@ const StudentList = () => {
           <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
             <button
               onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-              className={`group flex items-center justify-center px-8 py-2 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 w-full sm:w-auto ${showAdvancedFilters ? 'bg-gradient-to-r from-gray-700 to-gray-600 text-white' : 'bg-white text-gray-700 border-2 border-gray-200 hover:border-gray-300'}`}
+              className={`group flex items-center justify-center px-8 py-2 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 w-full sm:w-auto ${currentTheme.btnSecondaryBg || 'bg-white'} ${currentTheme.btnSecondaryText || 'text-emerald-700'} ${currentTheme.btnSecondaryBorder || 'border border-emerald-200'} ${currentTheme.btnSecondaryHover || 'hover:bg-emerald-50'}`}
             >
               <FunnelIcon className="h-5 w-5 mr-2 transition-transform group-hover:scale-110" />
               {showAdvancedFilters ? 'Hide' : 'Filters'}
             </button>
               {canAddStudent && (
-              <button onClick={handleAddStudent} className="group flex items-center justify-center px-8 py-2 rounded-xl font-bold  bg-gradient-to-r from-green-600 to-emerald-600 text-white transition-all duration-300 shadow-lg hover:shadow-2xl hover:from-green-700 hover:to-emerald-700 transform hover:-translate-y-0.5 w-full sm:w-auto">
+              <button onClick={handleAddStudent} className={`group flex items-center justify-center px-8 py-2 rounded-xl font-bold transition-all duration-300 shadow-lg hover:shadow-2xl transform hover:-translate-y-0.5 w-full sm:w-auto ${currentTheme.btnPrimaryBg || 'bg-emerald-600'} ${currentTheme.btnPrimaryHover || 'hover:bg-emerald-700'} ${currentTheme.btnPrimaryText || 'text-white'} ${currentTheme.btnPrimaryBorder || 'border border-emerald-700'}`}>
                 <PlusIcon className="h-5 w-5 mr-2 transition-transform group-hover:rotate-90" />Student
               </button>
             )}
@@ -409,7 +409,7 @@ const StudentList = () => {
                   id="filterStudentStatus"
                   value={filterStudentStatus}
                   onChange={(e) => setFilterStudentStatus(e.target.value)}
-                  className={`block w-full rounded-lg border shadow-sm focus:border-green-500 focus:ring-2 focus:ring-green-200 p-2.5 transition ${currentTheme?.inputBg || 'border-gray-300'}`}
+                  className={`block w-full rounded-lg border shadow-sm p-2.5 transition ${currentTheme?.inputBg || 'border-gray-300'} ${currentTheme?.inputRing || 'focus:ring-2 focus:ring-green-200'} ${currentTheme?.inputFocus || 'focus:border-green-500'}`}
                 >
                   <option value="All Students">All Students</option>
                   <option value="Regular">Regular</option>
@@ -426,7 +426,7 @@ const StudentList = () => {
                   id="filterGender"
                   value={filterGender}
                   onChange={(e) => setFilterGender(e.target.value)}
-                  className={`block w-full rounded-lg border shadow-sm focus:border-green-500 focus:ring-2 focus:ring-green-200 p-2.5 transition ${currentTheme?.inputBg || 'border-gray-300'}`}
+                  className={`block w-full rounded-lg border shadow-sm p-2.5 transition ${currentTheme?.inputBg || 'border-gray-300'} ${currentTheme?.inputRing || 'focus:ring-2 focus:ring-green-200'} ${currentTheme?.inputFocus || 'focus:border-green-500'}`}
                 >
                   <option value="all">All</option>
                   <option value="male">Male</option>
@@ -447,7 +447,7 @@ const StudentList = () => {
                     setFilterDegreeName('');
                     setFilterSemester('');
                   }}
-                  className={`block w-full rounded-lg border shadow-sm focus:border-green-500 focus:ring-2 focus:ring-green-200 p-2.5 transition ${currentTheme?.inputBg || 'border-gray-300'}`}
+                  className={`block w-full rounded-lg border shadow-sm p-2.5 transition ${currentTheme?.inputBg || 'border-gray-300'} ${currentTheme?.inputRing || 'focus:ring-2 focus:ring-green-200'} ${currentTheme?.inputFocus || 'focus:border-green-500'}`}
                 >
                   <option value="">All Class Types</option>
                   {academicStructure?.map(type => (
@@ -617,7 +617,7 @@ const StudentList = () => {
         {loading && (
           <div className="absolute inset-0 bg-white bg-opacity-90 flex items-center justify-center z-10 rounded-xl">
             <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-3"></div>
+              <div className={`animate-spin rounded-full h-12 w-12 border-b-2 ${currentTheme?.btnPrimaryBg || 'border-green-600'} mx-auto mb-3`}></div>
               <p className="text-lg font-medium text-gray-700">Loading students...</p>
             </div>
           </div>
@@ -630,22 +630,22 @@ const StudentList = () => {
           </div>
         )}
 
-        <div className={`${currentTheme?.cardBg || 'bg-white'} rounded-xl ${currentTheme?.shadow || 'shadow-lg'} overflow-hidden`}>
-          <div className="overflow-x-auto">
+        <div className={`p-6 rounded-2xl ${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.shadow || 'shadow-lg'} ${currentTheme?.border || 'border border-gray-100'}`}>
+          <div className="overflow-x-auto rounded-xl overflow-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className={`${currentTheme?.theadBg || 'bg-gradient-to-r from-green-600 to-emerald-600'}`}>
                 <tr>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Name</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">F.Name</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">CNIC</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Type</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Grade/Juz</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Major/Degree</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Semester</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Fee/month</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Status</th>
+                  <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider rounded-tl-xl">Name</th>
+                  <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">F.Name</th>
+                  <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">CNIC</th>
+                  <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Type</th>
+                  <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Grade/Juz</th>
+                  <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Major/Degree</th>
+                  <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Semester</th>
+                  <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Fee/month</th>
+                  <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Status</th>
                   {(canEditStudent || canDeleteStudent) && (
-                    <th className="px-6 py-4 text-center text-xs font-bold text-white uppercase tracking-wider">Actions</th>
+                    <th scope="col" className="px-6 py-4 text-center text-xs font-bold text-white uppercase tracking-wider rounded-tr-xl">Actions</th>
                   )}
                 </tr>
               </thead>
@@ -656,7 +656,7 @@ const StudentList = () => {
                   displayedStudents.map((s, index) => (
                     <tr
                       key={s._id}
-                      className={`transition-all duration-150 hover:bg-green-50 hover:shadow-md ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
+                      className={`transition-all duration-150 ${currentTheme.tableHover || 'hover:bg-green-50'} ${index % 2 === 0 ? (currentTheme.tbodyBg || 'bg-white') : (currentTheme.tableStripedBg || 'bg-gray-50')} hover:shadow-md`}
                     >
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
@@ -664,38 +664,38 @@ const StudentList = () => {
                             <img
                               src={`http://localhost:5000${s.profilePictureUrl}`}
                               alt={`${s.name}'s Profile`}
-                              className="h-10 w-10 rounded-full object-cover ring-2 ring-green-100 mr-3"
+                              className={`h-10 w-10 rounded-full object-cover ring-2 ${currentTheme.heroPillBorder || 'ring-green-100'} mr-3`}
                               onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/40x40/10b981/ffffff?text=' + s.name[0]; }}
                             />
                           ) : (
-                            <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center mr-3 ring-2 ring-green-200">
-                              <span className="text-green-700 font-bold text-sm">{s.name[0]}</span>
+                            <div className={`h-10 w-10 rounded-full ${currentTheme.heroPillBg || 'bg-green-100'} flex items-center justify-center mr-3 ring-2 ${currentTheme.heroPillBorder || 'ring-green-200'}`}>
+                              <span className={`${currentTheme.iconText || 'text-green-700'} font-bold text-sm`}>{s.name[0]}</span>
                             </div>
                           )}
                           <div>
-                            <div className="text-sm font-semibold text-gray-900">{s.name}</div>
+                            <div className={`text-sm font-semibold ${currentTheme?.text || 'text-gray-900'}`}>{s.name}</div>
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{s.fatherName}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-mono">{s.cnic || '-'}</td>
+                      <td className={`px-6 py-4 whitespace-nowrap text-sm ${currentTheme?.text || 'text-gray-600'}`}>{s.fatherName}</td>
+                      <td className={`px-6 py-4 whitespace-nowrap text-sm ${currentTheme?.text || 'text-gray-600'} font-mono`}>{s.cnic || '-'}</td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">{s.class}</span>
+                        <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${currentTheme.pillBg || 'bg-gray-100'} ${currentTheme.pillText || 'text-gray-800'} ${currentTheme.pillBorder || 'border border-gray-200'}`}>{s.class}</span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-medium">
+                      <td className={`px-6 py-4 whitespace-nowrap text-sm ${currentTheme?.text || 'text-gray-600'} font-medium`}>
                         {s.class === 'Class' || s.class === 'Almiya' ? s.classNumber || '-' : s.class === 'Hifaz' ? `Juz ${s.currentJuz || 0}` : '-'}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{s.class === 'BS' ? s.degreeName || '-' : s.majorSubject || '-'}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{s.class === 'BS' ? s.semester || '-' : '-'}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">PKR {s.feePerMonth || '-'}</td>
+                      <td className={`px-6 py-4 whitespace-nowrap text-sm ${currentTheme?.text || 'text-gray-600'}`}>{s.class === 'BS' ? s.degreeName || '-' : s.majorSubject || '-'}</td>
+                      <td className={`px-6 py-4 whitespace-nowrap text-sm ${currentTheme?.text || 'text-gray-600'}`}>{s.class === 'BS' ? s.semester || '-' : '-'}</td>
+                      <td className={`px-6 py-4 whitespace-nowrap text-sm font-semibold ${currentTheme?.text || 'text-gray-900'}`}>PKR {s.feePerMonth || '-'}</td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full ${s.feeStatus === 'Paid' ? 'bg-green-100 text-green-800' : s.feeStatus === 'Partial Paid' ? 'bg-orange-100 text-orange-800' : 'bg-red-100 text-red-800'}`}>
+                        <span className={`px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full border ${s.feeStatus === 'Paid' ? `${currentTheme.badgeSuccessBg || 'bg-green-100'} ${currentTheme.badgeSuccessText || 'text-green-800'}` : s.feeStatus === 'Partial Paid' ? `${currentTheme.badgeWarningBg || 'bg-amber-100'} ${currentTheme.badgeWarningText || 'text-amber-800'}` : `${currentTheme.badgeDangerBg || 'bg-red-100'} ${currentTheme.badgeDangerText || 'text-red-800'}`}`}>
                           {s.feeStatus}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
                         <div className="flex items-center justify-center space-x-2">
-                          <button onClick={(e) => { e.stopPropagation(); handleViewStudentDetails(s); }} className="p-2 text-green-600 hover:text-green-900 hover:bg-green-50 rounded-lg transition-colors duration-200" title="View Student Details">
+                          <button onClick={(e) => { e.stopPropagation(); handleViewStudentDetails(s); }} className={`p-2 ${currentTheme.iconText || 'text-green-600'} hover:${currentTheme.heroPillBg || 'bg-green-50'} ${currentTheme.heroPillBg || 'hover:bg-green-50'} rounded-lg transition-colors duration-200`} title="View Student Details">
                             <EyeIcon className="h-5 w-5" />
                           </button>
                           {/* Action Dropdown Menu */}

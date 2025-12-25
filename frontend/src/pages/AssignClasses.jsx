@@ -430,7 +430,7 @@ const AssignClasses = () => {
     
 
     return (
-        <div className="container mx-auto p-4 sm:p-6 lg:p-8 bg-gray-100 min-h-screen">
+        <div className={`container mx-auto p-4 sm:p-6 lg:p-8 min-h-screen ${currentTheme?.mainBg || 'bg-gray-50'}`}>
             {/* Hero Header */}
             <div className={`relative ${currentTheme?.heroBg || 'bg-gradient-to-r from-emerald-50 to-teal-100'} ${currentTheme?.shadow || 'shadow-lg'} rounded-2xl p-8 mb-8 overflow-hidden`}>
                 <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full -mr-32 -mt-32"></div>
@@ -469,7 +469,7 @@ const AssignClasses = () => {
                     <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
                         <button
                             onClick={() => setShowAssignmentForm(!showAssignmentForm)}
-                            className={`flex items-center justify-center h-12 px-6 rounded-lg font-medium transition-all duration-200 bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-700 hover:to-green-800 ${currentTheme?.shadow || 'shadow-md'} w-full sm:w-auto`}
+                            className={`flex items-center justify-center h-12 px-6 rounded-lg font-medium transition-all duration-200 ${currentTheme?.btnPrimaryBg || 'bg-gradient-to-r from-green-600 to-green-700'} ${currentTheme?.btnPrimaryText || 'text-white'} ${currentTheme?.btnPrimaryHover || 'hover:from-green-700 hover:to-green-800'} ${currentTheme?.shadow || 'shadow-md'} w-full sm:w-auto`}
                         >
                             <PlusIcon className="h-5 w-5 mr-2" />
                             {showAssignmentForm ? 'Hide' : 'Assign'}
@@ -479,21 +479,21 @@ const AssignClasses = () => {
             </div>
 
             {showAssignmentForm && (
-                <div className="bg-white rounded-xl shadow-2xl p-8 mb-8 border border-green-500">
-                    <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">Assignment Form</h3>
+                <div className={`${currentTheme?.cardBg || 'bg-white'} rounded-xl shadow-2xl p-8 mb-8 ${currentTheme?.border || 'border border-green-500'}`}>
+                    <h3 className={`text-2xl font-bold ${currentTheme?.text || 'text-white'} mb-6 text-center`}>Assignment Form</h3>
                     <form onSubmit={handleSubmit} className="space-y-6">
-                        <div className="bg-green-50 rounded-lg p-6 border border-green-200 shadow-inner">
+                        <div className={`${currentTheme?.panelBg || 'bg-green-50'} rounded-lg p-6 ${currentTheme?.border || 'border border-green-200'} shadow-inner`}>
                             <h4 className="text-lg font-semibold text-green-800 mb-4 border-b border-green-300 pb-2">Teacher Selection</h4>
-                            <div>
-                                <label htmlFor="teacher" className="block text-sm font-medium text-gray-700 mb-1">Select Teacher</label>
+                                <div>
+                                <label htmlFor="teacher" className={`block text-sm font-medium ${currentTheme?.mutedText || 'text-gray-700'} mb-1`}>Select Teacher</label>
                                 <div className="relative">
-                                    <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                                    <MagnifyingGlassIcon className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 ${currentTheme?.mutedText || 'text-gray-400'}`} />
                                     <input
                                         type="text"
                                         placeholder="Search teachers..."
                                         value={searchTermTeachers}
                                         onChange={(e) => setSearchTermTeachers(e.target.value)}
-                                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors"
+                                        className={`w-full pl-10 pr-4 py-2 rounded-lg border focus:outline-none transition ${currentTheme?.inputBg || "border-gray-200 bg-gray-50"} ${currentTheme?.inputText || "text-gray-800"} ${currentTheme?.inputRing || 'focus:ring-2 focus:ring-green-500'}`}
                                     />
                                 </div>
                                 <select
@@ -505,7 +505,7 @@ const AssignClasses = () => {
                                         setNewAssignments([]);
                                         resetCurrentAssignmentForm();
                                     }}
-                                    className="mt-2 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors"
+                                    className={`mt-2 block w-full px-4 py-2 rounded-lg border focus:outline-none transition ${currentTheme?.inputBg || "border-gray-200 bg-gray-50"} ${currentTheme?.inputText || "text-gray-800"} ${currentTheme?.inputRing || 'focus:ring-2 focus:ring-green-500'}`}
                                     required
                                 >
                                     <option value="" disabled>Select a teacher</option>
@@ -518,17 +518,17 @@ const AssignClasses = () => {
                             </div>
                         </div>
 
-                        <div className="bg-white rounded-lg p-6 border border-gray-300 shadow-md">
-                            <h4 className="text-xl font-semibold text-gray-800 mb-4">{editingAssignmentIndex !== null ? "Edit Assignment" : "Add New Assignment"}</h4>
+                        <div className={`${currentTheme?.cardBg || 'bg-white'} rounded-lg p-6 ${currentTheme?.border || 'border border-gray-100'} ${currentTheme?.shadow || 'shadow-md'}`}>
+                            <h4 className={`text-xl font-semibold ${currentTheme?.title || 'text-gray-800'} mb-4`}>{editingAssignmentIndex !== null ? "Edit Assignment" : "Add New Assignment"}</h4>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
                                 <div>
-                                    <label htmlFor="assignType" className="block text-sm font-medium text-gray-700">Academic Track</label>
+                                    <label htmlFor="assignType" className={`block text-sm font-medium ${currentTheme?.title || 'text-gray-700'}`}>Academic Track</label>
                                     <select
                                         id="assignType"
                                         name="type"
                                         value={currentAssignment.type}
                                         onChange={handleAssignmentInputChange}
-                                        className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors"
+                                        className={`mt-1 block w-full px-4 py-2 rounded-lg border focus:outline-none transition ${currentTheme?.inputBg || 'border-gray-200 bg-gray-50'} ${currentTheme?.inputText || 'text-gray-800'} ${currentTheme?.inputRing || 'focus:ring-2 focus:ring-green-500'}`}
                                         required
                                         disabled={editingAssignmentIndex !== null}
                                     >
@@ -541,13 +541,13 @@ const AssignClasses = () => {
                                 
                                 {isClassOrAlmiya && selectedAcademicType && (
                                     <div>
-                                        <label htmlFor="classNumber" className="block text-sm font-medium text-gray-700">{selectedAcademicType.name} Class/Grade</label>
+                                        <label htmlFor="classNumber" className={`block text-sm font-medium ${currentTheme?.title || 'text-gray-700'}`}>{selectedAcademicType.name} Class/Grade</label>
                                         <select
                                             id="classNumber"
                                             name="classNumber"
                                             value={currentAssignment.classNumber}
                                             onChange={handleAssignmentInputChange}
-                                            className={`mt-1 block w-full px-4 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors ${formErrors.classNumber ? 'border-red-500' : 'border-gray-300'}`}
+                                            className={`mt-1 block w-full px-4 py-2 rounded-lg border focus:outline-none transition ${formErrors.classNumber ? 'border-red-500' : (currentTheme?.inputBg ? currentTheme?.inputBg.split(' ')[0] : 'border-gray-200')} ${currentTheme?.inputText || 'text-gray-800'} ${currentTheme?.inputRing || 'focus:ring-2 focus:ring-green-500'}`}
                                             required
                                         >
                                             <option value="">Select Grade</option>
@@ -556,11 +556,10 @@ const AssignClasses = () => {
                                                     {cls.classIdentifier} ({cls.classNumber})
                                                 </option>
                                             ))}
-                                        </select>
+                                            </select>
                                         {formErrors.classNumber && <p className="mt-1 text-sm text-red-600">{formErrors.classNumber}</p>}
                                     </div>
                                 )}
-                                
                                 {currentAssignment.type === "BS" && selectedAcademicType && (
                                     <>
                                         <div>
@@ -570,7 +569,7 @@ const AssignClasses = () => {
                                                 name="degreeName"
                                                 value={currentAssignment.degreeName}
                                                 onChange={handleAssignmentInputChange}
-                                                className={`mt-1 block w-full px-4 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors ${formErrors.degreeName ? 'border-red-500' : 'border-gray-300'}`}
+                                                className={`mt-1 block w-full px-4 py-2 rounded-lg border focus:outline-none transition ${formErrors.degreeName ? 'border-red-500' : (currentTheme?.inputBg ? currentTheme?.inputBg.split(' ')[0] : 'border-gray-200')} ${currentTheme?.inputText || 'text-gray-800'} ${currentTheme?.inputRing || 'focus:ring-2 focus:ring-green-500'}`}
                                                 required
                                             >
                                                 <option value="">Select Degree</option>
@@ -589,7 +588,7 @@ const AssignClasses = () => {
                                                     type="number"
                                                     value={currentAssignment.semester}
                                                     onChange={handleAssignmentInputChange}
-                                                    className={`mt-1 block w-full px-4 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors ${formErrors.semester ? 'border-red-500' : 'border-gray-300'}`}
+                                                    className={`mt-1 block w-full px-4 py-2 rounded-lg border focus:outline-none transition ${formErrors.semester ? 'border-red-500' : (currentTheme?.inputBg ? currentTheme?.inputBg.split(' ')[0] : 'border-gray-200')} ${currentTheme?.inputText || 'text-gray-800'} ${currentTheme?.inputRing || 'focus:ring-2 focus:ring-green-500'}`}
                                                     required
                                                 >
                                                     <option value="">Select Semester</option>
@@ -606,7 +605,7 @@ const AssignClasses = () => {
                                 {currentAssignment.type === "Hifaz" && (
                                     <div className="md:col-span-2">
                                         <label className="block text-sm font-medium text-gray-700">Hifaz Course</label>
-                                        <p className="mt-1 block w-full px-4 py-2 text-gray-800 border border-gray-300 rounded-lg bg-gray-100">
+                                        <p className={`mt-1 block w-full px-4 py-2 ${currentTheme?.inputText || 'text-gray-800'} rounded-lg border ${currentTheme?.border || 'border border-gray-100'} ${currentTheme?.inputBg || 'bg-gray-50'}`}>
                                             Assigned to teach the complete Hifaz course (30 Juz).
                                         </p>
                                     </div>
@@ -625,7 +624,7 @@ const AssignClasses = () => {
                                                 type="text"
                                                 value={subject}
                                                 onChange={(e) => handleSubjectChange(e.target.value, index)}
-                                                className={`block w-full px-4 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors ${formErrors.subjects ? 'border-red-500' : 'border-gray-300'}`}
+                                                className={`block w-full px-4 py-2 rounded-lg border focus:outline-none transition ${formErrors.subjects ? 'border-red-500' : (currentTheme?.inputBg ? currentTheme?.inputBg.split(' ')[0] : 'border-gray-200')} ${currentTheme?.inputText || 'text-gray-800'} ${currentTheme?.inputRing || 'focus:ring-2 focus:ring-green-500'}`}
                                                 placeholder={`Subject ${index + 1}`}
                                                 list={`subjects-list-${currentAssignment.type}-${currentAssignment.classNumber || currentAssignment.degreeName}-${currentAssignment.semester}`}
                                             />
@@ -651,7 +650,7 @@ const AssignClasses = () => {
                                 <button
                                     type="button"
                                     onClick={() => setCurrentAssignment(prev => ({ ...prev, subjects: [...prev.subjects, ""] }))}
-                                    className="mt-3 w-full inline-flex items-center justify-center px-4 py-2 border border-dashed border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"
+                                    className={`mt-3 w-full inline-flex items-center justify-center px-4 py-2 rounded-md text-sm font-medium ${currentTheme?.inputText || 'text-gray-700'} border-dashed ${currentTheme?.border || 'border border-gray-100'} hover:opacity-90 transition-colors`}
                                 >
                                     <PlusIcon className="h-4 w-4 mr-2" /> Add Subject
                                 </button>
@@ -663,7 +662,7 @@ const AssignClasses = () => {
                                     <button
                                         type="button"
                                         onClick={handleUpdateAssignment}
-                                        className="px-6 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition duration-200 shadow-md"
+                                        className={`px-6 py-3 ${currentTheme?.btnPrimaryBg || 'bg-green-600'} ${currentTheme?.btnPrimaryText || 'text-white'} font-semibold rounded-lg ${currentTheme?.btnPrimaryHover || 'hover:bg-green-700'} transition duration-200 shadow-md`}
                                     >
                                         Update Assignment
                                     </button>
@@ -671,7 +670,7 @@ const AssignClasses = () => {
                                     <button
                                         type="button"
                                         onClick={handleAddAssignmentToList}
-                                        className="px-6 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition duration-200 shadow-md"
+                                        className={`px-6 py-3 ${currentTheme?.btnPrimaryBg || 'bg-green-600'} ${currentTheme?.btnPrimaryText || 'text-white'} font-semibold rounded-lg ${currentTheme?.btnPrimaryHover || 'hover:bg-green-700'} transition duration-200 shadow-md`}
                                     >
                                         Add to List
                                     </button>
@@ -679,7 +678,7 @@ const AssignClasses = () => {
                                 <button
                                     type="button"
                                     onClick={resetCurrentAssignmentForm}
-                                    className="ml-4 px-6 py-3 border border-gray-300 rounded-lg text-gray-700 font-semibold hover:bg-gray-100 transition duration-200"
+                                    className={`ml-4 px-6 py-3 rounded-lg font-semibold ${currentTheme?.btnSecondaryBg || 'bg-transparent'} ${currentTheme?.btnSecondaryText || 'text-gray-700'} border ${currentTheme?.border || 'border border-gray-100'} hover:opacity-95 transition duration-200`}
                                 >
                                     Clear
                                 </button>
@@ -687,16 +686,16 @@ const AssignClasses = () => {
                         </div>
                         
                         {(assignmentsForSelectedTeacher.length > 0 || newAssignments.length > 0) && (
-                            <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-300">
-                                <h4 className="text-xl font-semibold text-gray-900 mb-4">Assignments to be Saved ({assignmentsForSelectedTeacher.length + newAssignments.length})</h4>
-                                <ul className="divide-y divide-gray-200 rounded-md border border-gray-200">
+                            <div className={`${currentTheme?.cardBg || 'bg-white'} rounded-xl shadow-lg p-6 ${currentTheme?.border || 'border border-gray-300'}`}>
+                                <h4 className={`text-xl font-semibold ${currentTheme?.title || 'text-gray-800'} mb-4`}>Assignments to be Saved ({assignmentsForSelectedTeacher.length + newAssignments.length})</h4>
+                                <ul className={`divide-y divide-gray-200 rounded-md ${currentTheme?.border ? '' : 'border'} ${currentTheme?.border || 'border border-gray-100'}`}>
                                     {[...assignmentsForSelectedTeacher, ...newAssignments].map((assignment, index) => (
-                                        <li key={`${assignment.type}-${assignment.classNumber || assignment.degreeName}-${index}`} className="p-4 flex justify-between items-center bg-gray-50">
+                                        <li key={`${assignment.type}-${assignment.classNumber || assignment.degreeName}-${index}`} className={`p-4 flex justify-between items-center ${currentTheme?.tbodyBg || 'bg-white'}`}>
                                             <div>
-                                                <p className="text-sm font-medium text-gray-900">
+                                                <p className={`text-sm font-medium ${currentTheme?.title || 'text-gray-800'}`}>
                                                     {renderAssignmentDetails(assignment)}
                                                 </p>
-                                                <p className="text-xs text-gray-500">Subjects: {assignment.subjects.join(", ")}</p>
+                                                <p className={`${currentTheme?.mutedText || 'text-gray-500'} text-xs`}>Subjects: {assignment.subjects.join(", ")}</p>
                                             </div>
                                             <div className="flex items-center space-x-2">
                                                 <button
@@ -720,7 +719,7 @@ const AssignClasses = () => {
                                 <div className="mt-6 flex justify-end">
                                     <button
                                         type="submit"
-                                        className="px-6 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition duration-200 shadow-md flex items-center"
+                                        className={`px-6 py-3 ${currentTheme?.btnPrimaryBg || 'bg-green-600'} ${currentTheme?.btnPrimaryText || 'text-white'} font-semibold rounded-lg ${currentTheme?.btnPrimaryHover || 'hover:bg-green-700'} transition duration-200 shadow-md flex items-center`}
                                     >
                                         <AcademicCapIcon className="h-5 w-5 mr-2" /> Save All Assignments
                                     </button>
@@ -732,7 +731,7 @@ const AssignClasses = () => {
             )}
 
             <div className="mt-8">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4 px-1">Existing Assigned Classes</h2>
+                <h2 className={`text-2xl font-bold ${currentTheme?.title || 'text-gray-800'} mb-4 px-1`}>Existing Assigned Classes</h2>
                 
                 {loading ? (
                     <Loader />
@@ -740,7 +739,7 @@ const AssignClasses = () => {
                     <Message type="info" text="No assignments found matching the criteria." />
                 ) : (
                     <>
-                    <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+                    <div className={`rounded-xl ${currentTheme?.shadow || 'shadow-lg'} overflow-hidden ${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.border || 'border border-gray-100'}`}>
                     <div className="overflow-x-auto">
                         <table className="min-w-full divide-y divide-gray-200">
                             <thead className={`${currentTheme?.theadBg || 'bg-emerald-600'} ${currentTheme?.theadText || 'text-white'}`}>
@@ -752,34 +751,34 @@ const AssignClasses = () => {
                                     <th className="px-6 py-4 text-center text-xs font-bold text-white uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="bg-white divide-y divide-gray-100">
+                            <tbody className={`${currentTheme?.tbodyBg || 'bg-white'} divide-y divide-gray-100`}>
                                 {filteredTeachersAndAssignments.map((assignment, index) => (
-                                    <tr key={`${assignment.teacherId}-${assignment.assignmentIndex}`} className={`transition-all duration-150 hover:bg-green-50 hover:shadow-md ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                    <tr key={`${assignment.teacherId}-${assignment.assignmentIndex}`} className={`transition-all duration-150 ${currentTheme?.tableHover || 'hover:bg-green-50'} hover:shadow-md ${index % 2 === 0 ? currentTheme?.tbodyBg || 'bg-white' : currentTheme?.tableStripedBg || 'bg-gray-50'}`}>
+                                        <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${currentTheme?.title || 'text-gray-800'}`}>
                                             {assignment.teacherName}
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                            <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${assignment.type === 'Class' ? 'bg-green-100 text-green-800' : assignment.type === 'BS' ? 'bg-green-100 text-green-800' : assignment.type === 'Almiya' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
+                                        <td className={`px-6 py-4 whitespace-nowrap text-sm ${currentTheme?.text || 'text-gray-700'}`}>
+                                            <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${assignment.type === 'Class' ? (currentTheme?.badgeSuccessBg || 'bg-green-100') + ' ' + (currentTheme?.badgeSuccessText || 'text-green-800') : assignment.type === 'BS' ? (currentTheme?.badgeSuccessBg || 'bg-green-100') + ' ' + (currentTheme?.badgeSuccessText || 'text-green-800') : assignment.type === 'Almiya' ? (currentTheme?.badgeWarningBg || 'bg-yellow-100') + ' ' + (currentTheme?.badgeWarningText || 'text-yellow-800') : (currentTheme?.badgeSuccessBg || 'bg-green-100') + ' ' + (currentTheme?.badgeSuccessText || 'text-green-800')}`}>
                                                 {assignment.type}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                        <td className={`px-6 py-4 whitespace-nowrap text-sm ${currentTheme?.text || 'text-gray-700'}`}>
                                             {renderAssignmentDetails(assignment)}
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                        <td className={`px-6 py-4 whitespace-nowrap text-sm ${currentTheme?.text || 'text-gray-700'}`}>
                                             {assignment.subjects.join(", ")}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
                                             <button
                                                 onClick={() => handleEditTableAssignment(assignment.teacherId, assignment.assignmentIndex)}
-                                                className="p-2 text-green-600 hover:text-green-900 hover:bg-green-50 rounded-lg transition-colors duration-200 mr-2"
+                                                className={`p-2 ${currentTheme?.iconText || 'text-green-600'} hover:opacity-75 rounded-lg transition-opacity duration-200 mr-2`}
                                                 title="Edit Assignment"
                                             >
                                                 <PencilIcon className="h-5 w-5" />
                                             </button>
                                             <button
                                                 onClick={() => handleDeleteTableAssignment(assignment.teacherId, assignment.assignmentIndex)}
-                                                className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors duration-200"
+                                                className="p-2 text-red-600 hover:opacity-75 rounded-lg transition-opacity duration-200"
                                                 title="Delete Assignment"
                                             >
                                                 <TrashIcon className="h-5 w-5" />

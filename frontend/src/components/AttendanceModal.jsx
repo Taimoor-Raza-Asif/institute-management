@@ -2,8 +2,10 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api';
 import { XMarkIcon, QrCodeIcon } from '@heroicons/react/24/outline'; // Reusing icons
+import { useTheme } from '../context/ThemeContext';
 
 const AttendanceModal = ({ staffMember, onClose, fetchStaff }) => {
+  const { currentTheme } = useTheme();
   const [employeeId, setEmployeeId] = useState(staffMember?.employeeId || '');
   const [qrCodeSecret, setQrCodeSecret] = useState(staffMember?.qrCodeSecret || '');
   const [status, setStatus] = useState('Present'); // Default status
@@ -59,15 +61,15 @@ const AttendanceModal = ({ staffMember, onClose, fetchStaff }) => {
   };
 
   return (
-    <div className="flex flex-col h-full p-4 sm:p-6 lg:p-8 bg-white rounded-lg shadow-xl">
+    <div className={`flex flex-col h-full p-4 sm:p-6 lg:p-8 rounded-lg ${currentTheme.cardBg || 'bg-white'} ${currentTheme.shadow || 'shadow-xl'}`}>
       <div className="flex-shrink-0 relative">
-        <button onClick={onClose} className="absolute top-0 right-0 text-gray-500 hover:text-gray-700 transition duration-200 p-2 rounded-full hover:bg-gray-100" title="Close" >
+        <button onClick={onClose} className={`absolute top-0 right-0 transition duration-200 p-2 rounded-full ${currentTheme.iconText || 'text-gray-500'} ${currentTheme.iconHover || 'hover:text-gray-700'} ${currentTheme.btnGhostHover || 'hover:bg-gray-100'}`} title="Close" >
           <XMarkIcon className="h-7 w-7" />
         </button>
-        <h2 className="text-2xl sm:text-3xl font-bold mb-4 text-center text-green-700">Record Attendance</h2>
-        <hr className="mb-6 border-green-200" />
+        <h2 className={`text-2xl sm:text-3xl font-bold mb-4 text-center ${currentTheme.heroTitle || 'text-green-700'}`}>Record Attendance</h2>
+        <hr className={`mb-6 ${currentTheme.divider || 'border-green-200'}`} />
         {message && (
-          <div className={`px-4 py-3 rounded relative mb-4 shadow-sm ${messageType === 'success' ? 'bg-green-100 border border-green-400 text-green-700' : 'bg-red-100 border border-red-400 text-red-700'}`} role="alert">
+          <div className={`px-4 py-3 rounded relative mb-4 shadow-sm ${messageType === 'success' ? `${currentTheme.alertSuccessBg || 'bg-green-100'} ${currentTheme.alertSuccessBorder || 'border border-green-400'} ${currentTheme.alertSuccessText || 'text-green-700'}` : `${currentTheme.alertErrorBg || 'bg-red-100'} ${currentTheme.alertErrorBorder || 'border border-red-400'} ${currentTheme.alertErrorText || 'text-red-700'}`}`} role="alert">
             {message}
           </div>
         )}

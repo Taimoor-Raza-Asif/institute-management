@@ -10,8 +10,7 @@ import api from '../api';
 import { useTheme } from '../context/ThemeContext';
 import { BanknotesIcon, ExclamationTriangleIcon, UserPlusIcon, WalletIcon, GiftIcon, ClockIcon, DocumentCurrencyDollarIcon, HeartIcon } from '@heroicons/react/24/outline';
 
-// Define the colors for the pie chart
-const PIE_COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#A28FEE', '#FF6666'];
+// Note: PIE colors will be derived from theme inside the component so themes can override chart palettes
 
 // Get current month and year for default filter values
 const currentMonth = new Date().getMonth() + 1;
@@ -45,6 +44,17 @@ const Reports = () => {
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('fees');
   const { currentTheme } = useTheme();
+
+  // Chart color palette - allow theme override
+  const PIE_COLORS = currentTheme?.pieColors || ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#A28FEE', '#FF6666'];
+  const CHART_COLORS = {
+    success: currentTheme?.chartSuccess || '#00C49F',
+    warning: currentTheme?.chartWarning || '#FFBB28',
+    primary: currentTheme?.chartPrimary || '#8884d8',
+    secondary: currentTheme?.chartSecondary || '#82ca9d',
+    accent: currentTheme?.chartAccent || '#ffc658',
+    danger: currentTheme?.chartDanger || '#F44336'
+  };
 
   // Filter states
   const [feesFilters, setFeesFilters] = useState({ year: currentYear, month: 'all' });
@@ -189,12 +199,12 @@ const Reports = () => {
       case 'fees':
         return (
           <>
-            <div className="rounded-2xl bg-white/90 border border-emerald-100 shadow-sm p-4 sm:p-5 mb-6">
+            <div className={`rounded-2xl ${currentTheme?.cardBg || 'bg-white/90'} ${currentTheme?.border || 'border border-emerald-100'} ${currentTheme?.shadow || 'shadow-sm'} p-4 sm:p-5 mb-6`}>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Filter by Year</label>
+                  <label className={`block text-sm font-semibold ${currentTheme?.title || 'text-gray-700'} mb-1`}>Filter by Year</label>
                   <select
-                    className="w-full px-3 py-2.5 rounded-xl bg-white/80 backdrop-blur-sm border border-emerald-200 ring-1 ring-emerald-100 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:border-emerald-300 text-sm"
+                    className={`w-full px-3 py-2.5 rounded-xl ${currentTheme?.inputBg || 'bg-white/80'} backdrop-blur-sm ${currentTheme?.inputBorder || 'border border-emerald-200'} ${currentTheme?.inputText || 'text-gray-800'} ring-1 ${currentTheme?.inputBorder || 'ring-emerald-100'} shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:border-emerald-300 text-sm`}
                     value={feesFilters.year}
                     onChange={(e) => setFeesFilters({ ...feesFilters, year: parseInt(e.target.value) })}
                   >
@@ -204,9 +214,9 @@ const Reports = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Month</label>
+                  <label className={`block text-sm font-semibold ${currentTheme?.title || 'text-gray-700'} mb-1`}>Month</label>
                   <select
-                    className="w-full px-3 py-2.5 rounded-xl bg-white/80 backdrop-blur-sm border border-emerald-200 ring-1 ring-emerald-100 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:border-emerald-300 text-sm"
+                    className={`w-full px-3 py-2.5 rounded-xl ${currentTheme?.inputBg || 'bg-white/80'} backdrop-blur-sm ${currentTheme?.inputBorder || 'border border-emerald-200'} ${currentTheme?.inputText || 'text-gray-800'} ring-1 ${currentTheme?.inputBorder || 'ring-emerald-100'} shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:border-emerald-300 text-sm`}
                     value={feesFilters.month}
                     onChange={(e) => setFeesFilters({ ...feesFilters, month: e.target.value })}
                   >
@@ -218,45 +228,44 @@ const Reports = () => {
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <div className={`${currentTheme?.statCard || 'bg-white'} ${currentTheme?.border || 'border border-emerald-100'} p-6 rounded-lg ${currentTheme?.shadow || 'shadow-md'} flex justify-between items-center`}>
+              <div className={`${currentTheme?.cardBg || currentTheme?.statCard || 'bg-white'} ${currentTheme?.cardBorder || currentTheme?.border || 'border border-emerald-100'} p-6 rounded-lg ${currentTheme?.shadow || 'shadow-md'} flex justify-between items-center`}>
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-600">Total Collected</h3>
-                  <p className={`${currentTheme?.statValue || 'text-emerald-800'} text-3xl font-bold`}>Rs. {totalCollected.toLocaleString()}</p>
+                  <h3 className={`text-lg font-semibold ${currentTheme?.mutedText || 'text-gray-600'}`}>Total Collected</h3>
+                    <p className={`text-3xl font-bold ${currentTheme?.mutedText || 'text-red-600'}`}>Rs. {totalCollected.toLocaleString()}</p>
                 </div>
                 <BanknotesIcon className={`${currentTheme?.iconText || 'text-emerald-600'} h-10 w-10`} />
               </div>
-              <div className={`${currentTheme?.statCard || 'bg-white'} ${currentTheme?.border || 'border border-emerald-100'} p-6 rounded-lg ${currentTheme?.shadow || 'shadow-md'} flex justify-between items-center`}>
+              <div className={`${currentTheme?.cardBg || currentTheme?.statCard || 'bg-white'} ${currentTheme?.cardBorder || currentTheme?.border || 'border border-emerald-100'} p-6 rounded-lg ${currentTheme?.shadow || 'shadow-md'} flex justify-between items-center`}>
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-600">Total Due</h3>
-                  <p className="text-3xl font-bold text-red-600">Rs. {totalDue.toLocaleString()}</p>
+                  <h3 className={`text-lg font-semibold ${currentTheme?.mutedText || 'text-gray-600'}`}>Total Due</h3>
+                  <p className={`text-3xl font-bold ${currentTheme?.mutedText || 'text-red-600'}`}>Rs. {totalDue.toLocaleString()}</p>
                 </div>
-                <ExclamationTriangleIcon className="text-red-600 h-10 w-10" />
+                <ExclamationTriangleIcon className={`${currentTheme?.iconText || 'text-red-600'} h-10 w-10`} />
               </div>
-              <div className={`${currentTheme?.statCard || 'bg-white'} ${currentTheme?.border || 'border border-emerald-100'} p-6 rounded-lg ${currentTheme?.shadow || 'shadow-md'} flex justify-between items-center`}>
+              <div className={`${currentTheme?.cardBg || currentTheme?.statCard || 'bg-white'} ${currentTheme?.cardBorder || currentTheme?.border || 'border border-emerald-100'} p-6 rounded-lg ${currentTheme?.shadow || 'shadow-md'} flex justify-between items-center`}>
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-600">Total Admission Fees</h3>
-                  <p className={`${currentTheme?.statValue || 'text-emerald-800'} text-3xl font-bold`}>Rs. {totalAdmissionFees.toLocaleString()}</p>
-                </div>
+                  <h3 className={`text-lg font-semibold ${currentTheme?.mutedText || 'text-gray-600'}`}>Total Admission Fees</h3>
+                  <p className={`text-3xl font-bold ${currentTheme?.mutedText || 'text-red-600'}`}>Rs. {totalAdmissionFees.toLocaleString()}</p>                </div>
                 <UserPlusIcon className={`${currentTheme?.iconText || 'text-emerald-600'} h-10 w-10`} />
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
-              <div className="bg-white p-4 sm:p-6 rounded-lg shadow-md">
-                <h2 className="text-xl sm:text-2xl font-semibold text-gray-700 mb-4">Fees Collected & Due</h2>
+              <div className={`${currentTheme?.cardBg || 'bg-white'} p-4 sm:p-6 rounded-lg ${currentTheme?.shadow || 'shadow-md'}`}>
+                <h2 className={`text-xl sm:text-2xl font-semibold ${currentTheme?.title || 'text-gray-700'} mb-4`}>Fees Collected & Due</h2>
                 <ResponsiveContainer width="100%" height={300}>
                   <LineChart data={feesChartData}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
+                    <XAxis dataKey="name" stroke={currentTheme?.chartAxis || '#94a3b8'} tick={{ fill: currentTheme?.mutedText || '#94a3b8' }} />
+                    <YAxis stroke={currentTheme?.chartAxis || '#94a3b8'} tick={{ fill: currentTheme?.mutedText || '#94a3b8' }} />
                     <Tooltip />
                     <Legend />
-                    <Line type="monotone" dataKey="Total Collected" stroke="#00C49F" name="Collected" />
-                    <Line type="monotone" dataKey="Total Due" stroke="#FFBB28" name="Due" />
+                    <Line type="monotone" dataKey="Total Collected" stroke={CHART_COLORS.success} name="Collected" />
+                    <Line type="monotone" dataKey="Total Due" stroke={CHART_COLORS.warning} name="Due" />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
-              <div className="bg-white p-4 sm:p-6 rounded-lg shadow-md">
-                <h2 className="text-xl sm:text-2xl font-semibold text-gray-700 mb-4">Fees by Payment Method</h2>
+              <div className={`${currentTheme?.cardBg || 'bg-white'} p-4 sm:p-6 rounded-lg ${currentTheme?.shadow || 'shadow-md'}`}>
+                <h2 className={`text-xl sm:text-2xl font-semibold ${currentTheme?.title || 'text-gray-700'} mb-4`}>Fees by Payment Method</h2>
                 <ResponsiveContainer width="100%" height={300}>
                   <PieChart>
                     <Pie
@@ -266,7 +275,7 @@ const Reports = () => {
                       cx="50%"
                       cy="50%"
                       outerRadius={100}
-                      fill="#8884d8"
+                      fill={CHART_COLORS.primary}
                       label
                     >
                       {paymentMethodPieData.map((entry, index) => (
@@ -278,16 +287,16 @@ const Reports = () => {
                   </PieChart>
                 </ResponsiveContainer>
               </div>
-              <div className="bg-white p-4 sm:p-6 rounded-lg shadow-md col-span-1 md:col-span-2">
-                <h2 className="text-xl sm:text-2xl font-semibold text-gray-700 mb-4">Monthly Admission Fees</h2>
+              <div className={`${currentTheme?.cardBg || 'bg-white'} p-4 sm:p-6 rounded-lg ${currentTheme?.shadow || 'shadow-md'} col-span-1 md:col-span-2`}>
+                <h2 className={`text-xl sm:text-2xl font-semibold ${currentTheme?.title || 'text-gray-700'} mb-4`}>Monthly Admission Fees</h2>
                 <ResponsiveContainer width="100%" height={300}>
                   <LineChart data={admissionFeeChartData}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
+                    <XAxis dataKey="name" stroke={currentTheme?.chartAxis || '#94a3b8'} tick={{ fill: currentTheme?.mutedText || '#94a3b8' }} />
+                    <YAxis stroke={currentTheme?.chartAxis || '#94a3b8'} tick={{ fill: currentTheme?.mutedText || '#94a3b8' }} />
                     <Tooltip />
                     <Legend />
-                    <Line type="monotone" dataKey="Total Admission Fee" stroke="#00C49F" name="Admission Fees" />
+                    <Line type="monotone" dataKey="Total Admission Fee" stroke={CHART_COLORS.success} name="Admission Fees" />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
@@ -297,12 +306,12 @@ const Reports = () => {
       case 'salaries':
         return (
           <>
-            <div className="rounded-2xl bg-white/90 border border-emerald-100 shadow-sm p-4 sm:p-5 mb-6">
+            <div className={`rounded-2xl ${currentTheme?.cardBg || 'bg-white/90'} ${currentTheme?.border || 'border border-emerald-100'} ${currentTheme?.shadow || 'shadow-sm'} p-4 sm:p-5 mb-6`}>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Filter by Year</label>
+                  <label className={`block text-sm font-semibold ${currentTheme?.title || 'text-gray-700'} mb-1`}>Filter by Year</label>
                   <select
-                    className="w-full px-3 py-2.5 rounded-xl bg-white/80 backdrop-blur-sm border border-emerald-200 ring-1 ring-emerald-100 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:border-emerald-300 text-sm"
+                    className={`w-full px-3 py-2.5 rounded-xl ${currentTheme?.inputBg || 'bg-white/80'} backdrop-blur-sm ${currentTheme?.inputBorder || 'border border-emerald-200'} ${currentTheme?.inputText || 'text-gray-800'} ring-1 ${currentTheme?.inputBorder || 'ring-emerald-100'} shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:border-emerald-300 text-sm`}
                     value={salariesFilters.year}
                     onChange={(e) => setSalariesFilters({ ...salariesFilters, year: parseInt(e.target.value) })}
                   >
@@ -312,9 +321,9 @@ const Reports = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Month</label>
+                  <label className={`block text-sm font-semibold ${currentTheme?.title || 'text-gray-700'} mb-1`}>Month</label>
                   <select
-                    className="w-full px-3 py-2.5 rounded-xl bg-white/80 backdrop-blur-sm border border-emerald-200 ring-1 ring-emerald-100 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:border-emerald-300 text-sm"
+                    className={`w-full px-3 py-2.5 rounded-xl ${currentTheme?.inputBg || 'bg-white/80'} backdrop-blur-sm ${currentTheme?.inputBorder || 'border border-emerald-200'} ${currentTheme?.inputText || 'text-gray-800'} ring-1 ${currentTheme?.inputBorder || 'ring-emerald-100'} shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:border-emerald-300 text-sm`}
                     value={salariesFilters.month}
                     onChange={(e) => setSalariesFilters({ ...salariesFilters, month: e.target.value })}
                   >
@@ -326,46 +335,46 @@ const Reports = () => {
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <div className={`${currentTheme?.statCard || 'bg-white'} ${currentTheme?.border || 'border border-emerald-100'} p-6 rounded-lg ${currentTheme?.shadow || 'shadow-md'} flex justify-between items-center`}>
+              <div className={`${currentTheme?.cardBg || currentTheme?.statCard || 'bg-white'} ${currentTheme?.cardBorder || currentTheme?.border || 'border border-emerald-100'} p-6 rounded-lg ${currentTheme?.shadow || 'shadow-md'} flex justify-between items-center`}>
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-600">Total Salary Paid</h3>
-                  <p className={`${currentTheme?.statValue || 'text-emerald-800'} text-3xl font-bold`}>Rs. {totalSalaryPaid.toLocaleString()}</p>
+                  <h3 className={`text-lg font-semibold ${currentTheme?.mutedText || 'text-gray-600'}`}>Total Salary Paid</h3>
+                  <p className={`text-3xl font-bold ${currentTheme?.mutedText || 'text-red-600'}`}>Rs. {totalSalaryPaid.toLocaleString()}</p>
                 </div>
                 <WalletIcon className={`${currentTheme?.iconText || 'text-emerald-600'} h-10 w-10`} />
               </div>
-              <div className={`${currentTheme?.statCard || 'bg-white'} ${currentTheme?.border || 'border border-emerald-100'} p-6 rounded-lg ${currentTheme?.shadow || 'shadow-md'} flex justify-between items-center`}>
+              <div className={`${currentTheme?.cardBg || currentTheme?.statCard || 'bg-white'} ${currentTheme?.cardBorder || currentTheme?.border || 'border border-emerald-100'} p-6 rounded-lg ${currentTheme?.shadow || 'shadow-md'} flex justify-between items-center`}>
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-600">Total Bonus</h3>
-                  <p className={`${currentTheme?.statValue || 'text-emerald-800'} text-3xl font-bold`}>Rs. {totalBonusPaid.toLocaleString()}</p>
+                  <h3 className={`text-lg font-semibold ${currentTheme?.mutedText || 'text-gray-600'}`}>Total Bonus</h3>
+                  <p className={`text-3xl font-bold ${currentTheme?.mutedText || 'text-red-600'}`}>Rs. {totalBonusPaid.toLocaleString()}</p>
                 </div>
                 <GiftIcon className={`${currentTheme?.iconText || 'text-emerald-600'} h-10 w-10`} />
               </div>
-              <div className={`${currentTheme?.statCard || 'bg-white'} ${currentTheme?.border || 'border border-emerald-100'} p-6 rounded-lg ${currentTheme?.shadow || 'shadow-md'} flex justify-between items-center`}>
+              <div className={`${currentTheme?.cardBg || currentTheme?.statCard || 'bg-white'} ${currentTheme?.cardBorder || currentTheme?.border || 'border border-emerald-100'} p-6 rounded-lg ${currentTheme?.shadow || 'shadow-md'} flex justify-between items-center`}>
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-600">Total Overtime</h3>
-                  <p className="text-3xl font-bold text-purple-600">Rs. {totalOvertimePaid.toLocaleString()}</p>
+                  <h3 className={`text-lg font-semibold ${currentTheme?.mutedText || 'text-gray-600'}`}>Total Overtime</h3>
+                  <p className={`text-3xl font-bold ${currentTheme?.mutedText || 'text-purple-600'}`}>Rs. {totalOvertimePaid.toLocaleString()}</p>
                 </div>
-                <ClockIcon className="text-purple-600 h-10 w-10" />
+                <ClockIcon className={`${currentTheme?.iconText || 'text-emerald-600'} h-10 w-10`}/>
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
-              <div className="bg-white p-4 sm:p-6 rounded-lg shadow-md">
-                <h2 className="text-xl sm:text-2xl font-semibold text-gray-700 mb-4">Salaries, Bonus & Overtime Paid</h2>
+              <div className={`${currentTheme?.cardBg || 'bg-white'} p-4 sm:p-6 rounded-lg ${currentTheme?.shadow || 'shadow-md'}`}>
+                <h2 className={`text-xl sm:text-2xl font-semibold ${currentTheme?.title || 'text-gray-700'} mb-4`}>Salaries, Bonus & Overtime Paid</h2>
                 <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={salariesChartData}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
+                    <XAxis dataKey="name" stroke={currentTheme?.chartAxis || '#94a3b8'} tick={{ fill: currentTheme?.mutedText || '#94a3b8' }} />
+                    <YAxis stroke={currentTheme?.chartAxis || '#94a3b8'} tick={{ fill: currentTheme?.mutedText || '#94a3b8' }} />
                     <Tooltip />
                     <Legend />
-                    <Bar dataKey="Total Paid" fill="#8884d8" />
-                    <Bar dataKey="Bonus" fill="#82ca9d" />
-                    <Bar dataKey="Overtime" fill="#ffc658" />
+                    <Bar dataKey="Total Paid" fill={CHART_COLORS.primary} />
+                    <Bar dataKey="Bonus" fill={CHART_COLORS.secondary} />
+                    <Bar dataKey="Overtime" fill={CHART_COLORS.accent} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
-              <div className="bg-white p-4 sm:p-6 rounded-lg shadow-md">
-                <h2 className="text-xl sm:text-2xl font-semibold text-gray-700 mb-4">Salaries by Staff Role</h2>
+              <div className={`${currentTheme?.cardBg || 'bg-white'} p-4 sm:p-6 rounded-lg ${currentTheme?.shadow || 'shadow-md'}`}>
+                <h2 className={`text-xl sm:text-2xl font-semibold ${currentTheme?.title || 'text-gray-700'} mb-4`}>Salaries by Staff Role</h2>
                 <ResponsiveContainer width="100%" height={300}>
                   <PieChart>
                     <Pie
@@ -375,7 +384,7 @@ const Reports = () => {
                       cx="50%"
                       cy="50%"
                       outerRadius={100}
-                      fill="#8884d8"
+                      fill={CHART_COLORS.primary}
                       label
                     >
                       {salaryRolePieData.map((entry, index) => (
@@ -393,12 +402,12 @@ const Reports = () => {
       case 'billing':
         return (
           <>
-            <div className="rounded-2xl bg-white/90 border border-emerald-100 shadow-sm p-4 sm:p-5 mb-6">
+            <div className={`rounded-2xl ${currentTheme?.cardBg || 'bg-white/90'} ${currentTheme?.border || 'border border-emerald-100'} ${currentTheme?.shadow || 'shadow-sm'} p-4 sm:p-5 mb-6`}>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Filter by Year</label>
+                  <label className={`block text-sm font-semibold ${currentTheme?.title || 'text-gray-700'} mb-1`}>Filter by Year</label>
                   <select
-                    className="w-full px-3 py-2.5 rounded-xl bg-white/80 backdrop-blur-sm border border-emerald-200 ring-1 ring-emerald-100 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:border-emerald-300 text-sm"
+                    className={`w-full px-3 py-2.5 rounded-xl ${currentTheme?.inputBg || 'bg-white/80'} ${currentTheme?.inputText || 'text-gray-800'} backdrop-blur-sm ${currentTheme?.inputBorder || 'border border-emerald-200'} ring-1 ${currentTheme?.inputBorder || 'ring-emerald-100'} shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:border-emerald-300 text-sm`}
                     value={billingFilters.year}
                     onChange={(e) => setBillingFilters({ ...billingFilters, year: parseInt(e.target.value) })}
                   >
@@ -408,9 +417,9 @@ const Reports = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Month</label>
+                  <label className={`block text-sm font-semibold ${currentTheme?.title || 'text-gray-700'} mb-1`}>Month</label>
                   <select
-                    className="w-full px-3 py-2.5 rounded-xl bg-white/80 backdrop-blur-sm border border-emerald-200 ring-1 ring-emerald-100 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:border-emerald-300 text-sm"
+                    className={`w-full px-3 py-2.5 rounded-xl ${currentTheme?.inputBg || 'bg-white/80'} ${currentTheme?.inputText || 'text-gray-800'} backdrop-blur-sm ${currentTheme?.inputBorder || 'border border-emerald-200'} ring-1 ${currentTheme?.inputBorder || 'ring-emerald-100'} shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:border-emerald-300 text-sm`}
                     value={billingFilters.month}
                     onChange={(e) => setBillingFilters({ ...billingFilters, month: e.target.value })}
                   >
@@ -422,7 +431,7 @@ const Reports = () => {
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-1 gap-6 mb-8">
-              <div className={`${currentTheme?.statCard || 'bg-white'} ${currentTheme?.border || 'border border-emerald-100'} p-6 rounded-lg ${currentTheme?.shadow || 'shadow-md'} flex justify-between items-center`}>
+              <div className={`${currentTheme?.cardBg || currentTheme?.statCard || 'bg-white'} ${currentTheme?.cardBorder || currentTheme?.border || 'border border-emerald-100'} p-6 rounded-lg ${currentTheme?.shadow || 'shadow-md'} flex justify-between items-center`}>
                 <div>
                   <h3 className="text-lg font-semibold text-gray-600">Total Expenses</h3>
                   <p className="text-3xl font-bold text-red-600">Rs. {totalExpenses.toLocaleString()}</p>
@@ -431,21 +440,21 @@ const Reports = () => {
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
-              <div className="bg-white p-4 sm:p-6 rounded-lg shadow-md">
-                <h2 className="text-xl sm:text-2xl font-semibold text-gray-700 mb-4">Monthly Bills & Expenses</h2>
+              <div className={`${currentTheme?.cardBg || 'bg-white'} p-4 sm:p-6 rounded-lg ${currentTheme?.shadow || 'shadow-md'}`}>
+                <h2 className={`text-xl sm:text-2xl font-semibold ${currentTheme?.title || 'text-gray-700'} mb-4`}>Monthly Bills & Expenses</h2>
                 <ResponsiveContainer width="100%" height={300}>
                   <LineChart data={billingChartData}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
+                    <XAxis dataKey="name" stroke={currentTheme?.chartAxis || '#94a3b8'} tick={{ fill: currentTheme?.mutedText || '#94a3b8' }} />
+                    <YAxis stroke={currentTheme?.chartAxis || '#94a3b8'} tick={{ fill: currentTheme?.mutedText || '#94a3b8' }} />
                     <Tooltip />
                     <Legend />
-                    <Line type="monotone" dataKey="Total Expenses" stroke="#FF6666" name="Expenses" />
+                    <Line type="monotone" dataKey="Total Expenses" stroke={CHART_COLORS.danger} name="Expenses" />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
-              <div className="bg-white p-4 sm:p-6 rounded-lg shadow-md">
-                <h2 className="text-xl sm:text-2xl font-semibold text-gray-700 mb-4">Expenses by Category</h2>
+              <div className={`${currentTheme?.cardBg || 'bg-white'} p-4 sm:p-6 rounded-lg ${currentTheme?.shadow || 'shadow-md'}`}>
+                <h2 className={`text-xl sm:text-2xl font-semibold ${currentTheme?.title || 'text-gray-700'} mb-4`}>Expenses by Category</h2>
                 <ResponsiveContainer width="100%" height={300}>
                   <PieChart>
                     <Pie
@@ -455,7 +464,7 @@ const Reports = () => {
                       cx="50%"
                       cy="50%"
                       outerRadius={100}
-                      fill="#8884d8"
+                      fill={CHART_COLORS.primary}
                       label
                     >
                       {expenseCategoryPieData.map((entry, index) => (
@@ -473,12 +482,12 @@ const Reports = () => {
       case 'donations':
         return (
           <>
-            <div className="rounded-2xl bg-white/90 border border-emerald-100 shadow-sm p-4 sm:p-5 mb-6">
+            <div className={`rounded-2xl ${currentTheme?.cardBg || 'bg-white/90'} ${currentTheme?.border || 'border border-emerald-100'} ${currentTheme?.shadow || 'shadow-sm'} p-4 sm:p-5 mb-6`}>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Filter by Year</label>
+                  <label className={`block text-sm font-semibold ${currentTheme?.title || 'text-gray-700'} mb-1`}>Filter by Year</label>
                   <select
-                    className="w-full px-3 py-2.5 rounded-xl bg-white/80 backdrop-blur-sm border border-emerald-200 ring-1 ring-emerald-100 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:border-emerald-300 text-sm"
+                    className={`w-full px-3 py-2.5 rounded-xl ${currentTheme?.inputBg || 'bg-white/80'} ${currentTheme?.inputText || 'text-gray-800'} backdrop-blur-sm ${currentTheme?.inputBorder || 'border border-emerald-200'} ring-1 ${currentTheme?.inputBorder || 'ring-emerald-100'} shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:border-emerald-300 text-sm`}
                     value={donationsFilters.year}
                     onChange={(e) => setDonationsFilters({ ...donationsFilters, year: parseInt(e.target.value) })}
                   >
@@ -488,9 +497,9 @@ const Reports = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Month</label>
+                  <label className={`block text-sm font-semibold ${currentTheme?.title || 'text-gray-700'} mb-1`}>Month</label>
                   <select
-                    className="w-full px-3 py-2.5 rounded-xl bg-white/80 backdrop-blur-sm border border-emerald-200 ring-1 ring-emerald-100 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:border-emerald-300 text-sm"
+                    className={`w-full px-3 py-2.5 rounded-xl ${currentTheme?.inputBg || 'bg-white/80'} ${currentTheme?.inputText || 'text-gray-800'} backdrop-blur-sm ${currentTheme?.inputBorder || 'border border-emerald-200'} ring-1 ${currentTheme?.inputRing || 'ring-emerald-100'} shadow-sm focus:outline-none focus:ring-2 ${currentTheme?.inputRing || 'focus:ring-emerald-300'} focus:border-emerald-300 text-sm`}
                     value={donationsFilters.month}
                     onChange={(e) => setDonationsFilters({ ...donationsFilters, month: e.target.value })}
                   >
@@ -502,30 +511,30 @@ const Reports = () => {
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-1 gap-6 mb-8">
-              <div className={`${currentTheme?.statCard || 'bg-white'} ${currentTheme?.border || 'border border-emerald-100'} p-6 rounded-lg ${currentTheme?.shadow || 'shadow-md'} flex justify-between items-center`}>
+              <div className={`${currentTheme?.cardBg || currentTheme?.statCard || 'bg-white'} ${currentTheme?.cardBorder || currentTheme?.border || 'border border-emerald-100'} p-6 rounded-lg ${currentTheme?.shadow || 'shadow-md'} flex justify-between items-center`}>
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-600">Total Donations</h3>
-                  <p className={`${currentTheme?.statValue || 'text-emerald-800'} text-3xl font-bold`}>Rs. {totalDonations.toLocaleString()}</p>
+                  <h3 className={`text-lg font-semibold ${currentTheme?.mutedText || 'text-gray-600'}`}>Total Donations</h3>
+                  <p className={`text-3xl font-bold ${currentTheme?.mutedText || 'text-purple-600'}`}>Rs. {totalDonations.toLocaleString()}</p>
                 </div>
                 <HeartIcon className={`${currentTheme?.iconText || 'text-emerald-600'} h-10 w-10`} />
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
-              <div className="bg-white p-4 sm:p-6 rounded-lg shadow-md">
-                <h2 className="text-xl sm:text-2xl font-semibold text-gray-700 mb-4">Monthly Donations</h2>
+              <div className={`${currentTheme?.cardBg || 'bg-white'} p-4 sm:p-6 rounded-lg ${currentTheme?.shadow || 'shadow-md'}`}>
+                <h2 className={`text-xl sm:text-2xl font-semibold ${currentTheme?.title || 'text-gray-700'} mb-4`}>Monthly Donations</h2>
                 <ResponsiveContainer width="100%" height={300}>
                   <LineChart data={donationsChartData}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
+                    <XAxis dataKey="name" stroke={currentTheme?.chartAxis || '#94a3b8'} tick={{ fill: currentTheme?.mutedText || '#94a3b8' }} />
+                    <YAxis stroke={currentTheme?.chartAxis || '#94a3b8'} tick={{ fill: currentTheme?.mutedText || '#94a3b8' }} />
                     <Tooltip />
                     <Legend />
-                    <Line type="monotone" dataKey="Total Donations" stroke="#8884d8" name="Donations" />
+                    <Line type="monotone" dataKey="Total Donations" stroke={CHART_COLORS.primary} name="Donations" />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
-              <div className="bg-white p-4 sm:p-6 rounded-lg shadow-md">
-                <h2 className="text-xl sm:text-2xl font-semibold text-gray-700 mb-4">Donations by Purpose</h2>
+              <div className={`${currentTheme?.cardBg || 'bg-white'} p-4 sm:p-6 rounded-lg ${currentTheme?.shadow || 'shadow-md'}`}>
+                <h2 className={`text-xl sm:text-2xl font-semibold ${currentTheme?.title || 'text-gray-700'} mb-4`}>Donations by Purpose</h2>
                 <ResponsiveContainer width="100%" height={300}>
                   <PieChart>
                     <Pie
@@ -538,7 +547,7 @@ const Reports = () => {
                       cx="50%"
                       cy="50%"
                       outerRadius={100}
-                      fill="#8884d8"
+                      fill={CHART_COLORS.primary}
                       label
                     >
                       {reportsData?.donations?.purposeReport?.map((entry, index) => (
@@ -556,12 +565,12 @@ const Reports = () => {
       case 'attendance':
         return (
           <>
-            <div className="rounded-2xl bg-white/90 border border-emerald-100 shadow-sm p-4 sm:p-5 mb-6">
+            <div className={`rounded-2xl ${currentTheme?.cardBg || 'bg-white/90'} ${currentTheme?.border || 'border border-emerald-100'} ${currentTheme?.shadow || 'shadow-sm'} p-4 sm:p-5 mb-6`}>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Filter by Type</label>
+                  <label className={`block text-sm font-semibold ${currentTheme?.title || 'text-gray-700'} mb-1`}>Filter by Type</label>
                   <select
-                    className="w-full px-3 py-2.5 rounded-xl bg-white/80 backdrop-blur-sm border border-emerald-200 ring-1 ring-emerald-100 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:border-emerald-300 text-sm"
+                    className={`w-full px-3 py-2.5 rounded-xl ${currentTheme?.inputBg || 'bg-white/80'} ${currentTheme?.inputText || 'text-gray-800'} backdrop-blur-sm ${currentTheme?.inputBorder || 'border border-emerald-200'} ring-1 ${currentTheme?.inputRing || 'ring-emerald-100'} shadow-sm focus:outline-none focus:ring-2 ${currentTheme?.inputRing || 'focus:ring-emerald-300'} focus:border-emerald-300 text-sm`}
                     value={attendanceFilters.type}
                     onChange={(e) => setAttendanceFilters({ ...attendanceFilters, type: e.target.value })}
                   >
@@ -570,9 +579,9 @@ const Reports = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Year</label>
+                  <label className={`block text-sm font-semibold ${currentTheme?.title || 'text-gray-700'} mb-1`}>Year</label>
                   <select
-                    className="w-full px-3 py-2.5 rounded-xl bg-white/80 backdrop-blur-sm border border-emerald-200 ring-1 ring-emerald-100 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:border-emerald-300 text-sm"
+                    className={`w-full px-3 py-2.5 rounded-xl ${currentTheme?.inputBg || 'bg-white/80'} ${currentTheme?.inputText || 'text-gray-800'} backdrop-blur-sm ${currentTheme?.inputBorder || 'border border-emerald-200'} ring-1 ${currentTheme?.inputRing || 'ring-emerald-100'} shadow-sm focus:outline-none focus:ring-2 ${currentTheme?.inputRing || 'focus:ring-emerald-300'} focus:border-emerald-300 text-sm`}
                     value={attendanceFilters.year}
                     onChange={(e) => setAttendanceFilters({ ...attendanceFilters, year: parseInt(e.target.value) })}
                   >
@@ -582,9 +591,9 @@ const Reports = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Month</label>
+                  <label className={`block text-sm font-semibold ${currentTheme?.title || 'text-gray-700'} mb-1`}>Month</label>
                   <select
-                    className="w-full px-3 py-2.5 rounded-xl bg-white/80 backdrop-blur-sm border border-emerald-200 ring-1 ring-emerald-100 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:border-emerald-300 text-sm"
+                    className={`w-full px-3 py-2.5 rounded-xl ${currentTheme?.inputBg || 'bg-white/80'} ${currentTheme?.inputText || 'text-gray-800'} backdrop-blur-sm ${currentTheme?.inputBorder || 'border border-emerald-200'} ring-1 ${currentTheme?.inputRing || 'ring-emerald-100'} shadow-sm focus:outline-none focus:ring-2 ${currentTheme?.inputRing || 'focus:ring-emerald-300'} focus:border-emerald-300 text-sm`}
                     value={attendanceFilters.month}
                     onChange={(e) => setAttendanceFilters({ ...attendanceFilters, month: e.target.value })}
                   >
@@ -596,33 +605,33 @@ const Reports = () => {
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
-              <div className="bg-white p-4 sm:p-6 rounded-lg shadow-md">
-                <h2 className="text-xl sm:text-2xl font-semibold text-gray-700 mb-4">Monthly Attendance Summary</h2>
+              <div className={`${currentTheme?.cardBg || 'bg-white'} p-4 sm:p-6 rounded-lg ${currentTheme?.shadow || 'shadow-md'}`}>
+                <h2 className={`text-xl sm:text-2xl font-semibold ${currentTheme?.title || 'text-gray-700'} mb-4`}>Monthly Attendance Summary</h2>
                 <ResponsiveContainer width="100%" height={400}>
                   <BarChart data={monthlyAttendanceData}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
+                    <XAxis dataKey="name" stroke={currentTheme?.chartAxis || '#94a3b8'} tick={{ fill: currentTheme?.mutedText || '#94a3b8' }} />
+                    <YAxis stroke={currentTheme?.chartAxis || '#94a3b8'} tick={{ fill: currentTheme?.mutedText || '#94a3b8' }} />
                     <Tooltip />
                     <Legend />
-                    <Bar dataKey="present" fill="#4CAF50" name="Present" />
-                    <Bar dataKey="absent" fill="#F44336" name="Absent" />
-                    <Bar dataKey="leave" fill="#FFC107" name="On Leave" />
+                    <Bar dataKey="present" fill={CHART_COLORS.success} name="Present" />
+                    <Bar dataKey="absent" fill={CHART_COLORS.danger} name="Absent" />
+                    <Bar dataKey="leave" fill={CHART_COLORS.warning} name="On Leave" />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
-              <div className="bg-white p-4 sm:p-6 rounded-lg shadow-md">
-                <h2 className="text-xl sm:text-2xl font-semibold text-gray-700 mb-4">Daily Attendance Summary</h2>
+              <div className={`${currentTheme?.cardBg || 'bg-white'} p-4 sm:p-6 rounded-lg ${currentTheme?.shadow || 'shadow-md'}`}>
+                <h2 className={`text-xl sm:text-2xl font-semibold ${currentTheme?.title || 'text-gray-700'} mb-4`}>Daily Attendance Summary</h2>
                 <ResponsiveContainer width="100%" height={400}>
                   <BarChart data={dailyAttendanceData}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
+                    <XAxis dataKey="name" stroke={currentTheme?.chartAxis || '#94a3b8'} tick={{ fill: currentTheme?.mutedText || '#94a3b8' }} />
+                    <YAxis stroke={currentTheme?.chartAxis || '#94a3b8'} tick={{ fill: currentTheme?.mutedText || '#94a3b8' }} />
                     <Tooltip />
                     <Legend />
-                    <Bar dataKey="present" fill="#4CAF50" name="Present" />
-                    <Bar dataKey="absent" fill="#F44336" name="Absent" />
-                    <Bar dataKey="leave" fill="#FFC107" name="On Leave" />
+                    <Bar dataKey="present" fill={CHART_COLORS.success} name="Present" />
+                    <Bar dataKey="absent" fill={CHART_COLORS.danger} name="Absent" />
+                    <Bar dataKey="leave" fill={CHART_COLORS.warning} name="On Leave" />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -635,7 +644,7 @@ const Reports = () => {
   };
 
   return (
-    <div className="container mx-auto p-4 sm:p-6 md:p-8 bg-gray-100 min-h-screen">
+    <div className="container mx-auto p-4 sm:p-6 md:p-8 ">
       {/* Hero Header */}
       <div className={`relative ${currentTheme?.heroBg || 'bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500'} ${currentTheme?.shadow || 'shadow-lg'} rounded-2xl p-8 mb-8 overflow-hidden`}>
         <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full -mr-32 -mt-32"></div>
@@ -648,31 +657,31 @@ const Reports = () => {
       {/* Tab Navigation */}
       <div className="flex flex-wrap gap-2 mb-6">
         <button
-          className={`h-12 px-5 rounded-lg font-semibold text-sm sm:text-base transition-all ${activeTab === 'fees' ? 'bg-gradient-to-r from-green-600 to-green-700 text-white shadow-md' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'}`}
+          className={`h-12 px-5 rounded-lg font-semibold text-sm sm:text-base transition-all ${activeTab === 'fees' ? `${currentTheme?.btnPrimaryBg || 'bg-gradient-to-r from-green-600 to-green-700'} ${currentTheme?.btnPrimaryText || 'text-white'} ${currentTheme?.shadow || 'shadow-md'}` : `${currentTheme?.btnSecondaryBg || 'bg-white'} ${currentTheme?.btnSecondaryText || 'text-gray-700'} ${currentTheme?.btnSecondaryBorder || 'border border-gray-300'} ${currentTheme?.btnSecondaryHover || 'hover:bg-gray-50'}`}`}
           onClick={() => setActiveTab('fees')}
         >
           Fees
         </button>
         <button
-          className={`h-12 px-5 rounded-lg font-semibold text-sm sm:text-base transition-all ${activeTab === 'salaries' ? 'bg-gradient-to-r from-green-600 to-green-700 text-white shadow-md' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'}`}
+          className={`h-12 px-5 rounded-lg font-semibold text-sm sm:text-base transition-all ${activeTab === 'salaries' ? `${currentTheme?.btnPrimaryBg || 'bg-gradient-to-r from-green-600 to-green-700'} ${currentTheme?.btnPrimaryText || 'text-white'} ${currentTheme?.shadow || 'shadow-md'}` : `${currentTheme?.btnSecondaryBg || 'bg-white'} ${currentTheme?.btnSecondaryText || 'text-gray-700'} ${currentTheme?.btnSecondaryBorder || 'border border-gray-300'} ${currentTheme?.btnSecondaryHover || 'hover:bg-gray-50'}`}`}
           onClick={() => setActiveTab('salaries')}
         >
           Salaries
         </button>
         <button
-          className={`h-12 px-5 rounded-lg font-semibold text-sm sm:text-base transition-all ${activeTab === 'billing' ? 'bg-gradient-to-r from-green-600 to-green-700 text-white shadow-md' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'}`}
+          className={`h-12 px-5 rounded-lg font-semibold text-sm sm:text-base transition-all ${activeTab === 'billing' ? `${currentTheme?.btnPrimaryBg || 'bg-gradient-to-r from-green-600 to-green-700'} ${currentTheme?.btnPrimaryText || 'text-white'} ${currentTheme?.shadow || 'shadow-md'}` : `${currentTheme?.btnSecondaryBg || 'bg-white'} ${currentTheme?.btnSecondaryText || 'text-gray-700'} ${currentTheme?.btnSecondaryBorder || 'border border-gray-300'} ${currentTheme?.btnSecondaryHover || 'hover:bg-gray-50'}`}`}
           onClick={() => setActiveTab('billing')}
         >
           Billing
         </button>
         <button
-          className={`h-12 px-5 rounded-lg font-semibold text-sm sm:text-base transition-all ${activeTab === 'donations' ? 'bg-gradient-to-r from-green-600 to-green-700 text-white shadow-md' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'}`}
+          className={`h-12 px-5 rounded-lg font-semibold text-sm sm:text-base transition-all ${activeTab === 'donations' ? `${currentTheme?.btnPrimaryBg || 'bg-gradient-to-r from-green-600 to-green-700'} ${currentTheme?.btnPrimaryText || 'text-white'} ${currentTheme?.shadow || 'shadow-md'}` : `${currentTheme?.btnSecondaryBg || 'bg-white'} ${currentTheme?.btnSecondaryText || 'text-gray-700'} ${currentTheme?.btnSecondaryBorder || 'border border-gray-300'} ${currentTheme?.btnSecondaryHover || 'hover:bg-gray-50'}`}`}
           onClick={() => setActiveTab('donations')}
         >
           Donations
         </button>
         <button
-          className={`h-12 px-5 rounded-lg font-semibold text-sm sm:text-base transition-all ${activeTab === 'attendance' ? 'bg-gradient-to-r from-green-600 to-green-700 text-white shadow-md' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'}`}
+          className={`h-12 px-5 rounded-lg font-semibold text-sm sm:text-base transition-all ${activeTab === 'attendance' ? `${currentTheme?.btnPrimaryBg || 'bg-gradient-to-r from-green-600 to-green-700'} ${currentTheme?.btnPrimaryText || 'text-white'} ${currentTheme?.shadow || 'shadow-md'}` : `${currentTheme?.btnSecondaryBg || 'bg-white'} ${currentTheme?.btnSecondaryText || 'text-gray-700'} ${currentTheme?.btnSecondaryBorder || 'border border-gray-300'} ${currentTheme?.btnSecondaryHover || 'hover:bg-gray-50'}`}`}
           onClick={() => setActiveTab('attendance')}
         >
           Attendance

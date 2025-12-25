@@ -79,7 +79,7 @@ const ProfileScreen = () => {
 
     const InfoRow = ({ icon: Icon, label, value }) => (
         <div className="flex items-start gap-3">
-            <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-green-50 text-green-700 ring-1 ring-green-100">
+            <span className={`inline-flex h-10 w-10 items-center justify-center rounded-xl ${currentTheme.heroPillBg || 'bg-green-50'} ${currentTheme.iconText || 'text-green-700'} ring-1 ${currentTheme.heroPillBorder || 'ring-green-100'}`}>
                 <Icon className="h-5 w-5" />
             </span>
             <div>
@@ -99,12 +99,12 @@ const ProfileScreen = () => {
                                 <div className="h-24 w-24 rounded-2xl overflow-hidden ring-4 ring-white shadow-xl">
                                     <img
                                         className="h-full w-full object-cover"
-                                        src={profile.profilePictureUrl ? `${backendBaseUrl}${profile.profilePictureUrl}` : '/default-avatar.jpg'}
+                                        src={profile.profilePictureUrl ? `${backendBaseUrl}${profile.profilePictureUrl}` : '/default-avatar.png'}
                                         alt={`${profile.name}'s profile picture`}
-                                        onError={(e) => { e.target.src = '/default-avatar.jpg'; }}
+                                        onError={(e) => { e.target.src = '/default-avatar.png'; }}
                                     />
                                 </div>
-                                <span className="absolute -bottom-2 left-3 px-3 py-1 text-xs font-bold rounded-full bg-green-600 text-white shadow-lg">
+                                <span className={`absolute -bottom-2 left-3 px-3 py-1 text-xs font-bold rounded-full ${currentTheme.btnPrimaryBg || 'bg-green-600'} ${currentTheme.btnPrimaryText || 'text-white'} shadow-lg`}>
                                     {role === 'student' ? 'Student' : 'Staff'}
                                 </span>
                             </div>
@@ -112,22 +112,22 @@ const ProfileScreen = () => {
                                 <div className="flex items-center gap-3">
                                     <UserIcon className={`h-6 w-6 ${currentTheme.heroIcon || 'text-gray-500'}`} />
                                     <h1 className={`text-3xl font-black tracking-tight ${currentTheme.heroTitle || 'text-green-800'}`}>{profile.name}</h1>
-                                    {profile.studentStatus && role === 'student' && (
-                                        <span className="px-3 py-1 rounded-full bg-green-100 text-green-700 text-xs font-semibold">{profile.studentStatus}</span>
+                                    {/* {profile.studentStatus && role === 'student' && (
+                                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${currentTheme.badgeSuccessBg || 'bg-green-100'} ${currentTheme.badgeSuccessText || 'text-green-700'}`}>{profile.studentStatus}</span>
                                     )}
                                     {profile.staffType && role === 'staff' && (
-                                        <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-semibold">{profile.staffType}</span>
-                                    )}
+                                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${currentTheme.badgeInfoBg || 'bg-emerald-100'} ${currentTheme.badgeInfoText || 'text-emerald-700'}`}>{profile.staffType}</span>
+                                    )} */}
                                 </div>
                                 <p className={`${currentTheme.heroSubtitle || 'text-gray-600'} text-sm font-medium`}>{profile.email || 'Email not provided'}</p>
                                 <div className="flex flex-wrap gap-3 pt-2">
                                     <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/70 ring-1 ring-gray-200 text-gray-700 text-sm font-semibold">
-                                        <IdentificationIcon className="h-4 w-4 text-green-600" />
+                                        <IdentificationIcon className={`h-4 w-4 ${currentTheme.iconText || 'text-green-600'}`} />
                                         {profile.cnic || 'CNIC not provided'}
                                     </span>
                                     {(profile.class || profile.staffType) && (
                                         <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/70 ring-1 ring-gray-200 text-gray-700 text-sm font-semibold">
-                                            <AcademicCapIcon className="h-4 w-4 text-green-600" />
+                                            <AcademicCapIcon className={`h-4 w-4 ${currentTheme.iconText || 'text-green-600'}`} />
                                             {role === 'student' ? (profile.class === 'BS' ? `${profile.degreeName || 'Degree'} · Sem ${profile.semester || '-'}` : `${profile.class || ''} ${profile.classNumber || ''}`) : profile.staffType}
                                         </span>
                                     )}
@@ -138,7 +138,7 @@ const ProfileScreen = () => {
                         {canEdit && (
                             <button
                                 onClick={handleEditClick}
-                                className="group inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 text-white font-semibold shadow-lg hover:shadow-xl hover:from-green-700 hover:to-emerald-700 transform hover:-translate-y-0.5 transition-all duration-200"
+                                className={`group inline-flex items-center gap-2 px-5 py-3 rounded-xl font-semibold ${currentTheme.btnPrimaryBg || 'bg-emerald-600'} ${currentTheme.btnPrimaryHover || 'hover:bg-emerald-700'} ${currentTheme.btnPrimaryText || 'text-white'} ${currentTheme.btnPrimaryBorder || 'border border-emerald-700'} ${currentTheme?.shadow || 'shadow-lg'} transform hover:-translate-y-0.5 transition-all duration-200`}
                             >
                                 <PencilIcon className="h-5 w-5 transition-transform group-hover:rotate-6" />
                                 Edit Details

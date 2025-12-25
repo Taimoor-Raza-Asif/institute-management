@@ -4,7 +4,7 @@ import { useTheme } from '../context/ThemeContext';
 
 const Loader = () => {
   const { currentTheme } = useTheme();
-  const dotColor = currentTheme?.accent || 'bg-green-500';
+  const dotColor = currentTheme?.kpiGood || 'text-emerald-600';
   return (
     <div className="flex justify-center items-center h-full">
       <div className="flex space-x-2">

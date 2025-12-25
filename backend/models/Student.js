@@ -25,7 +25,7 @@ const studentSchema = new mongoose.Schema(
       match: /^\d{11}$/,
       default: "",
     },
-    rollNumber: { type: String, unique: true, trim: true },
+    rollNumber: { type: String, trim: true },
     dob: { type: Date, required: true },
     gender: { type: String, enum: ["Male", "Female", "Other"], required: true },
     admissionDate: { type: Date, required: true },
@@ -89,5 +89,8 @@ const studentSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+// Ensure rollNumber is unique within a cohort defined by class + classNumber/degreeName/semester
+studentSchema.index({ class: 1, classNumber: 1, degreeName: 1, semester: 1, rollNumber: 1 }, { unique: true, sparse: true });
 
 export default mongoose.model("Student", studentSchema);

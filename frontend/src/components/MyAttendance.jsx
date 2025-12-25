@@ -84,21 +84,28 @@ const MyAttendance = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'Present': return 'text-green-700 bg-green-100 border-green-300';
-      case 'Absent': return 'text-red-700 bg-red-100 border-red-300';
-      case 'Leave': return 'text-yellow-700 bg-yellow-100 border-yellow-300';
-      case 'Holiday': return 'text-blue-700 bg-blue-100 border-blue-300';
-      default: return 'text-gray-700 bg-gray-100 border-gray-300';
+      case 'Present':
+        return `${currentTheme.badgeSuccessBg || 'bg-green-100'} ${currentTheme.badgeSuccessText || 'text-green-700'}`;
+      case 'Absent':
+        return `${currentTheme.badgeDangerBg || 'bg-red-100'} ${currentTheme.badgeDangerText || 'text-red-700'}`;
+      case 'Leave':
+        return `${currentTheme.badgeWarningBg || 'bg-amber-100'} ${currentTheme.badgeWarningText || 'text-amber-700'}`;
+      case 'Holiday':
+        return `${currentTheme.badgeInfoBg || 'bg-blue-100'} ${currentTheme.badgeInfoText || 'text-blue-700'}`;
+      default:
+        return `${currentTheme.badgeBg || 'bg-gray-100'} ${currentTheme.badgeText || 'text-gray-700'}`;
     }
   };
 
   const getStatusIcon = (status) => {
+    // Neutral icon color to respect theme; badge provides semantic color
+    const iconCls = `${currentTheme?.iconText || 'text-gray-500'} mr-2`;
     switch (status) {
-      case 'Present': return <CheckCircleIcon className="h-5 w-5 text-green-500 mr-2" />;
-      case 'Absent': return <XCircleIcon className="h-5 w-5 text-red-500 mr-2" />;
-      case 'Leave': return <ClockIcon className="h-5 w-5 text-yellow-500 mr-2" />;
-      case 'Holiday': return <CalendarDaysIcon className="h-5 w-5 text-green-500 mr-2" />;
-      default: return <UserIcon className="h-5 w-5 text-gray-500 mr-2" />;
+      case 'Present': return <CheckCircleIcon className={`h-5 w-5 ${iconCls}`} />;
+      case 'Absent': return <XCircleIcon className={`h-5 w-5 ${iconCls}`} />;
+      case 'Leave': return <ClockIcon className={`h-5 w-5 ${iconCls}`} />;
+      case 'Holiday': return <CalendarDaysIcon className={`h-5 w-5 ${iconCls}`} />;
+      default: return <UserIcon className={`h-5 w-5 ${iconCls}`} />;
     }
   };
 
@@ -117,26 +124,26 @@ const MyAttendance = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-emerald-50 via-white to-emerald-50">
+    <div className={`min-h-screen ${currentTheme?.pageBg || 'bg-gray-50'}`}>
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Hero Banner */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 shadow-2xl text-white px-6 sm:px-10 py-8 mb-8">
+        <div className={`relative overflow-hidden rounded-3xl ${currentTheme?.heroBg || 'bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500'} ${currentTheme?.shadow || 'shadow-2xl'} ${currentTheme?.title || 'text-white'} px-6 sm:px-10 py-8 mb-8`}>
           <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_20%_20%,white,transparent_25%),radial-gradient(circle_at_80%_0%,white,transparent_25%)]" />
           <div className="relative flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-4">
-              <div className="p-3 rounded-2xl bg-white/20 backdrop-blur-sm">
-                <TrendingUp className="h-8 w-8 text-white" />
+              <div className={`p-3 rounded-2xl bg-white/10 backdrop-blur-sm ${currentTheme?.border || ''}`}>
+                <TrendingUp className={`h-8 w-8 ${currentTheme?.heroTitle || 'text-white'}`} />
               </div>
               <div>
-                <h1 className="text-2xl sm:text-3xl font-extrabold leading-tight">My Attendance</h1>
-                <p className="text-emerald-50/90 mt-1 text-sm sm:text-base max-w-2xl">Track your attendance records and performance</p>
+                <h1 className={`text-2xl sm:text-3xl font-extrabold leading-tight ${currentTheme?.heroTitle || ''}`}>My Attendance</h1>
+                <p className={`${currentTheme?.heroSubtitle || 'text-emerald-50/90'} mt-1 text-sm sm:text-base max-w-2xl`}>Track your attendance records and performance</p>
               </div>
             </div>
             {attendanceSummary && (
               <div className="mt-4 sm:mt-0 flex items-center gap-3">
                 <div className="text-right">
-                  <p className="text-emerald-50/80 text-sm">Attendance Rate</p>
-                  <p className={`text-3xl sm:text-4xl font-extrabold ${calculateAttendancePercentage() >= 75 ? 'text-emerald-200' : 'text-red-200'}`}>
+                  <p className={`${currentTheme?.heroSubtitle || 'text-emerald-50/80'} text-sm`}>Attendance Rate</p>
+                  <p className={`text-3xl sm:text-4xl font-extrabold ${currentTheme?.statCardValue || 'text-gray-900'}`}>
                     {calculateAttendancePercentage()}%
                   </p>
                 </div>
@@ -153,17 +160,17 @@ const MyAttendance = () => {
 
         {/* Filter Section (Only for managers/teachers) */}
         {canManageAttendance && (
-        <div className={`p-5 rounded-2xl ${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.shadow || 'shadow-lg'} border border-emerald-100 mb-8`}>
+        <div className={`p-5 rounded-2xl ${currentTheme?.panelBg || 'bg-white'} ${currentTheme?.panelBorder || 'border border-gray-200'} ${currentTheme?.shadow || 'shadow-lg'} mb-8`}>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
-              <label htmlFor="monthSelect" className="block text-sm font-semibold text-gray-700">
+              <label htmlFor="monthSelect" className={`block text-sm font-semibold ${currentTheme?.title || 'text-gray-700'}`}>
                 Select Month
               </label>
               <select
                 id="monthSelect"
                 value={selectedMonth}
                 onChange={(e) => setSelectedMonth(Number(e.target.value))}
-                className="w-full px-4 py-3 rounded-xl bg-white/80 border border-emerald-200 ring-1 ring-emerald-100 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:border-emerald-300 hover:shadow-md transition"
+                className={`w-full px-4 py-3 rounded-xl ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} ${currentTheme?.inputBorder || 'border border-gray-300'} ${currentTheme?.inputRing || 'focus:ring-2 focus:ring-emerald-500'} shadow-sm transition`}
               >
                 {months.map(m => (
                   <option key={m.value} value={m.value}>{m.name}</option>
@@ -172,14 +179,14 @@ const MyAttendance = () => {
             </div>
             
             <div className="space-y-2">
-              <label htmlFor="yearSelect" className="block text-sm font-semibold text-gray-700">
+              <label htmlFor="yearSelect" className={`block text-sm font-semibold ${currentTheme?.title || 'text-gray-700'}`}>
                 Select Year
               </label>
               <select
                 id="yearSelect"
                 value={selectedYear}
                 onChange={(e) => setSelectedYear(Number(e.target.value))}
-                className="w-full px-4 py-3 rounded-xl bg-white/80 border border-emerald-200 ring-1 ring-emerald-100 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:border-emerald-300 hover:shadow-md transition"
+                className={`w-full px-4 py-3 rounded-xl ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} ${currentTheme?.inputBorder || 'border border-gray-300'} ${currentTheme?.inputRing || 'focus:ring-2 focus:ring-emerald-500'} shadow-sm transition`}
               >
                 {years.map(y => (
                   <option key={y} value={y}>{y}</option>
@@ -188,19 +195,19 @@ const MyAttendance = () => {
             </div>
             
             <div className="space-y-2">
-              <label className="block text-sm font-semibold text-gray-700">
+              <label className={`block text-sm font-semibold ${currentTheme?.title || 'text-gray-700'}`}>
                 Action
               </label>
               <button
                 onClick={handleMonthYearChange}
                 disabled={loading}
-                className="w-full h-12 bg-gradient-to-r from-emerald-600 to-emerald-500 text-white px-6 py-3 rounded-xl font-semibold transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className={`w-full h-12 px-6 py-3 rounded-xl font-semibold transition-all ${currentTheme?.btnPrimaryBg || 'bg-emerald-600'} ${currentTheme?.btnPrimaryText || 'text-white'} ${currentTheme?.btnPrimaryHover || 'hover:bg-emerald-700'} shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed`}
               >
                 {loading ? (
-                  <ArrowPathIcon className="h-5 w-5 animate-spin" />
+                  <ArrowPathIcon className={`h-5 w-5 animate-spin ${currentTheme?.iconText || 'text-white'}`} />
                 ) : (
                   <>
-                    <Calendar className="h-5 w-5" />
+                    <Calendar className={`h-5 w-5 ${currentTheme?.iconText || 'text-white'}`} />
                     <span>View Attendance</span>
                   </>
                 )}
@@ -215,8 +222,8 @@ const MyAttendance = () => {
           <Loader />
         </div>
       ) : attendanceRecords.length === 0 && !error ? (
-        <div className="p-12 rounded-2xl bg-white shadow-lg border border-emerald-100 text-center">
-          <CalendarDaysIcon className="h-16 w-16 mx-auto text-gray-400 mb-4" />
+        <div className={`p-12 rounded-2xl ${currentTheme?.panelBg || 'bg-white'} ${currentTheme?.panelBorder || 'border border-gray-200'} ${currentTheme?.shadow || 'shadow-lg'} text-center`}>
+          <CalendarDaysIcon className={`h-16 w-16 mx-auto ${currentTheme?.iconText || 'text-gray-400'} mb-4`} />
           <Message type="info">No attendance records found for the selected period.</Message>
         </div>
       ) : (
@@ -224,55 +231,51 @@ const MyAttendance = () => {
           {/* Summary Cards */}
           {attendanceSummary && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-              <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100 p-6 shadow-lg border border-blue-200 transform hover:scale-105 transition-all">
-                <div className="absolute inset-0 opacity-0 group-hover:opacity-10 bg-blue-500 transition-opacity" />
+              <div className={`relative overflow-hidden rounded-2xl p-6 ${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.shadow || 'shadow-lg'} ${currentTheme?.border || 'border border-gray-200'}`}>
                 <div className="relative flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-blue-600 mb-2">Total Days</p>
-                    <p className="text-4xl font-bold text-blue-900">{attendanceSummary.totalDays}</p>
+                    <p className={`text-sm font-medium mb-2 ${currentTheme?.mutedText || 'text-gray-600'}`}>Total Days</p>
+                    <p className={`text-4xl font-bold ${currentTheme?.statCardValue || 'text-gray-900'}`}>{attendanceSummary.totalDays}</p>
                   </div>
-                  <CalendarDaysIcon className="h-14 w-14 text-blue-300" />
+                  <CalendarDaysIcon className={`h-14 w-14 ${currentTheme?.iconText || 'text-gray-400'}`} />
                 </div>
               </div>
               
-              <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-green-50 to-green-100 p-6 shadow-lg border border-green-200 transform hover:scale-105 transition-all">
-                <div className="absolute inset-0 opacity-0 group-hover:opacity-10 bg-green-500 transition-opacity" />
+              <div className={`relative overflow-hidden rounded-2xl p-6 ${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.shadow || 'shadow-lg'} ${currentTheme?.border || 'border border-gray-200'}`}>
                 <div className="relative flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-green-600 mb-2">Present</p>
-                    <p className="text-4xl font-bold text-green-900">{attendanceSummary.presentDays}</p>
+                    <p className={`text-sm font-medium mb-2 ${currentTheme?.mutedText || 'text-gray-600'}`}>Present</p>
+                    <p className={`text-4xl font-bold ${currentTheme?.statCardValue || 'text-gray-900'}`}>{attendanceSummary.presentDays}</p>
                   </div>
-                  <CheckCircleIcon className="h-14 w-14 text-green-300" />
+                  <CheckCircleIcon className={`h-14 w-14 ${currentTheme?.iconText || 'text-gray-400'}`} />
                 </div>
               </div>
               
-              <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-red-50 to-red-100 p-6 shadow-lg border border-red-200 transform hover:scale-105 transition-all">
-                <div className="absolute inset-0 opacity-0 group-hover:opacity-10 bg-red-500 transition-opacity" />
+              <div className={`relative overflow-hidden rounded-2xl p-6 ${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.shadow || 'shadow-lg'} ${currentTheme?.border || 'border border-gray-200'}`}>
                 <div className="relative flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-red-600 mb-2">Absent</p>
-                    <p className="text-4xl font-bold text-red-900">{attendanceSummary.absentDays}</p>
+                    <p className={`text-sm font-medium mb-2 ${currentTheme?.mutedText || 'text-gray-600'}`}>Absent</p>
+                    <p className={`text-4xl font-bold ${currentTheme?.statCardValue || 'text-gray-900'}`}>{attendanceSummary.absentDays}</p>
                   </div>
-                  <XCircleIcon className="h-14 w-14 text-red-300" />
+                  <XCircleIcon className={`h-14 w-14 ${currentTheme?.iconText || 'text-gray-400'}`} />
                 </div>
               </div>
               
-              <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-50 to-amber-100 p-6 shadow-lg border border-amber-200 transform hover:scale-105 transition-all">
-                <div className="absolute inset-0 opacity-0 group-hover:opacity-10 bg-amber-500 transition-opacity" />
+              <div className={`relative overflow-hidden rounded-2xl p-6 ${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.shadow || 'shadow-lg'} ${currentTheme?.border || 'border border-gray-200'}`}>
                 <div className="relative flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-amber-600 mb-2">On Leave</p>
-                    <p className="text-4xl font-bold text-amber-900">{attendanceSummary.leaveDays}</p>
+                    <p className={`text-sm font-medium mb-2 ${currentTheme?.mutedText || 'text-gray-600'}`}>On Leave</p>
+                    <p className={`text-4xl font-bold ${currentTheme?.statCardValue || 'text-gray-900'}`}>{attendanceSummary.leaveDays}</p>
                   </div>
-                  <ClockIcon className="h-14 w-14 text-amber-300" />
+                  <ClockIcon className={`h-14 w-14 ${currentTheme?.iconText || 'text-gray-400'}`} />
                 </div>
               </div>
             </div>
           )}
 
           {/* Attendance Records Table */}
-          <div className="overflow-x-auto rounded-2xl shadow-lg border border-emerald-100 overflow-hidden">
-            <table className="min-w-full divide-y divide-gray-200 bg-white">
+          <div className={`overflow-x-auto rounded-2xl ${currentTheme?.shadow || 'shadow-lg'} ${currentTheme?.border || 'border border-gray-200'} overflow-hidden`}>
+            <table className="min-w-full divide-y">
               <thead className={`sticky top-0 ${currentTheme?.theadBg || 'bg-emerald-600'} ${currentTheme?.theadText || 'text-white'}`}>
                 <tr>
                   <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wide">Date</th>
@@ -281,12 +284,12 @@ const MyAttendance = () => {
                   <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wide">Reason</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
-                {attendanceRecords.map((record, index) => (
-                  <tr key={record._id} className={`hover:bg-emerald-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}`}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+              <tbody className={`divide-y ${currentTheme?.border || 'divide-gray-100'}`}>
+                {attendanceRecords.map((record) => (
+                  <tr key={record._id} className={`transition-colors ${currentTheme?.tbodyBg || 'bg-white'} ${currentTheme?.tableHover || 'hover:bg-emerald-50'} ${currentTheme?.tableStripedBg || 'odd:bg-gray-50'}`}>
+                    <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${currentTheme?.text || 'text-gray-900'}`}>
                       <div className="flex items-center gap-2">
-                        <CalendarDaysIcon className="h-5 w-5 text-gray-400" />
+                        <CalendarDaysIcon className={`h-5 w-5 ${currentTheme?.iconText || 'text-gray-400'}`} />
                         {new Date(record.date).toLocaleDateString('en-US', { 
                           weekday: 'short', 
                           year: 'numeric', 
@@ -295,19 +298,19 @@ const MyAttendance = () => {
                         })}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    <td className={`px-6 py-4 whitespace-nowrap text-sm ${currentTheme?.text || 'text-gray-700'}`}>
                       <span className={`px-3 py-1.5 inline-flex items-center text-xs leading-5 font-bold rounded-full border ${getStatusColor(record.status)}`}>
                         {getStatusIcon(record.status)} 
                         {record.status}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                    <td className={`px-6 py-4 whitespace-nowrap text-sm ${currentTheme?.text || 'text-gray-600'}`}>
                       <div className="flex items-center gap-2">
-                        <UserIcon className="h-5 w-5 text-gray-400" />
+                        <UserIcon className={`h-5 w-5 ${currentTheme?.iconText || 'text-gray-400'}`} />
                         {record.markedBy?.name || 'N/A'}
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
+                    <td className={`px-6 py-4 text-sm ${currentTheme?.mutedText || 'text-gray-600'}`}>
                       {record.reason || '-'}
                     </td>
                   </tr>

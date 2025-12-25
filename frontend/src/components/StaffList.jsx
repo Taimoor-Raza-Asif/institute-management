@@ -202,7 +202,7 @@ const inputRef = useRef(null);
               ref={inputRef}
               type="text"
               placeholder="Search by name, ID, or contact..."
-              className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition ${currentTheme?.inputBg || 'border-gray-300 bg-gray-50'}`}
+              className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none transition ${currentTheme?.inputBg || 'border-gray-300 bg-gray-50'} ${currentTheme?.inputRing || 'focus:ring-2 focus:ring-green-500'}`}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -212,7 +212,7 @@ const inputRef = useRef(null);
           <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
             <button
               onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-              className={`group flex items-center justify-center px-8 py-2 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 w-full sm:w-auto ${showAdvancedFilters ? 'bg-gradient-to-r from-gray-700 to-gray-600 text-white' : 'bg-white text-gray-700 border-2 border-gray-200 hover:border-gray-300'}`}
+              className={`group flex items-center justify-center px-8 py-2 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 w-full sm:w-auto ${currentTheme.btnSecondaryBg || 'bg-white'} ${currentTheme.btnSecondaryText || 'text-emerald-700'} ${currentTheme.btnSecondaryBorder || 'border border-emerald-200'} ${currentTheme.btnSecondaryHover || 'hover:bg-emerald-50'}`}
             >
               <FunnelIcon className="h-5 w-5 mr-2 transition-transform group-hover:scale-110" />
               {showAdvancedFilters ? 'Hide' : 'Filters'}
@@ -221,7 +221,7 @@ const inputRef = useRef(null);
             {canAddStaff && (
               <button
                 onClick={handleAddStaff}
-                className="group flex items-center justify-center px-8 py-2 rounded-xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 text-white transition-all duration-300 shadow-lg hover:shadow-2xl hover:from-green-700 hover:to-emerald-700 transform hover:-translate-y-0.5 w-full sm:w-auto"
+                className={`group flex items-center justify-center px-8 py-2 rounded-xl font-bold transition-all duration-300 shadow-lg hover:shadow-2xl transform hover:-translate-y-0.5 w-full sm:w-auto ${currentTheme.btnPrimaryBg || 'bg-emerald-600'} ${currentTheme.btnPrimaryHover || 'hover:bg-emerald-700'} ${currentTheme.btnPrimaryText || 'text-white'} ${currentTheme.btnPrimaryBorder || 'border border-emerald-700'}`}
               >
                 <PlusIcon className="h-5 w-5 mr-2 transition-transform group-hover:rotate-90" />
                 Staff
@@ -237,7 +237,7 @@ const inputRef = useRef(null);
               <select
                 id="filterStaffType"
                 name="filterStaffType"
-                className="mt-1 block w-full p-2.5 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm"
+                className={`mt-1 block w-full p-2.5 ${currentTheme?.inputBorder || 'border border-gray-300'} rounded-md shadow-sm ${currentTheme?.inputRing || 'focus:ring-green-500'} ${currentTheme?.inputFocus || 'focus:border-green-500'} sm:text-sm`}
                 value={filterStaffType}
                 onChange={(e) => setFilterStaffType(e.target.value)}
               >
@@ -254,7 +254,7 @@ const inputRef = useRef(null);
               <select
                 id="filterEducationLevel"
                 name="filterEducationLevel"
-                className="mt-1 block w-full p-2.5 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm"
+                className={`mt-1 block w-full p-2.5 ${currentTheme?.inputBorder || 'border border-gray-300'} rounded-md shadow-sm ${currentTheme?.inputRing || 'focus:ring-green-500'} ${currentTheme?.inputFocus || 'focus:border-green-500'} sm:text-sm`}
                 value={filterEducationLevel}
                 onChange={(e) => setFilterEducationLevel(e.target.value)}
               >
@@ -281,22 +281,22 @@ const inputRef = useRef(null);
         )}
       </div>
 
-      <div className={`${currentTheme?.cardBg || 'bg-white'} rounded-xl ${currentTheme?.shadow || 'shadow-lg'} overflow-hidden`}>
-        <div className="overflow-x-auto">
+      <div className={`p-6 rounded-2xl ${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.shadow || 'shadow-lg'} ${currentTheme?.border || 'border border-gray-100'}`}>
+        <div className="overflow-x-auto rounded-xl overflow-hidden">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className={`${currentTheme?.theadBg || 'bg-gradient-to-r from-green-600 to-emerald-600'}`}>
               <tr>
-                <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Name</th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Type</th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Contact</th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Email</th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Salary</th>
-                <th className="px-6 py-4 text-center text-xs font-bold text-white uppercase tracking-wider">Actions</th>
+                <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider rounded-tl-xl">Name</th>
+                <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Type</th>
+                <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Contact</th>
+                <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Email</th>
+                <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Salary</th>
+                <th scope="col" className="px-6 py-4 text-center text-xs font-bold text-white uppercase tracking-wider rounded-tr-xl">Actions</th>
               </tr>
             </thead>
             <tbody className={`${currentTheme?.tbodyBg || 'bg-white'} divide-y divide-gray-100`}>
               {staff.map((person, index) => (
-                <tr key={person._id} className={`transition-all duration-150 hover:bg-green-50 hover:shadow-md ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
+                <tr key={person._id} className={`transition-all duration-150 ${currentTheme.tableHover || 'hover:bg-green-50'} ${index % 2 === 0 ? (currentTheme.tbodyBg || 'bg-white') : (currentTheme.tableStripedBg || 'bg-gray-50')} hover:shadow-md`}>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       {person.profilePictureUrl ? (
@@ -307,23 +307,23 @@ const inputRef = useRef(null);
                           onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/40x40/cccccc/ffffff?text=NA'; }}
                         />
                       ) : (
-                        <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center mr-3 ring-2 ring-green-200">
-                          <span className="text-green-700 font-bold text-sm">{person.name?.[0] || 'S'}</span>
+                        <div className={`h-10 w-10 rounded-full ${currentTheme.heroPillBg || 'bg-green-100'} flex items-center justify-center mr-3 ring-2 ${currentTheme.heroPillBorder || 'ring-green-200'}`}>
+                          <span className={`${currentTheme.iconText || 'text-green-700'} font-bold text-sm`}>{person.name?.[0] || 'S'}</span>
                         </div>
                       )}
                       <div>
-                        <div className="text-sm font-semibold text-gray-900">{person.name}</div>
-                        <div className="text-xs text-gray-500">{person.employeeId || person.staffId || 'No ID'}</div>
+                        <div className={`text-sm font-semibold ${currentTheme?.text || 'text-gray-900'}`}>{person.name}</div>
+                        <div className={`text-xs ${currentTheme?.mutedText || 'text-gray-500'}`}>{person.employeeId || person.cnic || 'No ID'}</div>
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{person.staffType || 'N/A'}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{person.contactNumber || 'N/A'}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{person.email || 'N/A'}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">PKR {person.salary ? person.salary.toLocaleString() : 'N/A'}</td>
+                  <td className={`px-6 py-4 whitespace-nowrap text-sm ${currentTheme?.text || 'text-gray-600'}`}>{person.staffType || 'N/A'}</td>
+                  <td className={`px-6 py-4 whitespace-nowrap text-sm ${currentTheme?.text || 'text-gray-600'}`}>{person.contactNumber || 'N/A'}</td>
+                  <td className={`px-6 py-4 whitespace-nowrap text-sm ${currentTheme?.text || 'text-gray-600'}`}>{person.email || 'N/A'}</td>
+                  <td className={`px-6 py-4 whitespace-nowrap text-sm font-semibold ${currentTheme?.text || 'text-gray-900'}`}>PKR {person.salary ? person.salary.toLocaleString() : 'N/A'}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
                     <div className="flex items-center justify-center space-x-2">
-                      <button onClick={() => handleViewDetails(person)} className="p-2 text-green-600 hover:text-green-900 hover:bg-green-50 rounded-lg transition-colors duration-200" title="View Staff Details">
+                      <button onClick={() => handleViewDetails(person)} className={`p-2 ${currentTheme.iconText || 'text-green-600'} hover:${currentTheme.heroPillBg || 'bg-green-50'} ${currentTheme.heroPillBg || 'hover:bg-green-50'} rounded-lg transition-colors duration-200`} title="View Staff Details">
                         <EyeIcon className="h-5 w-5" />
                       </button>
                       {canEditOrDeleteStaff && (
@@ -336,39 +336,6 @@ const inputRef = useRef(null);
                           </button>
                         </>
                       )}
-                      <Menu as="div" className="relative inline-block text-left">
-                        <div>
-                          <MenuButton className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors duration-200">
-                            <EllipsisVerticalIcon className="h-5 w-5" aria-hidden="true" />
-                          </MenuButton>
-                        </div>
-                        <MenuItems className="absolute right-0 z-50 mt-2 w-56 origin-top-right rounded-lg bg-white shadow-xl ring-1 ring-black ring-opacity-5 focus:outline-none">
-                          <div className="py-1">
-                            <MenuItem>
-                              {({ focus }) => (
-                                <button
-                                  onClick={() => handleOpenAttendanceModal(person)}
-                                  className={`${focus ? 'bg-gray-100 text-gray-900' : 'text-gray-700'} group flex w-full items-center px-4 py-2 text-sm`}
-                                >
-                                  <CalendarDaysIcon className="mr-3 h-5 w-5 text-blue-600 group-hover:text-blue-800" aria-hidden="true" />
-                                  Attendance
-                                </button>
-                              )}
-                            </MenuItem>
-                            <MenuItem>
-                              {({ focus }) => (
-                                <button
-                                  onClick={() => handleViewDetails(person)}
-                                  className={`${focus ? 'bg-gray-100 text-gray-900' : 'text-gray-700'} group flex w-full items-center px-4 py-2 text-sm`}
-                                >
-                                  <EyeIcon className="mr-3 h-5 w-5 text-green-600 group-hover:text-green-800" aria-hidden="true" />
-                                  Quick View
-                                </button>
-                              )}
-                            </MenuItem>
-                          </div>
-                        </MenuItems>
-                      </Menu>
                     </div>
                   </td>
                 </tr>

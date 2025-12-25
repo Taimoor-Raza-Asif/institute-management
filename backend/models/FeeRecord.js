@@ -30,4 +30,7 @@ feeSchema.pre('save', function(next) {
   next();
 });
 
+// Ensure only one fee record per student per month+year
+feeSchema.index({ studentId: 1, month: 1, year: 1 }, { unique: true });
+
 export default mongoose.model('FeeRecord', feeSchema);

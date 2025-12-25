@@ -96,7 +96,7 @@ const StudentForm = ({ editingStudent, fetchStudents, onClose, isViewMode = fals
         let ok = true;
 
         if (stepIdx === 0) {
-            ['name','fatherName','cnic','dob','gender','guardianContact','address','admissionDate','rollNumber'].forEach((f)=>{
+            ['name','fatherName','cnic','dob','gender','guardianContact','address','admissionDate'].forEach((f)=>{
                 if (!student[f]) { newFieldErrors[f] = 'This field is required.'; ok = false; }
             });
             if (student.email && !/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(student.email)) {
@@ -115,8 +115,8 @@ const StudentForm = ({ editingStudent, fetchStudents, onClose, isViewMode = fals
             } else if (student.class === 'Almiya') {
                 if (!student.classNumber) { newFieldErrors.classNumber = 'Almiya Class Grade is required.'; ok=false; }
             }
-            if (isNaN(parseFloat(student.feePerMonth)) || parseFloat(student.feePerMonth) <= 0) {
-                newFieldErrors.feePerMonth = 'Fee Per Month must be a positive number.'; ok=false;
+            if (!/^\d+$/.test(String(student.feePerMonth || '')) || parseInt(student.feePerMonth || '0', 10) <= 0) {
+                newFieldErrors.feePerMonth = 'Fee Per Month must be a positive whole number.'; ok=false;
             }
         }
 
@@ -227,7 +227,20 @@ const StudentForm = ({ editingStudent, fetchStudents, onClose, isViewMode = fals
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setStudent(prev => ({ ...prev, [name]: value }));
+        let newVal = value;
+
+        // Fields that must only contain digits
+        const digitOnlyFields = ['cnic', 'guardianContact', 'additionalContact', 'feePerMonth', 'depositedAmount', 'otherDues', 'classNumber', 'semester', 'currentJuz'];
+        if (digitOnlyFields.includes(name)) {
+            // Strip any non-digit characters
+            newVal = String(value || '').replace(/\D/g, '');
+        }
+
+        // Enforce max lengths while typing
+        if (name === 'cnic') newVal = newVal.slice(0, 13);
+        if (name === 'guardianContact' || name === 'additionalContact') newVal = newVal.slice(0, 11);
+
+        setStudent(prev => ({ ...prev, [name]: newVal }));
         setFieldErrors(prev => ({ ...prev, [name]: '' }));
         setGeneralFormError('');
     };
@@ -285,8 +298,8 @@ const StudentForm = ({ editingStudent, fetchStudents, onClose, isViewMode = fals
              // currentJuz is defaulted to 0, which is valid (not started)
         }
 
-        if (isNaN(parseFloat(student.feePerMonth)) || parseFloat(student.feePerMonth) <= 0) {
-            newFieldErrors.feePerMonth = 'Fee Per Month must be a positive number.';
+        if (!/^\d+$/.test(String(student.feePerMonth || '')) || parseInt(student.feePerMonth || '0', 10) <= 0) {
+            newFieldErrors.feePerMonth = 'Fee Per Month must be a positive whole number.';
             hasError = true;
         }
         if (student.email && !/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(student.email)) {
@@ -305,6 +318,15 @@ const StudentForm = ({ editingStudent, fetchStudents, onClose, isViewMode = fals
             newFieldErrors.additionalContact = 'Additional Contact must be 11 digits.';
             hasError = true;
         }
+        // Ensure integer values (no decimals) for depositedAmount and otherDues
+        if (student.depositedAmount && !/^\d+$/.test(String(student.depositedAmount))) {
+            newFieldErrors.depositedAmount = 'Deposited Amount must be a whole number (no decimals).';
+            hasError = true;
+        }
+        if (student.otherDues && !/^\d+$/.test(String(student.otherDues))) {
+            newFieldErrors.otherDues = 'Other Dues must be a whole number (no decimals).';
+            hasError = true;
+        }
 
         // --- Document Field Validations (kept simple for this fix) ---
         // You should re-implement the full validation based on age/class type later.
@@ -318,11 +340,27 @@ const StudentForm = ({ editingStudent, fetchStudents, onClose, isViewMode = fals
 
         const formData = new FormData();
 
-        // Append all student fields
-        for (const key in student) {
+        // If this is a student editing their own profile, prevent changes to protected fields
+        const protectedFields = ['admissionDate', 'studentStatus', 'class', 'feePerMonth', 'depositedAmount', 'otherDues'];
+        const payloadStudent = { ...student };
+        if (isSelfStudent && editingStudent) {
+            // Ensure protected fields remain unchanged by using values from editingStudent
+            const normalizeDate = (d) => (d ? new Date(d).toISOString().split('T')[0] : '');
+            payloadStudent.admissionDate = normalizeDate(editingStudent.admissionDate);
+            payloadStudent.studentStatus = editingStudent.studentStatus || payloadStudent.studentStatus;
+            payloadStudent.class = editingStudent.class || payloadStudent.class;
+            payloadStudent.feePerMonth = editingStudent.feePerMonth !== undefined ? String(editingStudent.feePerMonth) : payloadStudent.feePerMonth;
+            payloadStudent.depositedAmount = editingStudent.depositedAmount !== undefined ? String(editingStudent.depositedAmount) : payloadStudent.depositedAmount;
+            payloadStudent.otherDues = editingStudent.otherDues !== undefined ? String(editingStudent.otherDues) : payloadStudent.otherDues;
+            // Protect rollNumber as well
+            payloadStudent.rollNumber = editingStudent.rollNumber !== undefined ? String(editingStudent.rollNumber) : payloadStudent.rollNumber;
+        }
+
+        // Append all student fields from payloadStudent
+        for (const key in payloadStudent) {
             // Exclude file URLs from direct append, as they are handled separately by file inputs
-            if (!key.endsWith('Url') && student[key] !== null) {
-                formData.append(key, student[key]);
+            if (!key.endsWith('Url') && payloadStudent[key] !== null && payloadStudent[key] !== undefined) {
+                formData.append(key, payloadStudent[key]);
             }
         }
 
@@ -399,6 +437,9 @@ const StudentForm = ({ editingStudent, fetchStudents, onClose, isViewMode = fals
     
     const isClass9OrAbove = isClassType && parseInt(student.classNumber) >= 9;
 
+    // Determine if the current user is a student editing their own profile
+    const isSelfStudent = currentUser?.role === 'student' && currentUser?.profileId === editingStudent?._id;
+
     // Determine which ID proof fields to show
     const showCnicFields = isAdult && student.cnic && student.cnic.length === 13;
     const showBFormField = !isAdult || (isAdult && (!student.cnic || student.cnic.length !== 13));
@@ -441,7 +482,7 @@ const StudentForm = ({ editingStudent, fetchStudents, onClose, isViewMode = fals
         doc.setFont(undefined, 'normal');
         doc.text('Makhdoom Pur Sharif, Chakwal', margin + 20, yPos);
         yPos += 5;
-        doc.text('Phone: (042) 1234567 | Email: info.mastwaar@gmail.com', margin + 20, yPos);
+        doc.text('(0334) 8724125 | jamiatulmastwaar@gmail.com', margin + 20, yPos);
         yPos += 12;
 
         // --- Title & Timestamp ---
@@ -563,7 +604,7 @@ const StudentForm = ({ editingStudent, fetchStudents, onClose, isViewMode = fals
         addTwoFields('Guardian Contact', student.guardianContact, 'Additional Contact', student.additionalContact);
         addTwoFields('Admission Date', student.admissionDate ? new Date(student.admissionDate).toLocaleDateString() : '', 'Student Status', student.studentStatus);
         addTwoFields('Class Type', student.class, 'Fee Per Month', student.feePerMonth);
-        addTwoFields('Deposited Amount', student.depositedAmount !== '' ? `PKR ${parseFloat(student.depositedAmount).toFixed(2)}` : 'PKR 0.00', 'Other Dues', student.otherDues !== '' ? `PKR ${parseFloat(student.otherDues).toFixed(2)}` : 'PKR 0.00');
+        addTwoFields('Deposited Amount', student.depositedAmount !== '' ? `PKR ${parseFloat(student.depositedAmount).toFixed(0)}` : 'PKR 0.00', 'Other Dues', student.otherDues !== '' ? `PKR ${parseFloat(student.otherDues).toFixed(0)}` : 'PKR 0.00');
 
         if (showReasonField) addFullWidthField('Reason', student.reason);
         
@@ -653,25 +694,25 @@ const StudentForm = ({ editingStudent, fetchStudents, onClose, isViewMode = fals
 
 
     return (
-        <div className="flex flex-col h-full p-4 sm:p-6 lg:p-8 bg-gradient-to-br from-white via-gray-50 to-white rounded-2xl shadow-2xl border border-gray-100">
+        <div className={`flex flex-col h-full p-4 sm:p-6 lg:p-8 ${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.shadow || 'shadow-2xl'} ${currentTheme?.border || 'border border-gray-100'} rounded-2xl`}>
             {/* Header Section (fixed at top) */}
             <div className="flex-shrink-0 relative">
                 <button onClick={onClose} className="absolute top-0 right-0 text-gray-500 hover:text-gray-700 transition duration-200 p-2 rounded-full hover:bg-gray-100" title="Close" >
                     <XMarkIcon className="h-7 w-7" />
                 </button>
-                <h2 className="text-3xl sm:text-4xl font-black mb-2 text-center bg-gradient-to-r from-green-700 to-emerald-600 bg-clip-text text-transparent">{getTitle()}</h2>
-                <p className="text-center text-gray-500 text-sm mb-4">Fill in all required fields to continue</p>
+                <h2 className={`text-3xl sm:text-4xl font-black mb-2 text-center ${currentTheme?.heroTitle || 'text-emerald-700'}`}>{getTitle()}</h2>
+                <p className={`text-center ${currentTheme?.mutedText || 'text-gray-500'} text-sm mb-4`}>Fill in all required fields to continue</p>
                 <hr className="mb-6 border-gray-200" />
                 {/* Modern Stepper */}
                 {!isViewMode && (
-                    <div className="mb-8 px-4 py-6 bg-gradient-to-r from-green-50 via-emerald-50 to-teal-50 rounded-xl border border-green-200 shadow-sm">
+                    <div className={`mb-8 px-4 py-6 ${currentTheme?.panelBg || 'bg-emerald-50'} ${currentTheme?.border || 'border border-green-200'} ${currentTheme?.shadow || 'shadow-sm'} rounded-xl`}>
                         <ol className="flex items-center justify-between relative">
                             {/* Background connecting line */}
-                            <div className="absolute top-6 left-0 right-0 h-1 bg-gradient-to-r from-green-300 to-teal-300 -z-10" style={{width: `${(steps.length - 1) * (100 / (steps.length - 1))}%`}} />
+                            <div className={`absolute top-6 left-0 right-0 h-1 ${currentTheme?.heroBg || 'bg-gradient-to-r from-green-300 to-teal-300'} -z-10`} style={{width: `${(steps.length - 1) * (100 / (steps.length - 1))}%`}} />
                             {steps.map((label, idx) => (
                                 <li key={label} className="flex flex-col items-center flex-1">
                                     <div className="relative z-10 mb-3">
-                                        <div className={`flex items-center justify-center w-12 h-12 rounded-full font-bold text-sm transition-all duration-300 ${idx < currentStep ? 'bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-lg scale-110' : idx === currentStep ? 'bg-gradient-to-br from-green-400 to-teal-500 text-white shadow-lg ring-4 ring-green-200 scale-110' : 'bg-gray-200 text-gray-500'}`}>
+                                        <div className={`flex items-center justify-center w-12 h-12 rounded-full font-bold text-sm transition-all duration-300 ${idx < currentStep ? `${currentTheme.btnPrimaryBg || 'bg-emerald-600'} ${currentTheme.btnPrimaryText || 'text-white'} ${currentTheme?.shadow || 'shadow-lg'} scale-110` : idx === currentStep ? `${currentTheme.btnPrimaryBg || 'bg-emerald-600'} ${currentTheme.btnPrimaryText || 'text-white'} ${currentTheme?.shadow || 'shadow-lg'} ring-4 ring-green-200 scale-110` : `${currentTheme?.mutedBg || 'bg-gray-200'} ${currentTheme?.mutedText || 'text-gray-500'}`}`}>
                                             {idx < currentStep ? '\u2713' : (idx + 1)}
                                         </div>
                                     </div>
@@ -710,44 +751,41 @@ const StudentForm = ({ editingStudent, fetchStudents, onClose, isViewMode = fals
                     <div className="sm:col-span-2 lg:col-span-3 grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
                         {/* Name */}
                         <div>
-                            <label htmlFor="name" className="block text-sm font-bold text-gray-700 mb-2">Name</label>
+                            <label htmlFor="name" className="block text-sm font-bold text-gray-700 mb-2">Name <span className="text-red-500">*</span></label>
                             <input type="text" id="name" name="name" value={student.name} onChange={handleChange} readOnly={isViewMode} className={`mt-1 block w-full px-4 py-2 bg-white border-2 border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-500 transition duration-200 sm:text-sm ${isViewMode ? 'bg-gray-50' : 'hover:border-gray-300'}`} />
                             {fieldErrors.name && <p className="mt-1 text-sm text-red-600">{fieldErrors.name}</p>}
                         </div>
                         {/* Father Name */}
                         <div>
-                            <label htmlFor="fatherName" className="block text-sm font-bold text-gray-700 mb-2">Father Name</label>
+                            <label htmlFor="fatherName" className="block text-sm font-bold text-gray-700 mb-2">Father Name <span className="text-red-500">*</span></label>
                             <input type="text" id="fatherName" name="fatherName" value={student.fatherName} onChange={handleChange} readOnly={isViewMode} className={`mt-1 block w-full px-4 py-2 bg-white border-2 border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-500 transition duration-200 sm:text-sm ${isViewMode ? 'bg-gray-50' : 'hover:border-gray-300'}`} />
                             {fieldErrors.fatherName && <p className="mt-1 text-sm text-red-600">{fieldErrors.fatherName}</p>}
                         </div>
                         {/* CNIC */}
                         <div>
-                            <label htmlFor="cnic" className="block text-sm font-bold text-gray-700 mb-2">CNIC</label>
-                            <input type="text" id="cnic" name="cnic" value={student.cnic} onChange={handleChange} readOnly={isViewMode} className={`mt-1 block w-full px-4 py-2 bg-white border-2 border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-500 transition duration-200 sm:text-sm ${isViewMode ? 'bg-gray-50' : 'hover:border-gray-300'}`} />
+                            <label htmlFor="cnic" className="block text-sm font-bold text-gray-700 mb-2">CNIC <span className="text-red-500">*</span></label>
+                            <input inputMode="numeric" pattern="\d*" maxLength={13} type="text" id="cnic" name="cnic" value={student.cnic} onChange={handleChange} readOnly={isViewMode} className={`mt-1 block w-full px-4 py-2 bg-white border-2 border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-500 transition duration-200 sm:text-sm ${isViewMode ? 'bg-gray-50' : 'hover:border-gray-300'}`} />
+                            {fieldErrors.cnic && <p className="mt-1 text-sm text-red-600">{fieldErrors.cnic}</p>}
                             {fieldErrors.cnic && <p className="mt-1 text-sm text-red-600">{fieldErrors.cnic}</p>}
                         </div>
-                        <div className="col-span-1">
-              <label htmlFor="rollNumber" className="block text-sm font-bold text-gray-700 mb-2">Roll Number</label>
-              <input
-                type="text"
-                id="rollNumber"
-                name="rollNumber"
-                value={student.rollNumber}
-                onChange={handleChange}
-                readOnly={isViewMode}
-                required
-                className="mt-1 block w-full px-4 py-2 bg-white border-2 border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-500 transition duration-200 sm:text-sm hover:border-gray-300"
-              />
-            </div>
+                        {/* Roll Number is auto-generated per-cohort; show in view mode only */}
+                        {isViewMode && (
+                            <div className="col-span-1">
+                                <label htmlFor="rollNumber" className="block text-sm font-bold text-gray-700 mb-2">Roll Number</label>
+                                <div className="mt-1 block w-full px-4 py-2 bg-gray-50 border-2 border-gray-200 rounded-lg shadow-sm sm:text-sm font-semibold text-gray-900">
+                                    {student.rollNumber || '—'}
+                                </div>
+                            </div>
+                        )}
                         {/* DOB */}
                         <div>
-                            <label htmlFor="dob" className="block text-sm font-bold text-gray-700 mb-2">Date of Birth</label>
+                            <label htmlFor="dob" className="block text-sm font-bold text-gray-700 mb-2">Date of Birth <span className="text-red-500">*</span></label>
                             <input type="date" id="dob" name="dob" value={student.dob} onChange={handleChange} readOnly={isViewMode} className={`mt-1 block w-full px-4 py-2 bg-white border-2 border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-500 transition duration-200 sm:text-sm ${isViewMode ? 'bg-gray-50' : 'hover:border-gray-300'}`} />
                             {fieldErrors.dob && <p className="mt-1 text-sm text-red-600">{fieldErrors.dob}</p>}
                         </div>
                         {/* Gender */}
                         <div>
-                            <label htmlFor="gender" className="block text-sm font-bold text-gray-700 mb-2">Gender</label>
+                            <label htmlFor="gender" className="block text-sm font-bold text-gray-700 mb-2">Gender <span className="text-red-500">*</span></label>
                             <select id="gender" name="gender" value={student.gender} onChange={handleChange} disabled={isViewMode} className={`mt-1 block w-full px-4 py-2 bg-white border-2 border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-500 transition duration-200 sm:text-sm ${isViewMode ? 'bg-gray-50' : 'hover:border-gray-300'}`}>
                                 <option value="">Select Gender</option>
                                 <option value="Male">Male</option>
@@ -764,25 +802,27 @@ const StudentForm = ({ editingStudent, fetchStudents, onClose, isViewMode = fals
                         </div>
                         {/* Admission Date */}
                         <div>
-                            <label htmlFor="admissionDate" className="block text-sm font-bold text-gray-700 mb-2">Admission Date</label>
-                            <input type="date" id="admissionDate" name="admissionDate" value={student.admissionDate} onChange={handleChange} readOnly={isViewMode} className={`mt-1 block w-full px-4 py-2 bg-white border-2 border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-500 transition duration-200 sm:text-sm ${isViewMode ? 'bg-gray-50' : 'hover:border-gray-300'}`} />
+                            <label htmlFor="admissionDate" className="block text-sm font-bold text-gray-700 mb-2">Admission Date <span className="text-red-500">*</span></label>
+                            <input type="date" id="admissionDate" name="admissionDate" value={student.admissionDate} onChange={handleChange} readOnly={isViewMode || isSelfStudent} className={`mt-1 block w-full px-4 py-2 bg-white border-2 border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-500 transition duration-200 sm:text-sm ${(isViewMode || isSelfStudent) ? 'bg-gray-50' : 'hover:border-gray-300'}`} />
                             {fieldErrors.admissionDate && <p className="mt-1 text-sm text-red-600">{fieldErrors.admissionDate}</p>}
                         </div>
                         {/* Guardian Contact */}
                         <div>
-                            <label htmlFor="guardianContact" className="block text-sm font-bold text-gray-700 mb-2">Guardian Contact</label>
-                            <input type="text" id="guardianContact" name="guardianContact" value={student.guardianContact} onChange={handleChange} readOnly={isViewMode} className={`mt-1 block w-full px-4 py-2 bg-white border-2 border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-500 transition duration-200 sm:text-sm ${isViewMode ? 'bg-gray-50' : 'hover:border-gray-300'}`} />
+                            <label htmlFor="guardianContact" className="block text-sm font-bold text-gray-700 mb-2">Guardian Contact <span className="text-red-500">*</span></label>
+                            <input inputMode="numeric" pattern="\d*" maxLength={11} type="text" id="guardianContact" name="guardianContact" value={student.guardianContact} onChange={handleChange} readOnly={isViewMode} className={`mt-1 block w-full px-4 py-2 bg-white border-2 border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-500 transition duration-200 sm:text-sm ${isViewMode ? 'bg-gray-50' : 'hover:border-gray-300'}`} />
+                            {fieldErrors.guardianContact && <p className="mt-1 text-sm text-red-600">{fieldErrors.guardianContact}</p>}
                             {fieldErrors.guardianContact && <p className="mt-1 text-sm text-red-600">{fieldErrors.guardianContact}</p>}
                         </div>
                         {/* Additional Contact */}
                         <div>
                             <label htmlFor="additionalContact" className="block text-sm font-bold text-gray-700 mb-2">Additional Contact</label>
-                            <input type="text" id="additionalContact" name="additionalContact" value={student.additionalContact} onChange={handleChange} readOnly={isViewMode} className={`mt-1 block w-full px-4 py-2 bg-white border-2 border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-500 transition duration-200 sm:text-sm ${isViewMode ? 'bg-gray-50' : 'hover:border-gray-300'}`} />
+                            <input inputMode="numeric" pattern="\d*" maxLength={11} type="text" id="additionalContact" name="additionalContact" value={student.additionalContact} onChange={handleChange} readOnly={isViewMode} className={`mt-1 block w-full px-4 py-2 bg-white border-2 border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-500 transition duration-200 sm:text-sm ${isViewMode ? 'bg-gray-50' : 'hover:border-gray-300'}`} />
+                            {fieldErrors.additionalContact && <p className="mt-1 text-sm text-red-600">{fieldErrors.additionalContact}</p>}
                             {fieldErrors.additionalContact && <p className="mt-1 text-sm text-red-600">{fieldErrors.additionalContact}</p>}
                         </div>
                         {/* Address */}
                         <div className="sm:col-span-2">
-                            <label htmlFor="address" className="block text-sm font-bold text-gray-700 mb-2">Address</label>
+                            <label htmlFor="address" className="block text-sm font-bold text-gray-700 mb-2">Address <span className="text-red-500">*</span></label>
                             <textarea id="address" name="address" value={student.address} onChange={handleChange} readOnly={isViewMode} rows="2" className={`mt-1 block w-full px-4 py-2 bg-white border-2 border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-500 transition duration-200 sm:text-sm ${isViewMode ? 'bg-gray-50' : 'hover:border-gray-300'}`}></textarea>
                             {fieldErrors.address && <p className="mt-1 text-sm text-red-600">{fieldErrors.address}</p>}
                         </div>
@@ -793,8 +833,8 @@ const StudentForm = ({ editingStudent, fetchStudents, onClose, isViewMode = fals
                 <div className={`${currentStep === 1 || isViewMode ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 animate-fade-in' : 'hidden'}`}>
                         {/* Student Status */}
                         <div>
-                            <label htmlFor="studentStatus" className="block text-sm font-bold text-gray-700 mb-2">Student Status</label>
-                            <select id="studentStatus" name="studentStatus" value={student.studentStatus} onChange={handleChange} disabled={isViewMode} className={`mt-1 block w-full px-4 py-2 bg-white border-2 border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-500 transition duration-200 sm:text-sm ${isViewMode ? 'bg-gray-50' : 'hover:border-gray-300'}`}>
+                            <label htmlFor="studentStatus" className="block text-sm font-bold text-gray-700 mb-2">Student Status <span className="text-red-500">*</span></label>
+                            <select id="studentStatus" name="studentStatus" value={student.studentStatus} onChange={handleChange} disabled={isViewMode || isSelfStudent} className={`mt-1 block w-full px-4 py-2 bg-white border-2 border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-500 transition duration-200 sm:text-sm ${(isViewMode || isSelfStudent) ? 'bg-gray-50' : 'hover:border-gray-300'}`}>
                                 <option value="Regular">Regular</option>
                                 <option value="Expelled">Expelled</option>
                                 <option value="Withdrawn">Withdrawn</option>
@@ -812,8 +852,8 @@ const StudentForm = ({ editingStudent, fetchStudents, onClose, isViewMode = fals
                         )}
                         {/* Class Type (DYNAMIC) */}
                         <div>
-                            <label htmlFor="class" className="block text-sm font-bold text-gray-700 mb-2">Class Type</label>
-                            <select id="class" name="class" value={student.class} onChange={handleChange} disabled={isViewMode} className={`mt-1 block w-full px-4 py-2 bg-white border-2 border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-500 transition duration-200 sm:text-sm ${isViewMode ? 'bg-gray-50' : 'hover:border-gray-300'}`}>
+                            <label htmlFor="class" className="block text-sm font-bold text-gray-700 mb-2">Class Type <span className="text-red-500">*</span></label>
+                            <select id="class" name="class" value={student.class} onChange={handleChange} disabled={isViewMode || isSelfStudent} className={`mt-1 block w-full px-4 py-2 bg-white border-2 border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-500 transition duration-200 sm:text-sm ${(isViewMode || isSelfStudent) ? 'bg-gray-50' : 'hover:border-gray-300'}`}>
                                 <option value="">Select Class Type</option>
                                 {/* CRITICAL: academicStructure must be available here */}
                                 {academicStructure?.map(type => (
@@ -903,20 +943,23 @@ const StudentForm = ({ editingStudent, fetchStudents, onClose, isViewMode = fals
                         )}
                         {/* Fee Per Month */}
                         <div>
-                            <label htmlFor="feePerMonth" className="block text-sm font-bold text-gray-700 mb-2">Fee Per Month (PKR)</label>
-                            <input type="number" id="feePerMonth" name="feePerMonth" value={student.feePerMonth} onChange={handleChange} readOnly={isViewMode} className={`mt-1 block w-full px-4 py-2 bg-white border-2 border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-500 transition duration-200 sm:text-sm ${isViewMode ? 'bg-gray-50' : 'hover:border-gray-300'}`} />
+                            <label htmlFor="feePerMonth" className="block text-sm font-bold text-gray-700 mb-2">Fee Per Month (PKR) <span className="text-red-500">*</span></label>
+                            <input inputMode="numeric" pattern="\d*" type="text" id="feePerMonth" name="feePerMonth" value={student.feePerMonth} onChange={handleChange} readOnly={isViewMode || isSelfStudent} className={`mt-1 block w-full px-4 py-2 bg-white border-2 border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-500 transition duration-200 sm:text-sm ${(isViewMode || isSelfStudent) ? 'bg-gray-50' : 'hover:border-gray-300'}`} />
+                            {fieldErrors.feePerMonth && <p className="mt-1 text-sm text-red-600">{fieldErrors.feePerMonth}</p>}
                             {fieldErrors.feePerMonth && <p className="mt-1 text-sm text-red-600">{fieldErrors.feePerMonth}</p>}
                         </div>
                         {/* Deposited Amount */}
                         <div>
                             <label htmlFor="depositedAmount" className="block text-sm font-bold text-gray-700 mb-2">Deposited Amount (PKR)</label>
-                            <input type="number" id="depositedAmount" name="depositedAmount" value={student.depositedAmount} onChange={handleChange} readOnly={isViewMode} className={`mt-1 block w-full px-4 py-2 bg-white border-2 border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-500 transition duration-200 sm:text-sm ${isViewMode ? 'bg-gray-50' : 'hover:border-gray-300'}`} />
+                            <input inputMode="numeric" pattern="\d*" type="text" id="depositedAmount" name="depositedAmount" value={student.depositedAmount} onChange={handleChange} readOnly={isViewMode || isSelfStudent} className={`mt-1 block w-full px-4 py-2 bg-white border-2 border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-500 transition duration-200 sm:text-sm ${(isViewMode || isSelfStudent) ? 'bg-gray-50' : 'hover:border-gray-300'}`} />
+                            {fieldErrors.depositedAmount && <p className="mt-1 text-sm text-red-600">{fieldErrors.depositedAmount}</p>}
                             {fieldErrors.depositedAmount && <p className="mt-1 text-sm text-red-600">{fieldErrors.depositedAmount}</p>}
                         </div>
                         {/* Other Dues */}
                         <div>
                             <label htmlFor="otherDues" className="block text-sm font-bold text-gray-700 mb-2">Other Dues (PKR)</label>
-                            <input type="number" id="otherDues" name="otherDues" value={student.otherDues} onChange={handleChange} readOnly={isViewMode} className={`mt-1 block w-full px-4 py-2 bg-white border-2 border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-500 transition duration-200 sm:text-sm ${isViewMode ? 'bg-gray-50' : 'hover:border-gray-300'}`} />
+                            <input inputMode="numeric" pattern="\d*" type="text" id="otherDues" name="otherDues" value={student.otherDues} onChange={handleChange} readOnly={isViewMode || isSelfStudent} className={`mt-1 block w-full px-4 py-2 bg-white border-2 border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-500 transition duration-200 sm:text-sm ${(isViewMode || isSelfStudent) ? 'bg-gray-50' : 'hover:border-gray-300'}`} />
+                            {fieldErrors.otherDues && <p className="mt-1 text-sm text-red-600">{fieldErrors.otherDues}</p>}
                             {fieldErrors.otherDues && <p className="mt-1 text-sm text-red-600">{fieldErrors.otherDues}</p>}
                         </div>
                 </div>
@@ -1021,11 +1064,14 @@ const StudentForm = ({ editingStudent, fetchStudents, onClose, isViewMode = fals
                 {/* Review step content */}
                 {!isViewMode && (
                     <div className={`${currentStep === 3 ? 'grid grid-cols-1 gap-4 md:gap-6 border-t pt-6 mt-4 border-gray-200 animate-fade-in' : 'hidden'}`}>
-                        <h3 className="text-xl font-bold bg-gradient-to-r from-green-700 to-emerald-600 bg-clip-text text-transparent mb-4">Review Your Details</h3>
-                        <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-200 p-6 grid sm:grid-cols-2 gap-4 shadow-sm">
+                        <h3 className={`text-xl font-bold ${currentTheme?.heroTitle || 'text-emerald-700'} mb-4`}>Review Your Details</h3>
+                        <div className={`${currentTheme?.panelBg || 'bg-emerald-50'} ${currentTheme?.border || 'border border-green-200'} ${currentTheme?.shadow || 'shadow-sm'} rounded-xl p-6 grid sm:grid-cols-2 gap-4`}>
                             <div className="flex justify-between"><span className="text-gray-600 font-medium">Name:</span> <span className="font-semibold text-gray-900">{student.name}</span></div>
                             <div className="flex justify-between"><span className="text-gray-600 font-medium">Father Name:</span> <span className="font-semibold text-gray-900">{student.fatherName}</span></div>
                             <div className="flex justify-between"><span className="text-gray-600 font-medium">CNIC:</span> <span className="font-semibold text-gray-900">{student.cnic}</span></div>
+                            {student.rollNumber && (
+                                <div className="flex justify-between"><span className="text-gray-600 font-medium">Roll Number:</span> <span className="font-semibold text-gray-900">{student.rollNumber}</span></div>
+                            )}
                             <div className="flex justify-between"><span className="text-gray-600 font-medium">Gender:</span> <span className="font-semibold text-gray-900">{student.gender}</span></div>
                             <div className="flex justify-between"><span className="text-gray-600 font-medium">Guardian Contact:</span> <span className="font-semibold text-gray-900">{student.guardianContact}</span></div>
                             <div className="flex justify-between"><span className="text-gray-600 font-medium">Address:</span> <span className="font-semibold text-gray-900">{student.address}</span></div>
@@ -1040,13 +1086,13 @@ const StudentForm = ({ editingStudent, fetchStudents, onClose, isViewMode = fals
             </form>
 
             {/* Footer Section (fixed at bottom) */}
-            <div className="mt-auto pt-6 border-t border-gray-200 flex flex-col sm:flex-row justify-between sm:justify-end space-y-3 sm:space-y-0 sm:space-x-3 flex-shrink-0 bg-gradient-to-r from-white via-gray-50 to-white px-4 -mx-4 -mb-4 rounded-b-2xl py-4">
+            <div className={`mt-auto pt-6 border-t border-gray-200 flex flex-col sm:flex-row justify-between sm:justify-end space-y-3 sm:space-y-0 sm:space-x-3 flex-shrink-0 ${currentTheme?.cardBg || 'bg-white'} px-4 -mx-4 -mb-4 rounded-b-2xl py-4`}>
                 {isViewMode ? (
                     <>
                         <button
                             type="button"
                             onClick={handleDownloadPdf}
-                            className="flex items-center justify-center px-8 py-2 rounded-lg bg-gradient-to-r from-green-800 to-green-600 text-white font-semibold hover:shadow-lg transition duration-300 shadow-md active:scale-95"
+                            className={`flex items-center justify-center px-8 py-2 rounded-lg font-semibold ${currentTheme.btnPrimaryBg || 'bg-emerald-600'} ${currentTheme.btnPrimaryHover || 'hover:bg-emerald-700'} ${currentTheme.btnPrimaryText || 'text-white'} ${currentTheme.btnPrimaryBorder || 'border border-emerald-700'} ${currentTheme?.shadow || 'shadow-md'} transition duration-300 active:scale-95`}
                             title="Download Student Details as PDF"
                         >
                             <ArrowDownTrayIcon className="h-5 w-5 mr-2" />
@@ -1055,7 +1101,7 @@ const StudentForm = ({ editingStudent, fetchStudents, onClose, isViewMode = fals
                         <button
                             type="button"
                             onClick={onClose}
-                            className="px-6 py-2 rounded-lg bg-gray-100 text-gray-700 font-semibold hover:bg-gray-200 transition duration-300 shadow-sm hover:shadow-md active:scale-95"
+                            className={`px-6 py-2 rounded-lg font-semibold ${currentTheme.btnSecondaryBg || 'bg-white'} ${currentTheme.btnSecondaryText || 'text-gray-700'} ${currentTheme.btnSecondaryBorder || 'border border-gray-200'} ${currentTheme.btnSecondaryHover || 'hover:bg-gray-50'} ${currentTheme?.shadow || 'shadow-sm'} transition duration-300 active:scale-95`}
                         >
                             Close
                         </button>
@@ -1064,22 +1110,22 @@ const StudentForm = ({ editingStudent, fetchStudents, onClose, isViewMode = fals
                     <>
                         <div className="flex gap-3 items-center">
                             {currentStep > 0 && (
-                                <button type="button" onClick={goPrev} className="px-6 py-2 rounded-lg bg-gray-100 text-gray-700 font-semibold hover:bg-gray-200 transition duration-300 shadow-sm hover:shadow-md active:scale-95">
+                                <button type="button" onClick={goPrev} className={`px-6 py-2 rounded-lg font-semibold ${currentTheme.btnSecondaryBg || 'bg-white'} ${currentTheme.btnSecondaryText || 'text-gray-700'} ${currentTheme.btnSecondaryBorder || 'border border-gray-200'} ${currentTheme.btnSecondaryHover || 'hover:bg-gray-50'} ${currentTheme?.shadow || 'shadow-sm'} transition duration-300 active:scale-95`}>
                                     Back
                                 </button>
                             )}
                             {currentStep < steps.length - 1 && (
-                                <button type="button" onClick={goNext} className="px-6 py-2 rounded-lg bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold hover:shadow-lg transition duration-300 shadow-md active:scale-95">
+                                <button type="button" onClick={goNext} className={`px-6 py-2 rounded-lg font-semibold ${currentTheme.btnPrimaryBg || 'bg-emerald-600'} ${currentTheme.btnPrimaryHover || 'hover:bg-emerald-700'} ${currentTheme.btnPrimaryText || 'text-white'} ${currentTheme.btnPrimaryBorder || 'border border-emerald-700'} ${currentTheme?.shadow || 'shadow-md'} transition duration-300 active:scale-95`}>
                                     Next
                                 </button>
                             )}
                             {currentStep === steps.length - 1 && (
-                                <button type="submit" onClick={handleSubmit} className="px-8 py-2 rounded-lg bg-gradient-to-r from-green-600 to-emerald-700 text-white font-bold hover:shadow-xl transition duration-300 shadow-md active:scale-95">
+                                <button type="submit" onClick={handleSubmit} className={`px-8 py-2 rounded-lg font-bold ${currentTheme.btnPrimaryBg || 'bg-emerald-600'} ${currentTheme.btnPrimaryHover || 'hover:bg-emerald-700'} ${currentTheme.btnPrimaryText || 'text-white'} ${currentTheme.btnPrimaryBorder || 'border border-emerald-700'} ${currentTheme?.shadow || 'shadow-md'} transition duration-300 active:scale-95`}>
                                     {editingStudent ? 'Update Student' : 'Add Student'}
                                 </button>
                             )}
                         </div>
-                        <button type="button" onClick={onClose} className="px-6 py-2 rounded-lg bg-gray-100 text-gray-700 font-semibold hover:bg-gray-200 transition duration-300 shadow-sm hover:shadow-md active:scale-95">
+                        <button type="button" onClick={onClose} className={`px-6 py-2 rounded-lg font-semibold ${currentTheme.btnSecondaryBg || 'bg-white'} ${currentTheme.btnSecondaryText || 'text-gray-700'} ${currentTheme.btnSecondaryBorder || 'border border-gray-200'} ${currentTheme.btnSecondaryHover || 'hover:bg-gray-50'} ${currentTheme?.shadow || 'shadow-sm'} transition duration-300 active:scale-95`}>
                             Cancel
                         </button>
                     </>

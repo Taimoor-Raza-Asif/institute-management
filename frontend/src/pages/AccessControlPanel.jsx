@@ -146,7 +146,7 @@ const AccessControlPanel = () => {
               placeholder="Search by CNIC, email, or name..."
               value={filterCnic}
               onChange={(e) => setFilterCnic(e.target.value)}
-              className={`w-full h-12 pl-10 pr-4 rounded-xl border focus:outline-none focus:ring-2 focus:ring-green-500 transition ${currentTheme?.inputBg || "border-gray-200 bg-gray-50"} ${currentTheme?.inputText || "text-gray-800"}`}
+              className={`w-full h-12 pl-10 pr-4 rounded-xl border focus:outline-none transition ${currentTheme?.inputBg || "border-gray-200 bg-gray-50"} ${currentTheme?.inputText || "text-gray-800"} ${currentTheme?.inputRing || 'focus:ring-2 focus:ring-green-500'}`}
             />
           </div>
 
@@ -156,7 +156,7 @@ const AccessControlPanel = () => {
               <select
                 value={filterRole}
                 onChange={(e) => setFilterRole(e.target.value)}
-                className={`w-full h-12 pl-10 pr-4 rounded-xl border focus:outline-none focus:ring-2 focus:ring-green-500 transition ${currentTheme?.inputBg || "border-gray-200 bg-white"} ${currentTheme?.inputText || "text-gray-800"}`}
+                className={`w-full h-12 pl-10 pr-4 rounded-xl border focus:outline-none transition ${currentTheme?.inputBg || "border-gray-200 bg-white"} ${currentTheme?.inputText || "text-gray-800"} ${currentTheme?.inputRing || 'focus:ring-2 focus:ring-green-500'}`}
               >
                 <option value="">All Roles</option>
                 {userRoles
@@ -180,10 +180,10 @@ const AccessControlPanel = () => {
                   setToggleAllEnabled(checked);
                   handleToggleAllEditMode(checked);
                 }}
-                className={`${toggleAllEnabled ? "bg-green-600" : "bg-gray-200"} relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 flex-shrink-0`}
+                className={`${toggleAllEnabled ? (currentTheme.btnPrimaryBg || 'bg-green-600') : (currentTheme.btnSecondaryBg || 'bg-gray-300')} relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 flex-shrink-0 border ${toggleAllEnabled ? 'border-transparent' : 'border-gray-400'} ${currentTheme?.inputRing || 'focus:ring-green-500'}`}
               >
                 <span className="sr-only">Toggle all edit mode</span>
-                <span className={`${toggleAllEnabled ? "translate-x-6" : "translate-x-1"} inline-block h-4 w-4 transform rounded-full bg-white transition duration-200 ease-in-out`} />
+                <span className={`${toggleAllEnabled ? "translate-x-6" : "translate-x-1"} inline-block h-4 w-4 transform rounded-full bg-white shadow-md transition duration-200 ease-in-out`} />
               </Switch>
             </div>
           </div>
@@ -228,24 +228,24 @@ const AccessControlPanel = () => {
                 </thead>
                 <tbody className={`${currentTheme?.tbodyBg || "bg-white"} divide-y divide-gray-100`}>
                   {filteredUsers.map((user, index) => (
-                    <tr key={user._id} className={`transition-all duration-150 hover:bg-green-50 hover:shadow-md ${index % 2 === 0 ? "bg-white" : "bg-gray-50"}`}>
+                    <tr key={user._id} className={`transition-all duration-150 ${currentTheme.tableHover || 'hover:bg-green-50'} ${index % 2 === 0 ? (currentTheme.tbodyBg || 'bg-white') : (currentTheme.tableStripedBg || 'bg-gray-50')} hover:shadow-md`}>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           {user.profileId?.profilePictureUrl ? (
                             <img
                               src={`http://localhost:5000${user.profileId.profilePictureUrl}`}
                               alt={`${user.profileId?.name || 'User'}'s Profile`}
-                              className="h-10 w-10 rounded-full object-cover ring-2 ring-green-200"
+                              className={`h-10 w-10 rounded-full object-cover ring-2 ${currentTheme.heroPillBorder || 'ring-green-200'}`}
                               onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/40x40/cccccc/ffffff?text=NA'; }}
                             />
                           ) : (
-                            <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center ring-2 ring-green-200">
-                              <UserCircleIcon className={`h-6 w-6 ${currentTheme?.mutedText || "text-green-700"}`} />
+                            <div className={`h-10 w-10 rounded-full ${currentTheme.heroPillBg || 'bg-green-100'} flex items-center justify-center ring-2 ${currentTheme.heroPillBorder || 'ring-green-200'}`}>
+                              <UserCircleIcon className={`h-6 w-6 ${currentTheme.iconText || 'text-green-700'}`} />
                             </div>
                           )}
                           <div className="ml-3">
-                            <div className={`text-sm font-semibold ${currentTheme?.text || "text-gray-900"}`}>{user.profileId?.name || user.name || "Unnamed user"}</div>
-                            <div className={`text-xs ${currentTheme?.mutedText || "text-gray-500"}`}>{user.cnic || user.email || "No identifier"}</div>
+                            <div className={`text-sm font-semibold ${currentTheme?.text || 'text-gray-900'}`}>{user.profileId?.name || user.name || "Unnamed user"}</div>
+                            <div className={`text-xs ${currentTheme?.mutedText || 'text-gray-500'}`}>{user.cnic || user.email || "No identifier"}</div>
                           </div>
                         </div>
                       </td>
@@ -264,10 +264,10 @@ const AccessControlPanel = () => {
                           <Switch
                             checked={user.editModeEnabled}
                             onChange={() => handleToggleEditMode(user)}
-                            className={`${user.editModeEnabled ? (currentTheme?.switchOn || "bg-green-600") : (currentTheme?.switchOff || "bg-gray-200")} relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2`}
+                            className={`${user.editModeEnabled ? (currentTheme?.btnPrimaryBg || 'bg-green-600') : (currentTheme?.btnSecondaryBg || 'bg-gray-300')} relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 border ${user.editModeEnabled ? 'border-transparent' : 'border-gray-400'} ${currentTheme?.inputRing || 'focus:ring-green-500'}`}
                           >
                             <span className="sr-only">Toggle edit mode</span>
-                            <span className={`${user.editModeEnabled ? "translate-x-6" : "translate-x-1"} inline-block h-4 w-4 transform rounded-full bg-white transition duration-200 ease-in-out`} />
+                            <span className={`${user.editModeEnabled ? "translate-x-6" : "translate-x-1"} inline-block h-4 w-4 transform rounded-full bg-white shadow-md transition duration-200 ease-in-out`} />
                           </Switch>
                         ) : (
                           <span className="text-gray-400">Not available</span>

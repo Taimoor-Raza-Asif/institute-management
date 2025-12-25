@@ -194,7 +194,7 @@ const UserForm = ({ user, formMode, onClose, students, staffMembers, users }) =>
             {!isViewMode && (
               <button
                 type="submit"
-                className="px-5 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition duration-200"
+                className={`px-5 py-2 ${currentTheme?.btnPrimaryBg || 'bg-green-600'} ${currentTheme?.btnPrimaryText || 'text-white'} rounded-md ${currentTheme?.btnPrimaryHover || 'hover:bg-green-700'} transition duration-200`}
               >
                 {isEditMode ? 'Update User' : 'Create User'}
               </button>
@@ -395,35 +395,35 @@ const UserManagement = () => {
                 </thead>
                 <tbody className={`${currentTheme?.tbodyBg || 'bg-white'} divide-y divide-gray-100`}>
                   {filteredUsers.map((user, index) => (
-                    <tr key={user._id} className={`transition-all duration-150 hover:bg-green-50 hover:shadow-md ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
+                    <tr key={user._id} className={`transition-all duration-150 ${currentTheme?.tableHover || 'hover:bg-green-50'} hover:shadow-md ${index % 2 === 0 ? currentTheme?.tbodyBg || 'bg-white' : currentTheme?.tableStripedBg || 'bg-gray-50'}`}>
                       <td className="px-6 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
                         <div className="flex items-center">
                           {user.profileId?.profilePictureUrl ? (
                             <img
                               src={`http://localhost:5000${user.profileId.profilePictureUrl}`}
                               alt={`${user.profileId.cnic}'s Profile`}
-                              className="h-9 w-9 rounded-full object-cover mr-3 ring-2 ring-green-100"
+                              className={`h-9 w-9 rounded-full object-cover mr-3 ring-2 ${currentTheme.heroPillBorder || 'ring-green-100'}`}
                               onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/36x36/cccccc/ffffff?text=NA'; }}
                             />
                           ) : (
-                            <div className="h-9 w-9 rounded-full bg-green-100 flex items-center justify-center mr-3 ring-2 ring-green-200">
-                              <span className="text-green-700 font-bold text-xs">{user.profileId?.name?.[0] || 'U'}</span>
+                            <div className={`h-9 w-9 rounded-full ${currentTheme.heroPillBg || 'bg-green-100'} flex items-center justify-center mr-3 ring-2 ${currentTheme.heroPillBorder || 'ring-green-200'}`}>
+                              <span className={`${currentTheme.iconText || 'text-green-700'} font-bold text-xs`}>{user.profileId?.name?.[0] || 'U'}</span>
                             </div>
                           )}
-                          <span className="font-semibold">{user.profileId?.cnic || user.cnic}</span>
+                          <span className={`font-semibold ${currentTheme?.text || 'text-gray-900'}`}>{user.profileId?.cnic || user.cnic}</span>
                         </div>
                       </td>
                       <td className="px-6 py-3 whitespace-nowrap text-sm font-semibold text-gray-700">
-                        <span className="px-2 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold">{user.role}</span>
+                        <span className={`px-2 py-1 rounded-full ${currentTheme?.badgeSuccessBg || 'bg-emerald-100'} ${currentTheme?.badgeSuccessText || 'text-emerald-700'} text-xs font-bold`}>{user.role}</span>
                       </td>
-                      <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-600">
+                      <td className={`px-6 py-3 whitespace-nowrap text-sm ${currentTheme?.text || 'text-gray-600'}`}>
                         {user.profileId ?
                           `${user.profileId.name || user.profileId.cnic || user.profileId.employeeId} (${user.roleMapping})`
                           : 'N/A'
                         }
                       </td>
                       <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-600">
-                        <span className={`px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full ${user.editModeEnabled ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                        <span className={`px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full ${user.editModeEnabled ? (currentTheme?.badgeSuccessBg || 'bg-green-100') + ' ' + (currentTheme?.badgeSuccessText || 'text-green-800') : (currentTheme?.badgeDangerBg || 'bg-red-100') + ' ' + (currentTheme?.badgeDangerText || 'text-red-800')}`}>
                           {user.editModeEnabled ? 'Yes' : 'No'}
                         </span>
                       </td>

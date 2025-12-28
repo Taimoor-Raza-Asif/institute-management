@@ -155,7 +155,7 @@ const Reports = () => {
   })) || [];
 
   const paymentMethodPieData = reportsData?.fees?.paymentMethodReport?.map(item => ({
-    name: item._id,
+    name: item.paymentMethod || item._id,
     value: item.totalAmount
   })) || [];
 
@@ -204,7 +204,7 @@ const Reports = () => {
                 <div>
                   <label className={`block text-sm font-semibold ${currentTheme?.title || 'text-gray-700'} mb-1`}>Filter by Year</label>
                   <select
-                    className={`w-full px-3 py-2.5 rounded-xl ${currentTheme?.inputBg || 'bg-white/80'} backdrop-blur-sm ${currentTheme?.inputBorder || 'border border-emerald-200'} ${currentTheme?.inputText || 'text-gray-800'} ring-1 ${currentTheme?.inputBorder || 'ring-emerald-100'} shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:border-emerald-300 text-sm`}
+                    className={`w-full px-3 py-2.5 rounded-xl ${currentTheme?.inputBg || 'bg-white/80'} backdrop-blur-sm ${currentTheme?.inputBorder || 'border border-emerald-200'} ${currentTheme?.inputText || 'text-gray-800'} shadow-sm focus:outline-none ${currentTheme?.inputRing || 'focus:ring-2 focus:ring-emerald-300 focus:ring-offset-0'} ${currentTheme?.inputFocus || 'focus:border-emerald-300'} text-sm`}
                     value={feesFilters.year}
                     onChange={(e) => setFeesFilters({ ...feesFilters, year: parseInt(e.target.value) })}
                   >
@@ -216,7 +216,7 @@ const Reports = () => {
                 <div>
                   <label className={`block text-sm font-semibold ${currentTheme?.title || 'text-gray-700'} mb-1`}>Month</label>
                   <select
-                    className={`w-full px-3 py-2.5 rounded-xl ${currentTheme?.inputBg || 'bg-white/80'} backdrop-blur-sm ${currentTheme?.inputBorder || 'border border-emerald-200'} ${currentTheme?.inputText || 'text-gray-800'} ring-1 ${currentTheme?.inputBorder || 'ring-emerald-100'} shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:border-emerald-300 text-sm`}
+                    className={`w-full px-3 py-2.5 rounded-xl ${currentTheme?.inputBg || 'bg-white/80'} backdrop-blur-sm ${currentTheme?.inputBorder || 'border border-emerald-200'} ${currentTheme?.inputText || 'text-gray-800'} shadow-sm focus:outline-none ${currentTheme?.inputRing || 'focus:ring-2 focus:ring-emerald-300 focus:ring-offset-0'} ${currentTheme?.inputFocus || 'focus:border-emerald-300'} text-sm`}
                     value={feesFilters.month}
                     onChange={(e) => setFeesFilters({ ...feesFilters, month: e.target.value })}
                   >
@@ -282,8 +282,8 @@ const Reports = () => {
                         <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip formatter={(value, name) => [value, name]} />
-                    <Legend formatter={(value, entry) => entry?.payload?.name || value} />
+                    <Tooltip />
+                    <Legend />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
@@ -310,8 +310,7 @@ const Reports = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div>
                   <label className={`block text-sm font-semibold ${currentTheme?.title || 'text-gray-700'} mb-1`}>Filter by Year</label>
-                  <select
-                    className={`w-full px-3 py-2.5 rounded-xl ${currentTheme?.inputBg || 'bg-white/80'} backdrop-blur-sm ${currentTheme?.inputBorder || 'border border-emerald-200'} ${currentTheme?.inputText || 'text-gray-800'} ring-1 ${currentTheme?.inputBorder || 'ring-emerald-100'} shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:border-emerald-300 text-sm`}
+                  <select className={`w-full px-3 py-2.5 rounded-xl ${currentTheme?.inputBg || 'bg-white/80'} backdrop-blur-sm ${currentTheme?.inputBorder || 'border border-emerald-200'} ${currentTheme?.inputText || 'text-gray-800'} shadow-sm focus:outline-none ${currentTheme?.inputRing || 'focus:ring-2 focus:ring-emerald-300 focus:ring-offset-0'} ${currentTheme?.inputFocus || 'focus:border-emerald-300'} text-sm`}
                     value={salariesFilters.year}
                     onChange={(e) => setSalariesFilters({ ...salariesFilters, year: parseInt(e.target.value) })}
                   >
@@ -323,7 +322,7 @@ const Reports = () => {
                 <div>
                   <label className={`block text-sm font-semibold ${currentTheme?.title || 'text-gray-700'} mb-1`}>Month</label>
                   <select
-                    className={`w-full px-3 py-2.5 rounded-xl ${currentTheme?.inputBg || 'bg-white/80'} backdrop-blur-sm ${currentTheme?.inputBorder || 'border border-emerald-200'} ${currentTheme?.inputText || 'text-gray-800'} ring-1 ${currentTheme?.inputBorder || 'ring-emerald-100'} shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:border-emerald-300 text-sm`}
+                  className={`w-full px-3 py-2.5 rounded-xl ${currentTheme?.inputBg || 'bg-white/80'} backdrop-blur-sm ${currentTheme?.inputBorder || 'border border-emerald-200'} ${currentTheme?.inputText || 'text-gray-800'} shadow-sm focus:outline-none ${currentTheme?.inputRing || 'focus:ring-2 focus:ring-emerald-300 focus:ring-offset-0'} ${currentTheme?.inputFocus || 'focus:border-emerald-300'} text-sm`}
                     value={salariesFilters.month}
                     onChange={(e) => setSalariesFilters({ ...salariesFilters, month: e.target.value })}
                   >
@@ -407,7 +406,7 @@ const Reports = () => {
                 <div>
                   <label className={`block text-sm font-semibold ${currentTheme?.title || 'text-gray-700'} mb-1`}>Filter by Year</label>
                   <select
-                    className={`w-full px-3 py-2.5 rounded-xl ${currentTheme?.inputBg || 'bg-white/80'} ${currentTheme?.inputText || 'text-gray-800'} backdrop-blur-sm ${currentTheme?.inputBorder || 'border border-emerald-200'} ring-1 ${currentTheme?.inputBorder || 'ring-emerald-100'} shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:border-emerald-300 text-sm`}
+               className={`w-full px-3 py-2.5 rounded-xl ${currentTheme?.inputBg || 'bg-white/80'} backdrop-blur-sm ${currentTheme?.inputBorder || 'border border-emerald-200'} ${currentTheme?.inputText || 'text-gray-800'} shadow-sm focus:outline-none ${currentTheme?.inputRing || 'focus:ring-2 focus:ring-emerald-300 focus:ring-offset-0'} ${currentTheme?.inputFocus || 'focus:border-emerald-300'} text-sm`}
                     value={billingFilters.year}
                     onChange={(e) => setBillingFilters({ ...billingFilters, year: parseInt(e.target.value) })}
                   >
@@ -419,7 +418,7 @@ const Reports = () => {
                 <div>
                   <label className={`block text-sm font-semibold ${currentTheme?.title || 'text-gray-700'} mb-1`}>Month</label>
                   <select
-                    className={`w-full px-3 py-2.5 rounded-xl ${currentTheme?.inputBg || 'bg-white/80'} ${currentTheme?.inputText || 'text-gray-800'} backdrop-blur-sm ${currentTheme?.inputBorder || 'border border-emerald-200'} ring-1 ${currentTheme?.inputBorder || 'ring-emerald-100'} shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:border-emerald-300 text-sm`}
+                className={`w-full px-3 py-2.5 rounded-xl ${currentTheme?.inputBg || 'bg-white/80'} backdrop-blur-sm ${currentTheme?.inputBorder || 'border border-emerald-200'} ${currentTheme?.inputText || 'text-gray-800'} shadow-sm focus:outline-none ${currentTheme?.inputRing || 'focus:ring-2 focus:ring-emerald-300 focus:ring-offset-0'} ${currentTheme?.inputFocus || 'focus:border-emerald-300'} text-sm`}
                     value={billingFilters.month}
                     onChange={(e) => setBillingFilters({ ...billingFilters, month: e.target.value })}
                   >
@@ -487,7 +486,7 @@ const Reports = () => {
                 <div>
                   <label className={`block text-sm font-semibold ${currentTheme?.title || 'text-gray-700'} mb-1`}>Filter by Year</label>
                   <select
-                    className={`w-full px-3 py-2.5 rounded-xl ${currentTheme?.inputBg || 'bg-white/80'} ${currentTheme?.inputText || 'text-gray-800'} backdrop-blur-sm ${currentTheme?.inputBorder || 'border border-emerald-200'} ring-1 ${currentTheme?.inputBorder || 'ring-emerald-100'} shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:border-emerald-300 text-sm`}
+                   className={`w-full px-3 py-2.5 rounded-xl ${currentTheme?.inputBg || 'bg-white/80'} backdrop-blur-sm ${currentTheme?.inputBorder || 'border border-emerald-200'} ${currentTheme?.inputText || 'text-gray-800'} shadow-sm focus:outline-none ${currentTheme?.inputRing || 'focus:ring-2 focus:ring-emerald-300 focus:ring-offset-0'} ${currentTheme?.inputFocus || 'focus:border-emerald-300'} text-sm`}
                     value={donationsFilters.year}
                     onChange={(e) => setDonationsFilters({ ...donationsFilters, year: parseInt(e.target.value) })}
                   >
@@ -499,7 +498,7 @@ const Reports = () => {
                 <div>
                   <label className={`block text-sm font-semibold ${currentTheme?.title || 'text-gray-700'} mb-1`}>Month</label>
                   <select
-                    className={`w-full px-3 py-2.5 rounded-xl ${currentTheme?.inputBg || 'bg-white/80'} ${currentTheme?.inputText || 'text-gray-800'} backdrop-blur-sm ${currentTheme?.inputBorder || 'border border-emerald-200'} ring-1 ${currentTheme?.inputRing || 'ring-emerald-100'} shadow-sm focus:outline-none focus:ring-2 ${currentTheme?.inputRing || 'focus:ring-emerald-300'} focus:border-emerald-300 text-sm`}
+                   className={`w-full px-3 py-2.5 rounded-xl ${currentTheme?.inputBg || 'bg-white/80'} backdrop-blur-sm ${currentTheme?.inputBorder || 'border border-emerald-200'} ${currentTheme?.inputText || 'text-gray-800'} shadow-sm focus:outline-none ${currentTheme?.inputRing || 'focus:ring-2 focus:ring-emerald-300 focus:ring-offset-0'} ${currentTheme?.inputFocus || 'focus:border-emerald-300'} text-sm`}
                     value={donationsFilters.month}
                     onChange={(e) => setDonationsFilters({ ...donationsFilters, month: e.target.value })}
                   >
@@ -570,7 +569,7 @@ const Reports = () => {
                 <div>
                   <label className={`block text-sm font-semibold ${currentTheme?.title || 'text-gray-700'} mb-1`}>Filter by Type</label>
                   <select
-                    className={`w-full px-3 py-2.5 rounded-xl ${currentTheme?.inputBg || 'bg-white/80'} ${currentTheme?.inputText || 'text-gray-800'} backdrop-blur-sm ${currentTheme?.inputBorder || 'border border-emerald-200'} ring-1 ${currentTheme?.inputRing || 'ring-emerald-100'} shadow-sm focus:outline-none focus:ring-2 ${currentTheme?.inputRing || 'focus:ring-emerald-300'} focus:border-emerald-300 text-sm`}
+                    className={`w-full px-3 py-2.5 rounded-xl ${currentTheme?.inputBg || 'bg-white/80'} backdrop-blur-sm ${currentTheme?.inputBorder || 'border border-emerald-200'} ${currentTheme?.inputText || 'text-gray-800'} shadow-sm focus:outline-none ${currentTheme?.inputRing || 'focus:ring-2 focus:ring-emerald-300 focus:ring-offset-0'} ${currentTheme?.inputFocus || 'focus:border-emerald-300'} text-sm`}
                     value={attendanceFilters.type}
                     onChange={(e) => setAttendanceFilters({ ...attendanceFilters, type: e.target.value })}
                   >
@@ -581,7 +580,7 @@ const Reports = () => {
                 <div>
                   <label className={`block text-sm font-semibold ${currentTheme?.title || 'text-gray-700'} mb-1`}>Year</label>
                   <select
-                    className={`w-full px-3 py-2.5 rounded-xl ${currentTheme?.inputBg || 'bg-white/80'} ${currentTheme?.inputText || 'text-gray-800'} backdrop-blur-sm ${currentTheme?.inputBorder || 'border border-emerald-200'} ring-1 ${currentTheme?.inputRing || 'ring-emerald-100'} shadow-sm focus:outline-none focus:ring-2 ${currentTheme?.inputRing || 'focus:ring-emerald-300'} focus:border-emerald-300 text-sm`}
+                    className={`w-full px-3 py-2.5 rounded-xl ${currentTheme?.inputBg || 'bg-white/80'} backdrop-blur-sm ${currentTheme?.inputBorder || 'border border-emerald-200'} ${currentTheme?.inputText || 'text-gray-800'} shadow-sm focus:outline-none ${currentTheme?.inputRing || 'focus:ring-2 focus:ring-emerald-300 focus:ring-offset-0'} ${currentTheme?.inputFocus || 'focus:border-emerald-300'} text-sm`}
                     value={attendanceFilters.year}
                     onChange={(e) => setAttendanceFilters({ ...attendanceFilters, year: parseInt(e.target.value) })}
                   >
@@ -593,7 +592,7 @@ const Reports = () => {
                 <div>
                   <label className={`block text-sm font-semibold ${currentTheme?.title || 'text-gray-700'} mb-1`}>Month</label>
                   <select
-                    className={`w-full px-3 py-2.5 rounded-xl ${currentTheme?.inputBg || 'bg-white/80'} ${currentTheme?.inputText || 'text-gray-800'} backdrop-blur-sm ${currentTheme?.inputBorder || 'border border-emerald-200'} ring-1 ${currentTheme?.inputRing || 'ring-emerald-100'} shadow-sm focus:outline-none focus:ring-2 ${currentTheme?.inputRing || 'focus:ring-emerald-300'} focus:border-emerald-300 text-sm`}
+                    className={`w-full px-3 py-2.5 rounded-xl ${currentTheme?.inputBg || 'bg-white/80'} backdrop-blur-sm ${currentTheme?.inputBorder || 'border border-emerald-200'} ${currentTheme?.inputText || 'text-gray-800'} shadow-sm focus:outline-none ${currentTheme?.inputRing || 'focus:ring-2 focus:ring-emerald-300 focus:ring-offset-0'} ${currentTheme?.inputFocus || 'focus:border-emerald-300'} text-sm`}
                     value={attendanceFilters.month}
                     onChange={(e) => setAttendanceFilters({ ...attendanceFilters, month: e.target.value })}
                   >

@@ -35,6 +35,8 @@ const baseTokens = {
   btnGhostHover: 'hover:bg-emerald-50',
   btnDangerBg: 'bg-red-600',
   btnDangerText: 'text-white',
+  // Icon-only danger buttons should use a visible red tone (different from btnDangerText which pairs with bg)
+  btnDangerIcon: 'text-red-600',
   btnDangerBorder: 'border border-red-700',
   btnDangerHover: 'hover:bg-red-700',
   inputBg: 'bg-white',

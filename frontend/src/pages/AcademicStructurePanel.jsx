@@ -1,15 +1,47 @@
-import React, { useState, useEffect, useCallback, useContext } from 'react';
+import React, { useState, useEffect, useCallback, useContext, useRef, memo } from 'react';
 import api from '../api';
 import { UserContext } from '../App';
 import Loader from '../components/Loader';
 import Message from '../components/Message';
 import ConfirmationModal from '../components/ConfirmationModal';
+import Modal from '../components/Modal';
 import { useTheme } from '../context/ThemeContext';
 import {
     AcademicCapIcon, PlusIcon, TrashIcon, PencilIcon, XMarkIcon,
     ArrowPathIcon, BookmarkSquareIcon, BookOpenIcon, UsersIcon, SparklesIcon, MinusCircleIcon
 } from '@heroicons/react/24/outline';
 import { toast } from 'react-toastify';
+
+// --- Uncontrolled Input Component to prevent focus loss ---
+// Uses local state and only commits to parent on blur
+const UncontrolledInput = memo(({ initialValue, onCommit, className, type = 'text', placeholder, min }) => {
+    const [localValue, setLocalValue] = useState(initialValue);
+    const inputRef = useRef(null);
+
+    // Sync localValue when initialValue changes from parent (e.g., new item added)
+    useEffect(() => {
+        setLocalValue(initialValue);
+    }, [initialValue]);
+
+    const handleBlur = () => {
+        if (localValue !== initialValue) {
+            onCommit(localValue);
+        }
+    };
+
+    return (
+        <input
+            ref={inputRef}
+            type={type}
+            value={localValue}
+            onChange={(e) => setLocalValue(e.target.value)}
+            onBlur={handleBlur}
+            className={className}
+            placeholder={placeholder}
+            min={min}
+        />
+    );
+});
 
 const initialNewType = {
     name: '',
@@ -107,6 +139,16 @@ const AcademicStructurePanel = () => {
     const [confirmMessage, setConfirmMessage] = useState('');
     const [confirmHandler, setConfirmHandler] = useState(null);
 
+    // Dialog state lifted to top-level so it survives re-renders of child editors
+    const [dialogOpen, setDialogOpen] = useState(false);
+    const [dialogType, setDialogType] = useState('success');
+    const [dialogMessage, setDialogMessage] = useState('');
+    const showDialog = (type, message) => {
+        setDialogType(type);
+        setDialogMessage(message);
+        setDialogOpen(true);
+    };
+
     const askConfirm = (message, handler) => {
         setConfirmMessage(message);
         setConfirmHandler(() => handler);
@@ -153,7 +195,13 @@ const AcademicStructurePanel = () => {
         try {
             const { data } = await api.get('/academic-structure');
             
-            const processedData = processStructureData(data);
+            // Handle case where backend returns null/undefined or no classTypes
+            const safeData = data || { classTypes: [] };
+            if (!safeData.classTypes) {
+                safeData.classTypes = [];
+            }
+            
+            const processedData = processStructureData(safeData);
             setStructure(processedData);
             
             if (processedData.classTypes.length > 0) {
@@ -162,6 +210,8 @@ const AcademicStructurePanel = () => {
         } catch (err) {
             console.error('Error fetching academic structure:', err);
             setError(err.response?.data?.message || 'Failed to fetch academic structure.');
+            // Set empty structure so user can initialize
+            setStructure({ classTypes: [] });
         } finally {
             setLoading(false);
         }
@@ -180,44 +230,74 @@ const AcademicStructurePanel = () => {
     const handleSaveStructure = async (initialPayload = null) => { 
         setIsSaving(true);
         setError(null);
-        
-        // Use the passed payload for initialization, or the current state for standard saving
-        const structureToSave = initialPayload 
-            ? { classTypes: initialPayload } 
-            : structure;
-
-        // Prepare payload: convert Maps to plain objects and clean up transient keys
-        const serializedClassTypes = structureToSave.classTypes.map(type => {
-            let serializedType = { ...type, key: undefined };
-            if (type.slug === 'BS' && type.degreeConfig) {
-                serializedType.degreeConfig = type.degreeConfig.map(degree => ({
-                    ...degree,
-                    subjectsBySemester: degree.subjectsBySemester instanceof Map 
-                        ? Object.fromEntries(degree.subjectsBySemester)
-                        : (degree.subjectsBySemester || {}) 
-                }));
-            }
-            return serializedType;
-        });
 
         try {
-            const payload = { classTypes: serializedClassTypes };
-            const { data } = await api.put('/academic-structure', payload);
+            // If an input is focused, blur it so UncontrolledInput onBlur commits first
+            try {
+                if (typeof document !== 'undefined' && document.activeElement) {
+                    const active = document.activeElement;
+                    if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.tagName === 'SELECT' || active.getAttribute('contenteditable') === 'true')) {
+                        active.blur();
+                        // wait briefly to allow onBlur handlers to run and state to update
+                        await new Promise(res => setTimeout(res, 50));
+                    }
+                }
+            } catch (e) {
+                // ignore DOM errors
+            }
+
+            // Use the passed payload for initialization, or the current state for standard saving
+            const structureToSave = initialPayload ? { classTypes: initialPayload } : structure;
+
+            if (!structureToSave || !Array.isArray(structureToSave.classTypes)) {
+                toast.warning('No structure to save. Click "Initialize Default Structure" first.');
+                setIsSaving(false);
+                return;
+            }
             
+            if (structureToSave.classTypes.length === 0) {
+                toast.warning('Structure is empty. Click "Initialize Default Structure" to add class types.');
+                setIsSaving(false);
+                return;
+            }
+
+            // Prepare payload: convert Maps to plain objects and clean up transient keys
+            const serializedClassTypes = structureToSave.classTypes.map(type => {
+                let serializedType = { ...type, key: undefined };
+                if (type.slug === 'BS' && type.degreeConfig) {
+                    serializedType.degreeConfig = type.degreeConfig.map(degree => ({
+                        ...degree,
+                        subjectsBySemester: degree.subjectsBySemester instanceof Map 
+                            ? Object.fromEntries(degree.subjectsBySemester)
+                            : (degree.subjectsBySemester || {}) 
+                    }));
+                }
+                return serializedType;
+            });
+
+            const payload = { classTypes: serializedClassTypes };
+            // DEBUG: log outgoing payload so we can verify what's being sent
+            try { console.log('AcademicStructure SAVE payload:', payload); } catch (e) {}
+            // Show lightweight in-app debug toast so it's obvious save started
+            try { toast.info(`Saving ${payload.classTypes.length} class type(s)...`, { toastId: 'academic-structure-save-debug' }); } catch (e) {}
+            const { data } = await api.put('/academic-structure', payload);
+            // DEBUG: log server response
+            try { console.log('AcademicStructure SAVE response:', data); } catch (e) {}
+
             // Process saved data back into state
             const loadedStructure = processStructureData(data.structure);
             setStructure(loadedStructure);
-            
+
             // Update active tab if it was an initialization
             if (initialPayload && loadedStructure.classTypes.length > 0) {
                 setActiveTab(loadedStructure.classTypes[0].slug);
             }
-            
+
             toast.success('Academic structure updated successfully!');
         } catch (err) {
             console.error('Error saving academic structure:', err);
-            setError(err.response?.data?.message || 'Failed to save academic structure.');
-            toast.error(err.response?.data?.message || 'Failed to save.');
+            setError(err.response?.data?.message || err.message || 'Failed to save academic structure.');
+            toast.error(err.response?.data?.message || err.message || 'Failed to save.');
         } finally {
             setIsSaving(false);
         }
@@ -317,7 +397,7 @@ const AcademicStructurePanel = () => {
     };
 
     // --- Class/Almiya Configuration Component ---
-    const ClassConfigEditor = ({ type, updateConfig, confirm }) => {
+    const ClassConfigEditor = ({ type, updateConfig, confirm, showDialog }) => {
         const isAlmiya = type.slug === 'Almiya';
 
         const handleAddClass = () => {
@@ -328,7 +408,13 @@ const AcademicStructurePanel = () => {
                 classNumber: newClassNum,
                 subjects: []
             };
-            updateConfig('classConfig', [...type.classConfig, newClass]);
+            try {
+                updateConfig('classConfig', [...type.classConfig, newClass]);
+                showDialog('success', `${isAlmiya ? 'Almiya' : 'Regular'} class added successfully. Click Save to persist changes.`);
+            } catch (err) {
+                console.error('Error adding class:', err);
+                showDialog('error', 'Could not add — something went wrong.');
+            }
         };
 
         // FIXED: Stabilized handler for class property updates (Identifier, Number)
@@ -371,6 +457,12 @@ const AcademicStructurePanel = () => {
                 }
                 return cls;
             }));
+            // show feedback
+            try {
+                showDialog('success', 'Subject added. Click Save to persist changes.');
+            } catch (e) {
+                // no-op if showDialog isn't provided
+            }
         };
 
         const handleRemoveClass = (classNumber) => {
@@ -396,7 +488,7 @@ const AcademicStructurePanel = () => {
                         <div key={cls.classNumber} className={`p-4 rounded-lg relative ${currentTheme.cardBg || 'bg-white'} ${currentTheme.cardBorder || 'border border-green-200'} ${currentTheme.shadow || 'shadow-md'}`}>
                             <button
                                 onClick={() => handleRemoveClass(cls.classNumber)}
-                                className={`absolute top-2 right-2 p-1 rounded-full transition ${currentTheme?.btnDangerText || 'text-red-500'} ${currentTheme?.btnDangerHover || 'hover:text-red-700 hover:bg-red-50'}`}
+                                className={`absolute top-2 right-2 p-1 rounded-full transition ${currentTheme?.btnDangerBg || 'bg-red-600'} ${currentTheme?.btnDangerText || 'text-white'} ${currentTheme?.btnDangerHover || 'hover:bg-red-700'}`}
                                 title="Remove Class"
                             >
                                 <TrashIcon className="h-5 w-5" />
@@ -408,20 +500,19 @@ const AcademicStructurePanel = () => {
                             <div className="space-y-3">
                                 <div>
                                     <label className={`block text-xs font-medium ${currentTheme.subtitle || 'text-gray-700'}`}>Class Identifier</label>
-                                    <input
-                                        type="text"
-                                        value={cls.classIdentifier}
-                                        onChange={(e) => handleUpdateClass(classIndex, 'classIdentifier', e.target.value)}
+                                    <UncontrolledInput
+                                        initialValue={cls.classIdentifier}
+                                        onCommit={(val) => handleUpdateClass(classIndex, 'classIdentifier', val)}
                                         className={`mt-1 block w-full px-2 py-1 text-sm rounded-md ${currentTheme.inputBorder || 'border border-gray-300'} ${currentTheme.shadow || 'shadow-sm'}`}
                                     />
                                 </div>
                                 <div>
                                     <label className={`block text-xs font-medium ${currentTheme.subtitle || 'text-gray-700'}`}>Class Number (Unique ID)</label>
-                                    <input
+                                    <UncontrolledInput
                                         type="number"
                                         min="1"
-                                        value={cls.classNumber}
-                                        onChange={(e) => handleUpdateClass(classIndex, 'classNumber', e.target.value)}
+                                        initialValue={cls.classNumber}
+                                        onCommit={(val) => handleUpdateClass(classIndex, 'classNumber', val)}
                                         className={`mt-1 block w-full px-2 py-1 text-sm rounded-md ${currentTheme.inputBorder || 'border border-gray-300'} ${currentTheme.shadow || 'shadow-sm'} ${currentTheme.panelBg || 'bg-green-50'}`}
                                     />
                                 </div>
@@ -431,10 +522,9 @@ const AcademicStructurePanel = () => {
                             <div className="space-y-1">
                                 {cls.subjects.map((subject, subIndex) => (
                                     <div key={subIndex} className="flex items-center space-x-2">
-                                        <input
-                                            type="text"
-                                            value={subject}
-                                            onChange={(e) => handleUpdateSubject(classIndex, subIndex, e.target.value)}
+                                        <UncontrolledInput
+                                            initialValue={subject}
+                                            onCommit={(val) => handleUpdateSubject(classIndex, subIndex, val)}
                                             className={`block w-full px-2 py-1 text-xs rounded-md ${currentTheme.inputBorder || 'border border-gray-300'} ${currentTheme.shadow || 'shadow-sm'}`}
                                             placeholder={`Subject ${subIndex + 1}`}
                                         />
@@ -449,7 +539,7 @@ const AcademicStructurePanel = () => {
                                                     return c;
                                                 }));
                                             }}
-                                            className={`p-1 ${currentTheme.btnDangerText || 'text-red-400'} ${currentTheme.btnDangerHover || 'hover:text-red-600'}`}
+                                            className={`p-1 ${currentTheme?.btnDangerIcon || 'text-red-600'} ${currentTheme?.btnDangerHover || 'hover:text-red-600'}`}
                                         >
                                             <MinusCircleIcon className="h-4 w-4" />
                                         </button>
@@ -458,19 +548,20 @@ const AcademicStructurePanel = () => {
                             </div>
                             <button
                                 onClick={() => handleAddSubject(classIndex)}
-                                className={`text-xs flex items-center mt-2 font-medium ${currentTheme.heroIcon || 'text-green-600'} ${currentTheme.btnGhostHover || 'hover:text-green-800'}`}
+                                className={`text-xs inline-flex items-center mt-2 font-medium px-2 py-1 rounded ${currentTheme?.btnPrimaryBg || 'bg-green-600'} ${currentTheme?.btnPrimaryText || 'text-white'} ${currentTheme?.btnPrimaryHover || 'hover:bg-green-700'} ${currentTheme?.shadow || ''}`}
                             >
                                 <PlusIcon className="h-4 w-4 mr-1" /> Add Subject
                             </button>
                         </div>
                     ))}
                 </div>
+                
             </div>
         );
     };
 
     // --- BS Configuration Component ---
-    const DegreeConfigEditor = ({ type, updateConfig, confirm }) => {
+    const DegreeConfigEditor = ({ type, updateConfig, confirm, showDialog }) => {
         const handleAddDegree = () => {
             updateConfig('degreeConfig', [...type.degreeConfig, {
                 degreeName: 'New Program',
@@ -478,6 +569,9 @@ const AcademicStructurePanel = () => {
                 maxSemester: 8,
                 subjectsBySemester: new Map().set('1', ['Intro to Core']).set('2', ['Core II'])
             }]);
+            try {
+                showDialog('success', 'Degree added. Click Save to persist changes.');
+            } catch (e) {}
         };
 
         // FIXED: Stabilized handler for input changes
@@ -576,7 +670,7 @@ const AcademicStructurePanel = () => {
                         <div key={degree.degreeName} className={`p-6 rounded-lg relative ${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.cardBorder || 'border border-gray-200'} ${currentTheme?.shadow || 'shadow-lg'}`}>
                             <button
                                 onClick={() => handleRemoveDegree(degree.degreeName)}
-                                className={`absolute top-2 right-2 p-1 rounded-full transition ${currentTheme?.btnDangerText || 'text-red-500'} ${currentTheme?.btnDangerHover || 'hover:text-red-700 hover:bg-red-50'}`}
+                                className={`absolute top-2 right-2 p-1 rounded-full transition ${currentTheme?.btnDangerBg || 'bg-red-600'} ${currentTheme?.btnDangerText || 'text-white'} ${currentTheme?.btnDangerHover || 'hover:bg-red-700'}`}
                                 title="Remove Degree"
                             >
                                 <TrashIcon className="h-5 w-5" />
@@ -585,30 +679,29 @@ const AcademicStructurePanel = () => {
                             <div className={`grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 pb-4 ${currentTheme?.divider || 'border-b border-gray-200'}`}>
                                 <div className="md:col-span-2">
                                     <label className={`block text-sm font-medium ${currentTheme?.subtitle || 'text-gray-700'}`}>Degree Name</label>
-                                    <input
-                                        type="text"
-                                        value={degree.degreeName}
-                                        onChange={(e) => handleUpdateDegree(degreeIndex, 'degreeName', e.target.value)}
+                                    <UncontrolledInput
+                                        initialValue={degree.degreeName}
+                                        onCommit={(val) => handleUpdateDegree(degreeIndex, 'degreeName', val)}
                                         className={`mt-1 block w-full px-3 py-2 rounded-md ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-900'} ${currentTheme?.inputBorder || 'border border-gray-300'} ${currentTheme?.inputRing || 'focus:ring-emerald-500 focus:border-emerald-500'} ${currentTheme?.shadow || 'shadow-sm'}`}
                                     />
                                 </div>
                                 <div>
                                     <label className={`block text-sm font-medium ${currentTheme?.subtitle || 'text-gray-700'}`}>Total Years</label>
-                                    <input
+                                    <UncontrolledInput
                                         type="number"
                                         min="1"
-                                        value={degree.years}
-                                        onChange={(e) => handleUpdateDegree(degreeIndex, 'years', e.target.value)}
+                                        initialValue={degree.years}
+                                        onCommit={(val) => handleUpdateDegree(degreeIndex, 'years', val)}
                                         className={`mt-1 block w-full px-3 py-2 rounded-md ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-900'} ${currentTheme?.inputBorder || 'border border-gray-300'} ${currentTheme?.inputRing || 'focus:ring-emerald-500 focus:border-emerald-500'} ${currentTheme?.shadow || 'shadow-sm'}`}
                                     />
                                 </div>
                                 <div>
                                     <label className={`block text-sm font-medium ${currentTheme?.subtitle || 'text-gray-700'}`}>Max Semester</label>
-                                    <input
+                                    <UncontrolledInput
                                         type="number"
                                         min="1"
-                                        value={degree.maxSemester}
-                                        onChange={(e) => handleUpdateDegree(degreeIndex, 'maxSemester', e.target.value)}
+                                        initialValue={degree.maxSemester}
+                                        onCommit={(val) => handleUpdateDegree(degreeIndex, 'maxSemester', val)}
                                         className={`mt-1 block w-full px-3 py-2 rounded-md ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-900'} ${currentTheme?.inputBorder || 'border border-gray-300'} ${currentTheme?.inputRing || 'focus:ring-emerald-500 focus:border-emerald-500'} ${currentTheme?.shadow || 'shadow-sm'}`}
                                     />
                                 </div>
@@ -623,17 +716,16 @@ const AcademicStructurePanel = () => {
                                         <div className="space-y-1">
                                             {Array.from(degree.subjectsBySemester.get(String(semester)) || []).map((subject, subIndex) => (
                                                 <div key={subIndex} className="flex items-center space-x-1">
-                                                    <input
-                                                        type="text"
-                                                        value={subject}
-                                                        onChange={(e) => handleUpdateSemesterSubject(degreeIndex, semester, subIndex, e.target.value)}
+                                                    <UncontrolledInput
+                                                        initialValue={subject}
+                                                        onCommit={(val) => handleUpdateSemesterSubject(degreeIndex, semester, subIndex, val)}
                                                         className={`w-full px-2 py-1 text-xs rounded-md ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-900'} ${currentTheme?.inputBorder || 'border border-gray-300'} ${currentTheme?.inputRing || 'focus:ring-emerald-500 focus:border-emerald-500'}`}
                                                         placeholder="Subject Name"
                                                     />
                                                     <button
                                                         type="button"
                                                         onClick={() => handleRemoveSubject(degreeIndex, semester, subIndex)}
-                                                        className={`p-1 ${currentTheme?.btnDangerText || 'text-red-500'} ${currentTheme?.btnDangerHover || 'hover:text-red-700'}`}
+                                                        className={`p-1 ${currentTheme?.btnDangerIcon || 'text-red-600'} ${currentTheme?.btnDangerHover || 'hover:text-red-700'}`}
                                                     >
                                                         <MinusCircleIcon className="h-4 w-4" />
                                                     </button>
@@ -642,7 +734,7 @@ const AcademicStructurePanel = () => {
                                         </div>
                                         <button
                                             onClick={() => handleAddSemesterSubject(degreeIndex, semester)}
-                                            className={`text-xs flex items-center mt-2 font-medium ${currentTheme?.btnPrimaryText || 'text-green-600'} ${currentTheme?.btnPrimaryHover || 'hover:text-green-800'}`}
+                                            className={`text-xs inline-flex items-center mt-2 font-medium px-2 py-1 rounded ${currentTheme?.btnPrimaryBg || 'bg-green-600'} ${currentTheme?.btnPrimaryText || 'text-white'} ${currentTheme?.btnPrimaryHover || 'hover:bg-green-700'}`}
                                         >
                                             <PlusIcon className="h-3 w-3 mr-1" /> Add Subject
                                         </button>
@@ -658,7 +750,7 @@ const AcademicStructurePanel = () => {
 
 
     // --- Hifaz Configuration Component ---
-    const HifazConfigEditor = ({ type, updateConfig }) => {
+    const HifazConfigEditor = ({ type, updateConfig, showDialog }) => {
         
         // FIXED: Stabilized handler for surah updates
         const handleUpdateSurah = (juzIndex, surahIndex, value) => {
@@ -678,6 +770,7 @@ const AcademicStructurePanel = () => {
                 }
                 return juz;
             }));
+            try { showDialog('success', 'Checkpoint added. Click Save to persist changes.'); } catch (e) {}
         };
         
         const handleRemoveSurah = (juzIndex, surahIndex) => {
@@ -707,17 +800,16 @@ const AcademicStructurePanel = () => {
                             <div className="space-y-1">
                                 {juz.surahs.map((surah, surahIndex) => (
                                     <div key={surahIndex} className="flex items-center space-x-2">
-                                        <input
-                                            type="text"
-                                            value={surah}
-                                            onChange={(e) => handleUpdateSurah(juzIndex, surahIndex, e.target.value)}
+                                        <UncontrolledInput
+                                            initialValue={surah}
+                                            onCommit={(val) => handleUpdateSurah(juzIndex, surahIndex, val)}
                                             className={`block w-full px-2 py-1 text-xs rounded-md shadow-sm ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-900'} ${currentTheme?.inputBorder || 'border border-gray-300'} ${currentTheme?.inputRing || 'focus:ring-emerald-500 focus:border-emerald-500'}`}
                                             placeholder={`Checkpoint ${surahIndex + 1}`}
                                         />
                                         <button
                                              type="button"
                                              onClick={() => handleRemoveSurah(juzIndex, surahIndex)}
-                                             className={`p-1 ${currentTheme?.btnDangerText || 'text-red-500'} ${currentTheme?.btnDangerHover || 'hover:text-red-700'}`}
+                                             className={`p-1 ${currentTheme?.btnDangerIcon || 'text-red-600'} ${currentTheme?.btnDangerHover || 'hover:text-red-700'}`}
                                          >
                                             <MinusCircleIcon className="h-4 w-4" />
                                         </button>
@@ -727,7 +819,7 @@ const AcademicStructurePanel = () => {
                             
                             <button
                                 onClick={() => handleAddSurah(juzIndex)}
-                                className={`text-sm flex items-center mt-2 font-medium ${currentTheme?.btnPrimaryText || 'text-green-600'} ${currentTheme?.btnPrimaryHover || 'hover:text-green-800'}`}
+                                className={`text-sm inline-flex items-center mt-2 font-medium px-2 py-1 rounded ${currentTheme?.btnPrimaryBg || 'bg-green-600'} ${currentTheme?.btnPrimaryText || 'text-white'} ${currentTheme?.btnPrimaryHover || 'hover:bg-green-700'}`}
                             >
                                 <PlusIcon className="h-4 w-4 mr-1" /> Add Checkpoint
                             </button>
@@ -863,7 +955,7 @@ const AcademicStructurePanel = () => {
                             </h3>
                             <button
                                 onClick={() => handleRemoveType(activeType.slug)}
-                                className={`flex items-center text-sm font-medium p-2 rounded-lg transition ${currentTheme?.btnDangerText || 'text-red-500'} ${currentTheme?.btnDangerHover || 'hover:text-red-700'} hover:${currentTheme?.alertErrorBg || 'bg-red-50'}`}
+                                className={`flex items-center text-sm font-medium p-2 rounded-lg transition ${currentTheme?.btnDangerBg || 'bg-red-600'} ${currentTheme?.btnDangerText || 'text-white'} ${currentTheme?.btnDangerHover || 'hover:bg-red-700'}`}
                             >
                                 <TrashIcon className="h-4 w-4 mr-1" /> Remove {activeType.name} Type
                             </button>
@@ -875,6 +967,7 @@ const AcademicStructurePanel = () => {
                                 type={activeType}
                                 updateConfig={(field, value) => updateTypeConfig(activeTab, field, value)}
                                 confirm={askConfirm}
+                                showDialog={showDialog}
                             />
                         )}
 
@@ -883,6 +976,7 @@ const AcademicStructurePanel = () => {
                                 type={activeType}
                                 updateConfig={(field, value) => updateTypeConfig(activeTab, field, value)}
                                 confirm={askConfirm}
+                                showDialog={showDialog}
                             />
                         )}
 
@@ -890,6 +984,7 @@ const AcademicStructurePanel = () => {
                             <HifazConfigEditor
                                 type={activeType}
                                 updateConfig={(field, value) => updateTypeConfig(activeTab, field, value)}
+                                showDialog={showDialog}
                             />
                         )}
 
@@ -913,6 +1008,13 @@ const AcademicStructurePanel = () => {
             onConfirm={onConfirm}
             message={confirmMessage || 'Are you sure?'}
         />
+            {/* Compact global dialog used by editors for success/error feedback (reuses ConfirmationModal styling) */}
+            <ConfirmationModal
+                isOpen={dialogOpen}
+                onClose={() => setDialogOpen(false)}
+                onConfirm={() => setDialogOpen(false)}
+                message={dialogMessage || (dialogType === 'success' ? 'Success' : 'Error')}
+            />
         </>
     );
 };

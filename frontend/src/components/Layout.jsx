@@ -122,15 +122,15 @@ const Layout = ({ children, currentUser, onLogout }) => {
             width: 8px;
           }
           .custom-scrollbar::-webkit-scrollbar-track { 
-            background: ${currentTheme.linkText.includes('text-white') ? '#374151' : '#f1f1f1'};
+            background: ${currentTheme.linkText.includes('text-white') ? '#0f1724' : '#f1f1f1'};
             border-radius: 10px;
           }
           .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: ${currentTheme.linkText.includes('text-white') ? '#6b7280' : '#888'};
+            background: ${currentTheme.linkText.includes('text-white') ? '#334155' : '#b3b3b3'};
             border-radius: 10px;
           }
           .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: ${currentTheme.linkText.includes('text-white') ? '#9ca3af' : '#555'};
+            background: ${currentTheme.linkText.includes('text-white') ? '#475569' : '#777'};
           }
           .sidebar-transition {
             transition: width 0.3s ease-in-out, transform 0.3s ease-in-out;
@@ -138,6 +138,60 @@ const Layout = ({ children, currentUser, onLogout }) => {
           .main-content-full-width {
             margin-left: 0 !important;
             width: 100% !important;
+          }
+
+          /* Page hero: large rounded gradient header used in student pages */
+          .page-hero {
+            border-radius: 1rem;
+            padding: 2rem 2.25rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 8px 24px rgba(2,6,23,0.06);
+            display: block;
+            overflow: hidden;
+          }
+          .page-hero .title {
+            font-size: 1.875rem;
+            font-weight: 700;
+            line-height: 1.1;
+            margin-bottom: 0.25rem;
+          }
+          .page-hero .subtitle {
+            font-size: 1rem;
+            opacity: 0.9;
+          }
+
+          /* Section card: rely on applied theme token classes for background/border/shadow
+             Keep only layout and spacing here to avoid overriding theme classes. */
+          .section-card {
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+          }
+          .section-card .meta {
+            font-size: 0.95rem;
+            margin-bottom: 1rem;
+            opacity: 0.9;
+          }
+
+          .subject-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0,1fr));
+            gap: 1rem;
+            margin-top: 0.5rem;
+          }
+          .subject-item {
+            padding: 1rem 1.25rem;
+            border-radius: 0.5rem;
+            border: 1px solid ${currentTheme.linkText.includes('text-white') ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'};
+            background: ${currentTheme.linkText.includes('text-white') ? 'transparent' : 'transparent'};
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+          }
+          @media (max-width: 640px) {
+            .subject-grid { grid-template-columns: 1fr; }
+            .page-hero .title { font-size: 1.5rem; }
           }
         `}
       </style>
@@ -365,6 +419,11 @@ const Layout = ({ children, currentUser, onLogout }) => {
                     </NavLink>
                   </li>
                   <li className="mb-2">
+                    <NavLink to="/student/registered-subjects" className={navClass} onClick={toggleSidebar}>
+                      <BookOpenIcon className={`h-5 w-5 mr-3`} /> Registered Subjects
+                    </NavLink>
+                  </li>
+                  <li className="mb-2">
                     <NavLink to={`/attendance/my/${currentUser.profileId}`} className={navClass} onClick={toggleSidebar}>
                       <CalendarDaysIcon className={`h-5 w-5 mr-3`} /> My Attendance
                     </NavLink>
@@ -580,8 +639,10 @@ const Layout = ({ children, currentUser, onLogout }) => {
             <Bars3Icon className="h-6 w-6 text-gray-700" />
           </button>
         )}
-        <div className="flex-1 overflow-y-auto px-6 py-4 custom-scrollbar">
-          {children}
+        <div className="flex-1 overflow-y-auto px-6 py-6 custom-scrollbar">
+          <div className="mx-auto max-w-6xl w-full">
+            {children}
+          </div>
         </div>
       </main>
     </div>

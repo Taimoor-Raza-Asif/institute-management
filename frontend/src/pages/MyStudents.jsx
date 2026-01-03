@@ -64,10 +64,9 @@ const MyStudents = () => {
         const teacherAssignedClasses = teacherProfileResponse.data.assignClasses || [];
         setAssignedClasses(teacherAssignedClasses);
         
-        // 3. Automatically set the initial filter type
-        if (teacherAssignedClasses.length > 0 && !filterType) {
-            setFilterType(teacherAssignedClasses[0].type);
-        }
+        // 3. Keep filterType default as 'All Assigned Types' (empty string).
+        // Do not auto-select the first assigned type so the user can explicitly
+        // choose to filter by a specific assignment type.
 
     } catch (err) {
       console.error('Failed to fetch initial data:', err);
@@ -76,7 +75,7 @@ const MyStudents = () => {
     } finally {
       setStructureLoading(false);
     }
-  }, [currentUser, filterType]);
+    }, [currentUser]);
 
 
   // --- Step 2: Fetch Students Assigned to Teacher (Unchanged) ---
@@ -240,45 +239,45 @@ const MyStudents = () => {
                 <div className={`grid grid-cols-1 md:grid-cols-4 gap-4 mt-3 p-4 rounded-xl ${currentTheme?.panelBg || 'bg-emerald-50/60'} ${currentTheme?.panelBorder || 'border border-emerald-200'}`}>
           
                     {/* Filter by Assignment Type */}
-                    {/* <div>
-                            <label htmlFor="filterType" className={`block text-sm font-medium ${currentTheme?.subtitle || 'text-gray-700'}`}>Filter by Type</label>
-                            <select
-                                    id="filterType"
-                                    value={filterType}
-                                    onChange={(e) => {
-                                            setFilterType(e.target.value);
-                                            setFilterClassNumber('');
-                                            setFilterDegreeName('');
-                                            setFilterSemester('');
-                                    }}
-                                    className={`mt-1 block w-full p-2 rounded-xl ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} ${currentTheme?.shadow || 'shadow-sm'} sm:text-sm border ${currentTheme?.inputBorder || 'border-emerald-200'}`}
-                            >
-                                    <option value="">All Assigned Types</option>
-                                    {/* Only show types assigned to the teacher */}
-                                    {/* {[...new Set(assignedClasses.map(a => a.type))].map(type => (
-                                            <option key={type} value={type}>{type}</option>
-                                    ))}
-                            </select>
-                    </div>  */}
+                    <div>
+                        <label htmlFor="filterType" className={`block text-sm font-medium ${currentTheme?.title || 'text-gray-700'}`}>Academic Track</label>
+                        <select
+                            id="filterType"
+                            value={filterType}
+                            onChange={(e) => {
+                                setFilterType(e.target.value);
+                                setFilterClassNumber('');
+                                setFilterDegreeName('');
+                                setFilterSemester('');
+                            }}
+                            className={`mt-1 block w-full p-2 rounded-xl ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} ${currentTheme?.shadow || 'shadow-sm'} sm:text-sm border ${currentTheme?.inputBorder || 'border-emerald-200'}`}
+                        >
+                            <option value="">All Assigned Types</option>
+                            {/* Only show types assigned to the teacher */}
+                            {[...new Set(assignedClasses.map(a => a.type))].map(type => (
+                                <option key={type} value={type}>{type}</option>
+                            ))}
+                        </select>
+                    </div>
           
                     {/* Conditional Class/Almiya Filter */}
                     {isClassOrAlmiya && selectedAcademicType && (
-                            <div>
-                                    <label htmlFor="filterClassNumber" className={`block text-sm font-medium ${currentTheme?.title || 'text-gray-700'}`}>{selectedAcademicType.name} Grade</label>
-                                    <select
-                                            id="filterClassNumber"
-                                            value={filterClassNumber}
-                                            onChange={(e) => setFilterClassNumber(e.target.value)}
-                                            className={`mt-1 block w-full p-2 rounded-xl ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} ${currentTheme?.shadow || 'shadow-sm'} sm:text-sm border ${currentTheme?.inputBorder || 'border-emerald-200'}`}
-                                    >
-                                            <option value="">All Grades</option>
-                                            {assignedClasses.filter(a => a.type === filterType).map(assignment => (
-                                                    <option key={assignment.classNumber} value={assignment.classNumber}>
-                                                            {assignment.classIdentifier} ({assignment.classNumber})
-                                                    </option>
-                                            ))}
-                                    </select>
-                            </div>
+                        <div>
+                            <label htmlFor="filterClassNumber" className={`block text-sm font-medium ${currentTheme?.title || 'text-gray-700'}`}>{selectedAcademicType.name} Grade</label>
+                            <select
+                                id="filterClassNumber"
+                                value={filterClassNumber}
+                                onChange={(e) => setFilterClassNumber(e.target.value)}
+                                className={`mt-1 block w-full p-2 rounded-xl ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} ${currentTheme?.shadow || 'shadow-sm'} sm:text-sm border ${currentTheme?.inputBorder || 'border-emerald-200'}`}
+                            >
+                                <option value="">All Grades</option>
+                                {assignedClasses.filter(a => a.type === filterType).map(assignment => (
+                                    <option key={assignment.classNumber} value={assignment.classNumber}>
+                                        {assignment.classIdentifier} ({assignment.classNumber})
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
                     )}
           
                     {/* Conditional BS Filters */}

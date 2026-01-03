@@ -56,6 +56,7 @@ import donationRoutes from './routes/donationRoutes.js'; // Import the new route
 import billingRoutes from './routes/billingRoutes.js'; 
 import marksRoutes from './routes/marksRoutes.js'; // Import the new routes
 import academicStructureRoutes from './routes/academicStructureRoutes.js';
+import importRoutes from './routes/importRoutes.js';
 // Helper to get __filename and __dirname in ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -66,8 +67,22 @@ dotenv.config({ path: path.resolve(__dirname, '../.env') });
 const app = express();
 
 // Middleware
-app.use(cors()); // Enable CORS for all origins
+// Configure CORS for production
+const corsOptions = {
+  origin: process.env.NODE_ENV === 'production' 
+    ? [process.env.FRONTEND_URL, 'https://localhost:5173'].filter(Boolean)
+    : '*',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+};
+app.use(cors(corsOptions));
 app.use(express.json()); // Parse JSON request bodies
+
+// Health check endpoint for deployment platforms
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
+});
 
 // Serve static files from the 'uploads' directory
 // This makes files in 'uploads/' accessible via '/uploads/' URL path
@@ -87,13 +102,15 @@ app.use('/api/donations', donationRoutes);
 app.use('/api/billing', billingRoutes); 
 app.use('/api/marks', marksRoutes);
 app.use('/api/academic-structure', academicStructureRoutes);
+app.use('/api/import', importRoutes);
 // Define the port for the server
 const PORT = process.env.PORT || 5000;
 
 // Connect to MongoDB and start the server
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-}).then(() => {
+mongoose.connect(process.env.MONGO_URI)
+.then(() => {
   app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 }).catch(err => console.error('MongoDB connection error:', err)); // More descriptive error message
+
+// Export app for testing (supertest). Tests should handle DB setup/teardown.
+export default app;

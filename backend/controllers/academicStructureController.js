@@ -18,24 +18,37 @@ export const getAcademicStructure = asyncHandler(async (req, res) => {
 // @route   PUT /api/academic-structure
 // @access  Private/Admin
 export const updateAcademicStructure = asyncHandler(async (req, res) => {
+    console.log('[AcademicStructure] PUT request received');
+    console.log('[AcademicStructure] Request body:', JSON.stringify(req.body, null, 2));
+    
     const { classTypes } = req.body;
 
     if (!Array.isArray(classTypes)) {
+        console.log('[AcademicStructure] ERROR: classTypes is not an array');
         res.status(400);
         throw new Error('Invalid data format. classTypes must be an array.');
     }
 
-    const updatedStructure = await AcademicStructure.findOneAndUpdate(
-        { key: 'ACADEMIC_CONFIG' },
-        { $set: { classTypes: classTypes, updatedAt: Date.now() } },
-        { new: true, runValidators: true, context: 'query' }
-    );
+    console.log('[AcademicStructure] classTypes count:', classTypes.length);
 
-    if (!updatedStructure) {
-        // This should not happen since we upsert in the GET
-        res.status(500);
-        throw new Error('Failed to update academic structure.');
+    try {
+        const updatedStructure = await AcademicStructure.findOneAndUpdate(
+            { key: 'ACADEMIC_CONFIG' },
+            { $set: { classTypes: classTypes, updatedAt: Date.now() } },
+            { new: true, upsert: true, runValidators: true, context: 'query' }
+        );
+
+        console.log('[AcademicStructure] Update successful, ID:', updatedStructure?._id);
+
+        if (!updatedStructure) {
+            console.log('[AcademicStructure] ERROR: No document returned after update');
+            res.status(500);
+            throw new Error('Failed to update academic structure.');
+        }
+        
+        res.json({ message: 'Academic structure updated successfully.', structure: updatedStructure });
+    } catch (error) {
+        console.log('[AcademicStructure] Database error:', error.message);
+        throw error;
     }
-    
-    res.json({ message: 'Academic structure updated successfully.', structure: updatedStructure });
 });

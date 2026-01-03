@@ -38,10 +38,12 @@ const TeacherDashboard = () => {
           api.get('/salary/my-salaries'),
           api.get('/staff-leave'),
           api.get('/leave'),
-          api.get(`/attendance/staff/${currentUser.profileId}?year=${currentYear}&month=${currentMonth}`)
+          api.get(`/attendance/staff/${currentUser.profileId}?year=${currentYear}&month=${currentMonth}`),
+          api.get(`/staff/${currentUser.profileId}`), // Fetch teacher's staff profile for assignClasses
+          api.get('/attendance/students/assigned') // Fetch assigned students for teacher
         ];
 
-        const [salaryRes, staffLeaveRes, studentLeaveRes, attendanceRes] = await Promise.allSettled(requests);
+        const [salaryRes, staffLeaveRes, studentLeaveRes, attendanceRes, staffProfileRes, assignedStudentsRes] = await Promise.allSettled(requests);
 
         const salaryData = salaryRes.status === 'fulfilled' ? salaryRes.value.data || [] : [];
         const salaryCurrent = salaryData.find((s) => s.month === currentMonth && s.year === currentYear) || salaryData[0];
@@ -78,10 +80,19 @@ const TeacherDashboard = () => {
         const leaveDays = safeNumber(attendanceSummary.leaveDays);
         const absentDays = safeNumber(attendanceSummary.absentDays);
         const attendancePercents = [
-          { label: 'Present', percent: Math.round((presentDays / totalDays) * 100) },
-          { label: 'Leave', percent: Math.round((leaveDays / totalDays) * 100) },
-          { label: 'Absent', percent: Math.round((absentDays / totalDays) * 100) }
+          { label: 'Present', percent: Math.round((presentDays / (presentDays + leaveDays + absentDays)) * 100) || 0 },
+          { label: 'Leave', percent: Math.round((leaveDays / (presentDays + leaveDays + absentDays)) * 100) || 0 },
+          { label: 'Absent', percent: Math.round((absentDays / (presentDays + leaveDays + absentDays)) * 100) || 0 }
         ];
+
+        // Get teacher's assigned classes from their staff profile
+        const staffProfile = staffProfileRes.status === 'fulfilled' ? staffProfileRes.value.data : null;
+        const assignClasses = staffProfile?.assignClasses || [];
+        
+        // Get assigned students count - filter out students with null name or _id
+        const assignedStudents = assignedStudentsRes.status === 'fulfilled' 
+          ? (assignedStudentsRes.value.data || []).filter(s => s && s._id && s.name)
+          : [];
 
         setAnalytics({
           salary: {
@@ -94,10 +105,8 @@ const TeacherDashboard = () => {
           studentLeaves: studentLeaveCounts,
           attendance: attendancePercents,
           quick: {
-            totalClasses: Array.isArray(currentUser.assignClasses) ? currentUser.assignClasses.length : 0,
-            totalStudents: studentLeaves.length > 0
-              ? new Set(studentLeaves.map((l) => (typeof l.student === 'object' ? l.student?._id : l.student))).size
-              : 0,
+            totalClasses: assignClasses.length,
+            totalStudents: assignedStudents.length,
             avgAttendance: attendancePercents.find((a) => a.label === 'Present')?.percent || 0,
             pendingReviews: studentLeaveCounts.pending
           }
@@ -220,19 +229,19 @@ const TeacherDashboard = () => {
             title="My Students"
             description="See assigned students and manage their records."
             icon={<AcademicCapIcon className={`h-9 w-9 ${currentTheme?.iconText || 'text-emerald-600'}`} />}
-            link="/students"
+            link="/teacher/my-students"
           />
           <DashboardCard
             title="My Attendance"
             description="Check your attendance history and status."
             icon={<CalendarDaysIcon className={`h-9 w-9 ${currentTheme?.iconText || 'text-emerald-600'}`} />}
-            link="/staff/my-data"
+            link={`/attendance/my/${currentUser.profileId}`}
           />
           <DashboardCard
             title="My Subjects"
             description="Track the subjects you teach and related info."
             icon={<BookOpenIcon className={`h-9 w-9 ${currentTheme?.iconText || 'text-emerald-600'}`} />}
-            link="/teacher/subjects"
+            link="/teacher/my-subjects"
           />
         </div>
       </div>

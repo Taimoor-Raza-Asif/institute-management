@@ -71,13 +71,19 @@ const LeaveList = () => {
   }, [debouncedSearchTerm, filterStatus, filterStudentName, filterClass, filterStartDate, filterEndDate, filterIsReturned]);
 
   const fetchStudentsForForm = useCallback(async () => {
-    if (isTeacher || isAdmin) {
-      try {
-        const { data } = await api.get('/students?select=name,cnic');
+    try {
+      if (isTeacher || isAdmin) {
+        // Admins/Teachers need a richer student object for selection (including class info)
+        const select = 'name,cnic,class,classNumber,classIdentifier,semester,degreeName,currentJuz,fatherName';
+        const { data } = await api.get('/students', { params: { select } });
         setStudentsForForm(data);
-      } catch (err) {
-        console.error("Error fetching students:", err);
+      } else if (isStudent && user?.profileId) {
+        // For students, fetch only the logged-in student's full record
+        const { data } = await api.get(`/students/${user.profileId}`);
+        setStudentsForForm([data]);
       }
+    } catch (err) {
+      console.error("Error fetching students:", err);
     }
   }, [isTeacher, isAdmin]);
 

@@ -228,6 +228,8 @@ const AcademicStructurePanel = () => {
 
     // MODIFIED: handleSaveStructure now accepts an optional payload to bypass async state update
     const handleSaveStructure = async (initialPayload = null) => { 
+        console.log('[DEBUG] handleSaveStructure called! initialPayload:', initialPayload ? 'provided' : 'null');
+        console.log('[DEBUG] Current structure state:', structure);
         setIsSaving(true);
         setError(null);
 
@@ -851,9 +853,9 @@ const AcademicStructurePanel = () => {
                         </div>
                     </div>
                     <button
-                        onClick={handleSaveStructure}
+                        onClick={() => handleSaveStructure()}
                         disabled={isSaving || isStructureEmpty}
-                        className={`flex items-center justify-center h-12 px-8 rounded-lg font-bold ${currentTheme?.btnPrimaryBg || 'bg-green-600'} ${currentTheme?.btnPrimaryText || 'text-white'} ${currentTheme?.btnPrimaryHover || 'hover:bg-green-700'} ${currentTheme?.shadow || 'shadow-xl'} md:w-auto w-full disabled:${currentTheme?.inputDisabled || 'bg-gray-400'} disabled:shadow-none flex-shrink-0`}
+                        className={`flex items-center justify-center h-12 px-8 rounded-lg font-bold ${currentTheme?.btnPrimaryBg || 'bg-green-600'} ${currentTheme?.btnPrimaryText || 'text-white'} ${currentTheme?.btnPrimaryHover || 'hover:bg-green-700'} ${currentTheme?.shadow || 'shadow-xl'} md:w-auto w-full disabled:bg-gray-400 disabled:cursor-not-allowed disabled:shadow-none flex-shrink-0`}
                     >
                         <ArrowPathIcon className={`h-5 w-5 mr-3 ${isSaving ? 'animate-spin' : ''}`} />
                         {isSaving ? 'Saving...' : 'Save Configuration'}
@@ -911,9 +913,9 @@ const AcademicStructurePanel = () => {
                 
                 {/* Save button now in hero; keep secondary quick-save here for long pages */}
                 <button
-                    onClick={handleSaveStructure}
+                    onClick={() => handleSaveStructure()}
                     disabled={isSaving || isStructureEmpty}
-                    className={`flex items-center justify-center h-12 px-8 rounded-lg font-bold md:w-auto w-full ${currentTheme?.btnSecondaryBg || 'bg-white'} ${currentTheme?.btnSecondaryText || 'text-gray-700'} ${currentTheme?.btnSecondaryBorder || 'border border-gray-300'} ${currentTheme?.btnSecondaryHover || 'hover:bg-gray-50'} ${currentTheme?.shadow || 'shadow-sm'} disabled:${currentTheme?.inputDisabled || 'bg-gray-200'} disabled:text-gray-500`}
+                    className={`flex items-center justify-center h-12 px-8 rounded-lg font-bold md:w-auto w-full ${currentTheme?.btnSecondaryBg || 'bg-white'} ${currentTheme?.btnSecondaryText || 'text-gray-700'} ${currentTheme?.btnSecondaryBorder || 'border border-gray-300'} ${currentTheme?.btnSecondaryHover || 'hover:bg-gray-50'} ${currentTheme?.shadow || 'shadow-sm'} disabled:bg-gray-200 disabled:text-gray-500 disabled:cursor-not-allowed`}
                 >
                     <ArrowPathIcon className={`h-5 w-5 mr-3 ${isSaving ? 'animate-spin' : ''}`} />
                     {isSaving ? 'Saving...' : 'Quick Save'}

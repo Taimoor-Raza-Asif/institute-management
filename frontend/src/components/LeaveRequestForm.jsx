@@ -74,11 +74,55 @@ const LeaveRequestForm = ({ editingLeave, fetchLeaves, studentsForForm, onClose,
     setFieldErrors({});
   }, [editingLeave, user, isStudentUser]);
 
+  // Helper to render student class/semester nicely
+  const formatStudentClassLabel = (student) => {
+    if (!student) return 'N/A';
+    const cls = student.class;
+    if (cls === 'Class') return student.classNumber ? `Class ${student.classNumber}` : 'Class N/A';
+    if (cls === 'Almiya') return student.classNumber ? `${student.classIdentifier || 'Almiya'} (Grade ${student.classNumber})` : 'Almiya (Grade N/A)';
+    if (cls === 'BS') return student.semester ? `BS Sem ${student.semester}` : 'BS Sem N/A';
+    if (cls === 'Hifaz') return `Hifaz (Juz ${student.currentJuz ?? 'N/A'})`;
+    return student.class || 'N/A';
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
+    // If student is selected, populate related student fields required by backend
+    if (name === 'studentId') {
+      const selected = studentsForForm.find(s => s._id === value);
+      if (selected) {
+        setViewStudentDetails(selected);
+        setLeave(prev => ({
+          ...prev,
+          studentId: value,
+          studentClass: selected.class || prev.studentClass || '',
+          studentName: selected.name || prev.studentName || '',
+          fatherName: selected.fatherName || prev.fatherName || '',
+        }));
+        setFieldErrors(prev => ({ ...prev, studentId: '' }));
+        return;
+      }
+    }
+
     setLeave(prev => ({ ...prev, [name]: value }));
     setFieldErrors(prev => ({ ...prev, [name]: '' }));
   };
+
+  // Keep leave.studentClass and viewStudentDetails in sync when studentId changes
+  React.useEffect(() => {
+    if (leave.studentId && studentsForForm?.length) {
+      const s = studentsForForm.find(st => st._id === leave.studentId);
+      if (s) {
+        setViewStudentDetails(s);
+        setLeave(prev => ({
+          ...prev,
+          studentClass: prev.studentClass || s.class || '',
+          studentName: prev.studentName || s.name || '',
+          fatherName: prev.fatherName || s.fatherName || '',
+        }));
+      }
+    }
+  }, [leave.studentId, studentsForForm]);
 
   const validateForm = () => {
     let errors = {};
@@ -194,10 +238,8 @@ const LeaveRequestForm = ({ editingLeave, fetchLeaves, studentsForForm, onClose,
               <p><span className="font-semibold text-gray-700">CNIC:</span> <span className="text-gray-600">{editingLeave.student?.cnic}</span></p>
               <p><span className="font-semibold text-gray-700">Class:</span> <span className="text-gray-600">
                 {viewStudentDetails
-                  ? (viewStudentDetails.class === 'Class'
-                    ? `Class ${viewStudentDetails.classNumber}`
-                    : `BS Sem ${viewStudentDetails.semester}`)
-                  : editingLeave.studentClass
+                  ? formatStudentClassLabel(viewStudentDetails)
+                  : (editingLeave.studentClass || 'N/A')
                 }
               </span></p>
             </div>
@@ -220,7 +262,7 @@ const LeaveRequestForm = ({ editingLeave, fetchLeaves, studentsForForm, onClose,
               <option value="">-- Select Student --</option>
               {studentsForForm.map(student => (
                 <option key={student._id} value={student._id}>
-                  {student.name} ({student.cnic}) - {student.class === 'Class' ? `Class ${student.classNumber}` : `BS Sem ${student.semester}`}
+                  {student.name} ({student.cnic}) - {formatStudentClassLabel(student)}
                 </option>
               ))}
             </select>

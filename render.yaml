@@ -1,0 +1,22 @@
+# Render Blueprint - Auto-deploy configuration
+# https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: institute-management-api
+    runtime: node
+    region: oregon # or singapore, frankfurt, ohio
+    plan: free
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGO_URI
+        sync: false # Must be set manually in Render dashboard
+      - key: JWT_SECRET
+        sync: false # Must be set manually in Render dashboard
+      - key: FRONTEND_URL
+        sync: false # Must be set manually in Render dashboard

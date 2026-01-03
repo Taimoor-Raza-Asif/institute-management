@@ -1,0 +1,5 @@
+donorName,donationAmount,donationPurpose,donationDate,paymentMethod,cnic,contactNumber,emailAddress
+John Doe,5000,General Support,2025-10-05,Cash,1234567890123,03001234567,john@example.com
+Jane Smith,2500,Eid Fund,2025-09-15,Bank Transfer,9876543210123,03009876543,jane@example.com
+Anonymous,100,Food Drive,2025-11-01,Cash,,,
+Local Org,10000,Building Fund,2025-08-20,Cheque,1112223334445,03001112222,org@example.org

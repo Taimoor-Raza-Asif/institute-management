@@ -8,6 +8,7 @@ import Message from '../components/Message';
 import { toast } from 'react-toastify';
 import { BarChart3, CalendarCheck, Wallet, FileClock, GraduationCap, User, DollarSign, Calendar, FileText, TrendingUp, Award, ArrowRight } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
+import RegisteredSubjects from '../components/RegisteredSubjects';
 
 const StudentDashboard = () => {
   const { currentUser } = useContext(UserContext);
@@ -43,7 +44,14 @@ const StudentDashboard = () => {
         ]);
         setMarks(Array.isArray(marksRes.data) ? marksRes.data : []);
         setFees(Array.isArray(feesRes.data) ? feesRes.data : []);
-        setAttendance(Array.isArray(attRes.data) ? attRes.data : []);
+        // attendance endpoint returns { summary, records }
+        if (attRes && attRes.data) {
+          if (Array.isArray(attRes.data.records)) setAttendance(attRes.data.records);
+          else if (Array.isArray(attRes.data)) setAttendance(attRes.data);
+          else setAttendance([]);
+        } else {
+          setAttendance([]);
+        }
         setLeaves(Array.isArray(leavesRes.data) ? leavesRes.data : []);
       } catch (err) {
         setError('Failed to load analytics.');
@@ -154,7 +162,7 @@ const StudentDashboard = () => {
               title="My Profile"
               description="View and manage your personal information."
               icon={<User className="h-6 w-6" />}
-              link="/students/my-data"
+              link={`/profile/student/${currentUser.profileId}`}
               accentColor="emerald"
             />
             <QuickActionCard
@@ -168,24 +176,28 @@ const StudentDashboard = () => {
               title="My Attendance"
               description="Check your attendance records."
               icon={<Calendar className="h-6 w-6" />}
-              link="/student/attendance"
+              link={`/attendance/my/${currentUser.profileId}`}
               accentColor="teal"
             />
             <QuickActionCard
               title="My Leave Requests"
               description="Submit and track your leave requests."
               icon={<FileClock className="h-6 w-6" />}
-              link="/leaves"
+              link="/student/student-leaves"
               accentColor="amber"
             />
             <QuickActionCard
               title="My Marks"
               description="View your marks and academic progress."
               icon={<Award className="h-6 w-6" />}
-              link="/marks"
+              link={`/marks/student/${currentUser.profileId}`}
               accentColor="rose"
             />
           </div>
+        </div>
+        {/* Registered Subjects (inline) */}
+        <div className="mt-8">
+          <RegisteredSubjects inline />
         </div>
       </div>
     </div>

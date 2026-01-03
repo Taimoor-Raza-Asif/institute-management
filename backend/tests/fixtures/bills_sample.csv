@@ -1,0 +1,6 @@
+title,category,amount,status,billDate,paidTo,notes
+Electricity Bill,Utilities,12500,Unpaid,2025-11-05,Electric Co,Monthly electricity
+Kitchen Supplies,Kitchen,8400,Paid,2025-11-01,Supplies Inc,November purchase
+Vendor Settlement,Vendor Payment,15000,Partial,2025-10-20,Vendor XYZ,Partial paid
+Repair AC,Repairs,4000,Unpaid,2025-09-15,Handyman,AC unit repair
+Misc Other,Other,750,Unpaid,2025-12-01,Local Store,Small purchase

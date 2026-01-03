@@ -175,6 +175,12 @@ const AccountantDashboard = () => {
       const collectedFees = feesData.reduce((sum, f) => sum + (f.receivedAmount || 0), 0);
       const pendingFeeAmount = feesData.reduce((sum, f) => sum + (f.dueAmount || 0), 0);
 
+      // Percent of fees that are pending out of total fees (collected + pending)
+      const pendingPercentNumber = (collectedFees + pendingFeeAmount) > 0
+        ? ((pendingFeeAmount / (collectedFees + pendingFeeAmount)) * 100).toFixed(1)
+        : 0;
+      const pendingPercent = `${pendingPercentNumber}%`;
+
       const feeStatus = [
         { name: 'Collected', value: collectedFees, color: '#10b981' },
         { name: 'Pending', value: pendingFeeAmount, color: '#fca5a5' }
@@ -190,6 +196,7 @@ const AccountantDashboard = () => {
         revenueTrend: `${revenueTrend > 0 ? '+' : ''}${revenueTrend}%`,
         expensesTrend: `${expensesTrend > 0 ? '+' : ''}${expensesTrend}%`,
         donationsTrend: `${donationsTrend}%`,
+        pendingPercent,
         recentTransactions: [...feesData.slice(0, 3), ...billingData.slice(0, 2)],
         chartData: {
           monthlyData,
@@ -273,7 +280,8 @@ const AccountantDashboard = () => {
                 title="Total Fee Revenue"
                 value={`Rs ${stats.totalRevenue.toLocaleString()}`}
                 icon={<ArrowTrendingUpIcon className={`h-8 w-8 ${currentTheme?.iconText || 'text-white'}`} />}
-                bgGradient={currentTheme?.heroBg || 'from-emerald-500 to-teal-600'}
+                iconBg={currentTheme?.badgeSuccessBg || 'bg-emerald-50'}
+                iconColor={currentTheme?.badgeSuccessText || 'text-emerald-700'}
                 trend={stats.revenueTrend}
                 trendUp={parseFloat(stats.revenueTrend) >= 0}
                 theme={currentTheme}
@@ -282,7 +290,8 @@ const AccountantDashboard = () => {
                 title="Total Expenses"
                 value={`Rs ${stats.totalExpenses.toLocaleString()}`}
                 icon={<ArrowTrendingDownIcon className={`h-8 w-8 ${currentTheme?.iconText || 'text-white'}`} />}
-                bgGradient="from-red-400 to-red-600"
+                iconBg={currentTheme?.badgeDangerBg || 'bg-red-50'}
+                iconColor={currentTheme?.badgeDangerText || 'text-red-700'}
                 trend={stats.expensesTrend}
                 trendUp={parseFloat(stats.expensesTrend) <= 0}
                 theme={currentTheme}
@@ -291,16 +300,18 @@ const AccountantDashboard = () => {
                 title="Pending Fees"
                 value={`Rs ${stats.pendingFees.toLocaleString()}`}
                 icon={<ReceiptPercentIcon className={`h-8 w-8 ${currentTheme?.iconText || 'text-white'}`} />}
-                bgGradient="from-yellow-400 to-yellow-600"
-                trend={stats.donationsTrend}
-                trendUp={parseFloat(stats.donationsTrend) <= 50}
+                iconBg={currentTheme?.badgeWarningBg || 'bg-yellow-50'}
+                iconColor={currentTheme?.badgeWarningText || 'text-yellow-700'}
+                trend={stats.pendingPercent}
+                trendUp={parseFloat(stats.pendingPercent) <= 20}
                 theme={currentTheme}
               />
               <StatCard
                 title="Total Donations"
                 value={`Rs ${stats.totalDonations.toLocaleString()}`}
                 icon={<GiftIcon className={`h-8 w-8 ${currentTheme?.iconText || 'text-white'}`} />}
-                bgGradient="from-blue-400 to-blue-600"
+                iconBg={currentTheme?.badgeInfoBg || 'bg-blue-50'}
+                iconColor={currentTheme?.badgeInfoText || 'text-blue-700'}
                 trend={stats.donationsTrend}
                 trendUp={true}
                 theme={currentTheme}
@@ -521,11 +532,11 @@ const AccountantDashboard = () => {
   );
 };
 
-const StatCard = ({ title, value, icon, bgGradient, trend, trendUp, theme }) => (
+const StatCard = ({ title, value, icon, iconBg, iconColor, bgGradient, trend, trendUp, theme }) => (
   <div className={`animate-rise ${theme?.cardBg || 'bg-white'} ${theme?.shadow || 'shadow-xl'} ${theme?.border || 'border border-gray-100'} rounded-2xl p-6 transform hover:scale-105 hover:-translate-y-1 transition-all duration-300`}>
     <div className="flex items-center justify-between mb-4">
-      <div className={`p-3 ${theme?.heroBg || `bg-gradient-to-br ${bgGradient}`} rounded-xl ${theme?.shadow || 'shadow-lg'}`}>
-        <div className={theme?.heroText || 'text-white'}>{icon}</div>
+      <div className={`p-3 ${iconBg || theme?.pillBg || theme?.heroPillBg || 'bg-gray-100'} rounded-xl ${theme?.shadow || 'shadow-lg'}`}>
+        <div className={iconColor || theme?.iconText || 'text-white'}>{icon}</div>
       </div>
       {trend && (
         <span className={`text-sm font-semibold px-3 py-1 rounded-full ${trendUp ? `${theme?.badgeSuccessBg || 'bg-green-100'} ${theme?.badgeSuccessText || 'text-green-700'}` : `${theme?.badgeDangerBg || 'bg-red-100'} ${theme?.badgeDangerText || 'text-red-700'}`}`}>

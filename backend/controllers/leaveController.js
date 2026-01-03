@@ -132,11 +132,27 @@ export const createLeaveRequest = asyncHandler(async (req, res) => {
     };
   }
 
+  // Determine studentClass: prefer explicit value from client, otherwise compute a sensible fallback
+  let studentClassValue = req.body.studentClass || '';
+  if (!studentClassValue) {
+    if (student.class === 'Class') {
+      studentClassValue = student.classNumber || student.majorSubject || 'Class';
+    } else if (student.class === 'BS') {
+      studentClassValue = student.semester ? `BS Sem ${student.semester}` : (student.degreeName || 'BS');
+    } else if (student.class === 'Almiya') {
+      studentClassValue = student.semester ? `Almiya Sem ${student.semester}` : 'Almiya';
+    } else if (student.class === 'Hifaz') {
+      studentClassValue = student.currentJuz ? `Juz ${student.currentJuz}` : 'Hifaz';
+    } else {
+      studentClassValue = student.class || 'Unknown';
+    }
+  }
+
   const leaveRequest = new LeaveRequest({
     student: student._id,
-    studentName: student.name, // <--- ADDED
-    fatherName: student.fatherName, // <--- ADDED
-    studentClass: student.class === 'Class' ? student.classNumber : student.semester, // <--- ADDED (Assuming 'class' field exists on Student model)
+    studentName: student.name,
+    fatherName: student.fatherName,
+    studentClass: studentClassValue,
     startDate,
     endDate,
     addressGoingTo,

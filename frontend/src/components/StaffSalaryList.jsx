@@ -184,7 +184,7 @@ const StaffSalaryList = () => {
       let yPos = yStart;
 
       const logo = new Image();
-      logo.src = '/default-avatar.jpg';
+      logo.src = '/Jamia Logo.png';
 
       logo.onload = () => {
         doc.addImage(logo, 'JPEG', xStart, yPos, 15, 15);

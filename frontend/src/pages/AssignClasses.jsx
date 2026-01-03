@@ -76,7 +76,13 @@ const AssignClasses = () => {
             suggestedSubjects = classConfig?.subjects || [];
         } else if (currentAssignment.type === 'BS' && currentAssignment.degreeName && currentAssignment.semester) {
             const degreeConfig = selectedAcademicType?.degreeConfig?.find(d => d.degreeName === currentAssignment.degreeName);
-            suggestedSubjects = degreeConfig?.subjectsBySemester.get(String(currentAssignment.semester)) || [];
+            // Handle both Map (frontend) and plain object (from database) formats
+            const semesterKey = String(currentAssignment.semester);
+            if (degreeConfig?.subjectsBySemester) {
+                suggestedSubjects = degreeConfig.subjectsBySemester instanceof Map 
+                    ? (degreeConfig.subjectsBySemester.get(semesterKey) || [])
+                    : (degreeConfig.subjectsBySemester[semesterKey] || []);
+            }
         } else if (currentAssignment.type === 'Hifaz') {
              suggestedSubjects = ['Hifaz/Quran Memorization'];
         }
@@ -169,6 +175,20 @@ const AssignClasses = () => {
                 newState.subjects = classObj?.subjects.length > 0 ? classObj.subjects : [""];
             } else if (name === 'degreeName') {
                 newState.semester = "";
+                newState.subjects = [""];
+            } else if (name === 'semester' && newState.type === 'BS' && newState.degreeName) {
+                // Auto-populate subjects when semester is selected for BS degrees
+                const config = getAcademicConfig('BS');
+                const degreeConfig = config?.degreeConfig?.find(d => d.degreeName === newState.degreeName);
+                if (degreeConfig?.subjectsBySemester) {
+                    const semesterKey = String(value);
+                    const semesterSubjects = degreeConfig.subjectsBySemester instanceof Map 
+                        ? (degreeConfig.subjectsBySemester.get(semesterKey) || [])
+                        : (degreeConfig.subjectsBySemester[semesterKey] || []);
+                    newState.subjects = semesterSubjects.length > 0 ? [...semesterSubjects] : [""];
+                } else {
+                    newState.subjects = [""];
+                }
             }
 
             return newState;
@@ -302,7 +322,7 @@ const AssignClasses = () => {
     };
 
     const handleSubmit = async (e) => {
-        e.preventDefault();
+        if (e && e.preventDefault) e.preventDefault();
         setSuccessMessage("");
         setError(null);
 
@@ -484,37 +504,51 @@ const AssignClasses = () => {
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div className={`${currentTheme?.panelBg || 'bg-green-50'} rounded-lg p-6 ${currentTheme?.border || 'border border-green-200'} shadow-inner`}>
                             <h4 className="text-lg font-semibold text-green-800 mb-4 border-b border-green-300 pb-2">Teacher Selection</h4>
-                                <div>
+                            <div>
                                 <label htmlFor="teacher" className={`block text-sm font-medium ${currentTheme?.mutedText || 'text-gray-700'} mb-1`}>Select Teacher</label>
                                 <div className="relative">
-                                    <MagnifyingGlassIcon className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 ${currentTheme?.mutedText || 'text-gray-400'}`} />
+                                    <MagnifyingGlassIcon className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 ${currentTheme?.mutedText || 'text-gray-400'} pointer-events-none`} />
                                     <input
                                         type="text"
-                                        placeholder="Search teachers..."
-                                        value={searchTermTeachers}
-                                        onChange={(e) => setSearchTermTeachers(e.target.value)}
-                                        className={`w-full pl-10 pr-4 py-2 rounded-lg border focus:outline-none transition ${currentTheme?.inputBg || "border-gray-200 bg-gray-50"} ${currentTheme?.inputText || "text-gray-800"} ${currentTheme?.inputRing || 'focus:ring-2 focus:ring-green-500'}`}
+                                        id="teacher"
+                                        placeholder="Search and select a teacher..."
+                                        value={staffList.find(s => s._id === selectedStaff)?.name || searchTermTeachers}
+                                        onChange={(e) => {
+                                            setSearchTermTeachers(e.target.value);
+                                            // Clear selection if user is typing a new search
+                                            if (selectedStaff) {
+                                                const currentTeacher = staffList.find(s => s._id === selectedStaff);
+                                                if (currentTeacher && e.target.value !== currentTeacher.name) {
+                                                    setSelectedStaff("");
+                                                    setAssignmentsForSelectedTeacher([]);
+                                                    setNewAssignments([]);
+                                                }
+                                            }
+                                            // Auto-select if exact match found
+                                            const match = staffList.find(s => s.name.toLowerCase() === e.target.value.toLowerCase());
+                                            if (match) {
+                                                setSelectedStaff(match._id);
+                                                setAssignmentsForSelectedTeacher(allTeachers.find(t => t._id === match._id)?.assignClasses || []);
+                                                setNewAssignments([]);
+                                                resetCurrentAssignmentForm();
+                                            }
+                                        }}
+                                        list="teacher-list"
+                                        className={`w-full pl-10 pr-4 py-3 rounded-lg border focus:outline-none transition ${currentTheme?.inputBg || "border-gray-200 bg-gray-50"} ${currentTheme?.inputText || "text-gray-800"} ${currentTheme?.inputRing || 'focus:ring-2 focus:ring-green-500'}`}
+                                        required
                                     />
+                                    <datalist id="teacher-list">
+                                        {filteredStaffList.map((staff) => (
+                                            <option key={staff._id} value={staff.name} />
+                                        ))}
+                                    </datalist>
                                 </div>
-                                <select
-                                    id="teacher"
-                                    value={selectedStaff}
-                                    onChange={(e) => { 
-                                        setSelectedStaff(e.target.value); 
-                                        setAssignmentsForSelectedTeacher(allTeachers.find(t => t._id === e.target.value)?.assignClasses || []);
-                                        setNewAssignments([]);
-                                        resetCurrentAssignmentForm();
-                                    }}
-                                    className={`mt-2 block w-full px-4 py-2 rounded-lg border focus:outline-none transition ${currentTheme?.inputBg || "border-gray-200 bg-gray-50"} ${currentTheme?.inputText || "text-gray-800"} ${currentTheme?.inputRing || 'focus:ring-2 focus:ring-green-500'}`}
-                                    required
-                                >
-                                    <option value="" disabled>Select a teacher</option>
-                                    {filteredStaffList.map((staff) => (
-                                        <option key={staff._id} value={staff._id}>
-                                            {staff.name}
-                                        </option>
-                                    ))}
-                                </select>
+                                {selectedStaff && (
+                                    <p className="mt-2 text-sm text-green-600 flex items-center">
+                                        <span className="inline-block w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                                        Teacher selected: {staffList.find(s => s._id === selectedStaff)?.name}
+                                    </p>
+                                )}
                             </div>
                         </div>
 
@@ -645,15 +679,15 @@ const AssignClasses = () => {
                                                 </button>
                                             )}
                                         </div>
-                                    ))}
-                                </div>
-                                <button
+                                        ))}
+                                    </div>
+                                {/* <button
                                     type="button"
                                     onClick={() => setCurrentAssignment(prev => ({ ...prev, subjects: [...prev.subjects, ""] }))}
                                     className={`mt-3 w-full inline-flex items-center justify-center px-4 py-2 rounded-md text-sm font-medium ${currentTheme?.inputText || 'text-gray-700'} border-dashed ${currentTheme?.border || 'border border-gray-100'} hover:opacity-90 transition-colors`}
                                 >
                                     <PlusIcon className="h-4 w-4 mr-2" /> Add Subject
-                                </button>
+                                </button> */}
                                 {formErrors.subjects && <p className="mt-1 text-sm text-red-600">{formErrors.subjects}</p>}
                             </div>
                             
@@ -718,7 +752,8 @@ const AssignClasses = () => {
                                 </ul>
                                 <div className="mt-6 flex justify-end">
                                     <button
-                                        type="submit"
+                                        type="button"
+                                        onClick={handleSubmit}
                                         className={`px-6 py-3 ${currentTheme?.btnPrimaryBg || 'bg-green-600'} ${currentTheme?.btnPrimaryText || 'text-white'} font-semibold rounded-lg ${currentTheme?.btnPrimaryHover || 'hover:bg-green-700'} transition duration-200 shadow-md flex items-center`}
                                     >
                                         <AcademicCapIcon className="h-5 w-5 mr-2" /> Save All Assignments

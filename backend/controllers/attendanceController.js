@@ -153,7 +153,15 @@ const getStudentAttendance = asyncHandler(async (req, res) => {
     user: id,
     onModel: 'Student',
     date: { $gte: startDate, $lte: endDate },
-  }).sort({ date: -1 });
+  })
+    .populate({
+      path: 'markedBy',
+      populate: {
+        path: 'profileId',
+        select: 'name'
+      }
+    })
+    .sort({ date: -1 });
 
   const totalDays = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
   const presentDays = attendance.filter(record => record.status === 'Present').length;
@@ -188,9 +196,17 @@ const getStaffAttendance = asyncHandler(async (req, res) => {
     user: id,
     onModel: 'Staff',
     date: { $gte: startDate, $lte: endDate },
-  }).sort({ date: -1 });
+  })
+    .populate({
+      path: 'markedBy',
+      populate: {
+        path: 'profileId',
+        select: 'name'
+      }
+    })
+    .sort({ date: -1 });
 
-  const totalDays = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+  const totalDays = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
   const presentDays = attendance.filter(record => record.status === 'Present').length;
   const absentDays = attendance.filter(record => record.status === 'Absent').length;
   const leaveDays = attendance.filter(record => record.status === 'Leave').length;
@@ -225,9 +241,10 @@ const getStaffForAttendance = asyncHandler(async (req, res) => {
   const { role } = req.query;
 
   const filters = {};
-  if (role) filters.role = role;
+  // The Staff model uses 'staffType' not 'role'
+  if (role) filters.staffType = role;
 
-  const staff = await Staff.find(filters).select('_id name cnic designation role');
+  const staff = await Staff.find(filters).select('_id name cnic designation staffType');
   res.json(staff);
 });
 

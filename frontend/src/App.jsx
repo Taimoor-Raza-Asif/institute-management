@@ -1,6 +1,8 @@
 // src/App.jsx
 import React, { useState, useEffect, useCallback, createContext } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import LoginPage from './pages/LoginPage';
 import Dashboard from './pages/Dashboard';
 import AdminDashboard from './pages/AdminDashboard';
@@ -30,6 +32,7 @@ import MyStudents from './pages/MyStudents';
 import MySubjects from './components/MySubjects'; // New Import
 import MarksList from './components/MarksList'; // New Import
 import MarkingForm from './components/MarkingForm';
+import RegisteredSubjects from './components/RegisteredSubjects';
 import DonationManagement from './components/DonationManagement';
 import BillingManagement from './components/BillingManagement';
 import Reports from './pages/Reports';
@@ -150,6 +153,7 @@ const App = () => {
 
           {/* Student Module */}
           <Route path="/student/dashboard" element={<PrivateRoute roles={['student']}><StudentDashboard /></PrivateRoute>} />
+          <Route path="/student/registered-subjects" element={<PrivateRoute roles={['student']}><RegisteredSubjects /></PrivateRoute>} />
           <Route path="/students/my-data" element={<PrivateRoute roles={['student']}><StudentForm isViewMode={true} /></PrivateRoute>} />
           <Route path="/student/attendance" element={<PrivateRoute roles={['student']}><p className="text-center py-8">Student Attendance Coming Soon!</p></PrivateRoute>} />
           <Route path="/student/student-leaves" element={<PrivateRoute roles={['student']}><LeaveList /></PrivateRoute>} />
@@ -186,6 +190,18 @@ const App = () => {
         </Routes>
       </Router>
     </UserContext.Provider>
+    <ToastContainer 
+      position="top-right"
+      autoClose={3000}
+      hideProgressBar={false}
+      newestOnTop
+      closeOnClick
+      rtl={false}
+      pauseOnFocusLoss
+      draggable
+      pauseOnHover
+      theme="colored"
+    />
     </ThemeProvider>
   );
 };

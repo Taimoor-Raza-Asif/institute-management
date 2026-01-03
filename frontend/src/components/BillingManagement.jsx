@@ -8,9 +8,10 @@ import AddEditBillModal from '../components/AddEditBillModal';
 import ConfirmationModal from '../components/ConfirmationModal';
 import { useTheme } from '../context/ThemeContext';
 import {
-  PlusIcon, FunnelIcon, MagnifyingGlassIcon, PencilIcon,
-  TrashIcon, ArrowDownTrayIcon, EyeIcon
+    PlusIcon, FunnelIcon, MagnifyingGlassIcon, PencilIcon,
+    TrashIcon, ArrowDownTrayIcon, EyeIcon, ArrowUpTrayIcon
 } from '@heroicons/react/24/outline';
+import FileImportModal from './FileImportModal';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 
@@ -26,6 +27,7 @@ const BillingManagement = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedBill, setSelectedBill] = useState(null);
     const [isViewMode, setIsViewMode] = useState(false);
+    const [isImportOpen, setIsImportOpen] = useState(false);
 
     // Filters
     const [searchTerm, setSearchTerm] = useState('');
@@ -195,6 +197,15 @@ const BillingManagement = () => {
                                 Add New Bill
                             </button>
                         )}
+                        {isAllowed && (
+                            <button
+                                onClick={() => setIsImportOpen(true)}
+                                className={`flex items-center justify-center h-12 px-6 rounded-lg font-medium transition-all duration-200 ${currentTheme.btnSecondaryBg || 'bg-white'} ${currentTheme.btnSecondaryText || 'text-emerald-700'} ${currentTheme.btnSecondaryBorder || 'border border-emerald-200'} ${currentTheme.btnSecondaryHover || 'hover:bg-emerald-50'} ${currentTheme?.shadow || 'shadow-md'} w-full sm:w-auto`}
+                            >
+                                <ArrowUpTrayIcon className="h-5 w-5 mr-2" />
+                                Upload from file
+                            </button>
+                        )}
                     </div>
                 </div>
 
@@ -328,6 +339,12 @@ const BillingManagement = () => {
               onConfirm={confirmDeleteBill}
               message="Are you sure you want to delete this bill?"
             />
+                        <FileImportModal
+                                isOpen={isImportOpen}
+                                onClose={() => setIsImportOpen(false)}
+                                entityType="billing"
+                                onComplete={() => { setIsImportOpen(false); fetchBills(); }}
+                        />
         </div>
     );
 };

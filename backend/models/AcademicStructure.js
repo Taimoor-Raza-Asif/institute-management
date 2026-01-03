@@ -32,7 +32,7 @@ const hifazJuzSchema = new mongoose.Schema({
 // --- Main Academic Type Schema ---
 const academicTypeSchema = new mongoose.Schema({
     name: { type: String, required: true, trim: true }, // e.g., 'Class', 'BS / BA', 'Almiya', 'Hifaz'
-    slug: { type: String, required: true, unique: true, trim: true }, // e.g., 'Class', 'BS', 'Almiya', 'Hifaz'
+    slug: { type: String, required: true, trim: true }, // e.g., 'Class', 'BS', 'Almiya', 'Hifaz'
     
     // Configuration fields (only one will be relevant based on slug)
     classConfig: { type: [classSubSchema], default: undefined },

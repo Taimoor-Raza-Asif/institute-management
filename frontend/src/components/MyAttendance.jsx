@@ -120,7 +120,7 @@ const MyAttendance = () => {
 
   const calculateAttendancePercentage = () => {
     if (!attendanceSummary || attendanceSummary.totalDays === 0) return 0;
-    return Math.round((attendanceSummary.presentDays / attendanceSummary.totalDays) * 100);
+    return Math.round((attendanceSummary.presentDays / (attendanceSummary.presentDays + attendanceSummary.absentDays + attendanceSummary.leaveDays)) * 100);
   };
 
   return (
@@ -307,7 +307,7 @@ const MyAttendance = () => {
                     <td className={`px-6 py-4 whitespace-nowrap text-sm ${currentTheme?.text || 'text-gray-600'}`}>
                       <div className="flex items-center gap-2">
                         <UserIcon className={`h-5 w-5 ${currentTheme?.iconText || 'text-gray-400'}`} />
-                        {record.markedBy?.name || 'N/A'}
+                        {`${record.markedBy?.profileId?.name} (${record.markedBy?.role})` || 'N/A'}
                       </div>
                     </td>
                     <td className={`px-6 py-4 text-sm ${currentTheme?.mutedText || 'text-gray-600'}`}>

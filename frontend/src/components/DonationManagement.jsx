@@ -6,8 +6,10 @@ import api from '../api';
 import Message from '../components/Message';
 import Loader from '../components/Loader';
 import { jsPDF } from 'jspdf';
-import { PencilIcon, TrashIcon, PlusIcon, FunnelIcon, XMarkIcon, MagnifyingGlassIcon, ArrowDownTrayIcon, EyeIcon, CurrencyDollarIcon, BanknotesIcon } from '@heroicons/react/24/outline'; // Added EyeIcon
+import { PencilIcon, TrashIcon, PlusIcon, FunnelIcon, XMarkIcon, MagnifyingGlassIcon, ArrowDownTrayIcon, ArrowUpTrayIcon, EyeIcon, CurrencyDollarIcon, BanknotesIcon } from '@heroicons/react/24/outline'; // Added EyeIcon
 import ConfirmationModal from './ConfirmationModal';
+
+import FileImportModal from './FileImportModal';
 
 import Modal from '../components/Modal';
 import AddDonationModal from '../components/AddDonationModal';
@@ -22,6 +24,7 @@ const DonationManagement = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false); // New state for view modal
   const [selectedDonation, setSelectedDonation] = useState(null);
+  const [isImportOpen, setIsImportOpen] = useState(false);
 
   // --- Filter States ---
   const [filterDonorName, setFilterDonorName] = useState('');
@@ -304,6 +307,9 @@ const DonationManagement = () => {
               <FunnelIcon className="h-5 w-5 mr-2" />
               {showAdvancedFilters ? 'Hide Filters' : 'Show Filters'}
             </button>
+            <button onClick={() => setIsImportOpen(true)} className={`flex items-center justify-center h-12 px-6 rounded-lg font-medium transition-all duration-200 ${currentTheme.btnSecondaryBg || 'bg-white'} ${currentTheme.btnSecondaryText || 'text-emerald-700'} ${currentTheme.btnSecondaryBorder || 'border border-emerald-200'} ${currentTheme.btnSecondaryHover || 'hover:bg-emerald-50'} ${currentTheme?.shadow || 'shadow-md'} w-full sm:w-auto`}>
+              <ArrowUpTrayIcon className="h-5 w-5 mr-2" /> Upload from file
+            </button>
             <button onClick={handleAddDonationClick} className={`flex items-center justify-center h-12 px-6 rounded-lg font-medium transition-all duration-200 ${currentTheme.btnPrimaryBg || 'bg-emerald-600'} ${currentTheme.btnPrimaryHover || 'hover:bg-emerald-700'} ${currentTheme.btnPrimaryText || 'text-white'} ${currentTheme.btnPrimaryBorder || 'border border-emerald-700'} ${currentTheme?.shadow || 'shadow-md'} w-full sm:w-auto`}>
               <PlusIcon className="h-5 w-5 mr-2" /> Add New Donation
             </button>
@@ -427,6 +433,13 @@ const DonationManagement = () => {
       <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} title="Edit Donation">
         <AddDonationModal onEdit={handleEditDonation} onClose={() => setIsEditModalOpen(false)} donationToEdit={selectedDonation} />
       </Modal>
+
+      <FileImportModal
+        isOpen={isImportOpen}
+        onClose={() => setIsImportOpen(false)}
+        entityType="donation"
+        onComplete={() => { setIsImportOpen(false); fetchDonations(); }}
+      />
 
       {/* New View Donation Modal */}
       <Modal isOpen={isViewModalOpen} onClose={() => setIsViewModalOpen(false)} title="View Donation">

@@ -174,94 +174,159 @@ const StaffSalaryList = () => {
     }
 
     const doc = new jsPDF({ format: 'a4' });
-    const filename = `${salary.staffName.replace(/\s/g, '_')}_Salary_Receipt_${months[salary.month - 1]}_${salary.year}.pdf`;
+    const filename = `${salary.staffName.replace(/\s/g, '_')}_Salary_Slip_${months[salary.month - 1]}_${salary.year}.pdf`;
+    const margin = 15;
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    let yPos = 10;
 
     const savePDF = () => {
       doc.save(filename);
     };
 
-    const drawMiniReceipt = (xStart, yStart) => {
-      let yPos = yStart;
+    const generatePDF = async () => {
+      // --- Gradient Hero Header ---
+      const headerHeight = 55;
+      const steps = 50;
+      for (let i = 0; i < steps; i++) {
+        const ratio = i / steps;
+        const r = Math.round(16 + (20 - 16) * ratio);
+        const g = Math.round(185 + (184 - 185) * ratio);
+        const b = Math.round(129 + (166 - 129) * ratio);
+        doc.setFillColor(r, g, b);
+        doc.rect(0, (i * headerHeight) / steps, pageWidth, headerHeight / steps + 1, 'F');
+      }
 
+      // Decorative overlay circles
+      doc.setFillColor(255, 255, 255);
+      doc.setGState(new doc.GState({ opacity: 0.08 }));
+      doc.circle(pageWidth * 0.18, 12, 35, 'F');
+      doc.circle(pageWidth * 0.82, headerHeight * 0.6, 25, 'F');
+      doc.setGState(new doc.GState({ opacity: 1 }));
+
+      // White circle background for logo
+      doc.setFillColor(255, 255, 255);
+      doc.circle(margin + 12, 22, 14, 'F');
+
+      // Institute logo
       const logo = new Image();
       logo.src = '/Jamia Logo.png';
+      await new Promise((resolve) => {
+        logo.onload = () => {
+          doc.addImage(logo, 'JPEG', margin + 3, 13, 18, 18);
+          resolve();
+        };
+        logo.onerror = () => resolve();
+      });
 
-      logo.onload = () => {
-        doc.addImage(logo, 'JPEG', xStart, yPos, 15, 15);
+      // Header text
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(20);
+      doc.setFont(undefined, 'bold');
+      doc.text('Jamia Tul Mastwaar', margin + 30, 18);
+      doc.setFontSize(9);
+      doc.setFont(undefined, 'normal');
+      doc.setTextColor(240, 253, 250);
+      doc.text('Makhdoom Pur Sharif Murid, Chakwal', margin + 30, 25);
+      doc.text('(0334) 8724125 | jamiatulmastwaar@gmail.com', margin + 30, 31);
 
-        doc.setFontSize(10);
-        doc.setFont(undefined, 'bold');
-        doc.text('Jamia Tul Mastwaar', xStart + 17, yPos + 5);
-        doc.setFontSize(8);
-        doc.setFont(undefined, 'normal');
-        doc.text('Makhdoom Pur Sharif, Chakwal', xStart + 17, yPos + 10);
-        doc.text('(0334) 8724125 | jamiatulmastwaar@gmail.com', xStart + 17, yPos + 14);
+      doc.setFontSize(13);
+      doc.setFont(undefined, 'bold');
+      doc.setTextColor(255, 255, 255);
+      doc.text('SALARY SLIP', pageWidth - margin, 42, { align: 'right' });
 
-        doc.line(xStart, yPos + 18, xStart + 80, yPos + 18);
+      doc.setDrawColor(255, 255, 255);
+      doc.setLineWidth(0.5);
+      doc.setGState(new doc.GState({ opacity: 0.3 }));
+      doc.line(margin, headerHeight - 8, pageWidth - margin, headerHeight - 8);
+      doc.setGState(new doc.GState({ opacity: 1 }));
 
-        doc.setFontSize(9);
+      yPos = headerHeight + 6;
+      doc.setTextColor(0, 0, 0);
+
+      // Timestamp badge
+      doc.setFillColor(236, 253, 245);
+      doc.roundedRect(margin, yPos, pageWidth - 2 * margin, 9, 1.5, 1.5, 'F');
+      doc.setFontSize(8);
+      doc.setTextColor(4, 120, 87);
+      doc.text(`Generated on: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, margin + 3, yPos + 6);
+      doc.setTextColor(0, 0, 0);
+      yPos += 15;
+
+      // Helper functions
+      const addSectionHeader = (title) => {
+        doc.setFillColor(240, 248, 242);
+        doc.roundedRect(margin, yPos, pageWidth - 2 * margin, 8, 1, 1, 'F');
+        doc.setFontSize(11);
         doc.setFont(undefined, 'bold');
         doc.setTextColor(40, 167, 69);
-        doc.text('Salary Slip', xStart + 40, yPos + 24, { align: 'center' });
+        doc.text(title, margin + 3, yPos + 5.5);
+        doc.setTextColor(0, 0, 0);
+        yPos += 13;
+      };
 
-        doc.setFontSize(7);
-        doc.setTextColor(100);
-        doc.text(`Generated on: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, xStart, yPos + 29);
+      const columnGap = 18;
+      const columnWidth = (pageWidth - margin * 2 - columnGap) / 2;
 
-        yPos += 34;
-        doc.setFontSize(8);
-        doc.setTextColor(0);
-        doc.setFont(undefined, 'bold');
-        doc.text('Staff Information', xStart, yPos);
-        yPos += 4;
-        doc.line(xStart, yPos, xStart + 80, yPos);
-        yPos += 5;
-
-        doc.setFont(undefined, 'normal');
-        const addField = (label, value, xOffset = 5) => {
-          doc.text(`${label}:`, xStart + xOffset, yPos);
-          doc.text(`${value}`, xStart + 40, yPos);
-          yPos += 4;
+      const addTwoFields = (label1, value1, label2, value2) => {
+        const addSingle = (x, label, value) => {
+          doc.setFontSize(9);
+          doc.setFont(undefined, 'bold');
+          doc.setTextColor(80, 80, 80);
+          doc.text(`${label}:`, x, yPos);
+          const labelWidth = doc.getTextWidth(`${label}:`);
+          doc.setFontSize(9.5);
+          doc.setFont(undefined, 'normal');
+          doc.setTextColor(0, 0, 0);
+          const text = value ? String(value) : 'N/A';
+          const lines = doc.splitTextToSize(text, columnWidth - labelWidth - 5);
+          doc.text(lines, x + labelWidth + 3, yPos);
         };
 
-        addField('Name', salary.staffName);
-        addField('CNIC', salary.staffCnic);
-        addField('Role', salary.staffRole);
-        yPos += 6;
-
-        doc.setFont(undefined, 'bold');
-        doc.text('Salary Details', xStart, yPos);
-        yPos += 4;
-        doc.line(xStart, yPos, xStart + 80, yPos);
-        yPos += 5;
-
-        doc.setFont(undefined, 'normal');
-        addField('Salary per Month', `PKR ${parseFloat(salary.salaryPerMonth).toFixed(2)}`);
-        addField('Bonus', `PKR ${parseFloat(salary.bonus).toFixed(2)}`);
-        addField('Overtime', `PKR ${parseFloat(salary.overtime).toFixed(2)}`);
-        addField('Paid Amount', `PKR ${parseFloat(salary.paidAmount).toFixed(2)}`);
-        addField('Status', salary.status);
-        addField('Paid Month', months[salary.month - 1]);
-        addField('Paid Year', salary.year);
-        addField('Paid By', salary.paidByName || '-');
-        addField('Paid As', salary.paidAs);
-        addField('Paid At', new Date(salary.paidAt).toLocaleDateString());
-
-        yPos += 5;
-
-        doc.setFontSize(7);
-        doc.setTextColor(150);
-        doc.text('This is a computer-generated salary slip. No signature is required.', xStart, yPos + 5);
-
-        savePDF();
+        addSingle(margin, label1, value1);
+        if (label2) addSingle(margin + columnWidth + columnGap, label2, value2);
+        yPos += 7;
       };
 
-      logo.onerror = () => {
-        console.warn('Failed to load logo.');
-        savePDF();
-      };
+      // Staff Information Section
+      addSectionHeader('STAFF INFORMATION');
+      addTwoFields('Name', salary.staffName, 'CNIC', salary.staffCnic);
+      addTwoFields('Role', salary.staffRole, '', '');
+      yPos += 5;
+
+      // Salary Details Section
+      addSectionHeader('SALARY DETAILS');
+      addTwoFields('Salary per Month', `PKR ${parseFloat(salary.salaryPerMonth).toLocaleString()}`, 'Bonus', `PKR ${parseFloat(salary.bonus).toLocaleString()}`);
+      addTwoFields('Overtime', `PKR ${parseFloat(salary.overtime).toLocaleString()}`, 'Advanced Salary', `PKR ${parseFloat(salary.advancedSalary || 0).toLocaleString()}`);
+      addTwoFields('Deduction', `PKR ${parseFloat(salary.deduction || 0).toLocaleString()}`, 'Paid Amount', `PKR ${parseFloat(salary.paidAmount).toLocaleString()}`);
+      yPos += 5;
+
+      // Payment Information Section
+      addSectionHeader('PAYMENT INFORMATION');
+      addTwoFields('Status', salary.status, 'Paid Month', months[salary.month - 1]);
+      addTwoFields('Paid Year', salary.year, 'Paid By', salary.paidByName || '-');
+      addTwoFields('Paid As', salary.paidAs, 'Paid At', new Date(salary.paidAt).toLocaleDateString());
+      yPos += 10;
+
+      // Footer
+      doc.setFontSize(7);
+      doc.setTextColor(150);
+      doc.text('This is a computer-generated salary slip. No signature is required.', pageWidth / 2, yPos, { align: 'center' });
+
+      // Page footer
+      const footerY = pageHeight - 10;
+      doc.setDrawColor(200, 200, 200);
+      doc.setLineWidth(0.3);
+      doc.line(margin, footerY - 3, pageWidth - margin, footerY - 3);
+      doc.setFontSize(7);
+      doc.setTextColor(120);
+      doc.text('Jamia Tul Mastwaar - Salary Slip', margin, footerY);
+      doc.text(`Page 1 of 1`, pageWidth - margin, footerY, { align: 'right' });
+
+      savePDF();
     };
-    drawMiniReceipt(10, 10);
+
+    generatePDF();
   }, [salaries, months]);
 
   const handleViewReceipt = (salaryId) => {

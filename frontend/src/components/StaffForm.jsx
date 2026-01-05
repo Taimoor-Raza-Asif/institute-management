@@ -377,166 +377,236 @@ const StaffForm = ({ editingStaff, fetchStaff, onClose, isViewMode = false }) =>
 
   const handleDownloadPdf = async () => {
     const doc = new jsPDF();
-    let yPos = 20;
     const margin = 15;
     const pageWidth = doc.internal.pageSize.getWidth();
-    const col1X = margin;
-    const col2X = pageWidth / 2 + 10; // Second column starts slightly right of center
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const columnGap = 18;
+    const columnWidth = (pageWidth - margin * 2 - columnGap) / 2;
+    let yPos = 10;
 
-    doc.setFontSize(18);
-    doc.text('Staff Details', pageWidth / 2, yPos, { align: 'center' });
-    yPos += 10;
+    // --- Gradient Hero Header ---
+    const headerHeight = 55;
+    const steps = 50;
+    for (let i = 0; i < steps; i++) {
+      const ratio = i / steps;
+      const r = Math.round(16 + (20 - 16) * ratio);
+      const g = Math.round(185 + (184 - 185) * ratio);
+      const b = Math.round(129 + (166 - 129) * ratio);
+      doc.setFillColor(r, g, b);
+      doc.rect(0, (i * headerHeight) / steps, pageWidth, headerHeight / steps + 1, 'F');
+    }
 
-    // Add profile picture
+    doc.setFillColor(255, 255, 255);
+    doc.setGState(new doc.GState({ opacity: 0.08 }));
+    doc.circle(pageWidth * 0.18, 12, 35, 'F');
+    doc.circle(pageWidth * 0.82, headerHeight * 0.6, 25, 'F');
+    doc.setGState(new doc.GState({ opacity: 1 }));
+
+    // Logo circle (placeholder if no logo)
+    doc.setFillColor(255, 255, 255);
+    doc.circle(margin + 12, 22, 14, 'F');
+
+    // Institute logo (reuse student logo)
+    const logo = new Image();
+    logo.src = './Jamia Logo.png';
+    await new Promise((resolve) => {
+      logo.onload = () => {
+        doc.addImage(logo, 'JPEG', margin + 3, 13, 18, 18);
+        resolve();
+      };
+      logo.onerror = () => resolve();
+    });
+
+    // Header text
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(20);
+    doc.setFont(undefined, 'bold');
+    doc.text('Jamia Tul Mastwaar', margin + 30, 18);
+    doc.setFontSize(9);
+    doc.setFont(undefined, 'normal');
+    doc.setTextColor(240, 253, 250);
+    doc.text('Makhdoom Pur Sharif Murid, Chakwal', margin + 30, 25);
+    doc.text('(0334) 8724125 | jamiatulmastwaar@gmail.com', margin + 30, 31);
+
+    doc.setFontSize(13);
+    doc.setFont(undefined, 'bold');
+    doc.setTextColor(255, 255, 255);
+    doc.text('STAFF DETAILS', pageWidth - margin, 42, { align: 'right' });
+
+    doc.setDrawColor(255, 255, 255);
+    doc.setLineWidth(0.5);
+    doc.setGState(new doc.GState({ opacity: 0.3 }));
+    doc.line(margin, headerHeight - 8, pageWidth - margin, headerHeight - 8);
+    doc.setGState(new doc.GState({ opacity: 1 }));
+
+    yPos = headerHeight + 6;
+    doc.setTextColor(0, 0, 0);
+
+    // Timestamp badge
+    doc.setFillColor(236, 253, 245);
+    doc.roundedRect(margin, yPos, pageWidth - 2 * margin, 9, 1.5, 1.5, 'F');
+    doc.setFontSize(8);
+    doc.setTextColor(4, 120, 87);
+    doc.text(`Generated on: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, margin + 3, yPos + 6);
+    doc.setTextColor(0, 0, 0);
+    yPos += 15;
+
+    // Profile picture with border
     if (staff.profilePictureUrl) {
       try {
         const img = new Image();
         img.src = `${backendBaseUrl}${staff.profilePictureUrl}`;
         await new Promise((resolve) => {
           img.onload = () => {
-            const imgWidth = 40;
+            const imgWidth = 42;
             const imgHeight = (img.height * imgWidth) / img.width;
             const xOffset = (pageWidth - imgWidth) / 2;
+            doc.setDrawColor(200, 200, 200);
+            doc.setLineWidth(0.5);
+            doc.roundedRect(xOffset - 2, yPos - 2, imgWidth + 4, imgHeight + 4, 2, 2);
             doc.addImage(img, 'JPEG', xOffset, yPos, imgWidth, imgHeight);
             yPos += imgHeight + 10;
             resolve();
           };
-          img.onerror = () => {
-            console.warn('Failed to load profile picture for PDF.');
-            yPos += 10; // Just move down if image fails
-            resolve();
-          };
+          img.onerror = () => resolve();
         });
-      } catch (e) {
-        console.error('Error adding profile picture to PDF:', e);
-        yPos += 10;
+      } catch {
+        yPos += 8;
       }
     } else {
-      doc.setFontSize(10);
+      doc.setFontSize(9);
       doc.setTextColor(150);
       doc.text('No Profile Picture Available', pageWidth / 2, yPos, { align: 'center' });
-      doc.setTextColor(0);
+      doc.setTextColor(0, 0, 0);
       yPos += 10;
     }
 
-    // Add QR Code if available
-    if (qrCodeDataUrl) {
-      try {
-        const qrWidth = 40;
-        const qrXOffset = (pageWidth - qrWidth) / 2;
-        doc.addImage(qrCodeDataUrl, 'PNG', qrXOffset, yPos, qrWidth, qrWidth);
-        doc.setFontSize(8);
-        doc.text('Attendance QR Code', pageWidth / 2, yPos + qrWidth + 5, { align: 'center' });
-        yPos += qrWidth + 15;
-      } catch (e) {
-        console.error('Error adding QR code to PDF:', e);
-        yPos += 10;
-      }
-    }
-
-
-    doc.setFontSize(10);
-    doc.setTextColor(0);
-
-    const addField = (label, value, x, y) => {
-      doc.setFont(undefined, 'bold');
-      doc.text(`${label}:`, x, y);
-      doc.setFont(undefined, 'normal');
-      doc.text(String(value || 'N/A'), x + doc.getTextWidth(`${label}: `), y);
-    };
-
-    const checkPageBreak = () => {
-      if (yPos > doc.internal.pageSize.getHeight() - margin) {
+    // Helpers
+    const ensureSpace = (extra = 12) => {
+      if (yPos + extra > pageHeight - margin) {
         doc.addPage();
         yPos = margin;
       }
     };
 
-    yPos += 5;
-    doc.line(margin, yPos, pageWidth - margin, yPos);
-    yPos += 10;
-
-    // Basic Information
-    doc.setFontSize(12);
-    doc.setFont(undefined, 'bold');
-    doc.text('Basic Information', col1X, yPos);
-    yPos += 7;
-    checkPageBreak();
-
-    addField('Name', staff.name, col1X, yPos);
-    addField('Staff Type', staff.staffType, col2X, yPos);
-    yPos += 7; checkPageBreak();
-    addField('CNIC', staff.cnic, col1X, yPos);
-    addField('Contact Number', staff.contactNumber, col2X, yPos);
-    yPos += 7; checkPageBreak();
-    addField('Email', staff.email, col1X, yPos);
-    addField('Date of Joining', staff.dateOfJoining ? new Date(staff.dateOfJoining).toLocaleDateString() : 'N/A', col2X, yPos);
-    yPos += 7; checkPageBreak();
-    addField('Salary', `PKR ${parseFloat(staff.salary).toFixed(2)}`, col1X, yPos);
-    addField('Emergency Contact', staff.emergencyContact, col2X, yPos);
-    yPos += 7; checkPageBreak();
-    addField('Address', staff.address, col1X, yPos);
-    yPos += 10; checkPageBreak();
-
-    // Education Details
-    doc.setFontSize(12);
-    doc.setFont(undefined, 'bold');
-    doc.text('Education Details', col1X, yPos);
-    yPos += 7;
-    checkPageBreak();
-
-    addField('Highest Education', staff.highestEducationLevel, col1X, yPos);
-    yPos += 7; checkPageBreak();
-
-    if (staff.degrees && staff.degrees.length > 0) {
-      doc.setFontSize(10);
+    const addSectionHeader = (title) => {
+      ensureSpace(15);
+      doc.setFillColor(240, 248, 242);
+      doc.roundedRect(margin, yPos, pageWidth - 2 * margin, 8, 1, 1, 'F');
+      doc.setFontSize(11);
       doc.setFont(undefined, 'bold');
-      doc.text('Degrees:', col1X, yPos);
-      yPos += 5; checkPageBreak();
-      staff.degrees.forEach((degree, index) => {
-        const degreeText = `${degree.degreeName} (${degree.major || 'N/A'}) from ${degree.institution}, ${degree.yearCompleted}`;
+      doc.setTextColor(40, 167, 69);
+      doc.text(title, margin + 3, yPos + 5.5);
+      doc.setTextColor(0, 0, 0);
+      yPos += 13;
+    };
+
+    const addTwoFields = (label1, value1, label2, value2) => {
+      ensureSpace(10);
+      const addSingle = (x, label, value) => {
+        doc.setFontSize(9);
+        doc.setFont(undefined, 'bold');
+        doc.setTextColor(80, 80, 80);
+        doc.text(`${label}:`, x, yPos);
+        const labelWidth = doc.getTextWidth(`${label}:`);
+        doc.setFontSize(9.5);
         doc.setFont(undefined, 'normal');
-        doc.text(`- ${degreeText}`, col1X + 5, yPos);
-        yPos += 5; checkPageBreak();
-      });
-    } else {
+        doc.setTextColor(0, 0, 0);
+        const text = value ? String(value) : 'N/A';
+        const lines = doc.splitTextToSize(text, columnWidth - labelWidth - 5);
+        doc.text(lines, x + labelWidth + 3, yPos);
+      };
+
+      addSingle(margin, label1, value1);
+      if (label2) addSingle(margin + columnWidth + columnGap, label2, value2);
+      yPos += 7;
+    };
+
+    const addFullWidthField = (label, value) => {
+      ensureSpace(10);
+      doc.setFontSize(9);
+      doc.setFont(undefined, 'bold');
+      doc.setTextColor(80, 80, 80);
+      doc.text(`${label}:`, margin, yPos);
+      const labelWidth = doc.getTextWidth(`${label}:`);
+      doc.setFontSize(9.5);
       doc.setFont(undefined, 'normal');
-      doc.text('No degrees recorded.', col1X, yPos);
-      yPos += 7; checkPageBreak();
-    }
+      doc.setTextColor(0, 0, 0);
+      const lines = doc.splitTextToSize(value || 'N/A', pageWidth - margin * 2 - labelWidth - 5);
+      doc.text(lines, margin + labelWidth + 3, yPos);
+      yPos += lines.length * 6 + 3;
+    };
 
-    // Teacher Specific
-    if (staff.staffType === 'Teacher' && staff.subjectsTaught && staff.subjectsTaught.length > 0) {
-      yPos += 10; checkPageBreak();
-      doc.setFontSize(12);
+    const addList = (items, label) => {
+      ensureSpace(10);
+      doc.setFontSize(9.5);
       doc.setFont(undefined, 'bold');
-      doc.text('Teaching Information', col1X, yPos);
-      yPos += 7; checkPageBreak();
-
-      doc.setFontSize(10);
-      doc.setFont(undefined, 'bold');
-      doc.text('Subjects Taught:', col1X, yPos);
-      yPos += 5; checkPageBreak();
-      staff.subjectsTaught.forEach((subject, index) => {
+      doc.text(`${label}:`, margin, yPos);
+      yPos += 6;
+      if (!items || items.length === 0) {
         doc.setFont(undefined, 'normal');
-        doc.text(`- ${subject}`, col1X + 5, yPos);
-        yPos += 5; checkPageBreak();
+        doc.text('Not available', margin + 3, yPos);
+        yPos += 6;
+        return;
+      }
+      doc.setFont(undefined, 'normal');
+      items.forEach((item) => {
+        ensureSpace(6);
+        doc.text(`• ${item}`, margin + 3, yPos);
+        yPos += 5;
       });
+    };
+
+    // Sections
+    addSectionHeader('BASIC INFORMATION');
+    addTwoFields('Name', staff.name, 'Staff Type', staff.staffType);
+    addTwoFields("Father's Name", staff.fatherName, 'CNIC', staff.cnic);
+    addTwoFields('Contact Number', staff.contactNumber, 'Email', staff.email);
+    addTwoFields('Date of Joining', staff.dateOfJoining ? new Date(staff.dateOfJoining).toLocaleDateString() : 'N/A', 'Salary', staff.salary ? `PKR ${parseFloat(staff.salary).toLocaleString()}` : 'N/A');
+    addTwoFields('Emergency Contact', staff.emergencyContact, '', '');
+    addFullWidthField('Address', staff.address);
+
+    addSectionHeader('EDUCATION DETAILS');
+    addFullWidthField('Highest Education', staff.highestEducationLevel || 'Not specified');
+    const degreeLines = (staff.degrees || []).map((degree) => {
+      const parts = [degree.degreeName || 'Degree'];
+      if (degree.major) parts.push(`Major: ${degree.major}`);
+      if (degree.institution) parts.push(`Institute: ${degree.institution}`);
+      if (degree.yearCompleted) parts.push(`Year: ${degree.yearCompleted}`);
+      return parts.join(' | ');
+    });
+    addList(degreeLines, 'Degrees');
+
+    if (staff.staffType === 'Teacher') {
+      addSectionHeader('TEACHING INFORMATION');
+      addList(staff.subjectsTaught, 'Subjects Taught');
     }
 
-    // Bank Account Details
-    if (staff.bankAccountDetails && (staff.bankAccountDetails.bankName || staff.bankAccountDetails.accountNumber || staff.bankAccountDetails.iban)) {
-      yPos += 10; checkPageBreak();
-      doc.setFontSize(12);
-      doc.setFont(undefined, 'bold');
-      doc.text('Bank Account Details', col1X, yPos);
-      yPos += 7; checkPageBreak();
+    // Always show Bank section to mirror form visibility
+    if (!staff.bankAccountDetails) {
+      staff.bankAccountDetails = { bankName: '', accountNumber: '', iban: '' };
+    }
+    addSectionHeader('BANK ACCOUNT DETAILS');
+    addTwoFields('Bank Name', staff.bankAccountDetails.bankName, 'Account Number', staff.bankAccountDetails.accountNumber);
+    addFullWidthField('IBAN', staff.bankAccountDetails.iban);
 
-      addField('Bank Name', staff.bankAccountDetails.bankName, col1X, yPos);
-      addField('Account Number', staff.bankAccountDetails.accountNumber, col2X, yPos);
-      yPos += 7; checkPageBreak();
-      addField('IBAN', staff.bankAccountDetails.iban, col1X, yPos);
-      yPos += 7; checkPageBreak();
+    // Footer
+    const addFooter = (pageNum, totalPages) => {
+      const footerY = pageHeight - 10;
+      doc.setDrawColor(200, 200, 200);
+      doc.setLineWidth(0.3);
+      doc.line(margin, footerY - 3, pageWidth - margin, footerY - 3);
+      doc.setFontSize(7);
+      doc.setTextColor(120);
+      doc.text('Jamia Tul Mastwaar - Staff Details', margin, footerY);
+      doc.text(`Page ${pageNum} of ${totalPages}`, pageWidth - margin, footerY, { align: 'right' });
+      doc.setTextColor(0);
+    };
+
+    const totalPages = doc.internal.pages.length - 1;
+    for (let i = 1; i <= totalPages; i++) {
+      doc.setPage(i);
+      addFooter(i, totalPages);
     }
 
     doc.save(`${staff.name.replace(/\s/g, '_')}_Staff_Details.pdf`);
@@ -1070,12 +1140,12 @@ const StaffForm = ({ editingStaff, fetchStaff, onClose, isViewMode = false }) =>
         )}
 
         {/* Action Buttons */}
-        <div className="flex space-x-3 w-full sm:w-auto sm:ml-auto">
+        <div className="flex flex-col sm:flex-row w-full sm:w-auto sm:ml-auto space-y-3 sm:space-y-0 sm:space-x-3">
           {isViewMode && (
             <button
               type="button"
               onClick={handleDownloadPdf}
-              className="flex items-center justify-center bg-gradient-to-r from-green-600 to-emerald-700 text-white px-6 py-2 rounded-lg hover:from-green-700 hover:to-emerald-800 transition shadow-md hover:shadow-lg active:scale-95"
+              className="flex items-center justify-center w-full sm:w-auto bg-gradient-to-r from-green-600 to-emerald-700 text-white px-6 py-2 rounded-lg hover:from-green-700 hover:to-emerald-800 transition shadow-md hover:shadow-lg active:scale-95"
               title="Download Staff Details as PDF"
             >
               <ArrowDownTrayIcon className="h-5 w-5 mr-2" />
@@ -1086,7 +1156,7 @@ const StaffForm = ({ editingStaff, fetchStaff, onClose, isViewMode = false }) =>
             <button
               type="submit"
               onClick={handleSubmit}
-              className="flex-1 sm:flex-none bg-gradient-to-r from-green-600 to-emerald-700 text-white px-8 py-2 rounded-lg hover:from-green-700 hover:to-emerald-800 transition shadow-md hover:shadow-lg active:scale-95 font-semibold"
+              className="flex-1 sm:flex-none w-full sm:w-auto bg-gradient-to-r from-green-600 to-emerald-700 text-white px-8 py-2 rounded-lg hover:from-green-700 hover:to-emerald-800 transition shadow-md hover:shadow-lg active:scale-95 font-semibold justify-center"
             >
               {editingStaff ? 'Update Staff' : 'Add Staff'}
             </button>
@@ -1094,7 +1164,7 @@ const StaffForm = ({ editingStaff, fetchStaff, onClose, isViewMode = false }) =>
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 sm:flex-none bg-gray-300 text-gray-800 px-6 py-2 rounded-lg hover:bg-gray-400 transition shadow-md hover:shadow-lg active:scale-95"
+            className="flex-1 sm:flex-none w-full sm:w-auto bg-gray-300 text-gray-800 px-6 py-2 rounded-lg hover:bg-gray-400 transition shadow-md hover:shadow-lg active:scale-95 justify-center"
           >
             {isViewMode ? 'Close' : 'Cancel'}
           </button>

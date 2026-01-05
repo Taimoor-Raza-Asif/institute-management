@@ -454,181 +454,280 @@ const StudentForm = ({ editingStudent, fetchStudents, onClose, isViewMode = fals
 
 
     const handleDownloadPdf = async () => {
-        // ... (PDF logic remains mostly the same, but uses dynamic data where possible) ...
         const doc = new jsPDF();
-        let yPos = 20;
-        const margin = 30;
+        let yPos = 10;
+        const margin = 15;
         const pageWidth = doc.internal.pageSize.getWidth();
-        const columnGap = 30;
+        const pageHeight = doc.internal.pageSize.getHeight();
+        const columnGap = 25;
         const columnWidth = (pageWidth - 2 * margin - columnGap) / 2;
 
-        // --- Institute Logo + Title ---
+        // --- Professional Gradient Header (Hero Banner Style) ---
+        // Gradient background (emerald to teal)
+        const headerHeight = 55;
+        const steps = 50;
+        for (let i = 0; i < steps; i++) {
+            const ratio = i / steps;
+            const r = Math.round(16 + (20 - 16) * ratio);  // From emerald-600 to teal-600
+            const g = Math.round(185 + (184 - 185) * ratio);
+            const b = Math.round(129 + (166 - 129) * ratio);
+            doc.setFillColor(r, g, b);
+            doc.rect(0, (i * headerHeight) / steps, pageWidth, headerHeight / steps + 1, 'F');
+        }
+
+        // Decorative overlay circles for depth
+        doc.setFillColor(255, 255, 255);
+        doc.setGState(new doc.GState({ opacity: 0.08 }));
+        doc.circle(pageWidth * 0.15, 10, 35, 'F');
+        doc.circle(pageWidth * 0.85, headerHeight * 0.6, 25, 'F');
+        doc.setGState(new doc.GState({ opacity: 1 }));
+
+        // White circle background for logo with subtle shadow effect
+        doc.setFillColor(255, 255, 255);
+        doc.circle(margin + 12, 22, 14, 'F');
+
+        // Institute Logo
         const logo = new Image();
         logo.src = './Jamia Logo.png';
 
         await new Promise((resolve) => {
             logo.onload = () => {
-                doc.addImage(logo, 'JPEG', margin, yPos - 5, 15, 15);
+                doc.addImage(logo, 'JPEG', margin + 3, 13, 18, 18);
                 resolve();
             };
             logo.onerror = () => resolve();
         });
 
-        doc.setFontSize(16);
+        // Institute Name & Details (White text on gradient)
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(20);
         doc.setFont(undefined, 'bold');
-        doc.text('Jamia Tul Mastwaar', margin + 20, yPos);
-        yPos += 7;
-        doc.setFontSize(10);
-        doc.setFont(undefined, 'normal');
-        doc.text('Makhdoom Pur Sharif, Chakwal', margin + 20, yPos);
-        yPos += 5;
-        doc.text('(0334) 8724125 | jamiatulmastwaar@gmail.com', margin + 20, yPos);
-        yPos += 12;
-
-        // --- Title & Timestamp ---
-        doc.setFontSize(14);
-        doc.setFont(undefined, 'bold');
-        doc.setTextColor(40, 167, 69);
-        doc.text('Student Details', pageWidth / 2, yPos, { align: 'center' });
-        yPos += 6;
-
+        doc.text('Jamia Tul Mastwaar', margin + 30, 18);
+        
         doc.setFontSize(9);
         doc.setFont(undefined, 'normal');
-        doc.setTextColor(100);
-        doc.text(`Generated on: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, margin, yPos);
+        doc.setTextColor(240, 253, 250); // emerald-50
+        doc.text('Makhdoom Pur Sharif Murid, Chakwal', margin + 30, 25);
+        doc.text('(0334) 8724125 | jamiatulmastwaar@gmail.com', margin + 30, 31);
+        
+        // Document Title Badge Style
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(13);
+        doc.setFont(undefined, 'bold');
+        doc.text('STUDENT DETAILS', pageWidth - margin, 42, { align: 'right' });
+        
+        // Small decorative line under header
+        doc.setDrawColor(255, 255, 255);
+        doc.setLineWidth(0.5);
+        doc.setGState(new doc.GState({ opacity: 0.3 }));
+        doc.line(margin, headerHeight - 8, pageWidth - margin, headerHeight - 8);
+        doc.setGState(new doc.GState({ opacity: 1 }));
+        
+        yPos = headerHeight + 5;
         doc.setTextColor(0, 0, 0);
-        yPos += 5;
-        doc.line(margin, yPos, pageWidth - margin, yPos);
-        yPos += 8;
 
-        // --- Profile Picture Centered ---
+        // Timestamp with icon-style badge
+        doc.setFillColor(236, 253, 245); // emerald-50
+        doc.roundedRect(margin, yPos, pageWidth - 2 * margin, 9, 1.5, 1.5, 'F');
+        doc.setFontSize(8);
+        doc.setTextColor(4, 120, 87); // emerald-700
+        doc.setFont(undefined, 'normal');
+        doc.text(`Generated on: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, margin + 3, yPos + 6);
+        doc.setTextColor(0, 0, 0);
+        yPos += 15;
+
+        // --- Profile Picture with Border ---
         if (student.profilePictureUrl) {
             try {
                 const img = new Image();
                 img.src = `${backendBaseUrl}${student.profilePictureUrl}`;
                 await new Promise((resolve) => {
                     img.onload = () => {
-                        const imgWidth = 40;
+                        const imgWidth = 45;
                         const imgHeight = (img.height * imgWidth) / img.width;
                         const xOffset = (pageWidth - imgWidth) / 2;
-                        if (yPos + imgHeight > doc.internal.pageSize.getHeight() - margin) {
+                        
+                        if (yPos + imgHeight + 5 > pageHeight - margin) {
                             doc.addPage();
                             yPos = margin;
                         }
+                        
+                        // Add border around image
+                        doc.setDrawColor(200, 200, 200);
+                        doc.setLineWidth(0.5);
+                        doc.roundedRect(xOffset - 2, yPos - 2, imgWidth + 4, imgHeight + 4, 2, 2);
+                        
                         doc.addImage(img, 'JPEG', xOffset, yPos, imgWidth, imgHeight);
-                        yPos += imgHeight + 15;
+                        yPos += imgHeight + 12;
                         resolve();
                     };
                     img.onerror = () => resolve();
                 });
             } catch {
-                yPos += 10;
+                yPos += 8;
             }
         } else {
-            doc.setFontSize(10);
+            doc.setFontSize(9);
             doc.setTextColor(150);
             doc.text('No Profile Picture Available', pageWidth / 2, yPos, { align: 'center' });
             doc.setTextColor(0, 0, 0);
-            yPos += 10;
+            yPos += 12;
         }
 
-        // --- Add Field Function (Two per row) ---
+        // --- Helper Functions ---
+        const addSectionHeader = (title) => {
+            if (yPos > pageHeight - margin - 15) {
+                doc.addPage();
+                yPos = margin;
+            }
+            
+            doc.setFillColor(240, 248, 242);
+            doc.roundedRect(margin, yPos, pageWidth - 2 * margin, 8, 1, 1, 'F');
+            doc.setFontSize(11);
+            doc.setFont(undefined, 'bold');
+            doc.setTextColor(40, 167, 69);
+            doc.text(title, margin + 3, yPos + 5.5);
+            doc.setTextColor(0, 0, 0);
+            yPos += 13;
+        };
+
         const addTwoFields = (label1, value1, label2, value2) => {
             const addSingle = (x, label, value) => {
-                doc.setFontSize(10);
+                doc.setFontSize(9);
                 doc.setFont(undefined, 'bold');
+                doc.setTextColor(80, 80, 80);
                 doc.text(`${label}:`, x, yPos);
+                
                 const labelWidth = doc.getTextWidth(`${label}:`);
+                doc.setFontSize(9.5);
                 doc.setFont(undefined, 'normal');
-                doc.text(`${value || '-'}`, x + labelWidth + 3, yPos);
+                doc.setTextColor(0, 0, 0);
+                
+                const valueText = `${value || '-'}`;
+                const maxWidth = columnWidth - labelWidth - 5;
+                const lines = doc.splitTextToSize(valueText, maxWidth);
+                doc.text(lines, x + labelWidth + 3, yPos);
             };
+
+            if (yPos > pageHeight - margin - 10) {
+                doc.addPage();
+                yPos = margin;
+            }
 
             addSingle(margin, label1, value1);
 
             if (label2 && String(label2).trim() !== '') {
                 addSingle(margin + columnWidth + columnGap, label2, value2);
             }
-            yPos += 8;
-
-            if (yPos > doc.internal.pageSize.getHeight() - margin) {
-                doc.addPage();
-                yPos = margin;
-            }
+            yPos += 7;
         };
 
         const addFullWidthField = (label, value) => {
-            doc.setFontSize(10);
-            doc.setFont(undefined, 'bold');
-            doc.text(`${label}:`, margin, yPos);
-            const labelWidth = doc.getTextWidth(`${label}:`);
-            doc.setFont(undefined, 'normal');
-            const lines = doc.splitTextToSize(value || '-', pageWidth - margin * 2 - labelWidth - 4);
-            doc.text(lines, margin + labelWidth + 4, yPos);
-            yPos += lines.length * 7 + 2;
-
-            if (yPos > doc.internal.pageSize.getHeight() - margin) {
+            if (yPos > pageHeight - margin - 10) {
                 doc.addPage();
                 yPos = margin;
             }
+            
+            doc.setFontSize(9);
+            doc.setFont(undefined, 'bold');
+            doc.setTextColor(80, 80, 80);
+            doc.text(`${label}:`, margin, yPos);
+            
+            const labelWidth = doc.getTextWidth(`${label}:`);
+            doc.setFontSize(9.5);
+            doc.setFont(undefined, 'normal');
+            doc.setTextColor(0, 0, 0);
+            
+            const lines = doc.splitTextToSize(value || '-', pageWidth - margin * 2 - labelWidth - 5);
+            doc.text(lines, margin + labelWidth + 3, yPos);
+            yPos += lines.length * 6 + 3;
         };
 
         const addDocumentFieldToPdf = async (label, url) => {
-            if (url) {
-                doc.setFontSize(10);
-                doc.setFont(undefined, 'bold');
-                doc.text(`${label}:`, margin, yPos);
-                doc.setFont(undefined, 'normal');
-                doc.setTextColor(0, 0, 255); // green color for link
-                doc.textWithLink('View Document', margin + doc.getTextWidth(`${label}: `), yPos, { url: `${backendBaseUrl}${url}` });
-                doc.setTextColor(0, 0, 0); // Reset color
-                yPos += 8;
-            } else {
-                doc.setFontSize(10);
-                doc.setFont(undefined, 'bold');
-                doc.text(`${label}:`, margin, yPos);
-                doc.setFont(undefined, 'normal');
-                doc.text('N/A', margin + doc.getTextWidth(`${label}: `), yPos);
-                yPos += 8;
-            }
-            if (yPos > doc.internal.pageSize.getHeight() - margin) {
+            if (yPos > pageHeight - margin - 8) {
                 doc.addPage();
                 yPos = margin;
             }
+            
+            doc.setFontSize(9);
+            doc.setFont(undefined, 'bold');
+            doc.setTextColor(80, 80, 80);
+            doc.text(`${label}:`, margin, yPos);
+            
+            const labelWidth = doc.getTextWidth(`${label}:`);
+            doc.setFont(undefined, 'normal');
+            doc.setFontSize(9.5);
+            
+            if (url) {
+                doc.setTextColor(41, 98, 255);
+                doc.textWithLink('View Document', margin + labelWidth + 3, yPos, { 
+                    url: `${backendBaseUrl}${url}` 
+                });
+                
+                // Add clickable icon indicator
+                doc.setFontSize(7);
+                doc.text('↗', margin + labelWidth + doc.getTextWidth('View Document ') + 5, yPos - 1);
+            } else {
+                doc.setTextColor(156, 163, 175); // gray-400
+                doc.text('Not Uploaded', margin + labelWidth + 3, yPos);
+            }
+            
+            doc.setTextColor(0, 0, 0);
+            yPos += 7;
         };
 
 
-        // --- Render Fields ---
+        // --- Personal Information Section ---
+        addSectionHeader('PERSONAL INFORMATION');
         addTwoFields('Student Name', student.name, 'Father Name', student.fatherName);
         addTwoFields('CNIC', student.cnic, 'Gender', student.gender);
-        addTwoFields('DOB', student.dob ? new Date(student.dob).toLocaleDateString() : '', 'Email', student.email);
+        addTwoFields('Date of Birth', student.dob ? new Date(student.dob).toLocaleDateString() : '', 'Email', student.email);
         addTwoFields('Guardian Contact', student.guardianContact, 'Additional Contact', student.additionalContact);
-        addTwoFields('Admission Date', student.admissionDate ? new Date(student.admissionDate).toLocaleDateString() : '', 'Student Status', student.studentStatus);
-        addTwoFields('Class Type', student.class, 'Fee Per Month', student.feePerMonth);
-        addTwoFields('Deposited Amount', student.depositedAmount !== '' ? `PKR ${parseFloat(student.depositedAmount).toFixed(0)}` : 'PKR 0.00', 'Other Dues', student.otherDues !== '' ? `PKR ${parseFloat(student.otherDues).toFixed(0)}` : 'PKR 0.00');
+        addFullWidthField('Address', student.address);
 
-        if (showReasonField) addFullWidthField('Reason', student.reason);
+        yPos += 5;
+
+        // --- Academic Information Section ---
+        addSectionHeader('ACADEMIC INFORMATION');
+        addTwoFields('Class Type', student.class, 'Admission Date', student.admissionDate ? new Date(student.admissionDate).toLocaleDateString() : '');
         
         // Dynamic Academic Info for PDF
         if (student.class === 'Class' || student.class === 'Almiya') {
-            const classIdentifier = selectedAcademicType?.classConfig.find(c => c.classNumber === student.classNumber)?.classIdentifier;
-            addTwoFields('Class Grade/Number', `${classIdentifier} (${student.classNumber})`, 'Major Subject', student.majorSubject);
+            const classIdentifier = selectedAcademicType?.classConfig?.find(c => c.classNumber === student.classNumber)?.classIdentifier || student.classNumber;
+            addTwoFields('Class Grade/Number', classIdentifier, 'Major Subject', student.majorSubject);
         } else if (student.class === 'BS') {
             const degreeConfig = selectedAcademicType?.degreeConfig.find(d => d.degreeName === student.degreeName);
             addTwoFields('Degree Name', student.degreeName, 'Semester', student.semester);
-            addFullWidthField('Degree Years', degreeConfig?.years || '-');
+            addFullWidthField('Degree Duration', degreeConfig?.years || '-');
         } else if (student.class === 'Hifaz') {
             addTwoFields('Current Juz', student.currentJuz, 'Current Surah/Checkpoint', student.currentSurah);
         }
+        
+        addTwoFields('Student Status', student.studentStatus, '', '');
+        if (showReasonField) addFullWidthField('Reason', student.reason);
 
-        addFullWidthField('Address', student.address);
+        yPos += 5;
+
+        // --- Financial Information Section ---
+        addSectionHeader('FINANCIAL INFORMATION');
+        addTwoFields(
+            'Fee Per Month', 
+            student.feePerMonth ? `PKR ${parseFloat(student.feePerMonth).toLocaleString()}` : '-', 
+            'Deposited Amount', 
+            student.depositedAmount !== '' ? `PKR ${parseFloat(student.depositedAmount).toLocaleString()}` : 'PKR 0'
+        );
+        addTwoFields(
+            'Other Dues', 
+            student.otherDues !== '' ? `PKR ${parseFloat(student.otherDues).toLocaleString()}` : 'PKR 0',
+            '',
+            ''
+        );
+
+        yPos += 5;
 
         // --- Document Section ---
-        yPos += 10;
-        doc.setFontSize(14);
-        doc.setFont(undefined, 'bold');
-        doc.text('Uploaded Documents', 15, yPos);
-        yPos += 8;
-
+        addSectionHeader('UPLOADED DOCUMENTS');
+        
         if (showCnicFields) {
             await addDocumentFieldToPdf('CNIC Front', student.cnicFrontUrl);
             await addDocumentFieldToPdf('CNIC Back', student.cnicBackUrl);
@@ -643,6 +742,27 @@ const StudentForm = ({ editingStudent, fetchStudents, onClose, isViewMode = fals
         if (showBsResultsFields) {
             await addDocumentFieldToPdf('Class 10 Result', student.class10ResultUrl);
             await addDocumentFieldToPdf('Class 12 Result', student.class12ResultUrl);
+        }
+
+        // --- Footer ---
+        const addFooter = (pageNum, totalPages) => {
+            const footerY = pageHeight - 10;
+            doc.setDrawColor(200, 200, 200);
+            doc.setLineWidth(0.3);
+            doc.line(margin, footerY - 3, pageWidth - margin, footerY - 3);
+            
+            doc.setFontSize(7);
+            doc.setTextColor(120);
+            doc.text('Jamia Tul Mastwaar - Student Details', margin, footerY);
+            doc.text(`Page ${pageNum} of ${totalPages}`, pageWidth - margin, footerY, { align: 'right' });
+            doc.setTextColor(0);
+        };
+
+        // Add footers to all pages
+        const totalPages = doc.internal.pages.length - 1;
+        for (let i = 1; i <= totalPages; i++) {
+            doc.setPage(i);
+            addFooter(i, totalPages);
         }
 
         // Save

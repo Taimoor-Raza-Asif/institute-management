@@ -458,43 +458,54 @@ const FeeForm = ({ editingFee, fetchFees, studentsForForm, onClose, isViewMode =
       logo.src = './Jamia Logo.png'; // public path logo
 
       logo.onload = () => {
-        doc.addImage(logo, 'JPEG', xStart, yPos, 15, 15); // logo top-right of mini receipt
+        // Logo and institute name side by side on left
+        const logoWidth = 12;
+        const logoHeight = 12;
+        const logoX = xStart;
+        doc.addImage(logo, 'JPEG', logoX, yPos + 2, logoWidth, logoHeight);
 
-        // Institute Info
-        doc.setFontSize(10);
+        // Institute Info - Left aligned, next to logo
+        doc.setFontSize(13);
         doc.setFont(undefined, 'bold');
-        doc.text('Jamia Tul Mastwaar', xStart + 17, yPos + 5);
-        doc.setFontSize(8);
+        doc.setTextColor(40, 167, 69);
+        doc.text('Jamia Tul Mastwaar', xStart + logoWidth + 2, yPos + 6);
+        doc.setFontSize(7);
         doc.setFont(undefined, 'normal');
-        doc.text('Makhdoom Pur Sharif, Chakwal', xStart + 17, yPos + 10);
-        doc.text('(0334) 8724125 | jamiatulmastwaar@gmail.com', xStart + 17, yPos + 14);
+        doc.setTextColor(0, 0, 0);
+        doc.text('Makhdoom Pur Sharif Murid, Chakwal', xStart + logoWidth + 2, yPos + 10);
+        doc.setFontSize(6);
+        doc.text('(0334) 8724125 | jamiatulmastwaar@gmail.com', xStart + logoWidth + 2, yPos + 13);
 
         // Divider
-        doc.line(xStart, yPos + 18, xStart + 80, yPos + 18);
+        doc.line(xStart, yPos + 18, xStart + 67, yPos + 18);
 
         // Title
         doc.setFontSize(9);
         doc.setFont(undefined, 'bold');
         doc.setTextColor(40, 167, 69);
-        doc.text('Fee Receipt', xStart + 40, yPos + 24, { align: 'center' });
+        doc.text('Fee Receipt', xStart, yPos + 23);
 
         doc.setFontSize(7);
         doc.setTextColor(100);
-        doc.text(`Generated on: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, xStart, yPos + 29);
+        doc.text(`Generated on: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, xStart, yPos + 27);
 
         // Section 1: Student Info
-        yPos += 34;
+        yPos += 31;
         doc.setFontSize(8);
         doc.setTextColor(0);
         doc.setFont(undefined, 'bold');
         doc.text('Student Information', xStart, yPos);
         yPos += 4;
-        doc.line(xStart, yPos, xStart + 80, yPos);
+        doc.line(xStart, yPos, xStart + 67, yPos);
         yPos += 5;
 
         doc.setFont(undefined, 'normal');
         doc.text(`Name:`, xStart + 5, yPos);
         doc.text(`${studentName}`, xStart + 40, yPos);
+        yPos += 4;
+
+        doc.text(`Father's Name:`, xStart + 5, yPos);
+        doc.text(`${selectedStudent?.fatherName || '-'}`, xStart + 40, yPos);
         yPos += 4;
 
         doc.text(`CNIC:`, xStart + 5, yPos);
@@ -509,7 +520,7 @@ const FeeForm = ({ editingFee, fetchFees, studentsForForm, onClose, isViewMode =
         doc.setFont(undefined, 'bold');
         doc.text('Fee Details', xStart, yPos);
         yPos += 4;
-        doc.line(xStart, yPos, xStart + 80, yPos);
+        doc.line(xStart, yPos, xStart + 67, yPos);
         yPos += 5;
 
         doc.setFont(undefined, 'normal');
@@ -551,8 +562,11 @@ const FeeForm = ({ editingFee, fetchFees, studentsForForm, onClose, isViewMode =
       };
     };
 
-    // Draw in top-left quadrant for now
-    drawMiniReceipt(10, 10); // (xStart, yStart)
+    // Center the receipt on A4 page (210mm width, 80mm receipt width)
+    const pageWidth = 210;
+    const receiptWidth = 80;
+    const xCenter = (pageWidth - receiptWidth) / 2;
+    drawMiniReceipt(xCenter, 10); // Centered horizontally with minimal top margin
   };
 
 
@@ -638,6 +652,7 @@ const FeeForm = ({ editingFee, fetchFees, studentsForForm, onClose, isViewMode =
           <div class="info-section">
             <strong>Student Information</strong>
             <div class="info-row"><label>Name:</label><span>${studentName}</span></div>
+            <div class="info-row"><label>Father's Name:</label><span>${selectedStudent?.fatherName || '-'}</span></div>
             <div class="info-row"><label>CNIC:</label><span>${studentCnic}</span></div>
             <div class="info-row"><label>Class/Degree:</label><span>${studentClassOrDegree}</span></div>
           </div>

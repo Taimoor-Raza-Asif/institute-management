@@ -62,4 +62,51 @@ const authorizeRoles = (...roles) => {
   };
 };
 
-export { protect, authorizeRoles };
+// Module-level access gate for student management
+// Teachers/accountants keep their previous read access; grant flag required for write actions.
+const ensureStudentModuleAccess = (req, res, next) => {
+  if (!req.user) {
+    res.status(401);
+    throw new Error('Not authorized, user missing');
+  }
+  if (req.user.role === 'admin' || req.user.role === 'student') {
+    return next();
+  }
+  // Allow teacher/accountant to read even without explicit flag
+  if (['teacher', 'accountant'].includes(req.user.role) && req.method === 'GET') {
+    return next();
+  }
+  // Require explicit flag for mutating requests
+  if (['teacher', 'accountant'].includes(req.user.role) && req.user.canAccessStudents) {
+    return next();
+  }
+  res.status(403);
+  throw new Error('Not authorized for student management');
+};
+
+// Module-level access gate for staff management
+// Teachers/accountants can access their own profile without the flag; flag is needed for broader CRUD.
+const ensureStaffModuleAccess = (req, res, next) => {
+  if (!req.user) {
+    res.status(401);
+    throw new Error('Not authorized, user missing');
+  }
+  if (req.user.role === 'admin') {
+    return next();
+  }
+  // Allow other staff roles (cook/cleaner) to access their own limited routes handled elsewhere
+  if (['cook', 'cleaner'].includes(req.user.role)) {
+    return next();
+  }
+  // Allow teacher/accountant to access their own staff profile
+  if (['teacher', 'accountant'].includes(req.user.role) && req.user.profileId && req.params.id === String(req.user.profileId)) {
+    return next();
+  }
+  if (['teacher', 'accountant'].includes(req.user.role) && req.user.canAccessStaff) {
+    return next();
+  }
+  res.status(403);
+  throw new Error('Not authorized for staff management');
+};
+
+export { protect, authorizeRoles, ensureStudentModuleAccess, ensureStaffModuleAccess };

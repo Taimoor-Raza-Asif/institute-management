@@ -63,6 +63,7 @@ const AssignClasses = () => {
 
     // Helper to get configuration for a slug
     const getAcademicConfig = (slug) => academicStructure?.find(type => type.slug === slug);
+    const formatTypeName = (name = '') => name.replace(' (1-8)', '');
     const selectedAcademicType = getAcademicConfig(currentAssignment.type);
     const isClassOrAlmiya = ['Class', 'Almiya'].includes(currentAssignment.type);
 
@@ -426,7 +427,9 @@ const AssignClasses = () => {
     const renderAssignmentDetails = (assignment) => {
         switch (assignment.type) {
             case 'Class':
-                return `Class ${assignment.classNumber}`;
+                const classConfig = getAcademicConfig('Class');
+                const clsObj = classConfig?.classConfig?.find(c => String(c.classNumber) === String(assignment.classNumber));
+                return clsObj ? `${clsObj.classIdentifier}` : `Class ${assignment.classNumber}`;
             case 'Almiya':
                 // Attempt to find the identifier from the structure
                 const almiyaConfig = getAcademicConfig('Almiya');
@@ -568,7 +571,7 @@ const AssignClasses = () => {
                                     >
                                         <option value="" disabled>Select Track</option>
                                         {academicStructure?.map(type => (
-                                            <option key={type.slug} value={type.slug}>{type.name}</option>
+                                            <option key={type.slug} value={type.slug}>{formatTypeName(type.name)}</option>
                                         ))}
                                     </select>
                                 </div>
@@ -587,7 +590,7 @@ const AssignClasses = () => {
                                             <option value="">Select Grade</option>
                                             {selectedAcademicType.classConfig?.sort((a, b) => a.classNumber - b.classNumber).map(cls => (
                                                 <option key={cls.classNumber} value={cls.classNumber}>
-                                                    {cls.classIdentifier} ({cls.classNumber})
+                                                    {cls.classIdentifier}
                                                 </option>
                                             ))}
                                             </select>

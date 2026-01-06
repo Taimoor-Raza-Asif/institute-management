@@ -382,13 +382,13 @@ const AttendanceMarking = () => {
                     // derive unique class assignments for this teacher & type
                     Array.from(new Map(assignedClasses.filter(a => a.type === filterClassType).map(a => [String(a.classNumber), a])).values()).map((assignment) => (
                       <option key={assignment.classNumber} value={assignment.classNumber}>
-                        {assignment.classIdentifier} ({assignment.classNumber})
+                        {assignment.classIdentifier} (ID: {assignment.classNumber})
                       </option>
                     ))
                   ) : (
                     selectedAcademicType.classConfig?.sort((a, b) => a.classNumber - b.classNumber).map((cls) => (
                       <option key={cls.classNumber} value={cls.classNumber}>
-                          {cls.classIdentifier} ({cls.classNumber})
+                          {cls.classIdentifier} (ID: {cls.classNumber})
                       </option>
                     ))
                   )}

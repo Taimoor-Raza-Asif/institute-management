@@ -195,7 +195,7 @@ import multer from 'multer';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
-import { protect, authorizeRoles } from '../middleware/authMiddleware.js'; // <--- NEW: Import auth middleware
+import { protect, authorizeRoles, ensureStudentModuleAccess } from '../middleware/authMiddleware.js'; // <--- NEW: Import auth middleware
 
 // Helper to get __dirname in ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -237,10 +237,10 @@ const studentUploadFields = upload.fields([
 // --- PROTECTED ROUTES ---
 
 
-router.put('/promote-semester',protect, authorizeRoles('admin', 'teacher'), promoteSemester);           // ADD THIS LINE
-router.put('/demote-semester',protect, authorizeRoles('admin', 'teacher'), demoteSemester);  // ADD THIS LINE
-router.put('/promote-class', protect, authorizeRoles('admin', 'teacher'), promoteClass); // ADD THIS LINE
-router.put('/demote-class', protect, authorizeRoles('admin', 'teacher'), demoteClass);
+router.put('/promote-semester', protect, authorizeRoles('admin', 'teacher'), ensureStudentModuleAccess, promoteSemester);           // ADD THIS LINE
+router.put('/demote-semester', protect, authorizeRoles('admin', 'teacher'), ensureStudentModuleAccess, demoteSemester);  // ADD THIS LINE
+router.put('/promote-class', protect, authorizeRoles('admin', 'teacher'), ensureStudentModuleAccess, promoteClass); // ADD THIS LINE
+router.put('/demote-class', protect, authorizeRoles('admin', 'teacher'), ensureStudentModuleAccess, demoteClass);
 
 
 // Get student's own data (for student role)
@@ -250,32 +250,32 @@ router.get('/profile/:id', protect, authorizeRoles('student', 'admin', 'teacher'
 
 
 // Admin and Teacher can view all students (Teacher can only view their subjects students - logic in controller)
-router.get('/', protect, authorizeRoles('admin', 'teacher', 'accountant'), getAllStudents);
+router.get('/', protect, authorizeRoles('admin', 'teacher', 'accountant'), ensureStudentModuleAccess, getAllStudents);
 
 // Get a single student by ID (Admin, Teacher, or Student viewing their own)
-router.get('/:id', protect, authorizeRoles('admin', 'teacher', 'student', 'accountant'), getStudentById);
+router.get('/:id', protect, authorizeRoles('admin', 'teacher', 'student', 'accountant'), ensureStudentModuleAccess, getStudentById);
 
 // Admin can create students
-router.post('/', protect, authorizeRoles('admin', 'accountant'), studentUploadFields, createStudent);
+router.post('/', protect, authorizeRoles('admin', 'accountant', 'teacher'), ensureStudentModuleAccess, studentUploadFields, createStudent);
 
 // Admin and Teacher can update students (Teacher with restrictions)
-router.put('/:id', protect, authorizeRoles('admin', 'teacher', 'accountant', 'student'), studentUploadFields, updateStudent);
+router.put('/:id', protect, authorizeRoles('admin', 'teacher', 'accountant', 'student'), ensureStudentModuleAccess, studentUploadFields, updateStudent);
 
 // Admin can delete students
-router.delete('/:id', protect, authorizeRoles('admin'), deleteStudent);
+router.delete('/:id', protect, authorizeRoles('admin', 'teacher', 'accountant'), ensureStudentModuleAccess, deleteStudent);
 
 
 
 
 
 // New routes for student promotion/demotion
-router.put('/:id/promote', protect, authorizeRoles('admin', 'teacher'), promoteStudent); // ADD THIS LINE
-router.put('/:id/demote', protect, authorizeRoles('admin', 'teacher'), demoteStudent);   // ADD THIS LINE
+router.put('/:id/promote', protect, authorizeRoles('admin', 'teacher'), ensureStudentModuleAccess, promoteStudent); // ADD THIS LINE
+router.put('/:id/demote', protect, authorizeRoles('admin', 'teacher'), ensureStudentModuleAccess, demoteStudent);   // ADD THIS LINE
 
 
 // Routes for promotion/demotion for semesters (NEW)
-router.put('/:id/promote-semester',protect, authorizeRoles('admin', 'teacher'), promoteStudentSemester); // ADD THIS LINE
-router.put('/:id/demote-semester',protect, authorizeRoles('admin', 'teacher'), demoteStudentSemester);   // ADD THIS LINE
+router.put('/:id/promote-semester', protect, authorizeRoles('admin', 'teacher'), ensureStudentModuleAccess, promoteStudentSemester); // ADD THIS LINE
+router.put('/:id/demote-semester', protect, authorizeRoles('admin', 'teacher'), ensureStudentModuleAccess, demoteStudentSemester);   // ADD THIS LINE
 
 
 

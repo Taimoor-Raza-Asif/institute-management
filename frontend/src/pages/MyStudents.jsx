@@ -170,219 +170,243 @@ const MyStudents = () => {
   const selectedAcademicType = getAcademicConfig(filterType);
   const isClassOrAlmiya = ['Class', 'Almiya'].includes(filterType);
 
-    if (structureLoading || loading) {
-        return <Loader />;
-    }
-
-  if (error) {
-    return <Message type="error">{error}</Message>;
-  }
-
-    if (assignedClasses.length === 0) {
-        return <p className={`text-xl ${currentTheme?.mutedText || 'text-gray-600'} text-center p-4`}>You have not been assigned any classes yet.</p>;
-    }
-
-
+  if (structureLoading) {
     return (
-        <div className={`min-h-screen ${currentTheme?.pageBg || 'bg-gradient-to-b from-emerald-50 via-white to-emerald-50'}`}>
-            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                {/* Hero */}
-                <div className={`relative overflow-hidden rounded-3xl ${currentTheme?.heroBg || 'bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500'} ${currentTheme?.shadow || 'shadow-2xl'} ${currentTheme?.border || 'border border-emerald-100'} text-white px-6 sm:px-10 py-8 mb-8`}>
-                    <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_20%_20%,white,transparent_25%),radial-gradient(circle_at_80%_0%,white,transparent_25%)]" />
-                    <div className="relative flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                        <div>
-                            <h1 className={`text-2xl sm:text-3xl font-extrabold leading-tight ${currentTheme?.heroTitle || 'text-white'}`}>Assigned Students</h1>
-                            <p className={`${currentTheme?.heroSubtitle || 'text-emerald-50/90'} mt-1 text-sm sm:text-base max-w-2xl`}>Search, filter, and review students in your assigned classes.</p>
-                        </div>
-                        <div className="grid grid-cols-3 gap-3">
-                            <div className={`${currentTheme?.cardBg || 'bg-white'} px-4 py-3 rounded-2xl ${currentTheme?.shadow || 'shadow-md'} ${currentTheme?.border || 'border border-emerald-100'}`}>
-                                <p className={`text-[11px] uppercase tracking-wide ${currentTheme?.mutedText || 'text-gray-500'}`}>Total</p>
-                                <p className={`text-lg font-semibold ${currentTheme?.statCardValue || 'text-gray-900'}`}>{students.length}</p>
-                            </div>
-                            <div className={`${currentTheme?.cardBg || 'bg-white'} px-4 py-3 rounded-2xl ${currentTheme?.shadow || 'shadow-md'} ${currentTheme?.border || 'border border-emerald-100'}`}>
-                                <p className={`text-[11px] uppercase tracking-wide ${currentTheme?.mutedText || 'text-gray-500'}`}>Filtered</p>
-                                <p className={`text-lg font-semibold ${currentTheme?.statCardValue || 'text-gray-900'}`}>{filteredStudents.length}</p>
-                            </div>
-                            <div className={`${currentTheme?.cardBg || 'bg-white'} px-4 py-3 rounded-2xl ${currentTheme?.shadow || 'shadow-md'} ${currentTheme?.border || 'border border-emerald-100'}`}>
-                                <p className={`text-[11px] uppercase tracking-wide ${currentTheme?.mutedText || 'text-gray-500'}`}>Classes</p>
-                                <p className={`text-lg font-semibold ${currentTheme?.statCardValue || 'text-gray-900'}`}>{assignedClasses.length}</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+      <div className="container mx-auto p-4 sm:p-6 lg:p-4 min-h-[400px] relative flex justify-center items-center">
+        <div className="text-xl text-green-600 animate-pulse">Loading Academic Structure...</div>
+      </div>
+    );
+  }
 
-                {/* Search + Filters */}
-                <div className={`mb-6 p-4 rounded-2xl ${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.shadow || 'shadow-lg'} ${currentTheme?.border || 'border border-emerald-100'}`}>
-                    <div className="flex flex-col sm:flex-row justify-between items-center mb-3 gap-3">
-                        <div className="relative w-full sm:w-2/3">
-                            <input
-                                type="text"
-                                placeholder="Search by name, CNIC, or roll no..."
-                                className={`h-11 p-2 pl-10 rounded-xl w-full ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} border ${currentTheme?.inputBorder || 'border-emerald-200'} focus:ring-emerald-500 focus:border-emerald-500`}
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                            />
-                            <MagnifyingGlassIcon className={`h-5 w-5 ${currentTheme?.iconText || 'text-emerald-600'} absolute left-3 top-1/2 -translate-y-1/2`} />
-                        </div>
-                        <div className="w-full sm:w-auto">
-                            <button
-                                onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-                                className={`inline-flex items-center justify-center px-4 py-2.5 rounded-xl transition duration-200 w-full ${currentTheme.btnSecondaryBg || 'bg-white'} ${currentTheme.btnSecondaryText || 'text-emerald-700'} ${currentTheme.btnSecondaryBorder || 'border border-emerald-200'} ${currentTheme.btnSecondaryHover || 'hover:bg-emerald-50'} ${currentTheme?.shadow || 'shadow-md'}`}
-                            >
-                                <FunnelIcon className="h-5 w-5 mr-2" />
-                                {showAdvancedFilters ? 'Hide Filters' : 'Advanced Filters'}
-                            </button>
-                        </div>
-                    </div>
-      
-            {showAdvancedFilters && (
-                <div className={`grid grid-cols-1 md:grid-cols-4 gap-4 mt-3 p-4 rounded-xl ${currentTheme?.panelBg || 'bg-emerald-50/60'} ${currentTheme?.panelBorder || 'border border-emerald-200'}`}>
+  if (assignedClasses.length === 0) {
+    return (
+      <div className="container mx-auto p-4 sm:p-6 lg:p-8">
+        <div className={`mb-8 p-6 rounded-xl ${currentTheme?.heroBg || 'bg-emerald-50'} ${currentTheme?.shadow || 'shadow-md'}`}>
+          <h1 className={`text-3xl sm:text-4xl font-extrabold ${currentTheme?.heroTitle || 'text-green-800'}`}>My Students</h1>
+          <p className={`${currentTheme?.heroSubtitle || 'text-gray-600'} mt-1 text-sm`}>View students assigned to your classes</p>
+        </div>
+        <div className={`p-8 rounded-2xl text-center ${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.shadow || 'shadow-lg'} ${currentTheme?.border || 'border border-gray-100'}`}>
+          <div className="mb-4">
+            <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full ${currentTheme?.heroBg || 'bg-emerald-100'}`}>
+              <BookOpenIcon className={`h-8 w-8 ${currentTheme?.heroTitle || 'text-green-800'}`} />
+            </div>
+          </div>
+          <h2 className={`text-2xl font-bold mb-2 ${currentTheme?.title || 'text-gray-900'}`}>No Classes Assigned</h2>
+          <p className={`${currentTheme?.mutedText || 'text-gray-500'} mb-4`}>You don't have any classes assigned to you yet. Please contact your administrator to assign classes.</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Early return if loading students
+  if (loading) {
+    return <Loader />;
+  }
+
+  // Main render: students are loaded and teacher has assigned classes
+  return (
+    <div className={`min-h-screen ${currentTheme?.pageBg || 'bg-gradient-to-b from-emerald-50 via-white to-emerald-50'}`}>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* Hero */}
+        <div className={`relative overflow-hidden rounded-3xl ${currentTheme?.heroBg || 'bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500'} ${currentTheme?.shadow || 'shadow-2xl'} ${currentTheme?.border || 'border border-emerald-100'} text-white px-6 sm:px-10 py-8 mb-8`}>
+          <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_20%_20%,white,transparent_25%),radial-gradient(circle_at_80%_0%,white,transparent_25%)]" />
+          <div className="relative flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h1 className={`text-2xl sm:text-3xl font-extrabold leading-tight ${currentTheme?.heroTitle || 'text-white'}`}>Assigned Students</h1>
+              <p className={`${currentTheme?.heroSubtitle || 'text-emerald-50/90'} mt-1 text-sm sm:text-base max-w-2xl`}>Search, filter, and review students in your assigned classes.</p>
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              <div className={`${currentTheme?.cardBg || 'bg-white'} px-4 py-3 rounded-2xl ${currentTheme?.shadow || 'shadow-md'} ${currentTheme?.border || 'border border-emerald-100'}`}>
+                <p className={`text-[11px] uppercase tracking-wide ${currentTheme?.mutedText || 'text-gray-500'}`}>Total</p>
+                <p className={`text-lg font-semibold ${currentTheme?.statCardValue || 'text-gray-900'}`}>{students.length}</p>
+              </div>
+              <div className={`${currentTheme?.cardBg || 'bg-white'} px-4 py-3 rounded-2xl ${currentTheme?.shadow || 'shadow-md'} ${currentTheme?.border || 'border border-emerald-100'}`}>
+                <p className={`text-[11px] uppercase tracking-wide ${currentTheme?.mutedText || 'text-gray-500'}`}>Filtered</p>
+                <p className={`text-lg font-semibold ${currentTheme?.statCardValue || 'text-gray-900'}`}>{filteredStudents.length}</p>
+              </div>
+              <div className={`${currentTheme?.cardBg || 'bg-white'} px-4 py-3 rounded-2xl ${currentTheme?.shadow || 'shadow-md'} ${currentTheme?.border || 'border border-emerald-100'}`}>
+                <p className={`text-[11px] uppercase tracking-wide ${currentTheme?.mutedText || 'text-gray-500'}`}>Classes</p>
+                <p className={`text-lg font-semibold ${currentTheme?.statCardValue || 'text-gray-900'}`}>{assignedClasses.length}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Search + Filters */}
+        <div className={`mb-6 p-4 rounded-2xl ${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.shadow || 'shadow-lg'} ${currentTheme?.border || 'border border-emerald-100'}`}>
+          <div className="flex flex-col sm:flex-row justify-between items-center mb-3 gap-3">
+            <div className="relative w-full sm:w-2/3">
+              <input
+                type="text"
+                placeholder="Search by name, CNIC, or roll no..."
+                className={`h-11 p-2 pl-10 rounded-xl w-full ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} border ${currentTheme?.inputBorder || 'border-emerald-200'} focus:ring-emerald-500 focus:border-emerald-500`}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              <MagnifyingGlassIcon className={`h-5 w-5 ${currentTheme?.iconText || 'text-emerald-600'} absolute left-3 top-1/2 -translate-y-1/2`} />
+            </div>
+            <div className="w-full sm:w-auto">
+              <button
+                onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+                className={`inline-flex items-center justify-center px-4 py-2.5 rounded-xl transition duration-200 w-full ${currentTheme.btnSecondaryBg || 'bg-white'} ${currentTheme.btnSecondaryText || 'text-emerald-700'} ${currentTheme.btnSecondaryBorder || 'border border-emerald-200'} ${currentTheme.btnSecondaryHover || 'hover:bg-emerald-50'} ${currentTheme?.shadow || 'shadow-md'}`}
+              >
+                <FunnelIcon className="h-5 w-5 mr-2" />
+                {showAdvancedFilters ? 'Hide Filters' : 'Advanced Filters'}
+              </button>
+            </div>
+          </div>
+
+          {showAdvancedFilters && (
+            <div className={`grid grid-cols-1 md:grid-cols-4 gap-4 mt-3 p-4 rounded-xl ${currentTheme?.panelBg || 'bg-emerald-50/60'} ${currentTheme?.panelBorder || 'border border-emerald-200'}`}>
+              {/* Filter by Assignment Type */}
+              <div>
+                <label htmlFor="filterType" className={`block text-sm font-medium ${currentTheme?.title || 'text-gray-700'}`}>Academic Track</label>
+                <select
+                  id="filterType"
+                  value={filterType}
+                  onChange={(e) => {
+                    setFilterType(e.target.value);
+                    setFilterClassNumber('');
+                    setFilterDegreeName('');
+                    setFilterSemester('');
+                  }}
+                  className={`mt-1 block w-full p-2 rounded-xl ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} ${currentTheme?.shadow || 'shadow-sm'} sm:text-sm border ${currentTheme?.inputBorder || 'border-emerald-200'}`}
+                >
+                  <option value="">All Assigned Types</option>
+                  {/* Only show types assigned to the teacher */}
+                  {[...new Set(assignedClasses.map(a => a.type))].map(type => (
+                    <option key={type} value={type}>{type}</option>
+                  ))}
+                </select>
+              </div>
           
-                    {/* Filter by Assignment Type */}
+              {/* Conditional Class/Almiya Filter */}
+              {isClassOrAlmiya && selectedAcademicType && (
+                <div>
+                  <label htmlFor="filterClassNumber" className={`block text-sm font-medium ${currentTheme?.title || 'text-gray-700'}`}>{selectedAcademicType.name} Grade</label>
+                  <select
+                    id="filterClassNumber"
+                    value={filterClassNumber}
+                    onChange={(e) => setFilterClassNumber(e.target.value)}
+                    className={`mt-1 block w-full p-2 rounded-xl ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} ${currentTheme?.shadow || 'shadow-sm'} sm:text-sm border ${currentTheme?.inputBorder || 'border-emerald-200'}`}
+                  >
+                    <option value="">All Grades</option>
+                    {assignedClasses.filter(a => a.type === filterType).map(assignment => (
+                      <option key={assignment.classNumber} value={assignment.classNumber}>
+                        {assignment.classIdentifier} ({assignment.classNumber})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {/* Conditional BS Filters */}
+              {filterType === 'BS' && (
+                <>
+                  <div>
+                    <label htmlFor="filterDegreeName" className={`block text-sm font-medium ${currentTheme?.title || 'text-gray-700'}`}>Degree</label>
+                    <select
+                      id="filterDegreeName"
+                      value={filterDegreeName}
+                      onChange={(e) => {
+                        setFilterDegreeName(e.target.value);
+                        setFilterSemester('');
+                      }}
+                      className={`mt-1 block w-full p-2 rounded-xl ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} ${currentTheme?.shadow || 'shadow-sm'} sm:text-sm border ${currentTheme?.inputBorder || 'border-emerald-200'}`}
+                    >
+                      <option value="">All Degrees</option>
+                      {[...new Set(assignedClasses.filter(a => a.type === 'BS').map(a => a.degreeName))].map(degree => (
+                        <option key={degree} value={degree}>{degree}</option>
+                      ))}
+                    </select>
+                  </div>
+                  {filterDegreeName && (
                     <div>
-                        <label htmlFor="filterType" className={`block text-sm font-medium ${currentTheme?.title || 'text-gray-700'}`}>Academic Track</label>
-                        <select
-                            id="filterType"
-                            value={filterType}
-                            onChange={(e) => {
-                                setFilterType(e.target.value);
-                                setFilterClassNumber('');
-                                setFilterDegreeName('');
-                                setFilterSemester('');
-                            }}
-                            className={`mt-1 block w-full p-2 rounded-xl ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} ${currentTheme?.shadow || 'shadow-sm'} sm:text-sm border ${currentTheme?.inputBorder || 'border-emerald-200'}`}
-                        >
-                            <option value="">All Assigned Types</option>
-                            {/* Only show types assigned to the teacher */}
-                            {[...new Set(assignedClasses.map(a => a.type))].map(type => (
-                                <option key={type} value={type}>{type}</option>
-                            ))}
-                        </select>
+                      <label htmlFor="filterSemester" className={`block text-sm font-medium ${currentTheme?.title || 'text-gray-700'}`}>Semester</label>
+                      <select
+                        id="filterSemester"
+                        value={filterSemester}
+                        onChange={(e) => setFilterSemester(e.target.value)}
+                        className={`mt-1 block w-full p-2 rounded-xl ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} ${currentTheme?.shadow || 'shadow-sm'} sm:text-sm border ${currentTheme?.inputBorder || 'border-emerald-200'}`}
+                      >
+                        <option value="">All Semesters</option>
+                        {[...new Set(assignedClasses.filter(a => a.type === 'BS' && a.degreeName === filterDegreeName).map(a => a.semester))].map(sem => (
+                          <option key={sem} value={sem}>{sem}</option>
+                        ))}
+                      </select>
                     </div>
-          
-                    {/* Conditional Class/Almiya Filter */}
-                    {isClassOrAlmiya && selectedAcademicType && (
-                        <div>
-                            <label htmlFor="filterClassNumber" className={`block text-sm font-medium ${currentTheme?.title || 'text-gray-700'}`}>{selectedAcademicType.name} Grade</label>
-                            <select
-                                id="filterClassNumber"
-                                value={filterClassNumber}
-                                onChange={(e) => setFilterClassNumber(e.target.value)}
-                                className={`mt-1 block w-full p-2 rounded-xl ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} ${currentTheme?.shadow || 'shadow-sm'} sm:text-sm border ${currentTheme?.inputBorder || 'border-emerald-200'}`}
-                            >
-                                <option value="">All Grades</option>
-                                {assignedClasses.filter(a => a.type === filterType).map(assignment => (
-                                    <option key={assignment.classNumber} value={assignment.classNumber}>
-                                        {assignment.classIdentifier} ({assignment.classNumber})
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                    )}
-          
-                    {/* Conditional BS Filters */}
-                    {filterType === 'BS' && (
-                            <>
-                                    <div>
-                                            <label htmlFor="filterDegreeName" className={`block text-sm font-medium ${currentTheme?.title || 'text-gray-700'}`}>Degree</label>
-                                            <select
-                                                    id="filterDegreeName"
-                                                    value={filterDegreeName}
-                                                    onChange={(e) => { setFilterDegreeName(e.target.value); setFilterSemester(''); }}
-                                                    className={`mt-1 block w-full p-2 rounded-xl ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} ${currentTheme?.shadow || 'shadow-sm'} sm:text-sm border ${currentTheme?.inputBorder || 'border-emerald-200'}`}
-                                            >
-                                                    <option value="">All Degrees</option>
-                                                    {[...new Set(assignedClasses.filter(a => a.type === 'BS').map(a => a.degreeName))].map(degree => (
-                                                            <option key={degree} value={degree}>{degree}</option>
-                                                    ))}
-                                            </select>
-                                    </div>
-                                    {filterDegreeName && (
-                                            <div>
-                                                    <label htmlFor="filterSemester" className={`block text-sm font-medium ${currentTheme?.title || 'text-gray-700'}`}>Semester</label>
-                                                    <select
-                                                            id="filterSemester"
-                                                            value={filterSemester}
-                                                            onChange={(e) => setFilterSemester(e.target.value)}
-                                                            className={`mt-1 block w-full p-2 rounded-xl ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} ${currentTheme?.shadow || 'shadow-sm'} sm:text-sm border ${currentTheme?.inputBorder || 'border-emerald-200'}`}
-                                                    >
-                                                            <option value="">All Semesters</option>
-                                                            {[...new Set(assignedClasses.filter(a => a.type === 'BS' && a.degreeName === filterDegreeName).map(a => a.semester))].map(sem => (
-                                                                    <option key={sem} value={sem}>{sem}</option>
-                                                            ))}
-                                                    </select>
-                                            </div>
-                                    )}
-                            </>
-                    )}
+                  )}
+                </>
+              )}
 
-                    {/* Hifaz filter requires no extra fields */}
-                    {filterType === 'Hifaz' && (
-                            <div className="md:col-span-3">
-                                    <Message type="info">Filtering by Hifaz course.</Message>
-                            </div>
-                    )}
+              {/* Hifaz filter requires no extra fields */}
+              {filterType === 'Hifaz' && (
+                <div className="md:col-span-3">
+                  <Message type="info">Filtering by Hifaz course.</Message>
                 </div>
-            )}
+              )}
+            </div>
+          )}
         </div>
 
 
+        {/* Students Table or Empty Message */}
         {filteredStudents.length > 0 ? (
-            <div className={`overflow-x-auto rounded-2xl ${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.shadow || 'shadow-lg'} overflow-y-auto relative mt-6 ${currentTheme?.border || 'border border-emerald-100'}`}>
-                <table className="w-full whitespace-nowrap table-auto">
-                    <thead className={`${currentTheme?.theadBg || 'bg-emerald-600'} ${currentTheme?.theadText || 'text-white'} uppercase text-xs leading-normal sticky top-0`}>
-                        <tr>
-                             <th className="px-6 py-3 text-left font-semibold tracking-wide">Name</th>
-                            <th className="px-6 py-3 text-left font-semibold tracking-wide">CNIC / Roll No</th>
-                            <th className="px-6 py-3 text-left font-semibold tracking-wide">Academic Details</th>
-                            <th className="px-6 py-3 text-left font-semibold tracking-wide">Guardian Contact</th>
-                            <th className="py-3 px-4 text-center font-semibold rounded-tr-lg">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody className={`${currentTheme?.tbodyBg || 'bg-white'} divide-y ${currentTheme?.border || 'divide-emerald-50'}`}>
-                        {filteredStudents.map((student) => (
-                            <tr key={student._id} className={`transition duration-150 ease-in-out ${currentTheme?.tableHover || 'hover:bg-emerald-50'} ${currentTheme?.tableStripedBg || ''}`}>
-                                <td className={`py-3 px-4 font-medium ${currentTheme?.title || 'text-gray-800'}`}>{student.name}</td>
-                                <td className={`py-3 px-4 ${currentTheme?.text || 'text-gray-600'}`}>
-                                    <p>{student.cnic}</p>
-                                    <p className={`text-[11px] ${currentTheme?.mutedText || 'text-gray-500'}`}>{student.rollNumber && `Roll: ${student.rollNumber}`}</p>
-                                </td>
-                                <td className={`py-3 px-4 ${currentTheme?.text || 'text-gray-600'}`}>
-                                    {renderClassInfo(student)}
-                                </td>
-                                <td className={`py-3 px-4 ${currentTheme?.text || 'text-gray-600'}`}>{student.guardianContact}</td>
-                                <td className={`py-3 px-4 text-center`}>
-                                    <button
-                                        onClick={() => handleViewStudent(student)}
-                                        className={`${currentTheme?.iconText || 'text-emerald-600'} hover:opacity-75 transition-opacity duration-200 p-2 rounded-full`}
-                                        title="View Student Details"
-                                    >
-                                        <EyeIcon className="h-5 w-5" />
-                                    </button>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
+          <div className={`overflow-x-auto rounded-2xl ${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.shadow || 'shadow-lg'} overflow-y-auto relative mt-6 ${currentTheme?.border || 'border border-emerald-100'}`}>
+            <table className="w-full whitespace-nowrap table-auto">
+              <thead className={`${currentTheme?.theadBg || 'bg-emerald-600'} ${currentTheme?.theadText || 'text-white'} uppercase text-xs leading-normal sticky top-0`}>
+                <tr>
+                  <th className="px-6 py-3 text-left font-semibold tracking-wide">Name</th>
+                  <th className="px-6 py-3 text-left font-semibold tracking-wide">CNIC / Roll No</th>
+                  <th className="px-6 py-3 text-left font-semibold tracking-wide">Academic Details</th>
+                  <th className="px-6 py-3 text-left font-semibold tracking-wide">Guardian Contact</th>
+                  <th className="py-3 px-4 text-center font-semibold rounded-tr-lg">Actions</th>
+                </tr>
+              </thead>
+              <tbody className={`${currentTheme?.tbodyBg || 'bg-white'} divide-y ${currentTheme?.border || 'divide-emerald-50'}`}>
+                {filteredStudents.map((student) => (
+                  <tr key={student._id} className={`transition duration-150 ease-in-out ${currentTheme?.tableHover || 'hover:bg-emerald-50'} ${currentTheme?.tableStripedBg || ''}`}>
+                    <td className={`py-3 px-4 font-medium ${currentTheme?.title || 'text-gray-800'}`}>{student.name}</td>
+                    <td className={`py-3 px-4 ${currentTheme?.text || 'text-gray-600'}`}>
+                      <p>{student.cnic}</p>
+                      <p className={`text-[11px] ${currentTheme?.mutedText || 'text-gray-500'}`}>{student.rollNumber && `Roll: ${student.rollNumber}`}</p>
+                    </td>
+                    <td className={`py-3 px-4 ${currentTheme?.text || 'text-gray-600'}`}>
+                      {renderClassInfo(student)}
+                    </td>
+                    <td className={`py-3 px-4 ${currentTheme?.text || 'text-gray-600'}`}>{student.guardianContact}</td>
+                    <td className={`py-3 px-4 text-center`}>
+                      <button
+                        onClick={() => handleViewStudent(student)}
+                        className={`${currentTheme?.iconText || 'text-emerald-600'} hover:opacity-75 transition-opacity duration-200 p-2 rounded-full`}
+                        title="View Student Details"
+                      >
+                        <EyeIcon className="h-5 w-5" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         ) : (
-            <p className={`text-xl ${currentTheme?.mutedText || 'text-gray-600'} text-center p-4 ${currentTheme?.panelBg || 'bg-gray-100'} rounded-lg shadow-sm`}>
-                No students found matching your filters.
-            </p>
+          <p className={`text-xl ${currentTheme?.mutedText || 'text-gray-600'} text-center p-4 ${currentTheme?.panelBg || 'bg-gray-100'} rounded-lg shadow-sm`}>
+            No students found matching your filters.
+          </p>
         )}
 
+        {/* Student Detail Modal */}
         <Modal isOpen={isModalOpen} onClose={handleCloseModal}>
-            <StudentForm
-                editingStudent={selectedStudent}
-                onClose={handleCloseModal}
-                isViewMode={true}
-                academicStructure={academicStructure} // <-- PASS THE STRUCTURE HERE
-            />
+          <StudentForm
+            editingStudent={selectedStudent}
+            onClose={handleCloseModal}
+            isViewMode={true}
+            academicStructure={academicStructure}
+          />
         </Modal>
-
-            </div>
-        </div>
- );
+      </div>
+    </div>
+  );
 };
 
 export default MyStudents;

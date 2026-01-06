@@ -25,6 +25,8 @@ export const loginUser = async (req, res) => {
         role: user.role,
         profileId: user.profileId,
         editModeEnabled: user.editModeEnabled,
+        canAccessStudents: user.canAccessStudents,
+        canAccessStaff: user.canAccessStaff,
         token: generateToken(user._id),
       });
     } else {

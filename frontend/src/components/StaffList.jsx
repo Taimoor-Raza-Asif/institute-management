@@ -168,9 +168,10 @@ const inputRef = useRef(null);
   };
 
   // Permissions
-  const canAddStaff = currentUser && (currentUser.role === 'admin' || currentUser.editModeEnabled);
+  const hasStaffModuleAccess = currentUser && (currentUser.role === 'admin' || currentUser.canAccessStaff);
+  const canAddStaff = hasStaffModuleAccess;
   // const canManageLeave = currentUser && currentUser.role === 'admin';
-  const canEditOrDeleteStaff = currentUser && currentUser.role === 'admin';
+  const canEditOrDeleteStaff = hasStaffModuleAccess;
 
   if (loading) return (
     <div className="container mx-auto p-4 sm:p-6 lg:p-8 min-h-[400px] relative">

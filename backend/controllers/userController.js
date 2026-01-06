@@ -17,7 +17,7 @@ const generateToken = (id, role) => {
 // @route   POST /api/users/register
 // @access  Public (or Admin only if registration is restricted)
 export const registerUser = asyncHandler(async (req, res) => {
-  const { cnic, password, role, profileId, editModeEnabled } = req.body;
+  const { cnic, password, role, profileId, editModeEnabled, canAccessStudents, canAccessStaff } = req.body;
 
   // Validate required fields
   if (!cnic || !password || !role) {
@@ -81,7 +81,9 @@ export const registerUser = asyncHandler(async (req, res) => {
     role,
     profileId: linkedProfile ? linkedProfile._id : null,
     roleMapping: roleMapping,
-    editModeEnabled: role === 'admin' ? true : (editModeEnabled || false) // Admin is true by default, others based on input
+    editModeEnabled: role === 'admin' ? true : (editModeEnabled || false), // Admin is true by default, others based on input
+    canAccessStudents: canAccessStudents || false,
+    canAccessStaff: canAccessStaff || false
   });
 
   if (user) {
@@ -92,6 +94,8 @@ export const registerUser = asyncHandler(async (req, res) => {
       profileId: user.profileId,
       roleMapping: user.roleMapping,
       editModeEnabled: user.editModeEnabled,
+      canAccessStudents: user.canAccessStudents,
+      canAccessStaff: user.canAccessStaff,
       token: generateToken(user._id, user.role), // Generate JWT for the new user, including role
     });
   } else {
@@ -192,6 +196,8 @@ export const authUser = asyncHandler(async (req, res) => {
       role: user.role,
       profileId: user.profileId,
       editModeEnabled: user.editModeEnabled,
+      canAccessStudents: user.canAccessStudents,
+      canAccessStaff: user.canAccessStaff,
       token: generateToken(user._id, user.role),
     });
   } else {
@@ -248,7 +254,7 @@ export const getUserById = asyncHandler(async (req, res) => {
 // @route   PUT /api/users/:id
 // @access  Private/Admin
 export const updateUser = asyncHandler(async (req, res) => {
-  const { cnic, password, role, profileId, editModeEnabled } = req.body;
+  const { cnic, password, role, profileId, editModeEnabled, canAccessStudents, canAccessStaff } = req.body;
 
   const user = await User.findById(req.params.id);
 
@@ -299,6 +305,12 @@ export const updateUser = asyncHandler(async (req, res) => {
       if (editModeEnabled !== undefined) {
         user.editModeEnabled = editModeEnabled;
       }
+      if (canAccessStudents !== undefined) {
+        user.canAccessStudents = canAccessStudents;
+      }
+      if (canAccessStaff !== undefined) {
+        user.canAccessStaff = canAccessStaff;
+      }
     }
 
 
@@ -311,6 +323,8 @@ export const updateUser = asyncHandler(async (req, res) => {
       profileId: updatedUser.profileId,
       roleMapping: updatedUser.roleMapping,
       editModeEnabled: updatedUser.editModeEnabled,
+      canAccessStudents: updatedUser.canAccessStudents,
+      canAccessStaff: updatedUser.canAccessStaff,
     });
   } else {
     res.status(404);
@@ -470,5 +484,39 @@ export const toggleAllEditMode = asyncHandler(async (req, res) => {
   res.json({
     message: `Edit mode has been ${enable ? 'enabled' : 'disabled'} for ${modified} users with the role "${role}".`,
     modifiedCount: modified
+  });
+});
+
+// @desc    Update per-module access flags for a user (Admin only)
+// @route   PUT /api/users/:id/module-access
+// @access  Private/Admin
+export const updateUserModuleAccess = asyncHandler(async (req, res) => {
+  const { canAccessStudents, canAccessStaff } = req.body;
+  const user = await User.findById(req.params.id);
+
+  if (!user) {
+    res.status(404);
+    throw new Error('User not found.');
+  }
+
+  if (req.user._id.toString() === user._id.toString()) {
+    res.status(400);
+    throw new Error('You cannot change your own module access from this panel.');
+  }
+
+  if (canAccessStudents !== undefined) {
+    user.canAccessStudents = Boolean(canAccessStudents);
+  }
+  if (canAccessStaff !== undefined) {
+    user.canAccessStaff = Boolean(canAccessStaff);
+  }
+
+  const updatedUser = await user.save();
+
+  res.json({
+    _id: updatedUser._id,
+    canAccessStudents: updatedUser.canAccessStudents,
+    canAccessStaff: updatedUser.canAccessStaff,
+    message: 'Module access updated successfully.',
   });
 });

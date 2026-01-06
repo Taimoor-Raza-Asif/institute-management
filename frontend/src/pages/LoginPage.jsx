@@ -39,6 +39,8 @@ const LoginPage = ({ onLogin }) => {
         name: userData.name,
         profileId: userData.profileId || userData._id,
         editModeEnabled: userData.editModeEnabled,
+        canAccessStudents: userData.canAccessStudents,
+        canAccessStaff: userData.canAccessStaff,
       };
 
       // Always keep current session

@@ -444,6 +444,20 @@ const Layout = ({ children, currentUser, onLogout }) => {
               {/* Teacher Links */}
               {currentUser.role === 'teacher' && (
                 <>
+                  {currentUser.canAccessStudents && (
+                    <li className="mb-2">
+                      <NavLink to="/students" className={navClass} onClick={toggleSidebar}>
+                        <AcademicCapIcon className={`h-5 w-5 mr-3`} /> Student Management
+                      </NavLink>
+                    </li>
+                  )}
+                  {currentUser.canAccessStaff && (
+                    <li className="mb-2">
+                      <NavLink to="/staff" className={navClass} onClick={toggleSidebar}>
+                        <BriefcaseIcon className={`h-5 w-5 mr-3`} /> Staff Management
+                      </NavLink>
+                    </li>
+                  )}
                   <li className="mb-2">
                     <div
                       onClick={() => toggleDropdown('teacher-classes')}
@@ -534,6 +548,20 @@ const Layout = ({ children, currentUser, onLogout }) => {
               {/* Accountant Links */}
               {currentUser.role === 'accountant' && (
                 <>
+                  {currentUser.canAccessStudents && (
+                    <li className="mb-2">
+                      <NavLink to="/students" className={navClass} onClick={toggleSidebar}>
+                        <AcademicCapIcon className={`h-5 w-5 mr-3`} /> Student Management
+                      </NavLink>
+                    </li>
+                  )}
+                  {currentUser.canAccessStaff && (
+                    <li className="mb-2">
+                      <NavLink to="/staff" className={navClass} onClick={toggleSidebar}>
+                        <BriefcaseIcon className={`h-5 w-5 mr-3`} /> Staff Management
+                      </NavLink>
+                    </li>
+                  )}
                   <li className="mb-2">
                     <div
                       onClick={() => toggleDropdown('accountant-finance')}

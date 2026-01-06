@@ -194,7 +194,7 @@ const StudentList = () => {
   };
 
   const handleDelete = async (id) => {
-    if (currentUser?.role !== 'admin') {
+    if (!canDeleteStudent) {
       alert("You are not authorized to delete student records.");
       return;
     }
@@ -303,9 +303,10 @@ const StudentList = () => {
   const displayedStudents = students;
 
   // --- Authorization Checks ---
-  const canAddStudent = currentUser?.role === 'admin' || currentUser?.role === 'accountant';
-  const canEditStudent = (currentUser?.role === 'admin' || (currentUser?.role === 'teacher' && currentUser?.editModeEnabled) || currentUser?.role === 'accountant');
-  const canDeleteStudent = currentUser?.role === 'admin';
+  const hasStudentModuleAccess = currentUser?.role === 'admin' || currentUser?.canAccessStudents;
+  const canAddStudent = hasStudentModuleAccess;
+  const canEditStudent = hasStudentModuleAccess;
+  const canDeleteStudent = hasStudentModuleAccess;
   const isStudentRole = currentUser?.role === 'student';
 
   // Skeleton Row Component for loading state

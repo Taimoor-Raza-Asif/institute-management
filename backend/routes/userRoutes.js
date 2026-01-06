@@ -10,6 +10,7 @@ import {
   toggleEditMode,
   registerAdminUser,
   toggleAllEditMode,
+  updateUserModuleAccess,
 } from '../controllers/userController.js';
 import { protect, authorizeRoles } from '../middleware/authMiddleware.js';
 
@@ -29,6 +30,7 @@ router.get('/:id', protect, authorizeRoles('admin'), getUserById);
 router.put('/:id', protect, authorizeRoles('admin'), updateUser);
 router.delete('/:id', protect, authorizeRoles('admin'), deleteUser);
 router.put('/:id/editmode', protect, authorizeRoles('admin'), toggleEditMode); // Toggle edit mode for a user
+router.put('/:id/module-access', protect, authorizeRoles('admin'), updateUserModuleAccess);
 
 router.put('/editmode/:role', protect, authorizeRoles('admin'), toggleAllEditMode);
 export default router;

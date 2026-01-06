@@ -77,7 +77,7 @@ const App = () => {
     window.location.href = '/login';
   };
 
-  const PrivateRoute = ({ children, roles }) => {
+  const PrivateRoute = ({ children, roles, requiresStudentAccess, requiresStaffAccess }) => {
     if (loadingUser) {
       // Basic full-screen loading indicator for initial auth check
       return (
@@ -90,6 +90,12 @@ const App = () => {
       return <Navigate to="/login" replace />; // Use replace to avoid extra history entries
     }
     if (roles && !roles.includes(currentUser.role)) {
+      return <Navigate to="/unauthorized" replace />;
+    }
+    if (requiresStudentAccess && currentUser.role !== 'admin' && !currentUser.canAccessStudents) {
+      return <Navigate to="/unauthorized" replace />;
+    }
+    if (requiresStaffAccess && currentUser.role !== 'admin' && !currentUser.canAccessStaff) {
       return <Navigate to="/unauthorized" replace />;
     }
     // Render children wrapped by Layout for protected routes
@@ -162,7 +168,7 @@ const App = () => {
           {/* Teacher Module */}
           <Route path="/teacher/dashboard" element={<PrivateRoute roles={['teacher']}><TeacherDashboard /></PrivateRoute>} />
           <Route path="/staff/my-data" element={<PrivateRoute roles={['teacher', 'cook', 'cleaner', 'accountant']}><StaffForm isViewMode={true} /></PrivateRoute>} />
-          <Route path="/students" element={<PrivateRoute roles={['admin', 'teacher']}><StudentList /></PrivateRoute>} />
+          <Route path="/students" element={<PrivateRoute roles={['admin', 'teacher', 'accountant']}><StudentList /></PrivateRoute>} />
           <Route path="/teacher/subjects" element={<PrivateRoute roles={['teacher']}><p className="text-center py-8">Teacher Subjects Management Coming Soon!</p></PrivateRoute>} />
           <Route path="/staff/staff-leaves" element={<PrivateRoute roles={['admin', 'teacher', 'cook', 'cleaner', 'accountant']}><StaffLeaveList /></PrivateRoute>} />
           <Route path="/teacher/student-leaves" element={<PrivateRoute roles={['teacher']}><LeaveList /></PrivateRoute>} />
@@ -183,7 +189,7 @@ const App = () => {
           <Route path="/financial-reports" element={<PrivateRoute roles={['admin', 'accountant']}><p className="text-center py-8">Financial Reports Coming Soon!</p></PrivateRoute>} />
 
           {/* General Staff List (only Admin can view all staff) */}
-          <Route path="/staff" element={<PrivateRoute roles={['admin']}><StaffList /></PrivateRoute>} />
+          <Route path="/staff" element={<PrivateRoute roles={['admin', 'teacher', 'accountant']}><StaffList /></PrivateRoute>} />
 
           {/* Catch all for undefined routes - redirects to role dashboard or login */}
           <Route path="*" element={<Navigate to={currentUser ? roleDashboardPath(currentUser.role) : "/login"} replace />} />

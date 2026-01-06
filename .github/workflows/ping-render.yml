@@ -11,6 +11,13 @@ jobs:
     steps:
       - name: Ping Render health endpoint
         run: |
-          curl -m 8 -s -o /dev/null -w "%{http_code}\n" "$RENDER_HEALTH_URL"
+          echo "Pinging $RENDER_HEALTH_URL ..."
+          # Retry up to 5 times, wait 5s between, allow up to 60s per attempt
+          CODE=$(curl --retry 5 --retry-delay 5 --retry-connrefused -m 60 -s -o /dev/null -w "%{http_code}" "$RENDER_HEALTH_URL")
+          echo "$CODE"
+          if [ "$CODE" -ne 200 ]; then
+            echo "Health check failed with status $CODE"
+            exit 1
+          fi
         env:
           RENDER_HEALTH_URL: ${{ secrets.RENDER_HEALTH_URL }}

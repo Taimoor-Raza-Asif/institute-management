@@ -39,6 +39,14 @@ const userSchema = new mongoose.Schema({
   editModeEnabled: { // To control if this specific user can edit their data or data they are authorized for
     type: Boolean,
     default: false
+  },
+  canAccessStudents: {
+    type: Boolean,
+    default: false
+  },
+  canAccessStaff: {
+    type: Boolean,
+    default: false
   }
 }, {
   timestamps: true // Adds createdAt and updatedAt timestamps

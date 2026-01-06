@@ -18,7 +18,7 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
-import { protect, authorizeRoles } from '../middleware/authMiddleware.js'; // <--- NEW: Import auth middleware
+import { protect, authorizeRoles, ensureStaffModuleAccess } from '../middleware/authMiddleware.js'; // <--- NEW: Import auth middleware
 
 // Helper to get __dirname in ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -48,12 +48,12 @@ router.get('/profile/:id', protect, authorizeRoles('admin', 'teacher', 'accounta
 
 
 // CRUD operations for Staff (Admin only for full CRUD)
-router.post('/', upload.single('profilePicture'), createStaff);
-router.get('/', protect, authorizeRoles('admin'), getAllStaff); // Admin can view all staff
-router.get('/:id', protect, authorizeRoles('admin', 'teacher', 'accountant', 'cook', 'cleaner'), getStaffById); //////// Change made here 'teacher', 'accountant', 'cook', 'cleaner'
-router.put('/:id', protect, authorizeRoles('admin'), upload.single('profilePicture'), updateStaff); // Staff can update their own profile, Admin can update any
+router.post('/', protect, authorizeRoles('admin', 'teacher', 'accountant'), ensureStaffModuleAccess, upload.single('profilePicture'), createStaff);
+router.get('/', protect, authorizeRoles('admin', 'teacher', 'accountant'), ensureStaffModuleAccess, getAllStaff); // Admin can view all staff
+router.get('/:id', protect, authorizeRoles('admin', 'teacher', 'accountant', 'cook', 'cleaner'), ensureStaffModuleAccess, getStaffById); //////// Change made here 'teacher', 'accountant', 'cook', 'cleaner'
+router.put('/:id', protect, authorizeRoles('admin', 'teacher', 'accountant'), ensureStaffModuleAccess, upload.single('profilePicture'), updateStaff); // Staff can update their own profile, Admin can update any
 
-router.delete('/:id', protect, authorizeRoles('admin'), deleteStaff);
+router.delete('/:id', protect, authorizeRoles('admin', 'teacher', 'accountant'), ensureStaffModuleAccess, deleteStaff);
 
 // Attendance routes
 router.post('/attendance', protect, authorizeRoles('admin', 'teacher', 'accountant', 'cook', 'cleaner'), recordAttendance); // All staff can record attendance

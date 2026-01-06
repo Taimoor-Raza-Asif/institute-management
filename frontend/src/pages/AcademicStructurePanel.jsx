@@ -65,7 +65,7 @@ const getDefaultStructure = () => {
 
     return [
         {
-            name: 'Regular Class (1-8)',
+            name: 'Regular Class',
             slug: 'Class',
             classConfig: Array.from({ length: 8 }, (_, i) => ({
                 classIdentifier: `${i + 1}th Grade`,

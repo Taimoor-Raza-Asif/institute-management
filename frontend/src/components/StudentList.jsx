@@ -51,12 +51,6 @@ const StudentList = () => {
   const [filterDegreeName, setFilterDegreeName] = useState('');
   const [filterSemester, setFilterSemester] = useState('');
   const [filterStudentStatus, setFilterStudentStatus] = useState('Regular');
-
-  const currentMonthName = months[new Date().getMonth()];
-  const currentYear = new Date().getFullYear().toString();
-  const [filterFeeMonth, setFilterFeeMonth] = useState(currentMonthName);
-  const [filterFeeYear, setFilterFeeYear] = useState(currentYear);
-
   const [filterGender, setFilterGender] = useState('all');
 
   const generateYearOptions = useCallback(() => {
@@ -241,23 +235,9 @@ const StudentList = () => {
     setFilterSemester('');
     setFilterGender('all');
     setFilterStudentStatus('Regular');
-    setFilterFeeMonth(currentMonthName);
-    setFilterFeeYear(currentYear);
   };
 
-  const getFilteredStudents = () => {
-    const targetMonthYear = `${filterFeeMonth} ${filterFeeYear}`;
-    const paidStudentIdsForMonth = new Set(
-      allFees
-        .filter(fee => fee.month === targetMonthYear && fee.studentId?._id)
-        .map(fee => fee.studentId._id)
-    );
-    return students.map(student => ({
-      ...student,
-      // Add a temporary property to indicate if paid for the selected month
-      isPaidForSelectedMonth: paidStudentIdsForMonth.has(student._id)
-    }));
-  };
+
 
   const handlePromoteStudent = async (studentId, studentClass) => {
     if (!window.confirm(`Are you sure you want to promote this student to the next ${studentClass === 'BS' ? 'Semester' : 'Class/Grade'}?`)) return;
@@ -320,7 +300,7 @@ const StudentList = () => {
   const selectedClassConfig = getAcademicConfig(filterClassType);
   const selectedDegreeConfig = filterClassType === 'BS' ? selectedClassConfig : null;
 
-  const displayedStudents = getFilteredStudents();
+  const displayedStudents = students;
 
   // --- Authorization Checks ---
   const canAddStudent = currentUser?.role === 'admin' || currentUser?.role === 'accountant';
@@ -419,7 +399,7 @@ const StudentList = () => {
                 </select>
               </div>
 
-              {/* Gender Filter (Unchanged) */}
+              {/* Gender Filter */}
               <div>
                 <label htmlFor="filterGender" className="block text-sm font-semibold text-gray-700 mb-2">Gender</label>
                 <select
@@ -429,8 +409,8 @@ const StudentList = () => {
                   className={`block w-full rounded-lg border shadow-sm p-2.5 transition ${currentTheme?.inputBg || 'border-gray-300'} ${currentTheme?.inputRing || 'focus:ring-2 focus:ring-green-200'} ${currentTheme?.inputFocus || 'focus:border-green-500'}`}
                 >
                   <option value="all">All</option>
-                  <option value="male">Male</option>
-                  <option value="female">Female</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
                 </select>
               </div>
 
@@ -533,34 +513,6 @@ const StudentList = () => {
                 </>
               )}
 
-              {/* Fee Filters (Unchanged) */}
-              <div>
-                <label htmlFor="filterFeeYear" className="block text-sm font-medium text-gray-700">Fee Year</label>
-                <select
-                  id="filterFeeYear"
-                  value={filterFeeYear}
-                  onChange={(e) => { setFilterFeeYear(e.target.value); }}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-300 focus:ring focus:ring-green-200 focus:ring-opacity-50 p-2"
-                >
-                  {generateYearOptions().map(year => (
-                    <option key={year} value={year}>{year}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label htmlFor="filterFeeMonth" className="block text-sm font-medium text-gray-700">Fee Month</label>
-                <select
-                  id="filterFeeMonth"
-                  value={filterFeeMonth}
-                  onChange={(e) => setFilterFeeMonth(e.target.value)}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-300 focus:ring focus:ring-green-200 focus:ring-opacity-50 p-2"
-                >
-                  <option value="">All Months</option>
-                  {months.map(monthName => (
-                    <option key={monthName} value={monthName}>{monthName}</option>
-                  ))}
-                </select>
-              </div>
             </div>
 
             <div className="flex flex-wrap justify-end gap-3">

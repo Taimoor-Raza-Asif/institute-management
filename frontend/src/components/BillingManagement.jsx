@@ -7,6 +7,7 @@ import Modal from '../components/Modal';
 import AddEditBillModal from '../components/AddEditBillModal';
 import ConfirmationModal from '../components/ConfirmationModal';
 import { useTheme } from '../context/ThemeContext';
+import { jsPDF } from 'jspdf';
 import {
     PlusIcon, FunnelIcon, MagnifyingGlassIcon, PencilIcon,
     TrashIcon, ArrowDownTrayIcon, EyeIcon, ArrowUpTrayIcon
@@ -112,22 +113,327 @@ const BillingManagement = () => {
             }
         };
 
-    const handleDownloadReceipt = async (id) => {
-        try {
-            const response = await api.get(`/billing/${id}/receipt`, {
-                responseType: 'blob',
-            });
-            const url = window.URL.createObjectURL(new Blob([response.data]));
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', `receipt-${id}.pdf`);
-            document.body.appendChild(link);
-            link.click();
-            link.parentNode.removeChild(link);
-        } catch (err) {
-            setError('Failed to download receipt.');
+    const handleDownloadReceipt = useCallback(async (billId) => {
+        const bill = bills.find(b => b._id === billId);
+        if (!bill) {
+            console.error("Bill not found for receipt generation.");
+            return;
         }
-    };
+
+        const doc = new jsPDF({ format: 'a4' });
+        const filename = `${bill.title.replace(/\s/g, '_')}_Bill_Summary_${new Date(bill.billDate).toLocaleDateString()}.pdf`;
+        const pageHeight = doc.internal.pageSize.height;
+        const pageWidth = doc.internal.pageSize.width;
+        const margin = 15;
+        const headerHeight = 50;
+
+        const savePDF = () => {
+            doc.save(filename);
+        };
+
+        const generatePDF = async () => {
+            // Teal header background
+            doc.setFillColor(26, 188, 156);
+            doc.rect(0, 0, pageWidth, headerHeight, 'F');
+
+            // Decorative overlay circles
+            doc.setFillColor(255, 255, 255);
+            doc.setGState(new doc.GState({ opacity: 0.08 }));
+            doc.circle(pageWidth * 0.18, 12, 35, 'F');
+            doc.circle(pageWidth * 0.82, headerHeight * 0.6, 25, 'F');
+            doc.setGState(new doc.GState({ opacity: 1 }));
+
+            // White circle background for logo
+            doc.setFillColor(255, 255, 255);
+            doc.circle(margin + 12, 22, 14, 'F');
+
+            // Institute logo
+            const logo = new Image();
+            logo.src = '/Jamia Logo.png';
+            await new Promise((resolve) => {
+                logo.onload = () => {
+                    doc.addImage(logo, 'JPEG', margin + 3, 13, 18, 18);
+                    resolve();
+                };
+                logo.onerror = () => resolve();
+            });
+
+            // Header text
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(20);
+            doc.setFont(undefined, 'bold');
+            doc.text('Jamia Tul Mastwaar', margin + 30, 18);
+            doc.setFontSize(9);
+            doc.setFont(undefined, 'normal');
+            doc.setTextColor(240, 253, 250);
+            doc.text('Makhdoom Pur Sharif Murid, Chakwal', margin + 30, 25);
+            doc.text('(0334) 8724125 | jamiatulmastwaar@gmail.com', margin + 30, 31);
+
+            doc.setFontSize(13);
+            doc.setFont(undefined, 'bold');
+            doc.setTextColor(255, 255, 255);
+            doc.text('BILL SUMMARY', pageWidth - margin, 42, { align: 'right' });
+
+            doc.setDrawColor(255, 255, 255);
+            doc.setLineWidth(0.5);
+            doc.setGState(new doc.GState({ opacity: 0.3 }));
+            doc.line(margin, headerHeight - 5, pageWidth - margin, headerHeight - 5);
+            doc.setGState(new doc.GState({ opacity: 1 }));
+
+            let yPos = headerHeight + 10;
+            doc.setTextColor(0, 0, 0);
+
+            // Timestamp badge
+            doc.setFillColor(236, 253, 245);
+            doc.roundedRect(margin, yPos, pageWidth - 2 * margin, 9, 1.5, 1.5, 'F');
+            doc.setFontSize(8);
+            doc.setTextColor(4, 120, 87);
+            doc.text(`Generated on: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, margin + 3, yPos + 6);
+            doc.setTextColor(0, 0, 0);
+            yPos += 15;
+
+            // Helper functions
+            const addSectionHeader = (title) => {
+                doc.setFillColor(240, 248, 242);
+                doc.roundedRect(margin, yPos, pageWidth - 2 * margin, 8, 1, 1, 'F');
+                doc.setFontSize(11);
+                doc.setFont(undefined, 'bold');
+                doc.setTextColor(40, 167, 69);
+                doc.text(title, margin + 3, yPos + 5.5);
+                doc.setTextColor(0, 0, 0);
+                yPos += 13;
+            };
+
+            const columnGap = 18;
+            const columnWidth = (pageWidth - margin * 2 - columnGap) / 2;
+
+            const addTwoFields = (label1, value1, label2 = null, value2 = null) => {
+                const addSingle = (x, label, value) => {
+                    doc.setFontSize(9);
+                    doc.setFont(undefined, 'bold');
+                    doc.setTextColor(80, 80, 80);
+                    doc.text(`${label}:`, x, yPos);
+                    const labelWidth = doc.getTextWidth(`${label}:`);
+                    doc.setFontSize(9.5);
+                    doc.setFont(undefined, 'normal');
+                    doc.setTextColor(0, 0, 0);
+                    const text = value ? String(value) : 'N/A';
+                    const lines = doc.splitTextToSize(text, columnWidth - labelWidth - 5);
+                    doc.text(lines, x + labelWidth + 3, yPos);
+                };
+
+                addSingle(margin, label1, value1);
+                if (label2) addSingle(margin + columnWidth + columnGap, label2, value2);
+                yPos += 7;
+            };
+
+            // Bill Details Section
+            addSectionHeader('BILL DETAILS');
+            addTwoFields('Bill Title', bill.title, 'Category', bill.category);
+            addTwoFields('Amount', `PKR ${parseFloat(bill.amount).toLocaleString()}`, 'Status', bill.status);
+            addTwoFields('Bill Date', new Date(bill.billDate).toLocaleDateString(), 'Paid To', bill.paidTo || 'N/A');
+            if (bill.status !== 'Unpaid') {
+                addTwoFields('Payment Date', new Date(bill.paymentDate).toLocaleDateString(), 'Payment Method', bill.paymentMethod);
+            }
+            addTwoFields('Remarks', bill.remarks || 'N/A', '', '');
+            yPos += 5;
+
+            // Transaction Information Section
+            addSectionHeader('TRANSACTION INFORMATION');
+            const enteredByName = bill.markedBy?.profileId?.name || bill.markedBy?.cnic || 'N/A';
+            const enteredByRole = bill.markedBy?.role || '';
+            const enteredByValue = enteredByName !== 'N/A' ? `${enteredByName} (${enteredByRole})` : 'N/A';
+            addTwoFields('Entered By', enteredByValue, 'Created At', new Date(bill.createdAt).toLocaleString());
+            yPos += 10;
+
+            // Footer
+            doc.setFontSize(7);
+            doc.setTextColor(150);
+            doc.text('This is a computer-generated bill summary. No signature is required.', pageWidth / 2, yPos, { align: 'center' });
+
+            // Page footer
+            const footerY = pageHeight - 10;
+            doc.setDrawColor(200, 200, 200);
+            doc.setLineWidth(0.3);
+            doc.line(margin, footerY - 3, pageWidth - margin, footerY - 3);
+            doc.setFontSize(7);
+            doc.setTextColor(120);
+            doc.text('Jamia Tul Mastwaar - Bill Summary', margin, footerY);
+            doc.text(`Page 1 of 1`, pageWidth - margin, footerY, { align: 'right' });
+
+            savePDF();
+        };
+
+        generatePDF();
+    }, [bills]);
+
+    // Download a PDF report of the currently filtered bills (as shown in the table)
+    const handleDownloadFilteredReport = useCallback(() => {
+        const items = Array.isArray(bills) ? bills : [];
+        const totalAmountReport = items.reduce((sum, b) => sum + (parseFloat(b.amount) || 0), 0);
+
+        const doc = new jsPDF({ format: 'a4' });
+        const pageHeight = doc.internal.pageSize.height;
+        const pageWidth = doc.internal.pageSize.width;
+        const margin = 15;
+        const headerHeight = 50;
+
+        const savePDF = () => {
+            const monthLabel = filterMonth ? `${filterMonth.toLocaleString('en-US', { month: 'short' })} ${filterMonth.getFullYear()}` : 'All';
+            const filename = `Bills_Report_${monthLabel}.pdf`;
+            doc.save(filename);
+        };
+
+        const generatePDF = async () => {
+            // Header
+            doc.setFillColor(26, 188, 156);
+            doc.rect(0, 0, pageWidth, headerHeight, 'F');
+
+            doc.setFillColor(255, 255, 255);
+            doc.setGState(new doc.GState({ opacity: 0.08 }));
+            doc.circle(pageWidth * 0.18, 12, 35, 'F');
+            doc.circle(pageWidth * 0.82, headerHeight * 0.6, 25, 'F');
+            doc.setGState(new doc.GState({ opacity: 1 }));
+
+            doc.setFillColor(255, 255, 255);
+            doc.circle(margin + 12, 22, 14, 'F');
+
+            // Logo
+            const logo = new Image();
+            logo.src = '/Jamia Logo.png';
+            await new Promise((resolve) => {
+                logo.onload = () => { doc.addImage(logo, 'JPEG', margin + 3, 13, 18, 18); resolve(); };
+                logo.onerror = () => resolve();
+            });
+
+            // Header text
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(20);
+            doc.setFont(undefined, 'bold');
+            doc.text('Jamia Tul Mastwaar', margin + 30, 18);
+            doc.setFontSize(9);
+            doc.setFont(undefined, 'normal');
+            doc.setTextColor(240, 253, 250);
+            doc.text('Makhdoom Pur Sharif Murid, Chakwal', margin + 30, 25);
+            doc.text('(0334) 8724125 | jamiatulmastwaar@gmail.com', margin + 30, 31);
+
+            doc.setFontSize(13);
+            doc.setFont(undefined, 'bold');
+            doc.setTextColor(255, 255, 255);
+            doc.text('BILLS REPORT', pageWidth - margin, 42, { align: 'right' });
+
+            doc.setDrawColor(255, 255, 255);
+            doc.setLineWidth(0.5);
+            doc.setGState(new doc.GState({ opacity: 0.3 }));
+            doc.line(margin, headerHeight - 5, pageWidth - margin, headerHeight - 5);
+            doc.setGState(new doc.GState({ opacity: 1 }));
+
+            let yPos = headerHeight + 10;
+
+            // Filters summary
+            const monthLabel = filterMonth ? `${filterMonth.toLocaleString('en-US', { month: 'long' })} ${filterMonth.getFullYear()}` : 'All';
+            const categoryLabel = filterCategory || 'All Categories';
+            const statusLabel = filterStatus || 'All Statuses';
+
+            doc.setFillColor(236, 253, 245);
+            doc.roundedRect(margin, yPos, pageWidth - 2 * margin, 12, 1.5, 1.5, 'F');
+            doc.setFontSize(9);
+            doc.setTextColor(4, 120, 87);
+            doc.text(`Filters — Category: ${categoryLabel} | Status: ${statusLabel} | Month: ${monthLabel}`,
+                margin + 3, yPos + 8);
+            doc.setTextColor(0, 0, 0);
+            yPos += 18;
+
+            // Helpers
+            const addSectionHeader = (title) => {
+                doc.setFillColor(240, 248, 242);
+                doc.roundedRect(margin, yPos, pageWidth - 2 * margin, 8, 1, 1, 'F');
+                doc.setFontSize(11);
+                doc.setFont(undefined, 'bold');
+                doc.setTextColor(40, 167, 69);
+                doc.text(title, margin + 3, yPos + 5.5);
+                doc.setTextColor(0, 0, 0);
+                yPos += 13;
+            };
+
+            const columnGap = 18;
+            const columnWidth = (pageWidth - margin * 2 - columnGap) / 2;
+            const addTwoFields = (label1, value1, label2 = null, value2 = null) => {
+                const addSingle = (x, label, value) => {
+                    doc.setFontSize(9);
+                    doc.setFont(undefined, 'bold');
+                    doc.setTextColor(80, 80, 80);
+                    doc.text(`${label}:`, x, yPos);
+                    const labelWidth = doc.getTextWidth(`${label}:`);
+                    doc.setFontSize(9.5);
+                    doc.setFont(undefined, 'normal');
+                    doc.setTextColor(0, 0, 0);
+                    const text = value ? String(value) : 'N/A';
+                    const lines = doc.splitTextToSize(text, columnWidth - labelWidth - 5);
+                    doc.text(lines, x + labelWidth + 3, yPos);
+                };
+                addSingle(margin, label1, value1);
+                if (label2) addSingle(margin + columnWidth + columnGap, label2, value2);
+                yPos += 7;
+            };
+
+            // Records section
+            addSectionHeader('RECORDS');
+            if (!items.length) {
+                doc.setFontSize(10);
+                doc.text('No records for the selected filters.', margin, yPos + 4);
+                yPos += 12;
+            } else {
+                items.forEach((b, idx) => {
+                    // Page break handling: ensure space for record + separator + TOTAL section + footer
+                    if (yPos > pageHeight - 60) {
+                        doc.addPage();
+                        yPos = margin + 5;
+                        // Re-add RECORDS header on new page
+                        addSectionHeader('RECORDS');
+                    }
+                    addTwoFields('Title', b.title, 'Category', b.category);
+                    addTwoFields('Amount', `PKR ${Number(b.amount).toLocaleString()}`, 'Status', b.status);
+                    addTwoFields('Bill Date', new Date(b.billDate).toLocaleDateString(), 'Paid To', b.paidTo || 'N/A');
+                    if (b.status !== 'Unpaid') {
+                        addTwoFields('Payment Date', new Date(b.paymentDate).toLocaleDateString(), 'Payment Method', b.paymentMethod || 'N/A');
+                    }
+                    yPos += 4;
+                    doc.setDrawColor(230, 230, 230);
+                    doc.line(margin, yPos, pageWidth - margin, yPos);
+                    yPos += 6;
+                });
+            }
+
+            // Ensure TOTAL section has space on current page
+            if (yPos > pageHeight - 45) {
+                doc.addPage();
+                yPos = margin + 5;
+            }
+
+            // Total section
+            addSectionHeader('TOTAL');
+            doc.setFontSize(11);
+            doc.setFont(undefined, 'bold');
+            doc.text(`Total Amount: PKR ${Number(totalAmountReport).toLocaleString()}`, margin + 3, yPos + 6);
+
+            // Footer (always on bottom of current page)
+            const footerY = pageHeight - 10;
+            doc.setDrawColor(200, 200, 200);
+            doc.setLineWidth(0.3);
+            doc.line(margin, footerY - 3, pageWidth - margin, footerY - 3);
+            doc.setFontSize(7);
+            doc.setTextColor(150);
+            doc.text('This is a computer-generated report. No signature is required.', pageWidth / 2, footerY - 8, { align: 'center' });
+            doc.setTextColor(120);
+            doc.text('Jamia Tul Mastwaar - Bills Report', margin, footerY);
+            doc.text(`Page ${doc.getNumberOfPages()} of ${doc.getNumberOfPages()}`, pageWidth - margin, footerY, { align: 'right' });
+
+            savePDF();
+        };
+
+        generatePDF();
+    }, [bills, filterCategory, filterStatus, filterMonth]);
 
     const handleResetFilters = () => {
         setSearchTerm('');
@@ -169,44 +475,51 @@ const BillingManagement = () => {
             {error && <Message type="error">{error}</Message>}
 
             <div className={`${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.shadow || 'shadow-md'} rounded-xl p-6 mb-6`}>
-                <div className="flex flex-col lg:flex-row justify-between items-stretch lg:items-center mb-4 gap-4">
-                    <div className="relative flex-1 min-w-0">
-                        <input
-                            type="text"
-                            placeholder="Search by title or paid to..."
-                            className={`w-full h-12 pl-10 pr-4 rounded-lg ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} border ${currentTheme?.inputBorder || 'border-gray-300'} focus:outline-none`}
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
-                        <MagnifyingGlassIcon className={`h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 ${currentTheme?.iconText || 'text-gray-400'}`} />
-                    </div>
-                    <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto flex-shrink-0">
+                {/* Search Bar - Full Width */}
+                <div className="relative w-full mb-4">
+                    <input
+                        type="text"
+                        placeholder="Search by title or paid to..."
+                        className={`w-full h-12 pl-10 pr-4 rounded-lg ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} border ${currentTheme?.inputBorder || 'border-gray-300'} focus:outline-none`}
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                    <MagnifyingGlassIcon className={`h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 ${currentTheme?.iconText || 'text-gray-400'}`} />
+                </div>
+                {/* Action Buttons - Multi-row on mobile, single row on larger screens */}
+                <div className="flex flex-col sm:flex-row gap-3 w-full">
+                    <button
+                        onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+                        className={`flex items-center justify-center h-12 px-6 rounded-lg font-medium text-sm transition-all duration-200 ${currentTheme.btnSecondaryBg || 'bg-white'} ${currentTheme.btnSecondaryText || 'text-emerald-700'} ${currentTheme.btnSecondaryBorder || 'border border-emerald-200'} ${currentTheme.btnSecondaryHover || 'hover:bg-emerald-50'} ${currentTheme?.shadow || 'shadow-md'} flex-1 sm:flex-initial whitespace-nowrap`}
+                    >
+                        <FunnelIcon className="h-5 w-5 mr-2" />
+                        {showAdvancedFilters ? 'Hide Filters' : 'Advanced Filters'}
+                    </button>
+                    <button
+                        onClick={handleDownloadFilteredReport}
+                        className={`flex items-center justify-center h-12 px-6 rounded-lg font-medium text-sm transition-all duration-200 ${currentTheme.btnSecondaryBg || 'bg-white'} ${currentTheme.btnSecondaryText || 'text-emerald-700'} ${currentTheme.btnSecondaryBorder || 'border border-emerald-200'} ${currentTheme.btnSecondaryHover || 'hover:bg-emerald-50'} ${currentTheme?.shadow || 'shadow-md'} flex-1 sm:flex-initial whitespace-nowrap`}
+                    >
+                        <ArrowDownTrayIcon className="h-5 w-5 mr-2" />
+                        Download Report
+                    </button>
+                    {isAllowed && (
                         <button
-                            onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-                            className={`flex items-center justify-center h-12 px-6 rounded-lg font-medium transition-all duration-200 ${currentTheme.btnSecondaryBg || 'bg-white'} ${currentTheme.btnSecondaryText || 'text-emerald-700'} ${currentTheme.btnSecondaryBorder || 'border border-emerald-200'} ${currentTheme.btnSecondaryHover || 'hover:bg-emerald-50'} ${currentTheme?.shadow || 'shadow-md'} w-full sm:w-auto`}
+                            onClick={() => setIsImportOpen(true)}
+                            className={`flex items-center justify-center h-12 px-6 rounded-lg font-medium text-sm transition-all duration-200 ${currentTheme.btnSecondaryBg || 'bg-white'} ${currentTheme.btnSecondaryText || 'text-emerald-700'} ${currentTheme.btnSecondaryBorder || 'border border-emerald-200'} ${currentTheme.btnSecondaryHover || 'hover:bg-emerald-50'} ${currentTheme?.shadow || 'shadow-md'} flex-1 sm:flex-initial whitespace-nowrap`}
                         >
-                            <FunnelIcon className="h-5 w-5 mr-2" />
-                            {showAdvancedFilters ? 'Hide Filters' : 'Advanced Filters'}
+                            <ArrowUpTrayIcon className="h-5 w-5 mr-2" />
+                            Upload from file
                         </button>
-                        {isAllowed && (
-                            <button
-                                onClick={handleAddBill}
-                                className={`flex items-center justify-center h-12 px-6 rounded-lg font-medium transition-all duration-200 ${currentTheme.btnPrimaryBg || 'bg-emerald-600'} ${currentTheme.btnPrimaryHover || 'hover:bg-emerald-700'} ${currentTheme.btnPrimaryText || 'text-white'} ${currentTheme.btnPrimaryBorder || 'border border-emerald-700'} ${currentTheme?.shadow || 'shadow-md'} w-full sm:w-auto`}
-                            >
-                                <PlusIcon className="h-5 w-5 mr-2" />
-                                Add New Bill
-                            </button>
-                        )}
-                        {isAllowed && (
-                            <button
-                                onClick={() => setIsImportOpen(true)}
-                                className={`flex items-center justify-center h-12 px-6 rounded-lg font-medium transition-all duration-200 ${currentTheme.btnSecondaryBg || 'bg-white'} ${currentTheme.btnSecondaryText || 'text-emerald-700'} ${currentTheme.btnSecondaryBorder || 'border border-emerald-200'} ${currentTheme.btnSecondaryHover || 'hover:bg-emerald-50'} ${currentTheme?.shadow || 'shadow-md'} w-full sm:w-auto`}
-                            >
-                                <ArrowUpTrayIcon className="h-5 w-5 mr-2" />
-                                Upload from file
-                            </button>
-                        )}
-                    </div>
+                    )}
+                    {isAllowed && (
+                        <button
+                            onClick={handleAddBill}
+                            className={`flex items-center justify-center h-12 px-6 rounded-lg font-medium text-sm transition-all duration-200 ${currentTheme.btnPrimaryBg || 'bg-emerald-600'} ${currentTheme.btnPrimaryHover || 'hover:bg-emerald-700'} ${currentTheme.btnPrimaryText || 'text-white'} ${currentTheme.btnPrimaryBorder || 'border border-emerald-700'} ${currentTheme?.shadow || 'shadow-md'} flex-1 sm:flex-initial whitespace-nowrap`}
+                        >
+                            <PlusIcon className="h-5 w-5 mr-2" />
+                            Add New Bill
+                        </button>
+                    )}
                 </div>
 
                 {showAdvancedFilters && (

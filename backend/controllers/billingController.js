@@ -119,7 +119,17 @@ const getBills = asyncHandler(async (req, res) => {
     };
   }
 
-  const bills = await Bill.find(query).sort({ createdAt: -1 });
+  const bills = await Bill.find(query)
+    .populate({
+      path: 'markedBy',
+      select: 'cnic role profileId',
+      populate: {
+        path: 'profileId',
+        select: 'name',
+        model: 'Staff'
+      }
+    })
+    .sort({ createdAt: -1 });
   res.status(200).json(bills);
 });
 
@@ -219,84 +229,149 @@ const downloadReceipt = asyncHandler(async (req, res) => {
   // Generate the PDF
   const doc = new jsPDF({ format: 'a4' });
   const filename = `${bill.title.replace(/\s/g, '_')}_Bill_Summary_${new Date(bill.billDate).toLocaleDateString()}.pdf`;
+  const pageHeight = doc.internal.pageSize.height;
+  const pageWidth = doc.internal.pageSize.width;
+  const margin = 15;
+  const headerHeight = 50;
 
-  const drawBillSummary = (xStart, yStart) => {
-    let yPos = yStart;
-    const padding = 10;
-    const pageMargin = 20;
-
-    doc.setFontSize(14);
-    doc.setFont(undefined, 'bold');
-    doc.text('Bright Future Institute', pageMargin, yPos);
-    yPos += 8;
-    doc.setFontSize(10);
-    doc.setFont(undefined, 'normal');
-    doc.text('123 Education St, Knowledge City', pageMargin, yPos);
-    yPos += 5;
-    doc.text('Phone: (042) 1234567 | Email: info@bfi.edu.pk', pageMargin, yPos);
-    yPos += 15;
-
-    doc.setFontSize(16);
-    doc.setFont(undefined, 'bold');
-    doc.setTextColor(40, 167, 69);
-    doc.text('Bill Summary', doc.internal.pageSize.getWidth() / 2, yPos, { align: 'center' });
-    yPos += 10;
-
-    doc.line(pageMargin, yPos, doc.internal.pageSize.getWidth() - pageMargin, yPos);
-    yPos += padding;
-
-    doc.setFontSize(12);
-    doc.setTextColor(0);
-    doc.setFont(undefined, 'bold');
-    doc.text('Bill Details', pageMargin, yPos);
-    yPos += padding;
-
-    doc.setFontSize(10);
-    doc.setFont(undefined, 'normal');
-    const addField = (label, value) => {
-      doc.text(`${label}:`, pageMargin, yPos);
-      doc.text(`${value}`, pageMargin + 50, yPos);
-      yPos += 6;
-    };
-
-    addField('Bill Title', bill.title);
-    addField('Category', bill.category);
-    addField('Amount', `PKR ${parseFloat(bill.amount).toFixed(2)}`);
-    addField('Status', bill.status);
-    addField('Bill Date', new Date(bill.billDate).toLocaleDateString());
-    if (bill.status !== 'Unpaid') {
-      addField('Payment Date', new Date(bill.paymentDate).toLocaleDateString());
-      addField('Payment Method', bill.paymentMethod);
-    }
-    addField('Paid To', bill.paidTo || 'N/A');
-    addField('Remarks', bill.remarks || 'N/A');
-    yPos += padding;
-
-    doc.line(pageMargin, yPos, doc.internal.pageSize.getWidth() - pageMargin, yPos);
-    yPos += padding;
-
-    doc.setFontSize(12);
-    doc.setFont(undefined, 'bold');
-    doc.text('Transaction Information', pageMargin, yPos);
-    yPos += padding;
-
-    doc.setFontSize(10);
-    doc.setFont(undefined, 'normal');
-    addField('Entered By', enteredBy);
-    addField('Created At', new Date(bill.createdAt).toLocaleString());
-    yPos += padding;
-
-    doc.setFontSize(8);
-    doc.setTextColor(150);
-    doc.text('This is a computer-generated summary. No signature is required.', pageMargin, doc.internal.pageSize.getHeight() - 15);
+  const savePDF = () => {
+    const pdfBuffer = doc.output('arraybuffer');
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.send(Buffer.from(pdfBuffer));
   };
 
-  drawBillSummary(0, 20);
+  const generatePDF = async () => {
+    // Teal header background
+    doc.setFillColor(26, 188, 156);
+    doc.rect(0, 0, pageWidth, headerHeight, 'F');
 
-  const pdfBuffer = doc.output('arraybuffer');
-  res.setHeader('Content-Type', 'application/pdf');
-  res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-  res.send(Buffer.from(pdfBuffer));
+    // Decorative overlay circles
+    doc.setFillColor(255, 255, 255);
+    doc.setGState(new doc.GState({ opacity: 0.08 }));
+    doc.circle(pageWidth * 0.18, 12, 35, 'F');
+    doc.circle(pageWidth * 0.82, headerHeight * 0.6, 25, 'F');
+    doc.setGState(new doc.GState({ opacity: 1 }));
+
+    // White circle background for logo
+    doc.setFillColor(255, 255, 255);
+    doc.circle(margin + 12, 22, 14, 'F');
+
+    // Institute logo
+    const logo = new Image();
+    logo.src = '/Jamia Logo.png';
+    await new Promise((resolve) => {
+      logo.onload = () => {
+        doc.addImage(logo, 'JPEG', margin + 3, 13, 18, 18);
+        resolve();
+      };
+      logo.onerror = () => resolve();
+    });
+
+    // Header text
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(20);
+    doc.setFont(undefined, 'bold');
+    doc.text('Jamia Tul Mastwaar', margin + 30, 18);
+    doc.setFontSize(9);
+    doc.setFont(undefined, 'normal');
+    doc.setTextColor(240, 253, 250);
+    doc.text('Makhdoom Pur Sharif Murid, Chakwal', margin + 30, 25);
+    doc.text('(0334) 8724125 | jamiatulmastwaar@gmail.com', margin + 30, 31);
+
+    doc.setFontSize(13);
+    doc.setFont(undefined, 'bold');
+    doc.setTextColor(255, 255, 255);
+    doc.text('BILL SUMMARY', pageWidth - margin, 42, { align: 'right' });
+
+    doc.setDrawColor(255, 255, 255);
+    doc.setLineWidth(0.5);
+    doc.setGState(new doc.GState({ opacity: 0.3 }));
+    doc.line(margin, headerHeight - 5, pageWidth - margin, headerHeight - 5);
+    doc.setGState(new doc.GState({ opacity: 1 }));
+
+    let yPos = headerHeight + 10;
+    doc.setTextColor(0, 0, 0);
+
+    // Timestamp badge
+    doc.setFillColor(236, 253, 245);
+    doc.roundedRect(margin, yPos, pageWidth - 2 * margin, 9, 1.5, 1.5, 'F');
+    doc.setFontSize(8);
+    doc.setTextColor(4, 120, 87);
+    doc.text(`Generated on: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, margin + 3, yPos + 6);
+    doc.setTextColor(0, 0, 0);
+    yPos += 15;
+
+    // Helper functions
+    const addSectionHeader = (title) => {
+      doc.setFillColor(240, 248, 242);
+      doc.roundedRect(margin, yPos, pageWidth - 2 * margin, 8, 1, 1, 'F');
+      doc.setFontSize(11);
+      doc.setFont(undefined, 'bold');
+      doc.setTextColor(40, 167, 69);
+      doc.text(title, margin + 3, yPos + 5.5);
+      doc.setTextColor(0, 0, 0);
+      yPos += 13;
+    };
+
+    const columnGap = 18;
+    const columnWidth = (pageWidth - margin * 2 - columnGap) / 2;
+
+    const addTwoFields = (label1, value1, label2 = null, value2 = null) => {
+      const addSingle = (x, label, value) => {
+        doc.setFontSize(9);
+        doc.setFont(undefined, 'bold');
+        doc.setTextColor(80, 80, 80);
+        doc.text(`${label}:`, x, yPos);
+        const labelWidth = doc.getTextWidth(`${label}:`);
+        doc.setFontSize(9.5);
+        doc.setFont(undefined, 'normal');
+        doc.setTextColor(0, 0, 0);
+        const text = value ? String(value) : 'N/A';
+        const lines = doc.splitTextToSize(text, columnWidth - labelWidth - 5);
+        doc.text(lines, x + labelWidth + 3, yPos);
+      };
+
+      addSingle(margin, label1, value1);
+      if (label2) addSingle(margin + columnWidth + columnGap, label2, value2);
+      yPos += 7;
+    };
+
+    // Bill Details Section
+    addSectionHeader('BILL DETAILS');
+    addTwoFields('Bill Title', bill.title, 'Category', bill.category);
+    addTwoFields('Amount', `PKR ${parseFloat(bill.amount).toLocaleString()}`, 'Status', bill.status);
+    addTwoFields('Bill Date', new Date(bill.billDate).toLocaleDateString(), 'Paid To', bill.paidTo || 'N/A');
+    if (bill.status !== 'Unpaid') {
+      addTwoFields('Payment Date', new Date(bill.paymentDate).toLocaleDateString(), 'Payment Method', bill.paymentMethod);
+    }
+    addTwoFields('Remarks', bill.remarks || 'N/A', '', '');
+    yPos += 5;
+
+    // Transaction Information Section
+    addSectionHeader('TRANSACTION INFORMATION');
+    addTwoFields('Entered By', enteredBy, 'Created At', new Date(bill.createdAt).toLocaleString());
+    yPos += 10;
+
+    // Footer
+    doc.setFontSize(7);
+    doc.setTextColor(150);
+    doc.text('This is a computer-generated bill summary. No signature is required.', pageWidth / 2, yPos, { align: 'center' });
+
+    // Page footer
+    const footerY = pageHeight - 10;
+    doc.setDrawColor(200, 200, 200);
+    doc.setLineWidth(0.3);
+    doc.line(margin, footerY - 3, pageWidth - margin, footerY - 3);
+    doc.setFontSize(7);
+    doc.setTextColor(120);
+    doc.text('Jamia Tul Mastwaar - Bill Summary', margin, footerY);
+    doc.text(`Page 1 of 1`, pageWidth - margin, footerY, { align: 'right' });
+
+    savePDF();
+  };
+
+  generatePDF();
 });
 
 

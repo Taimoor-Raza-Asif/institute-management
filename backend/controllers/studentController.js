@@ -409,7 +409,7 @@ export const getAllStudents = async (req, res) => {
       }
     }
 
-    if (gender && gender !== 'all') { // ADD THIS LOGIC
+    if (gender && gender !== 'all') {
       filter.gender = gender;
     }
 

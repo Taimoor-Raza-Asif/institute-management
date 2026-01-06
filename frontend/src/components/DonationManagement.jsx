@@ -127,93 +127,144 @@ const DonationManagement = () => {
 
     const doc = new jsPDF({ format: 'a4' });
     const filename = `${donation.donorName.replace(/\s/g, '_')}_Donation_Receipt_${new Date(donation.donationDate).toLocaleDateString()}.pdf`;
-
-    const Image = window.Image;
-    const logo = new Image();
-    logo.src = '/default-avatar.jpg';
+    const pageHeight = doc.internal.pageSize.height;
+    const pageWidth = doc.internal.pageSize.width;
+    const margin = 15;
+    const headerHeight = 50;
 
     const savePDF = () => {
       doc.save(filename);
     };
 
-    const drawMiniReceipt = (xStart, yStart) => {
-      let yPos = yStart;
+    const generatePDF = async () => {
+      // Teal header background
+      doc.setFillColor(26, 188, 156);
+      doc.rect(0, 0, pageWidth, headerHeight, 'F');
 
-      logo.onload = () => {
-        doc.addImage(logo, 'JPEG', xStart, yPos, 15, 15);
+      // Decorative overlay circles
+      doc.setFillColor(255, 255, 255);
+      doc.setGState(new doc.GState({ opacity: 0.08 }));
+      doc.circle(pageWidth * 0.18, 12, 35, 'F');
+      doc.circle(pageWidth * 0.82, headerHeight * 0.6, 25, 'F');
+      doc.setGState(new doc.GState({ opacity: 1 }));
 
-        doc.setFontSize(10);
-        doc.setFont(undefined, 'bold');
-        doc.text('Jamia Tul Mastwaar', xStart + 17, yPos + 5);
-        doc.setFontSize(8);
-        doc.setFont(undefined, 'normal');
-        doc.text('Makhdoom Pur Sharif, Chakwal', xStart + 17, yPos + 10);
-        doc.text('(0334) 8724125 | jamiatulmastwaar@gmail.com', xStart + 17, yPos + 14);
+      // White circle background for logo
+      doc.setFillColor(255, 255, 255);
+      doc.circle(margin + 12, 22, 14, 'F');
 
-        doc.line(xStart, yPos + 18, xStart + 80, yPos + 18);
+      // Institute logo
+      const logo = new Image();
+      logo.src = '/Jamia Logo.png';
+      await new Promise((resolve) => {
+        logo.onload = () => {
+          doc.addImage(logo, 'JPEG', margin + 3, 13, 18, 18);
+          resolve();
+        };
+        logo.onerror = () => resolve();
+      });
 
-        doc.setFontSize(9);
+      // Header text
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(20);
+      doc.setFont(undefined, 'bold');
+      doc.text('Jamia Tul Mastwaar', margin + 30, 18);
+      doc.setFontSize(9);
+      doc.setFont(undefined, 'normal');
+      doc.setTextColor(240, 253, 250);
+      doc.text('Makhdoom Pur Sharif Murid, Chakwal', margin + 30, 25);
+      doc.text('(0334) 8724125 | jamiatulmastwaar@gmail.com', margin + 30, 31);
+
+      doc.setFontSize(13);
+      doc.setFont(undefined, 'bold');
+      doc.setTextColor(255, 255, 255);
+      doc.text('DONATION RECEIPT', pageWidth - margin, 42, { align: 'right' });
+
+      doc.setDrawColor(255, 255, 255);
+      doc.setLineWidth(0.5);
+      doc.setGState(new doc.GState({ opacity: 0.3 }));
+      doc.line(margin, headerHeight - 6, pageWidth - margin, headerHeight - 6);
+      doc.setGState(new doc.GState({ opacity: 1 }));
+
+      let yPos = headerHeight + 6;
+      doc.setTextColor(0, 0, 0);
+
+      // Timestamp badge
+      doc.setFillColor(236, 253, 245);
+      doc.roundedRect(margin, yPos, pageWidth - 2 * margin, 9, 1.5, 1.5, 'F');
+      doc.setFontSize(8);
+      doc.setTextColor(4, 120, 87);
+      doc.text(`Generated on: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, margin + 3, yPos + 6);
+      doc.setTextColor(0, 0, 0);
+      yPos += 15;
+
+      // Helper functions
+      const addSectionHeader = (title) => {
+        doc.setFillColor(240, 248, 242);
+        doc.roundedRect(margin, yPos, pageWidth - 2 * margin, 8, 1, 1, 'F');
+        doc.setFontSize(11);
         doc.setFont(undefined, 'bold');
         doc.setTextColor(40, 167, 69);
-        doc.text('Donation Receipt', xStart + 40, yPos + 24, { align: 'center' });
+        doc.text(title, margin + 3, yPos + 5.5);
+        doc.setTextColor(0, 0, 0);
+        yPos += 13;
+      };
 
-        doc.setFontSize(7);
-        doc.setTextColor(100);
-        doc.text(`Generated on: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, xStart, yPos + 29);
+      const columnGap = 18;
+      const columnWidth = (pageWidth - margin * 2 - columnGap) / 2;
 
-        yPos += 34;
-        doc.setFontSize(8);
-        doc.setTextColor(0);
-        doc.setFont(undefined, 'bold');
-        doc.text('Donor Information', xStart, yPos);
-        yPos += 4;
-        doc.line(xStart, yPos, xStart + 80, yPos);
-        yPos += 5;
-
-        doc.setFont(undefined, 'normal');
-        const addField = (label, value, xOffset = 5) => {
-          doc.text(`${label}:`, xStart + xOffset, yPos);
-          doc.text(`${value}`, xStart + 40, yPos);
-          yPos += 4;
+      const addTwoFields = (label1, value1, label2 = null, value2 = null) => {
+        const addSingle = (x, label, value) => {
+          doc.setFontSize(9);
+          doc.setFont(undefined, 'bold');
+          doc.setTextColor(80, 80, 80);
+          doc.text(`${label}:`, x, yPos);
+          const labelWidth = doc.getTextWidth(`${label}:`);
+          doc.setFontSize(9.5);
+          doc.setFont(undefined, 'normal');
+          doc.setTextColor(0, 0, 0);
+          const text = value ? String(value) : 'N/A';
+          const lines = doc.splitTextToSize(text, columnWidth - labelWidth - 5);
+          doc.text(lines, x + labelWidth + 3, yPos);
         };
 
-        addField('Name', donation.donorName || 'Anonymous');
-        addField('CNIC', donation.cnic || 'N/A');
-        addField('Contact', donation.contactNumber || 'N/A');
-        addField('Email', donation.emailAddress || 'N/A');
-        addField('Organization', donation.organizationName || 'N/A');
-        yPos += 6;
-
-        doc.setFont(undefined, 'bold');
-        doc.text('Donation Details', xStart, yPos);
-        yPos += 4;
-        doc.line(xStart, yPos, xStart + 80, yPos);
-        yPos += 5;
-
-        doc.setFont(undefined, 'normal');
-        addField('Donation Amount', `PKR ${parseFloat(donation.donationAmount).toFixed(2)}`);
-        addField('Purpose', donation.donationPurpose);
-        addField('Payment Method', donation.paymentMethod);
-        addField('Donation Date', new Date(donation.donationDate).toLocaleDateString());
-        addField('Marked By', `${donation.markedBy?.profileId?.name} (${donation.markedBy?.role})` || 'N/A');
-        addField('Created At', new Date(donation.createdAt).toLocaleDateString());
-
-        yPos += 5;
-
-        doc.setFontSize(7);
-        doc.setTextColor(150);
-        doc.text('This is a computer-generated receipt. No signature is required.', xStart, yPos + 5);
-
-        savePDF();
+        addSingle(margin, label1, value1);
+        if (label2) addSingle(margin + columnWidth + columnGap, label2, value2);
+        yPos += 7;
       };
 
-      logo.onerror = () => {
-        console.warn('Failed to load logo, proceeding without it.');
-        savePDF();
-      };
+      // Donor Information Section
+      addSectionHeader('DONOR INFORMATION');
+      addTwoFields('Name', donation.donorName || 'Anonymous', 'CNIC', donation.cnic || 'N/A');
+      addTwoFields('Contact', donation.contactNumber || 'N/A', 'Email', donation.emailAddress || 'N/A');
+      addTwoFields('Organization', donation.organizationName || 'N/A', '', '');
+      yPos += 5;
+
+      // Donation Details Section
+      addSectionHeader('DONATION DETAILS');
+      addTwoFields('Donation Amount', `PKR ${parseFloat(donation.donationAmount).toLocaleString()}`, 'Purpose', donation.donationPurpose);
+      addTwoFields('Payment Method', donation.paymentMethod, 'Donation Date', new Date(donation.donationDate).toLocaleDateString());
+      addTwoFields('Marked By', `${donation.markedBy?.profileId?.name} (${donation.markedBy?.role})` || 'N/A', 'Created At', new Date(donation.createdAt).toLocaleDateString());
+      yPos += 10;
+
+      // Footer
+      doc.setFontSize(7);
+      doc.setTextColor(150);
+      doc.text('This is a computer-generated receipt. No signature is required.', pageWidth / 2, yPos, { align: 'center' });
+
+      // Page footer
+      const footerY = pageHeight - 10;
+      doc.setDrawColor(200, 200, 200);
+      doc.setLineWidth(0.3);
+      doc.line(margin, footerY - 3, pageWidth - margin, footerY - 3);
+      doc.setFontSize(7);
+      doc.setTextColor(120);
+      doc.text('Jamia Tul Mastwaar - Donation Receipt', margin, footerY);
+      doc.text(`Page 1 of 1`, pageWidth - margin, footerY, { align: 'right' });
+
+      savePDF();
     };
 
-    drawMiniReceipt(10, 10);
+    generatePDF();
   }, [donations]);
 
   // Reset all filters

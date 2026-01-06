@@ -344,6 +344,173 @@ const StaffSalaryList = () => {
     setIsViewMode(false);
   };
 
+  // Download a PDF report of the currently filtered salary records
+  const handleDownloadSalaryReport = useCallback(() => {
+    const items = Array.isArray(salaries) ? salaries : [];
+    const totalAmountReport = items.reduce((sum, s) => sum + (parseFloat(s.paidAmount) || 0), 0);
+
+    const doc = new jsPDF({ format: 'a4' });
+    const pageHeight = doc.internal.pageSize.height;
+    const pageWidth = doc.internal.pageSize.width;
+    const margin = 15;
+    const headerHeight = 50;
+
+    const savePDF = () => {
+      const roleLabel = filterRole || 'All Roles';
+      const monthLabel = filterMonth ? months[filterMonth - 1] : 'All Months';
+      const yearLabel = filterYear || 'All Years';
+      const filename = `Salary_Report_${roleLabel}_${monthLabel}_${yearLabel}.pdf`;
+      doc.save(filename);
+    };
+
+    const generatePDF = async () => {
+      // Header
+      doc.setFillColor(26, 188, 156);
+      doc.rect(0, 0, pageWidth, headerHeight, 'F');
+
+      doc.setFillColor(255, 255, 255);
+      doc.setGState(new doc.GState({ opacity: 0.08 }));
+      doc.circle(pageWidth * 0.18, 12, 35, 'F');
+      doc.circle(pageWidth * 0.82, headerHeight * 0.6, 25, 'F');
+      doc.setGState(new doc.GState({ opacity: 1 }));
+
+      doc.setFillColor(255, 255, 255);
+      doc.circle(margin + 12, 22, 14, 'F');
+
+      // Logo
+      const logo = new Image();
+      logo.src = '/Jamia Logo.png';
+      await new Promise((resolve) => {
+        logo.onload = () => { doc.addImage(logo, 'JPEG', margin + 3, 13, 18, 18); resolve(); };
+        logo.onerror = () => resolve();
+      });
+
+      // Header text
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(20);
+      doc.setFont(undefined, 'bold');
+      doc.text('Jamia Tul Mastwaar', margin + 30, 18);
+      doc.setFontSize(9);
+      doc.setFont(undefined, 'normal');
+      doc.setTextColor(240, 253, 250);
+      doc.text('Makhdoom Pur Sharif Murid, Chakwal', margin + 30, 25);
+      doc.text('(0334) 8724125 | jamiatulmastwaar@gmail.com', margin + 30, 31);
+
+      doc.setFontSize(13);
+      doc.setFont(undefined, 'bold');
+      doc.setTextColor(255, 255, 255);
+      doc.text('SALARY REPORT', pageWidth - margin, 42, { align: 'right' });
+
+      doc.setDrawColor(255, 255, 255);
+      doc.setLineWidth(0.5);
+      doc.setGState(new doc.GState({ opacity: 0.3 }));
+      doc.line(margin, headerHeight - 5, pageWidth - margin, headerHeight - 5);
+      doc.setGState(new doc.GState({ opacity: 1 }));
+
+      let yPos = headerHeight + 10;
+
+      // Filters summary
+      const monthLabel = filterMonth ? months[filterMonth - 1] : 'All Months';
+      const roleLabel = filterRole || 'All Roles';
+      const yearLabel = filterYear || 'All Years';
+
+      doc.setFillColor(236, 253, 245);
+      doc.roundedRect(margin, yPos, pageWidth - 2 * margin, 12, 1.5, 1.5, 'F');
+      doc.setFontSize(9);
+      doc.setTextColor(4, 120, 87);
+      doc.text(`Filters — Role: ${roleLabel} | Month: ${monthLabel} | Year: ${yearLabel}`,
+        margin + 3, yPos + 8);
+      doc.setTextColor(0, 0, 0);
+      yPos += 18;
+
+      // Helpers
+      const addSectionHeader = (title) => {
+        doc.setFillColor(240, 248, 242);
+        doc.roundedRect(margin, yPos, pageWidth - 2 * margin, 8, 1, 1, 'F');
+        doc.setFontSize(11);
+        doc.setFont(undefined, 'bold');
+        doc.setTextColor(40, 167, 69);
+        doc.text(title, margin + 3, yPos + 5.5);
+        doc.setTextColor(0, 0, 0);
+        yPos += 13;
+      };
+
+      const columnGap = 18;
+      const columnWidth = (pageWidth - margin * 2 - columnGap) / 2;
+      const addTwoFields = (label1, value1, label2 = null, value2 = null) => {
+        const addSingle = (x, label, value) => {
+          doc.setFontSize(9);
+          doc.setFont(undefined, 'bold');
+          doc.setTextColor(80, 80, 80);
+          doc.text(`${label}:`, x, yPos);
+          const labelWidth = doc.getTextWidth(`${label}:`);
+          doc.setFontSize(9.5);
+          doc.setFont(undefined, 'normal');
+          doc.setTextColor(0, 0, 0);
+          const text = value ? String(value) : 'N/A';
+          const lines = doc.splitTextToSize(text, columnWidth - labelWidth - 5);
+          doc.text(lines, x + labelWidth + 3, yPos);
+        };
+        addSingle(margin, label1, value1);
+        if (label2) addSingle(margin + columnWidth + columnGap, label2, value2);
+        yPos += 7;
+      };
+
+      // Records section
+      addSectionHeader('SALARY RECORDS');
+      if (!items.length) {
+        doc.setFontSize(10);
+        doc.text('No records for the selected filters.', margin, yPos + 4);
+        yPos += 12;
+      } else {
+        items.forEach((s, idx) => {
+          // Page break handling: ensure space for record + separator + TOTAL section + footer
+          if (yPos > pageHeight - 60) {
+            doc.addPage();
+            yPos = margin + 5;
+            // Re-add RECORDS header on new page
+            addSectionHeader('SALARY RECORDS');
+          }
+          addTwoFields('Staff Name', s.staffName, 'Role', s.staffRole);
+          addTwoFields('Month/Year', `${months[s.month - 1]} ${s.year}`, 'Status', s.status);
+          addTwoFields('Paid Amount', `PKR ${Number(s.paidAmount).toLocaleString()}`, 'Salary/Month', `PKR ${Number(s.salaryPerMonth).toLocaleString()}`);
+          yPos += 4;
+          doc.setDrawColor(230, 230, 230);
+          doc.line(margin, yPos, pageWidth - margin, yPos);
+          yPos += 6;
+        });
+      }
+
+      // Ensure TOTAL section has space on current page
+      if (yPos > pageHeight - 45) {
+        doc.addPage();
+        yPos = margin + 5;
+      }
+
+      // Total section
+      addSectionHeader('TOTAL');
+      doc.setFontSize(11);
+      doc.setFont(undefined, 'bold');
+      doc.text(`Total Amount Paid: PKR ${Number(totalAmountReport).toLocaleString()}`, margin + 3, yPos + 6);
+
+      // Footer (always on bottom of current page)
+      const footerY = pageHeight - 10;
+      doc.setDrawColor(200, 200, 200);
+      doc.setLineWidth(0.3);
+      doc.line(margin, footerY - 3, pageWidth - margin, footerY - 3);
+      doc.setFontSize(7);
+      doc.setTextColor(150);
+      doc.text('This is a computer-generated report. No signature is required.', pageWidth / 2, footerY - 8, { align: 'center' });
+      doc.setTextColor(120);
+      doc.text('Jamia Tul Mastwaar - Salary Report', margin, footerY);
+      doc.text(`Page ${doc.getNumberOfPages()} of ${doc.getNumberOfPages()}`, pageWidth - margin, footerY, { align: 'right' });
+
+      savePDF();
+    };
+
+    generatePDF();
+  }, [salaries, filterRole, filterMonth, filterYear, months]);
+
   const handleEdit = (salaryId) => {
     navigate(`/salary/edit/${salaryId}`);
   };
@@ -544,15 +711,22 @@ const StaffSalaryList = () => {
           <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto flex-shrink-0">
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className={`flex items-center justify-center h-12 px-6 rounded-lg font-medium transition-all duration-200 ${currentTheme.btnSecondaryBg || 'bg-white'} ${currentTheme.btnSecondaryText || 'text-emerald-700'} ${currentTheme.btnSecondaryBorder || 'border border-emerald-200'} ${currentTheme.btnSecondaryHover || 'hover:bg-emerald-50'} ${currentTheme?.shadow || 'shadow-md'} w-full sm:w-auto`}
+              className={`flex items-center justify-center h-12 px-6 rounded-lg font-medium text-sm transition-all duration-200 ${currentTheme.btnSecondaryBg || 'bg-white'} ${currentTheme.btnSecondaryText || 'text-emerald-700'} ${currentTheme.btnSecondaryBorder || 'border border-emerald-200'} ${currentTheme.btnSecondaryHover || 'hover:bg-emerald-50'} ${currentTheme?.shadow || 'shadow-md'} flex-1 sm:flex-initial whitespace-nowrap`}
             >
               <FunnelIcon className="h-5 w-5 mr-2" />
               {showFilters ? 'Hide Filters' : 'Advanced Filters'}
             </button>
+            <button
+              onClick={handleDownloadSalaryReport}
+              className={`flex items-center justify-center h-12 px-6 rounded-lg font-medium text-sm transition-all duration-200 ${currentTheme.btnSecondaryBg || 'bg-white'} ${currentTheme.btnSecondaryText || 'text-emerald-700'} ${currentTheme.btnSecondaryBorder || 'border border-emerald-200'} ${currentTheme.btnSecondaryHover || 'hover:bg-emerald-50'} ${currentTheme?.shadow || 'shadow-md'} flex-1 sm:flex-initial whitespace-nowrap`}
+            >
+              <DocumentArrowDownIcon className="h-5 w-5 mr-2" />
+              Download Report
+            </button>
             {isAdmin && (
               <Link
                 to="/salary/add"
-                className={`flex items-center justify-center h-12 px-6 rounded-lg font-medium transition-all duration-200 ${currentTheme.btnPrimaryBg || 'bg-emerald-600'} ${currentTheme.btnPrimaryHover || 'hover:bg-emerald-700'} ${currentTheme.btnPrimaryText || 'text-white'} ${currentTheme.btnPrimaryBorder || 'border border-emerald-700'} ${currentTheme?.shadow || 'shadow-md'} w-full sm:w-auto`}
+                className={`flex items-center justify-center h-12 px-6 rounded-lg font-medium text-sm transition-all duration-200 ${currentTheme.btnPrimaryBg || 'bg-emerald-600'} ${currentTheme.btnPrimaryHover || 'hover:bg-emerald-700'} ${currentTheme.btnPrimaryText || 'text-white'} ${currentTheme.btnPrimaryBorder || 'border border-emerald-700'} ${currentTheme?.shadow || 'shadow-md'} flex-1 sm:flex-initial whitespace-nowrap`}
               >
                 <PlusCircleIcon className="h-5 w-5 mr-2" />
                 Add New Record

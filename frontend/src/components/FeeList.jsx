@@ -514,7 +514,7 @@ const FeeList = () => {
                   className={`block w-full rounded-lg border shadow-sm focus:border-green-500 focus:ring-2 focus:ring-green-200 p-2.5 transition ${currentTheme?.inputBg || 'border-gray-300'}`}
                 >
                   <option value="">All Class Types</option>
-                  <option value="Class">Regular Class (1-8)</option>
+                  <option value="Class">Regular Class</option>
                   <option value="BS">BS / Honors / Degree</option>
                   <option value="Almiya">Almiya (9-16)</option>
                   <option value="Hifaz">Hifaz-ul-Quran</option>

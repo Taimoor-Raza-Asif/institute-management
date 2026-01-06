@@ -1,10 +1,10 @@
 import User from '../models/User.js';
 import jwt from 'jsonwebtoken';
 
-// Generate JWT
+// Generate JWT with 24 hour expiration
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: '1h', // Token expires in 1 hour
+    expiresIn: '24h', // Token expires in 24 hours
   });
 };
 

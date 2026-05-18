@@ -4,6 +4,11 @@ import { jsPDF } from 'jspdf';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import dns from 'dns';
+
+// Force Node.js to prefer IPv4 over IPv6. 
+// This fixes the 'connect ENETUNREACH 2607...' error on Render where IPv6 is not supported.
+dns.setDefaultResultOrder('ipv4first');
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname  = path.dirname(__filename);

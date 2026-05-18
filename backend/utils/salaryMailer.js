@@ -579,14 +579,12 @@ Jamia Tul Mastwaar
 +923195000255`;
 
   // ── HTML body ──────────────────────────────────────────────────────
-  const headerGradient = isUpdate
-    ? 'linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)'
-    : 'linear-gradient(135deg, #0f766e 0%, #14b8a6 100%)';
+  const headerGradient = 'linear-gradient(135deg, #0f766e 0%, #14b8a6 100%)';
 
-  const badgeColor  = isUpdate ? '#1d4ed8' : '#0f766e';
-  const badgeBg     = isUpdate ? '#eff6ff' : '#f0fdf4';
-  const badgeBorder = isUpdate ? '#bfdbfe' : '#bbf7d0';
-  const amountColor = isUpdate ? '#1d4ed8' : '#0f766e';
+  const badgeColor  = '#0f766e';
+  const badgeBg     = '#f0fdf4';
+  const badgeBorder = '#bbf7d0';
+  const amountColor = '#0f766e';
   const headerTitle = isUpdate ? 'Salary Slip — Updated' : 'Salary Slip';
 
   const intro = isUpdate

@@ -48,7 +48,7 @@ const handleProfilePictureUpload = (file, existingUrlFromReqBody, oldUrlFromDb) 
 export const createStaff = async (req, res) => {
   try {
     const {
-      name, fatherName, staffType, contactNumber, email, address, dateOfJoining, salary,
+      name, fatherName, gender, dateOfBirth, staffType, contactNumber, email, address, dateOfJoining, salary,
       highestEducationLevel, degrees, subjectsTaught, emergencyContact, bankAccountDetails, cnic, assignClasses
     } = req.body;
 
@@ -63,6 +63,8 @@ export const createStaff = async (req, res) => {
     const newStaff = new Staff({
       name,
       fatherName,
+      gender,
+      dateOfBirth: new Date(dateOfBirth),
       staffType,
       cnic, // Include cnic
       contactNumber,
@@ -216,7 +218,7 @@ export const updateStaff = async (req, res) => {
   try {
     const { id } = req.params;
     const {
-      name, fatherName, staffType, contactNumber, email, address, dateOfJoining, salary,
+      name, fatherName, gender, dateOfBirth, staffType, contactNumber, email, address, dateOfJoining, salary,
       highestEducationLevel, degrees, subjectsTaught, emergencyContact, bankAccountDetails, cnic, assignClasses,
       profilePictureUrl: existingProfilePictureUrl
     } = req.body;
@@ -248,6 +250,8 @@ export const updateStaff = async (req, res) => {
 
     if (name !== undefined) updateFields.name = name;
     if (fatherName !== undefined) updateFields.fatherName = fatherName;
+    if (gender !== undefined) updateFields.gender = gender;
+    if (dateOfBirth !== undefined) updateFields.dateOfBirth = new Date(dateOfBirth);
     if (staffType !== undefined) updateFields.staffType = staffType;
     if (cnic !== undefined) updateFields.cnic = cnic; // Allow updating cnic
     if (contactNumber !== undefined) updateFields.contactNumber = contactNumber;

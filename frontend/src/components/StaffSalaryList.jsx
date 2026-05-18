@@ -1,4 +1,4 @@
-// src/components/StaffSalaryList.jsx
+﻿// src/components/StaffSalaryList.jsx
 import React, { useState, useEffect, useContext, useCallback, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../api';
@@ -185,135 +185,159 @@ const StaffSalaryList = () => {
     };
 
     const generatePDF = async () => {
-      // --- Gradient Hero Header ---
-      const headerHeight = 55;
-      const steps = 50;
-      for (let i = 0; i < steps; i++) {
-        const ratio = i / steps;
-        const r = Math.round(16 + (20 - 16) * ratio);
-        const g = Math.round(185 + (184 - 185) * ratio);
-        const b = Math.round(129 + (166 - 129) * ratio);
-        doc.setFillColor(r, g, b);
-        doc.rect(0, (i * headerHeight) / steps, pageWidth, headerHeight / steps + 1, 'F');
-      }
+      // ── Modern Header (matches Bills Report) ─────────────────────────
+      const headerHeight = 50;
 
-      // Decorative overlay circles
+      // Primary dark-teal background
+      doc.setFillColor(15, 118, 110);
+      doc.rect(0, 0, pageWidth, headerHeight, 'F');
+
+      // Lighter teal right-side diagonal panel
+      doc.setFillColor(20, 184, 166);
+      doc.triangle(pageWidth * 0.45, 0, pageWidth, 0, pageWidth, headerHeight, 'F');
+
+      // Subtle geometric circles
       doc.setFillColor(255, 255, 255);
-      doc.setGState(new doc.GState({ opacity: 0.08 }));
-      doc.circle(pageWidth * 0.18, 12, 35, 'F');
-      doc.circle(pageWidth * 0.82, headerHeight * 0.6, 25, 'F');
+      doc.setGState(new doc.GState({ opacity: 0.06 }));
+      doc.circle(pageWidth * 0.75, -8, 42, 'F');
+      doc.circle(pageWidth * 0.92, headerHeight + 4, 30, 'F');
+      doc.circle(margin + 5, headerHeight + 2, 28, 'F');
       doc.setGState(new doc.GState({ opacity: 1 }));
 
-      // White circle background for logo
-      doc.setFillColor(255, 255, 255);
-      doc.circle(margin + 12, 22, 14, 'F');
+      // Cyan-teal bottom accent stripe
+      doc.setFillColor(8, 145, 178);
+      doc.rect(0, headerHeight - 3.5, pageWidth, 3.5, 'F');
 
-      // Institute logo
+      // White circle with cyan ring for logo
+      doc.setFillColor(255, 255, 255);
+      doc.circle(margin + 14, 25, 15, 'F');
+      doc.setDrawColor(8, 145, 178);
+      doc.setLineWidth(1.2);
+      doc.circle(margin + 14, 25, 15.8, 'S');
+
+      // Logo
       const logo = new Image();
       logo.src = '/Jamia Logo.png';
       await new Promise((resolve) => {
-        logo.onload = () => {
-          doc.addImage(logo, 'JPEG', margin + 3, 13, 18, 18);
-          resolve();
-        };
+        logo.onload = () => { doc.addImage(logo, 'JPEG', margin + 4, 15, 20, 20); resolve(); };
         logo.onerror = () => resolve();
       });
 
-      // Header text
+      // Institute name
       doc.setTextColor(255, 255, 255);
-      doc.setFontSize(20);
+      doc.setFontSize(18);
       doc.setFont(undefined, 'bold');
-      doc.text('Jamia Tul Mastwaar', margin + 30, 18);
-      doc.setFontSize(9);
+      doc.text('Jamia Tul Mastwaar', margin + 34, 20);
+      doc.setFontSize(8);
       doc.setFont(undefined, 'normal');
-      doc.setTextColor(240, 253, 250);
-      doc.text('Makhdoom Pur Sharif Murid, Chakwal', margin + 30, 25);
-      doc.text('(0334) 8724125 | jamiatulmastwaar@gmail.com', margin + 30, 31);
+      doc.setTextColor(204, 251, 241);
+      doc.text('Makhdoom Pur Sharif Murid, Chakwal', margin + 34, 27);
+      doc.text('(0334) 8724125  |  jamiatulmastwaar@gmail.com', margin + 34, 33);
 
-      doc.setFontSize(13);
+      // White + teal badge for report title
+      const badgeW = 46; const badgeH = 11;
+      const badgeX = pageWidth - margin - badgeW; const badgeY = 32;
+      doc.setFillColor(255, 255, 255);
+      doc.roundedRect(badgeX, badgeY, badgeW, badgeH, 2.5, 2.5, 'F');
+      doc.setDrawColor(15, 118, 110);
+      doc.setLineWidth(0.8);
+      doc.roundedRect(badgeX, badgeY, badgeW, badgeH, 2.5, 2.5, 'S');
+      doc.setFontSize(8.5);
       doc.setFont(undefined, 'bold');
-      doc.setTextColor(255, 255, 255);
-      doc.text('SALARY SLIP', pageWidth - margin, 42, { align: 'right' });
+      doc.setTextColor(15, 118, 110);
+      doc.text('SALARY SLIP', badgeX + badgeW / 2, badgeY + 7.2, { align: 'center' });
 
-      doc.setDrawColor(255, 255, 255);
-      doc.setLineWidth(0.5);
-      doc.setGState(new doc.GState({ opacity: 0.3 }));
-      doc.line(margin, headerHeight - 8, pageWidth - margin, headerHeight - 8);
-      doc.setGState(new doc.GState({ opacity: 1 }));
-
-      yPos = headerHeight + 6;
+      yPos = headerHeight + 8;
       doc.setTextColor(0, 0, 0);
 
-      // Timestamp badge
+      // ── Timestamp strip ──
       doc.setFillColor(236, 253, 245);
       doc.roundedRect(margin, yPos, pageWidth - 2 * margin, 9, 1.5, 1.5, 'F');
       doc.setFontSize(8);
       doc.setTextColor(4, 120, 87);
-      doc.text(`Generated on: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, margin + 3, yPos + 6);
+      doc.text(`Generated on: ${new Date().toLocaleDateString()}  ${new Date().toLocaleTimeString()}`, margin + 3, yPos + 6);
       doc.setTextColor(0, 0, 0);
-      yPos += 15;
+      yPos += 14;
 
-      // Helper functions
-      const addSectionHeader = (title) => {
-        doc.setFillColor(240, 248, 242);
-        doc.roundedRect(margin, yPos, pageWidth - 2 * margin, 8, 1, 1, 'F');
-        doc.setFontSize(11);
+      // ── Helper: modern section header ──
+      const drawSectionHeader = (title) => {
+        doc.setFillColor(15, 118, 110);
+        doc.roundedRect(margin, yPos, pageWidth - 2 * margin, 9, 1.5, 1.5, 'F');
+        doc.setFontSize(9);
         doc.setFont(undefined, 'bold');
-        doc.setTextColor(40, 167, 69);
-        doc.text(title, margin + 3, yPos + 5.5);
+        doc.setTextColor(255, 255, 255);
+        doc.text(title, margin + 4, yPos + 6.2);
         doc.setTextColor(0, 0, 0);
         yPos += 13;
       };
 
-      const columnGap = 18;
-      const columnWidth = (pageWidth - margin * 2 - columnGap) / 2;
-
-      const addTwoFields = (label1, value1, label2, value2) => {
-        const addSingle = (x, label, value) => {
-          doc.setFontSize(9);
-          doc.setFont(undefined, 'bold');
-          doc.setTextColor(80, 80, 80);
-          doc.text(`${label}:`, x, yPos);
-          const labelWidth = doc.getTextWidth(`${label}:`);
-          doc.setFontSize(9.5);
-          doc.setFont(undefined, 'normal');
-          doc.setTextColor(0, 0, 0);
-          const text = value ? String(value) : 'N/A';
-          const lines = doc.splitTextToSize(text, columnWidth - labelWidth - 5);
-          doc.text(lines, x + labelWidth + 3, yPos);
-        };
-
-        addSingle(margin, label1, value1);
-        if (label2) addSingle(margin + columnWidth + columnGap, label2, value2);
-        yPos += 7;
+      // ── Helper: two-column info grid cell ──
+      const cellW = (pageWidth - 2 * margin) / 2;
+      const cellH = 11;
+      const drawInfoCell = (x, label, value, shade) => {
+        if (shade) { doc.setFillColor(240, 253, 250); doc.rect(x, yPos, cellW, cellH, 'F'); }
+        doc.setDrawColor(210, 235, 230);
+        doc.setLineWidth(0.2);
+        doc.rect(x, yPos, cellW, cellH, 'S');
+        doc.setFontSize(7.5);
+        doc.setFont(undefined, 'bold');
+        doc.setTextColor(80, 100, 95);
+        doc.text(label, x + 3, yPos + 4.5);
+        doc.setFontSize(8.5);
+        doc.setFont(undefined, 'normal');
+        doc.setTextColor(20, 20, 20);
+        doc.text(value ? String(value) : '—', x + 3, yPos + 9);
+      };
+      const drawInfoRow = (label1, val1, label2, val2) => {
+        drawInfoCell(margin, label1, val1, false);
+        drawInfoCell(margin + cellW, label2, val2, true);
+        yPos += cellH;
       };
 
-      // Staff Information Section
-      addSectionHeader('STAFF INFORMATION');
-      addTwoFields('Name', salary.staffName, 'CNIC', salary.staffCnic);
-      addTwoFields('Role', salary.staffRole, '', '');
-      yPos += 5;
+      // ── STAFF INFORMATION ──
+      drawSectionHeader('STAFF INFORMATION');
+      drawInfoRow('Full Name', salary.staffName, 'CNIC', salary.staffCnic);
+      drawInfoRow('Role / Position', salary.staffRole, 'Salary / Month', `PKR ${parseFloat(salary.salaryPerMonth).toLocaleString()}`);
+      drawInfoRow('Date of Joining', salary.staffJoiningDate ? new Date(salary.staffJoiningDate).toLocaleDateString() : 'N/A', '', '');
+      yPos += 6;
 
-      // Salary Details Section
-      addSectionHeader('SALARY DETAILS');
-      addTwoFields('Salary per Month', `PKR ${parseFloat(salary.salaryPerMonth).toLocaleString()}`, 'Bonus', `PKR ${parseFloat(salary.bonus).toLocaleString()}`);
-      addTwoFields('Overtime', `PKR ${parseFloat(salary.overtime).toLocaleString()}`, 'Advanced Salary', `PKR ${parseFloat(salary.advancedSalary || 0).toLocaleString()}`);
-      addTwoFields('Deduction', `PKR ${parseFloat(salary.deduction || 0).toLocaleString()}`, 'Paid Amount', `PKR ${parseFloat(salary.paidAmount).toLocaleString()}`);
-      yPos += 5;
+      // ── SALARY DETAILS ──
+      drawSectionHeader('SALARY DETAILS');
+      drawInfoRow('Bonus', `PKR ${parseFloat(salary.bonus).toLocaleString()}`, 'Overtime', `PKR ${parseFloat(salary.overtime).toLocaleString()}`);
+      drawInfoRow('Advanced Salary', `PKR ${parseFloat(salary.advancedSalary || 0).toLocaleString()}`, 'Deduction', `PKR ${parseFloat(salary.deduction || 0).toLocaleString()}`);
+      yPos += 6;
 
-      // Payment Information Section
-      addSectionHeader('PAYMENT INFORMATION');
-      addTwoFields('Status', salary.status, 'Paid Month', months[salary.month - 1]);
-      addTwoFields('Paid Year', salary.year, 'Paid By', salary.paidByName || '-');
-      addTwoFields('Paid As', salary.paidAs, 'Paid At', new Date(salary.paidAt).toLocaleDateString());
-      yPos += 10;
+      // ── PAYMENT INFORMATION ──
+      drawSectionHeader('PAYMENT INFORMATION');
+      drawInfoRow('Status', salary.status, 'Payment Method', salary.paidAs);
+      drawInfoRow(`Month / Year`, `${months[salary.month - 1]} ${salary.year}`, 'Paid By', salary.paidByName || 'N/A');
+      drawInfoRow('Paid At', new Date(salary.paidAt).toLocaleDateString(), '', '');
+      yPos += 8;
 
-      // Footer
+      // ── NET PAID — modern teal card ──
+      const cardH = 22;
+      doc.setFillColor(15, 118, 110);
+      doc.roundedRect(margin, yPos, pageWidth - 2 * margin, cardH, 3, 3, 'F');
+      doc.setFillColor(20, 184, 166);
+      doc.setGState(new doc.GState({ opacity: 0.35 }));
+      doc.roundedRect(margin + (pageWidth - 2 * margin) * 0.55, yPos, (pageWidth - 2 * margin) * 0.45, cardH, 3, 3, 'F');
+      doc.setGState(new doc.GState({ opacity: 1 }));
+      doc.setFontSize(8); doc.setFont(undefined, 'normal');
+      doc.setTextColor(204, 251, 241);
+      doc.text('NET AMOUNT PAID', margin + 5, yPos + 8);
+      doc.setFontSize(13); doc.setFont(undefined, 'bold');
+      doc.setTextColor(255, 255, 255);
+      doc.text(`PKR ${parseFloat(salary.paidAmount).toLocaleString()}`, margin + 5, yPos + 17);
+      doc.setFontSize(7); doc.setFont(undefined, 'normal');
+      doc.setTextColor(153, 246, 228);
+      doc.text('Salary Slip', pageWidth - margin - 5, yPos + 13, { align: 'right' });
+      yPos += cardH + 10;
+
+      // ── Footer ──
       doc.setFontSize(7);
       doc.setTextColor(150);
       doc.text('This is a computer-generated salary slip. No signature is required.', pageWidth / 2, yPos, { align: 'center' });
 
-      // Page footer
       const footerY = pageHeight - 10;
       doc.setDrawColor(200, 200, 200);
       doc.setLineWidth(0.3);
@@ -364,66 +388,63 @@ const StaffSalaryList = () => {
     };
 
     const generatePDF = async () => {
-      // Header
-      doc.setFillColor(26, 188, 156);
+      doc.setFillColor(15, 118, 110);
       doc.rect(0, 0, pageWidth, headerHeight, 'F');
-
+      doc.setFillColor(20, 184, 166);
+      doc.triangle(pageWidth * 0.45, 0, pageWidth, 0, pageWidth, headerHeight, 'F');
       doc.setFillColor(255, 255, 255);
-      doc.setGState(new doc.GState({ opacity: 0.08 }));
-      doc.circle(pageWidth * 0.18, 12, 35, 'F');
-      doc.circle(pageWidth * 0.82, headerHeight * 0.6, 25, 'F');
+      doc.setGState(new doc.GState({ opacity: 0.06 }));
+      doc.circle(pageWidth * 0.75, -8, 42, 'F');
+      doc.circle(pageWidth * 0.92, headerHeight + 4, 30, 'F');
+      doc.circle(margin + 5, headerHeight + 2, 28, 'F');
       doc.setGState(new doc.GState({ opacity: 1 }));
-
+      doc.setFillColor(8, 145, 178);
+      doc.rect(0, headerHeight - 3.5, pageWidth, 3.5, 'F');
       doc.setFillColor(255, 255, 255);
-      doc.circle(margin + 12, 22, 14, 'F');
-
-      // Logo
+      doc.circle(margin + 14, 25, 15, 'F');
+      doc.setDrawColor(8, 145, 178);
+      doc.setLineWidth(1.2);
+      doc.circle(margin + 14, 25, 15.8, 'S');
       const logo = new Image();
       logo.src = '/Jamia Logo.png';
       await new Promise((resolve) => {
-        logo.onload = () => { doc.addImage(logo, 'JPEG', margin + 3, 13, 18, 18); resolve(); };
+        logo.onload = () => { doc.addImage(logo, 'JPEG', margin + 4, 15, 20, 20); resolve(); };
         logo.onerror = () => resolve();
       });
-
-      // Header text
       doc.setTextColor(255, 255, 255);
-      doc.setFontSize(20);
+      doc.setFontSize(18);
       doc.setFont(undefined, 'bold');
-      doc.text('Jamia Tul Mastwaar', margin + 30, 18);
-      doc.setFontSize(9);
+      doc.text('Jamia Tul Mastwaar', margin + 34, 20);
+      doc.setFontSize(8);
       doc.setFont(undefined, 'normal');
-      doc.setTextColor(240, 253, 250);
-      doc.text('Makhdoom Pur Sharif Murid, Chakwal', margin + 30, 25);
-      doc.text('(0334) 8724125 | jamiatulmastwaar@gmail.com', margin + 30, 31);
-
-      doc.setFontSize(13);
+      doc.setTextColor(204, 251, 241);
+      doc.text('Makhdoom Pur Sharif Murid, Chakwal', margin + 34, 27);
+      doc.text('(0334) 8724125  |  jamiatulmastwaar@gmail.com', margin + 34, 33);
+      const badgeW = 57; const badgeH = 11;
+      const badgeX = pageWidth - margin - badgeW; const badgeY = 32;
+      doc.setFillColor(255, 255, 255);
+      doc.roundedRect(badgeX, badgeY, badgeW, badgeH, 2.5, 2.5, 'F');
+      doc.setDrawColor(15, 118, 110);
+      doc.setLineWidth(0.8);
+      doc.roundedRect(badgeX, badgeY, badgeW, badgeH, 2.5, 2.5, 'S');
+      doc.setFontSize(8.5);
       doc.setFont(undefined, 'bold');
-      doc.setTextColor(255, 255, 255);
-      doc.text('SALARY REPORT', pageWidth - margin, 42, { align: 'right' });
-
-      doc.setDrawColor(255, 255, 255);
-      doc.setLineWidth(0.5);
-      doc.setGState(new doc.GState({ opacity: 0.3 }));
-      doc.line(margin, headerHeight - 5, pageWidth - margin, headerHeight - 5);
-      doc.setGState(new doc.GState({ opacity: 1 }));
+      doc.setTextColor(15, 118, 110);
+      doc.text('SALARY REPORT', badgeX + badgeW / 2, badgeY + 7.2, { align: 'center' });
 
       let yPos = headerHeight + 10;
-
-      // Filters summary
       const monthLabel = filterMonth ? months[filterMonth - 1] : 'All Months';
       const roleLabel = filterRole || 'All Roles';
       const yearLabel = filterYear || 'All Years';
-
+      const statusLabel = filterStatus || 'All Statuses';
       doc.setFillColor(236, 253, 245);
       doc.roundedRect(margin, yPos, pageWidth - 2 * margin, 12, 1.5, 1.5, 'F');
       doc.setFontSize(9);
       doc.setTextColor(4, 120, 87);
-      doc.text(`Filters — Role: ${roleLabel} | Month: ${monthLabel} | Year: ${yearLabel}`,
-        margin + 3, yPos + 8);
+      doc.text(`Filters — Role: ${roleLabel} | Month: ${monthLabel} | Year: ${yearLabel} | Status: ${statusLabel}`, margin + 3, yPos + 8);
       doc.setTextColor(0, 0, 0);
       yPos += 18;
 
-      // Helpers
       const addSectionHeader = (title) => {
         doc.setFillColor(240, 248, 242);
         doc.roundedRect(margin, yPos, pageWidth - 2 * margin, 8, 1, 1, 'F');
@@ -435,65 +456,86 @@ const StaffSalaryList = () => {
         yPos += 13;
       };
 
-      const columnGap = 18;
-      const columnWidth = (pageWidth - margin * 2 - columnGap) / 2;
-      const addTwoFields = (label1, value1, label2 = null, value2 = null) => {
-        const addSingle = (x, label, value) => {
-          doc.setFontSize(9);
-          doc.setFont(undefined, 'bold');
-          doc.setTextColor(80, 80, 80);
-          doc.text(`${label}:`, x, yPos);
-          const labelWidth = doc.getTextWidth(`${label}:`);
-          doc.setFontSize(9.5);
-          doc.setFont(undefined, 'normal');
-          doc.setTextColor(0, 0, 0);
-          const text = value ? String(value) : 'N/A';
-          const lines = doc.splitTextToSize(text, columnWidth - labelWidth - 5);
-          doc.text(lines, x + labelWidth + 3, yPos);
-        };
-        addSingle(margin, label1, value1);
-        if (label2) addSingle(margin + columnWidth + columnGap, label2, value2);
-        yPos += 7;
+      const tableWidth = pageWidth - 2 * margin;
+      const colWidths = [8, 42, 22, 24, 28, 28, tableWidth - 8 - 42 - 22 - 24 - 28 - 28];
+      const colHeaders = ['#', 'Staff Name', 'Role', 'Month/Year', 'Salary/Mo', 'Paid (PKR)', 'Status'];
+      const rowHeight = 8;
+      const cellPadX = 2;
+      const cellPadY = 5.5;
+
+      const drawTableHeader = () => {
+        doc.setFillColor(26, 188, 156);
+        doc.rect(margin, yPos, tableWidth, rowHeight, 'F');
+        doc.setFontSize(8);
+        doc.setFont(undefined, 'bold');
+        doc.setTextColor(255, 255, 255);
+        let x = margin;
+        colHeaders.forEach((h, i) => { doc.text(h, x + cellPadX, yPos + cellPadY); x += colWidths[i]; });
+        doc.setTextColor(0, 0, 0);
+        yPos += rowHeight;
       };
 
-      // Records section
+      const drawTableRow = (rowData, isEven) => {
+        if (isEven) { doc.setFillColor(236, 253, 245); doc.rect(margin, yPos, tableWidth, rowHeight, 'F'); }
+        doc.setFontSize(8);
+        doc.setFont(undefined, 'normal');
+        doc.setTextColor(40, 40, 40);
+        let x = margin;
+        rowData.forEach((cell, i) => {
+          const text = cell !== null && cell !== undefined ? String(cell) : 'N/A';
+          const truncated = doc.splitTextToSize(text, colWidths[i] - cellPadX * 2)[0] || '';
+          doc.text(truncated, x + cellPadX, yPos + cellPadY);
+          x += colWidths[i];
+        });
+        doc.setDrawColor(220, 220, 220);
+        doc.setLineWidth(0.2);
+        doc.line(margin, yPos + rowHeight, margin + tableWidth, yPos + rowHeight);
+        yPos += rowHeight;
+      };
+
       addSectionHeader('SALARY RECORDS');
       if (!items.length) {
         doc.setFontSize(10);
         doc.text('No records for the selected filters.', margin, yPos + 4);
         yPos += 12;
       } else {
+        drawTableHeader();
         items.forEach((s, idx) => {
-          // Page break handling: ensure space for record + separator + TOTAL section + footer
-          if (yPos > pageHeight - 60) {
-            doc.addPage();
-            yPos = margin + 5;
-            // Re-add RECORDS header on new page
-            addSectionHeader('SALARY RECORDS');
+          if (yPos > pageHeight - 50) {
+            doc.addPage(); yPos = margin + 5;
+            addSectionHeader('SALARY RECORDS (continued)');
+            drawTableHeader();
           }
-          addTwoFields('Staff Name', s.staffName, 'Role', s.staffRole);
-          addTwoFields('Month/Year', `${months[s.month - 1]} ${s.year}`, 'Status', s.status);
-          addTwoFields('Paid Amount', `PKR ${Number(s.paidAmount).toLocaleString()}`, 'Salary/Month', `PKR ${Number(s.salaryPerMonth).toLocaleString()}`);
-          yPos += 4;
-          doc.setDrawColor(230, 230, 230);
-          doc.line(margin, yPos, pageWidth - margin, yPos);
-          yPos += 6;
+          drawTableRow(
+            [idx + 1, s.staffName, s.staffRole, `${months[s.month - 1]} ${s.year}`,
+             Number(s.salaryPerMonth).toLocaleString(), Number(s.paidAmount).toLocaleString(), s.status],
+            idx % 2 === 1
+          );
         });
+        yPos += 4;
       }
 
-      // Ensure TOTAL section has space on current page
-      if (yPos > pageHeight - 45) {
-        doc.addPage();
-        yPos = margin + 5;
-      }
+      if (yPos > pageHeight - 45) { doc.addPage(); yPos = margin + 5; }
 
-      // Total section
-      addSectionHeader('TOTAL');
-      doc.setFontSize(11);
-      doc.setFont(undefined, 'bold');
-      doc.text(`Total Amount Paid: PKR ${Number(totalAmountReport).toLocaleString()}`, margin + 3, yPos + 6);
+      yPos += 4;
+      const cardH = 22;
+      doc.setFillColor(15, 118, 110);
+      doc.roundedRect(margin, yPos, pageWidth - 2 * margin, cardH, 3, 3, 'F');
+      doc.setFillColor(20, 184, 166);
+      doc.setGState(new doc.GState({ opacity: 0.35 }));
+      doc.roundedRect(margin + (pageWidth - 2 * margin) * 0.55, yPos, (pageWidth - 2 * margin) * 0.45, cardH, 3, 3, 'F');
+      doc.setGState(new doc.GState({ opacity: 1 }));
+      doc.setFontSize(8); doc.setFont(undefined, 'normal');
+      doc.setTextColor(204, 251, 241);
+      doc.text('TOTAL SALARY PAID', margin + 5, yPos + 8);
+      doc.setFontSize(13); doc.setFont(undefined, 'bold');
+      doc.setTextColor(255, 255, 255);
+      doc.text(`PKR ${Number(totalAmountReport).toLocaleString()}`, margin + 5, yPos + 17);
+      doc.setFontSize(7); doc.setFont(undefined, 'normal');
+      doc.setTextColor(153, 246, 228);
+      doc.text('Salary Report Summary', pageWidth - margin - 5, yPos + 13, { align: 'right' });
+      yPos += cardH;
 
-      // Footer (always on bottom of current page)
       const footerY = pageHeight - 10;
       doc.setDrawColor(200, 200, 200);
       doc.setLineWidth(0.3);
@@ -509,7 +551,7 @@ const StaffSalaryList = () => {
     };
 
     generatePDF();
-  }, [salaries, filterRole, filterMonth, filterYear, months]);
+  }, [salaries, filterRole, filterMonth, filterYear, filterStatus, months]);
 
   const handleEdit = (salaryId) => {
     navigate(`/salary/edit/${salaryId}`);

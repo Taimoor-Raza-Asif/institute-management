@@ -157,7 +157,7 @@ const ProfileScreen = () => {
                             <InfoRow icon={UserIcon} label="Father's Name" value={profile.fatherName || 'Not provided'} />
                             <InfoRow icon={ScaleIcon} label="Gender" value={profile.gender} />
                             <InfoRow icon={EnvelopeIcon} label="Email" value={profile.email || 'Not provided'} />
-                            <InfoRow icon={CakeIcon} label="Date of Birth" value={profile.dob ? new Date(profile.dob).toLocaleDateString() : 'Not provided'} />
+                            <InfoRow icon={CakeIcon} label="Date of Birth" value={(profile.dob || profile.dateOfBirth) ? new Date(profile.dob || profile.dateOfBirth).toLocaleDateString() : 'Not provided'} />
                             <InfoRow icon={IdentificationIcon} label="CNIC" value={profile.cnic} />
                             <InfoRow icon={MapPinIcon} label="Address" value={profile.address || 'Not provided'} />
                         </div>
@@ -187,7 +187,9 @@ const ProfileScreen = () => {
                                 <InfoRow icon={CalendarDaysIcon} label="Date of Joining" value={profile.dateOfJoining ? new Date(profile.dateOfJoining).toLocaleDateString() : 'Not provided'} />
                                 <InfoRow icon={BanknotesIcon} label="Salary" value={profile.salary ? `PKR ${Number(profile.salary).toLocaleString()}` : 'Not provided'} />
                                 <InfoRow icon={BookOpenIcon} label="Highest Education" value={profile.highestEducationLevel} />
-                                <InfoRow icon={ClipboardDocumentListIcon} label="Subjects" value={profile.subjectsTaught && profile.subjectsTaught.length ? profile.subjectsTaught.join(', ') : 'Not provided'} />
+                                {profile.staffType === 'Teacher' && (
+                                    <InfoRow icon={ClipboardDocumentListIcon} label="Subjects" value={profile.subjectsTaught && profile.subjectsTaught.length ? profile.subjectsTaught.join(', ') : 'Not provided'} />
+                                )}
                             </div>
                         </div>
 

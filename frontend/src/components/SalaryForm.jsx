@@ -25,6 +25,7 @@ const SalaryForm = ({ salaryToEdit, isViewMode, onAdd, onEdit, onClose }) => {
     const [overtime, setOvertime] = useState(0);
     const [advancedSalary, setAdvancedSalary] = useState(0);
     const [deduction, setDeduction] = useState(0);
+    const [sendEmail, setSendEmail] = useState(false);  // email opt-in for updates
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -127,6 +128,7 @@ const SalaryForm = ({ salaryToEdit, isViewMode, onAdd, onEdit, onClose }) => {
                 bonus: parseInt(String(bonus || '0'), 10),
                 overtime: parseInt(String(overtime || '0'), 10),
                 advancedSalary: parseInt(String(advancedSalary || '0'), 10),
+                sendEmail: (id || salaryToEdit) ? sendEmail : true, // always send on create, opt-in on update
             };
 
             try {
@@ -384,6 +386,37 @@ const SalaryForm = ({ salaryToEdit, isViewMode, onAdd, onEdit, onClose }) => {
                             </div>
                         </div>
                     </div>
+
+                    {/* Email notification toggle — edit mode only */}
+                    {(id || salaryToEdit) && !isViewMode && (
+                        <div className={`${sectionBase} flex items-start gap-4`}>
+                            <div className="flex-shrink-0 pt-0.5">
+                                <button
+                                    type="button"
+                                    role="switch"
+                                    aria-checked={sendEmail}
+                                    onClick={() => setSendEmail(v => !v)}
+                                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-1 ${
+                                        sendEmail ? 'bg-emerald-500' : (currentTheme?.inputBorder ? 'bg-gray-300' : 'bg-gray-300')
+                                    }`}
+                                >
+                                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                                        sendEmail ? 'translate-x-6' : 'translate-x-1'
+                                    }`} />
+                                </button>
+                            </div>
+                            <div>
+                                <p className={`text-sm font-semibold ${currentTheme?.subtitle || 'text-gray-700'}`}>
+                                    Send update email to staff member
+                                </p>
+                                <p className={`text-xs mt-0.5 ${currentTheme?.mutedText || 'text-gray-400'}`}>
+                                    {sendEmail
+                                        ? 'An email with the updated salary slip will be sent after saving.'
+                                        : 'No email will be sent after this update.'}
+                                </p>
+                            </div>
+                        </div>
+                    )}
 
                     <div className="flex flex-col sm:flex-row justify-end gap-3 sm:gap-4 pt-4 border-t border-gray-100">
                         <button

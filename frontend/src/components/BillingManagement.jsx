@@ -269,7 +269,11 @@ const BillingManagement = () => {
 
     // Download a PDF report of the currently filtered bills (as shown in the table)
     const handleDownloadFilteredReport = useCallback(() => {
-        const items = Array.isArray(bills) ? bills : [];
+        const items = (Array.isArray(bills) ? [...bills] : []).sort((a, b) => {
+            const dateA = new Date(a.paymentDate || a.billDate);
+            const dateB = new Date(b.paymentDate || b.billDate);
+            return dateA - dateB;
+        });
         const totalAmountReport = items.reduce((sum, b) => sum + (parseFloat(b.amount) || 0), 0);
 
         const doc = new jsPDF({ format: 'a4' });
@@ -285,48 +289,77 @@ const BillingManagement = () => {
         };
 
         const generatePDF = async () => {
-            // Header
-            doc.setFillColor(26, 188, 156);
+            // ── Modern Header ──────────────────────────────────────────────
+            // Primary dark-teal background
+            doc.setFillColor(15, 118, 110);   // dark teal
             doc.rect(0, 0, pageWidth, headerHeight, 'F');
 
+            // Lighter teal right-side panel (diagonal look)
+            doc.setFillColor(20, 184, 166);   // medium teal
+            doc.triangle(
+                pageWidth * 0.45, 0,
+                pageWidth, 0,
+                pageWidth, headerHeight,
+                'F'
+            );
+
+            // Subtle geometric circles
             doc.setFillColor(255, 255, 255);
-            doc.setGState(new doc.GState({ opacity: 0.08 }));
-            doc.circle(pageWidth * 0.18, 12, 35, 'F');
-            doc.circle(pageWidth * 0.82, headerHeight * 0.6, 25, 'F');
+            doc.setGState(new doc.GState({ opacity: 0.06 }));
+            doc.circle(pageWidth * 0.75, -8, 42, 'F');
+            doc.circle(pageWidth * 0.92, headerHeight + 4, 30, 'F');
+            doc.circle(margin + 5, headerHeight + 2, 28, 'F');
             doc.setGState(new doc.GState({ opacity: 1 }));
 
+            // Cyan-teal bottom accent stripe
+            doc.setFillColor(8, 145, 178);   // cyan-600
+            doc.rect(0, headerHeight - 3.5, pageWidth, 3.5, 'F');
+
+            // White circle with subtle ring for logo
             doc.setFillColor(255, 255, 255);
-            doc.circle(margin + 12, 22, 14, 'F');
+            doc.circle(margin + 14, 25, 15, 'F');
+            doc.setDrawColor(8, 145, 178);   // cyan-600 ring
+            doc.setLineWidth(1.2);
+            doc.circle(margin + 14, 25, 15.8, 'S');
 
             // Logo
             const logo = new Image();
             logo.src = '/Jamia Logo.png';
             await new Promise((resolve) => {
-                logo.onload = () => { doc.addImage(logo, 'JPEG', margin + 3, 13, 18, 18); resolve(); };
+                logo.onload = () => { doc.addImage(logo, 'JPEG', margin + 4, 15, 20, 20); resolve(); };
                 logo.onerror = () => resolve();
             });
 
-            // Header text
+            // Institute name – large bold
             doc.setTextColor(255, 255, 255);
-            doc.setFontSize(20);
+            doc.setFontSize(18);
             doc.setFont(undefined, 'bold');
-            doc.text('Jamia Tul Mastwaar', margin + 30, 18);
-            doc.setFontSize(9);
+            doc.text('Jamia Tul Mastwaar', margin + 34, 20);
+
+            // Tagline / address
+            doc.setFontSize(8);
             doc.setFont(undefined, 'normal');
-            doc.setTextColor(240, 253, 250);
-            doc.text('Makhdoom Pur Sharif Murid, Chakwal', margin + 30, 25);
-            doc.text('(0334) 8724125 | jamiatulmastwaar@gmail.com', margin + 30, 31);
+            doc.setTextColor(204, 251, 241);  // teal-100
+            doc.text('Makhdoom Pur Sharif Murid, Chakwal', margin + 34, 27);
+            doc.text('(0334) 8724125  |  jamiatulmastwaar@gmail.com', margin + 34, 33);
 
-            doc.setFontSize(13);
+            // ── Report-title badge (right side) — white + teal ──
+            const badgeW = 52;
+            const badgeH = 11;
+            const badgeX = pageWidth - margin - badgeW;
+            const badgeY = 32;
+            // White fill
+            doc.setFillColor(255, 255, 255);
+            doc.roundedRect(badgeX, badgeY, badgeW, badgeH, 2.5, 2.5, 'F');
+            // Teal border
+            doc.setDrawColor(15, 118, 110);
+            doc.setLineWidth(0.8);
+            doc.roundedRect(badgeX, badgeY, badgeW, badgeH, 2.5, 2.5, 'S');
+            // Label
+            doc.setFontSize(8.5);
             doc.setFont(undefined, 'bold');
-            doc.setTextColor(255, 255, 255);
-            doc.text('BILLS REPORT', pageWidth - margin, 42, { align: 'right' });
-
-            doc.setDrawColor(255, 255, 255);
-            doc.setLineWidth(0.5);
-            doc.setGState(new doc.GState({ opacity: 0.3 }));
-            doc.line(margin, headerHeight - 5, pageWidth - margin, headerHeight - 5);
-            doc.setGState(new doc.GState({ opacity: 1 }));
+            doc.setTextColor(15, 118, 110);
+            doc.text('BILLS REPORT', badgeX + badgeW / 2, badgeY + 7.2, { align: 'center' });
 
             let yPos = headerHeight + 10;
 
@@ -344,7 +377,7 @@ const BillingManagement = () => {
             doc.setTextColor(0, 0, 0);
             yPos += 18;
 
-            // Helpers
+            // Section header helper
             const addSectionHeader = (title) => {
                 doc.setFillColor(240, 248, 242);
                 doc.roundedRect(margin, yPos, pageWidth - 2 * margin, 8, 1, 1, 'F');
@@ -356,25 +389,50 @@ const BillingManagement = () => {
                 yPos += 13;
             };
 
-            const columnGap = 18;
-            const columnWidth = (pageWidth - margin * 2 - columnGap) / 2;
-            const addTwoFields = (label1, value1, label2 = null, value2 = null) => {
-                const addSingle = (x, label, value) => {
-                    doc.setFontSize(9);
-                    doc.setFont(undefined, 'bold');
-                    doc.setTextColor(80, 80, 80);
-                    doc.text(`${label}:`, x, yPos);
-                    const labelWidth = doc.getTextWidth(`${label}:`);
-                    doc.setFontSize(9.5);
-                    doc.setFont(undefined, 'normal');
-                    doc.setTextColor(0, 0, 0);
-                    const text = value ? String(value) : 'N/A';
-                    const lines = doc.splitTextToSize(text, columnWidth - labelWidth - 5);
-                    doc.text(lines, x + labelWidth + 3, yPos);
-                };
-                addSingle(margin, label1, value1);
-                if (label2) addSingle(margin + columnWidth + columnGap, label2, value2);
-                yPos += 7;
+            // Table layout constants
+            // Columns: #, Title, Amount, Payment Date, Payment Method, Remarks
+            const tableWidth = pageWidth - 2 * margin;
+            const colWidths = [8, 55, 28, 30, 32, tableWidth - 8 - 55 - 28 - 30 - 32]; // last col = Remarks
+            const colHeaders = ['#', 'Title', 'Amount (PKR)', 'Payment Date', 'Method', 'Paid To'];
+            const rowHeight = 8;
+            const cellPadX = 2;
+            const cellPadY = 5.5;
+
+            const drawTableHeader = () => {
+                doc.setFillColor(26, 188, 156);
+                doc.rect(margin, yPos, tableWidth, rowHeight, 'F');
+                doc.setFontSize(8);
+                doc.setFont(undefined, 'bold');
+                doc.setTextColor(255, 255, 255);
+                let x = margin;
+                colHeaders.forEach((h, i) => {
+                    doc.text(h, x + cellPadX, yPos + cellPadY);
+                    x += colWidths[i];
+                });
+                doc.setTextColor(0, 0, 0);
+                yPos += rowHeight;
+            };
+
+            const drawTableRow = (rowData, isEven) => {
+                if (isEven) {
+                    doc.setFillColor(236, 253, 245);
+                    doc.rect(margin, yPos, tableWidth, rowHeight, 'F');
+                }
+                doc.setFontSize(8);
+                doc.setFont(undefined, 'normal');
+                doc.setTextColor(40, 40, 40);
+                let x = margin;
+                rowData.forEach((cell, i) => {
+                    const text = cell ? String(cell) : 'N/A';
+                    const truncated = doc.splitTextToSize(text, colWidths[i] - cellPadX * 2)[0] || '';
+                    doc.text(truncated, x + cellPadX, yPos + cellPadY);
+                    x += colWidths[i];
+                });
+                // Bottom border
+                doc.setDrawColor(220, 220, 220);
+                doc.setLineWidth(0.2);
+                doc.line(margin, yPos + rowHeight, margin + tableWidth, yPos + rowHeight);
+                yPos += rowHeight;
             };
 
             // Records section
@@ -384,25 +442,25 @@ const BillingManagement = () => {
                 doc.text('No records for the selected filters.', margin, yPos + 4);
                 yPos += 12;
             } else {
+                drawTableHeader();
                 items.forEach((b, idx) => {
-                    // Page break handling: ensure space for record + separator + TOTAL section + footer
-                    if (yPos > pageHeight - 60) {
+                    // Page break: leave room for total + footer
+                    if (yPos > pageHeight - 50) {
                         doc.addPage();
                         yPos = margin + 5;
-                        // Re-add RECORDS header on new page
-                        addSectionHeader('RECORDS');
+                        addSectionHeader('RECORDS (continued)');
+                        drawTableHeader();
                     }
-                    addTwoFields('Title', b.title, 'Category', b.category);
-                    addTwoFields('Amount', `PKR ${Number(b.amount).toLocaleString()}`, 'Status', b.status);
-                    addTwoFields('Bill Date', new Date(b.billDate).toLocaleDateString(), 'Paid To', b.paidTo || 'N/A');
-                    if (b.status !== 'Unpaid') {
-                        addTwoFields('Payment Date', new Date(b.paymentDate).toLocaleDateString(), 'Payment Method', b.paymentMethod || 'N/A');
-                    }
-                    yPos += 4;
-                    doc.setDrawColor(230, 230, 230);
-                    doc.line(margin, yPos, pageWidth - margin, yPos);
-                    yPos += 6;
+                    const paymentDate = b.status !== 'Unpaid' && b.paymentDate
+                        ? new Date(b.paymentDate).toLocaleDateString()
+                        : 'N/A';
+                    const method = b.status !== 'Unpaid' ? (b.paymentMethod || 'N/A') : 'N/A';
+                    drawTableRow(
+                        [idx + 1, b.title, `${Number(b.amount).toLocaleString()}`, paymentDate, method, b.paidTo || 'N/A'],
+                        idx % 2 === 1
+                    );
                 });
+                yPos += 4;
             }
 
             // Ensure TOTAL section has space on current page
@@ -411,11 +469,32 @@ const BillingManagement = () => {
                 yPos = margin + 5;
             }
 
-            // Total section
-            addSectionHeader('TOTAL');
-            doc.setFontSize(11);
+            // ── Modern Total Card ──
+            yPos += 4;
+            const cardH = 22;
+            // Teal gradient-style card: dark layer + lighter overlay strip
+            doc.setFillColor(15, 118, 110);
+            doc.roundedRect(margin, yPos, pageWidth - 2 * margin, cardH, 3, 3, 'F');
+            doc.setFillColor(20, 184, 166);
+            doc.setGState(new doc.GState({ opacity: 0.35 }));
+            doc.roundedRect(margin + (pageWidth - 2 * margin) * 0.55, yPos, (pageWidth - 2 * margin) * 0.45, cardH, 3, 3, 'F');
+            doc.setGState(new doc.GState({ opacity: 1 }));
+            // Left label
+            doc.setFontSize(8);
+            doc.setFont(undefined, 'normal');
+            doc.setTextColor(204, 251, 241);   // teal-100
+            doc.text('TOTAL EXPENDITURE', margin + 5, yPos + 8);
+            // Large amount
+            doc.setFontSize(13);
             doc.setFont(undefined, 'bold');
-            doc.text(`Total Amount: PKR ${Number(totalAmountReport).toLocaleString()}`, margin + 3, yPos + 6);
+            doc.setTextColor(255, 255, 255);
+            doc.text(`PKR ${Number(totalAmountReport).toLocaleString()}`, margin + 5, yPos + 17);
+            // Right decorative text
+            doc.setFontSize(7);
+            doc.setFont(undefined, 'normal');
+            doc.setTextColor(153, 246, 228);   // teal-200
+            doc.text('Bills Report Summary', pageWidth - margin - 5, yPos + 13, { align: 'right' });
+            yPos += cardH;
 
             // Footer (always on bottom of current page)
             const footerY = pageHeight - 10;

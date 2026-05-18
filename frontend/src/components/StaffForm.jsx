@@ -14,6 +14,8 @@ const StaffForm = ({ editingStaff, fetchStaff, onClose, isViewMode = false }) =>
   const initialState = {
     name: '',
     fatherName: '',
+    gender: '',
+    dateOfBirth: '',
     staffType: '',
     cnic: '',
     contactNumber: '',
@@ -53,7 +55,7 @@ const StaffForm = ({ editingStaff, fetchStaff, onClose, isViewMode = false }) =>
 
     if (stepIdx === 0) {
       // Personal step validation
-      ['name', 'staffType', 'contactNumber', 'dateOfJoining', 'salary', 'address', 'email', 'cnic'].forEach((f) => {
+      ['name', 'gender', 'dateOfBirth', 'staffType', 'contactNumber', 'dateOfJoining', 'salary', 'address', 'email', 'cnic'].forEach((f) => {
         if (!staff[f]) { newFieldErrors[f] = 'This field is required.'; ok = false; }
       });
       if (!/^[\w.-]+@([\w-]+\.)+[\w-]{2,4}$/.test(staff.email || '')) {
@@ -107,6 +109,7 @@ const StaffForm = ({ editingStaff, fetchStaff, onClose, isViewMode = false }) =>
       setStaff({
         ...editingStaff,
         dateOfJoining: editingStaff.dateOfJoining ? new Date(editingStaff.dateOfJoining).toISOString().split('T')[0] : '',
+        dateOfBirth: editingStaff.dateOfBirth ? new Date(editingStaff.dateOfBirth).toISOString().split('T')[0] : '',
         salary: editingStaff.salary !== undefined ? editingStaff.salary.toString() : '',
         // Ensure nested objects/arrays are correctly initialized
         degrees: editingStaff.degrees || [],
@@ -250,7 +253,7 @@ const StaffForm = ({ editingStaff, fetchStaff, onClose, isViewMode = false }) =>
     let hasError = false;
 
     // Basic validation
-    const requiredFields = ['name', 'staffType', 'contactNumber', 'address', 'dateOfJoining', 'salary', 'email', 'cnic'];
+    const requiredFields = ['name', 'gender', 'dateOfBirth', 'staffType', 'contactNumber', 'address', 'dateOfJoining', 'salary', 'email', 'cnic'];
     requiredFields.forEach(field => {
       if (!staff[field]) {
         newFieldErrors[field] = 'This field is required.';
@@ -561,6 +564,7 @@ const StaffForm = ({ editingStaff, fetchStaff, onClose, isViewMode = false }) =>
     addSectionHeader('BASIC INFORMATION');
     addTwoFields('Name', staff.name, 'Staff Type', staff.staffType);
     addTwoFields("Father's Name", staff.fatherName, 'CNIC', staff.cnic);
+    addTwoFields('Gender', staff.gender, 'Date of Birth', staff.dateOfBirth ? new Date(staff.dateOfBirth).toLocaleDateString() : 'N/A');
     addTwoFields('Contact Number', staff.contactNumber, 'Email', staff.email);
     addTwoFields('Date of Joining', staff.dateOfJoining ? new Date(staff.dateOfJoining).toLocaleDateString() : 'N/A', 'Salary', staff.salary ? `PKR ${parseFloat(staff.salary).toLocaleString()}` : 'N/A');
     addTwoFields('Emergency Contact', staff.emergencyContact, '', '');
@@ -730,6 +734,40 @@ const StaffForm = ({ editingStaff, fetchStaff, onClose, isViewMode = false }) =>
                   className={`block w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-400 focus:border-green-500 hover:border-gray-300 transition shadow-sm ${isViewMode ? 'bg-gray-50' : 'bg-white'}`}
                 />
                 {fieldErrors.fatherName && <p className="text-red-500 text-xs mt-1">{fieldErrors.fatherName}</p>}
+              </div>
+
+              {/* Gender */}
+              <div>
+                <label htmlFor="gender" className="block text-sm font-bold text-gray-700 mb-2">Gender<span className="text-red-500">*</span></label>
+                <select 
+                  id="gender" 
+                  name="gender" 
+                  value={staff.gender} 
+                  onChange={handleChange} 
+                  disabled={isViewMode}
+                  className={`block w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-400 focus:border-green-500 hover:border-gray-300 transition shadow-sm ${isViewMode ? 'bg-gray-50' : 'bg-white'}`}
+                >
+                  <option value="">Select Gender</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
+                {fieldErrors.gender && <p className="mt-1 text-sm text-red-600">{fieldErrors.gender}</p>}
+              </div>
+
+              {/* Date of Birth */}
+              <div>
+                <label htmlFor="dateOfBirth" className="block text-sm font-bold text-gray-700 mb-2">Date of Birth<span className="text-red-500">*</span></label>
+                <input 
+                  type="date" 
+                  id="dateOfBirth" 
+                  name="dateOfBirth" 
+                  value={staff.dateOfBirth} 
+                  onChange={handleChange} 
+                  readOnly={isViewMode} 
+                  className={`block w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-400 focus:border-green-500 hover:border-gray-300 transition shadow-sm ${isViewMode ? 'bg-gray-50' : 'bg-white'}`}
+                />
+                {fieldErrors.dateOfBirth && <p className="mt-1 text-sm text-red-600">{fieldErrors.dateOfBirth}</p>}
               </div>
 
               {/* Staff Type */}

@@ -9,6 +9,7 @@ import Message from '../components/Message';
 import api from '../api';
 import { useTheme } from '../context/ThemeContext';
 import { BanknotesIcon, ExclamationTriangleIcon, UserPlusIcon, WalletIcon, GiftIcon, ClockIcon, DocumentCurrencyDollarIcon, HeartIcon } from '@heroicons/react/24/outline';
+import OverallExpenses from '../components/OverallExpenses';
 
 // Note: PIE colors will be derived from theme inside the component so themes can override chart palettes
 
@@ -42,7 +43,7 @@ const Reports = () => {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState('fees');
+  const [activeTab, setActiveTab] = useState('overall');
   const { currentTheme } = useTheme();
 
   // Chart color palette - allow theme override
@@ -54,6 +55,13 @@ const Reports = () => {
     secondary: currentTheme?.chartSecondary || '#82ca9d',
     accent: currentTheme?.chartAccent || '#ffc658',
     danger: currentTheme?.chartDanger || '#F44336'
+  };
+
+  // Format large numbers as compact 'k' notation for chart axes
+  const formatK = (value) => {
+    if (value >= 1000000) return `${(value / 1000000).toFixed(1).replace(/\.0$/, '')}M`;
+    if (value >= 1000) return `${(value / 1000).toFixed(1).replace(/\.0$/, '')}k`;
+    return value;
   };
 
   // Filter states
@@ -196,6 +204,8 @@ const Reports = () => {
 
   const renderContent = () => {
     switch (activeTab) {
+      case 'overall':
+        return <OverallExpenses />;
       case 'fees':
         return (
           <>
@@ -256,8 +266,8 @@ const Reports = () => {
                   <LineChart data={feesChartData}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="name" stroke={currentTheme?.chartAxis || '#94a3b8'} tick={{ fill: currentTheme?.mutedText || '#94a3b8' }} />
-                    <YAxis stroke={currentTheme?.chartAxis || '#94a3b8'} tick={{ fill: currentTheme?.mutedText || '#94a3b8' }} />
-                    <Tooltip />
+                    <YAxis stroke={currentTheme?.chartAxis || '#94a3b8'} tick={{ fill: currentTheme?.mutedText || '#94a3b8' }} tickFormatter={formatK} />
+                    <Tooltip formatter={(value) => [`PKR ${Number(value).toLocaleString()}`, undefined]} />
                     <Legend />
                     <Line type="monotone" dataKey="Total Collected" stroke={CHART_COLORS.success} name="Collected" />
                     <Line type="monotone" dataKey="Total Due" stroke={CHART_COLORS.warning} name="Due" />
@@ -293,8 +303,8 @@ const Reports = () => {
                   <LineChart data={admissionFeeChartData}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="name" stroke={currentTheme?.chartAxis || '#94a3b8'} tick={{ fill: currentTheme?.mutedText || '#94a3b8' }} />
-                    <YAxis stroke={currentTheme?.chartAxis || '#94a3b8'} tick={{ fill: currentTheme?.mutedText || '#94a3b8' }} />
-                    <Tooltip />
+                    <YAxis stroke={currentTheme?.chartAxis || '#94a3b8'} tick={{ fill: currentTheme?.mutedText || '#94a3b8' }} tickFormatter={formatK} />
+                    <Tooltip formatter={(value) => [`PKR ${Number(value).toLocaleString()}`, undefined]} />
                     <Legend />
                     <Line type="monotone" dataKey="Total Admission Fee" stroke={CHART_COLORS.success} name="Admission Fees" />
                   </LineChart>
@@ -363,8 +373,8 @@ const Reports = () => {
                   <BarChart data={salariesChartData}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="name" stroke={currentTheme?.chartAxis || '#94a3b8'} tick={{ fill: currentTheme?.mutedText || '#94a3b8' }} />
-                    <YAxis stroke={currentTheme?.chartAxis || '#94a3b8'} tick={{ fill: currentTheme?.mutedText || '#94a3b8' }} />
-                    <Tooltip />
+                    <YAxis stroke={currentTheme?.chartAxis || '#94a3b8'} tick={{ fill: currentTheme?.mutedText || '#94a3b8' }} tickFormatter={formatK} />
+                    <Tooltip formatter={(value) => [`PKR ${Number(value).toLocaleString()}`, undefined]} />
                     <Legend />
                     <Bar dataKey="Total Paid" fill={CHART_COLORS.primary} />
                     <Bar dataKey="Bonus" fill={CHART_COLORS.secondary} />
@@ -445,8 +455,8 @@ const Reports = () => {
                   <LineChart data={billingChartData}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="name" stroke={currentTheme?.chartAxis || '#94a3b8'} tick={{ fill: currentTheme?.mutedText || '#94a3b8' }} />
-                    <YAxis stroke={currentTheme?.chartAxis || '#94a3b8'} tick={{ fill: currentTheme?.mutedText || '#94a3b8' }} />
-                    <Tooltip />
+                    <YAxis stroke={currentTheme?.chartAxis || '#94a3b8'} tick={{ fill: currentTheme?.mutedText || '#94a3b8' }} tickFormatter={formatK} />
+                    <Tooltip formatter={(value) => [`PKR ${Number(value).toLocaleString()}`, undefined]} />
                     <Legend />
                     <Line type="monotone" dataKey="Total Expenses" stroke={CHART_COLORS.danger} name="Expenses" />
                   </LineChart>
@@ -525,8 +535,8 @@ const Reports = () => {
                   <LineChart data={donationsChartData}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="name" stroke={currentTheme?.chartAxis || '#94a3b8'} tick={{ fill: currentTheme?.mutedText || '#94a3b8' }} />
-                    <YAxis stroke={currentTheme?.chartAxis || '#94a3b8'} tick={{ fill: currentTheme?.mutedText || '#94a3b8' }} />
-                    <Tooltip />
+                    <YAxis stroke={currentTheme?.chartAxis || '#94a3b8'} tick={{ fill: currentTheme?.mutedText || '#94a3b8' }} tickFormatter={formatK} />
+                    <Tooltip formatter={(value) => [`PKR ${Number(value).toLocaleString()}`, undefined]} />
                     <Legend />
                     <Line type="monotone" dataKey="Total Donations" stroke={CHART_COLORS.primary} name="Donations" />
                   </LineChart>
@@ -655,6 +665,12 @@ const Reports = () => {
 
       {/* Tab Navigation */}
       <div className="flex flex-wrap gap-2 mb-6">
+        <button
+          className={`h-12 px-5 rounded-lg font-semibold text-sm sm:text-base transition-all ${activeTab === 'overall' ? `${currentTheme?.btnPrimaryBg || 'bg-gradient-to-r from-green-600 to-green-700'} ${currentTheme?.btnPrimaryText || 'text-white'} ${currentTheme?.shadow || 'shadow-md'}` : `${currentTheme?.btnSecondaryBg || 'bg-white'} ${currentTheme?.btnSecondaryText || 'text-gray-700'} ${currentTheme?.btnSecondaryBorder || 'border border-gray-300'} ${currentTheme?.btnSecondaryHover || 'hover:bg-gray-50'}`}`}
+          onClick={() => setActiveTab('overall')}
+        >
+          Overall Expenses
+        </button>
         <button
           className={`h-12 px-5 rounded-lg font-semibold text-sm sm:text-base transition-all ${activeTab === 'fees' ? `${currentTheme?.btnPrimaryBg || 'bg-gradient-to-r from-green-600 to-green-700'} ${currentTheme?.btnPrimaryText || 'text-white'} ${currentTheme?.shadow || 'shadow-md'}` : `${currentTheme?.btnSecondaryBg || 'bg-white'} ${currentTheme?.btnSecondaryText || 'text-gray-700'} ${currentTheme?.btnSecondaryBorder || 'border border-gray-300'} ${currentTheme?.btnSecondaryHover || 'hover:bg-gray-50'}`}`}
           onClick={() => setActiveTab('fees')}

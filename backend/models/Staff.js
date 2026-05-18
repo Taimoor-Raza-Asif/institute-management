@@ -46,6 +46,8 @@ const assignClassSchema = new mongoose.Schema({
 const staffSchema = new mongoose.Schema({
     name: { type: String, required: true, trim: true },
     fatherName: { type: String, required: true, trim: true },
+    gender: { type: String, enum: ['Male', 'Female', 'Other'], required: true },
+    dateOfBirth: { type: Date, required: true },
     cnic: { type: String, required: true, unique: true },
     staffType: {
         type: String,

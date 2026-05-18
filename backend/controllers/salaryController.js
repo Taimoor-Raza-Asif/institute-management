@@ -3,6 +3,7 @@ import asyncHandler from 'express-async-handler';
 import Salary from '../models/Salary.js';
 import Staff from '../models/Staff.js';
 import User from '../models/User.js';
+import { sendSalarySlipEmail } from '../utils/salaryMailer.js';
 
 // @desc    Get a list of staff members for salary management
 // @route   GET /api/salary/staff
@@ -57,7 +58,8 @@ const createOrUpdateSalary = asyncHandler(async (req, res) => {
     paidAs,
     bonus,
     overtime,
-    advancedSalary
+    advancedSalary,
+    sendEmail,        // opt-in email flag from the frontend
   } = req.body;
 
   if (!staffId || !month || !year) {
@@ -66,15 +68,19 @@ const createOrUpdateSalary = asyncHandler(async (req, res) => {
   }
 
   // Find the staff member to get their details, including salary and role
-  const staffMember = await Staff.findById(staffId).select('name cnic staffType salary').lean();
+  const staffMember = await Staff.findById(staffId).select('name cnic staffType salary dateOfJoining').lean();
   if (!staffMember) {
     res.status(404);
     throw new Error('Staff member not found');
   }
 
-  // Find the user who is making the request (the admin)
-  const paidBy = await User.findById(req.user._id).select('name').lean();
-
+  // Find the name of the logged-in user via their linked Staff profile
+  // (User model has no 'name' field — name is stored on the Staff document)
+  let paidByName = req.user.cnic; // fallback to CNIC if no staff profile linked
+  if (req.user.profileId) {
+    const paidByStaff = await Staff.findById(req.user.profileId).select('name').lean();
+    if (paidByStaff?.name) paidByName = paidByStaff.name;
+  }
 
   // status: status || 'Unpaid',
 
@@ -85,16 +91,17 @@ const createOrUpdateSalary = asyncHandler(async (req, res) => {
     staffCnic: staffMember.cnic,
     staffRole: staffMember.staffType.toLocaleLowerCase(),
     salaryPerMonth: staffMember.salary, // Use the salary from the staff record
+    staffJoiningDate: staffMember.dateOfJoining || null,
     month,
     year,
     paidAmount: paidAmount || 0,
     paidAs: paidAs || 'Cash',
     paidBy: req.user._id,
-    paidByName: paidBy.name,
+    paidByName,
     bonus: bonus || 0,
     overtime: overtime || 0,
     paidAt: Date.now(),
-     advancedSalary: advancedSalary || 0,
+    advancedSalary: advancedSalary || 0,
     status: (paidAmount || 0) === staffMember.salary ? 'Paid' : (paidAmount || 0) > 0 ? 'Partial Paid' : 'Unpaid',
     deduction: (staffMember.salary - (paidAmount || 0)) + (advancedSalary || 0)
   };
@@ -104,10 +111,32 @@ const createOrUpdateSalary = asyncHandler(async (req, res) => {
   if (existingSalary) {
     // Update existing record
     const updatedSalary = await Salary.findByIdAndUpdate(existingSalary._id, salaryDetails, { new: true });
+
+    // Send update email only when the user opted in
+    if (sendEmail) {
+      const staffWithEmail = await Staff.findById(staffId).select('email').lean();
+      if (staffWithEmail?.email) {
+        sendSalarySlipEmail(updatedSalary, staffWithEmail.email, 'update').catch(err =>
+          console.error('Salary update email failed:', err.message)
+        );
+      }
+    }
+
     res.status(200).json(updatedSalary);
   } else {
     // Create new record
     const newSalary = await Salary.create(salaryDetails);
+
+    // Always send email on create (if staff has email)
+    if (sendEmail !== false) {
+      const staffWithEmail = await Staff.findById(staffId).select('email').lean();
+      if (staffWithEmail?.email) {
+        sendSalarySlipEmail(newSalary, staffWithEmail.email, 'new').catch(err =>
+          console.error('Salary slip email failed:', err.message)
+        );
+      }
+    }
+
     res.status(201).json(newSalary);
   }
 });
@@ -145,13 +174,15 @@ const getAllSalaries = asyncHandler(async (req, res) => {
 
   const salaries = await Salary.find(filter)
     .sort({ createdAt: -1 })
-    .populate('staff', 'profilePictureUrl') // This is the key change
+    .populate('staff', 'profilePictureUrl dateOfJoining')
     .lean();
 
   // Map the populated staff field to the main salary object
   const salariesWithProfile = salaries.map(salary => ({
     ...salary,
-    profilePictureUrl: salary.staff?.profilePictureUrl || ''
+    profilePictureUrl: salary.staff?.profilePictureUrl || '',
+    // Use saved value first; fall back to live staff record for older salary entries
+    staffJoiningDate: salary.staffJoiningDate || salary.staff?.dateOfJoining || null
   }));
 
   res.json(salariesWithProfile);
@@ -285,8 +316,12 @@ const bulkCreateSalaries = asyncHandler(async (req, res) => {
     throw new Error('No salaries provided for bulk creation.');
   }
 
-  // Get the admin user for paidBy
-  const paidBy = await User.findById(req.user._id).select('name').lean();
+  // Get the name of the admin who triggered bulk creation
+  let paidByName = req.user.cnic;
+  if (req.user.profileId) {
+    const paidByStaff = await Staff.findById(req.user.profileId).select('name').lean();
+    if (paidByStaff?.name) paidByName = paidByStaff.name;
+  }
 
   // Prepare salary records
   const preparedSalaries = await Promise.all(

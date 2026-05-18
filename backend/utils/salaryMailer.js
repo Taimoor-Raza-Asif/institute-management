@@ -207,15 +207,23 @@ export async function sendSalarySlipEmail(salary, staffEmail, type = 'new') {
   // Build the PDF buffer
   const pdfBuffer = generateSalarySlipPDF(salary);
 
-  // Create transporter
+  // Resolve smtp.gmail.com to an IPv4 address manually to bypass Render's IPv6 ENETUNREACH
+  const lookupResult = await dns.promises.lookup('smtp.gmail.com', { family: 4 });
+  const ipv4Host = lookupResult.address;
+
+  // Create transporter using the explicit IPv4 address
   const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
+    host: ipv4Host,
     port: 465,
     secure: true,
     auth: {
       user: process.env.PAYROLL_EMAIL,
       pass: process.env.PAYROLL_EMAIL_PASS,
     },
+    tls: {
+      // Must match the original hostname for SSL/TLS certificate validation
+      servername: 'smtp.gmail.com'
+    }
   });
 
   // ── Subject & plain-text body ──────────────────────────────────────

@@ -644,6 +644,7 @@ Jamia Tul Mastwaar
 
   const { data, error } = await resend.emails.send({
     from: 'Accounts Department - Jamia Tul Mastwaar <onboarding@resend.dev>',
+    replyTo: 'payroll.jamiatulmastwaar@gmail.com',
     to: staffEmail,
     subject,
     text: plainText,

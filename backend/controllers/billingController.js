@@ -112,7 +112,7 @@ const getBills = asyncHandler(async (req, res) => {
   // Filter by month and year
   if (month && year) {
     const startOfMonth = new Date(year, month - 1, 1);
-    const endOfMonth = new Date(year, month, 0);
+    const endOfMonth = new Date(year, month, 0, 23, 59, 59, 999);
     query.billDate = {
       $gte: startOfMonth,
       $lte: endOfMonth,

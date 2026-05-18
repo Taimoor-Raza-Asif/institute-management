@@ -343,16 +343,11 @@
 
 
 // backend/utils/salaryMailer.js
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 import { jsPDF } from 'jspdf';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import dns from 'dns';
-
-// Force Node.js to prefer IPv4 over IPv6. 
-// This fixes the 'connect ENETUNREACH 2607...' error on Render where IPv6 is not supported.
-dns.setDefaultResultOrder('ipv4first');
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname  = path.dirname(__filename);
@@ -372,7 +367,7 @@ const MONTHS = [
 ];
 
 /**
- * Generates a minimal salary slip PDF as a Buffer (no logo, server-side safe).
+ * Generates a salary slip PDF and returns it as a Buffer.
  */
 function generateSalarySlipPDF(salary) {
   const doc = new jsPDF({ format: 'a4' });
@@ -531,46 +526,34 @@ function generateSalarySlipPDF(salary) {
   doc.text('Jamia Tul Mastwaar - Salary Slip', margin, footerY);
   doc.text('Page 1 of 1', pageWidth - margin, footerY, { align: 'right' });
 
-  // Return as Buffer
   const arrayBuffer = doc.output('arraybuffer');
   return Buffer.from(arrayBuffer);
 }
 
 /**
- * Sends a salary slip email to the staff member.
- * @param {Object} salary - Full salary document
+ * Sends a salary slip email via Resend (HTTPS API — works on all hosting platforms).
+ * @param {Object} salary     - Full salary document
  * @param {string} staffEmail - Recipient email address
  * @param {'new'|'update'} type - Whether this is a new record or an update
  */
 export async function sendSalarySlipEmail(salary, staffEmail, type = 'new') {
   if (!staffEmail) return; // No email on file — skip silently
 
+  // ── Resend client (uses HTTPS port 443, no SMTP ports needed) ─────
+  const resend = new Resend(process.env.RESEND_API_KEY);
+
   const monthYear = `${MONTHS[salary.month - 1]} ${salary.year}`;
-  const isUpdate = type === 'update';
+  const isUpdate  = type === 'update';
 
   // Build the PDF buffer
   const pdfBuffer = generateSalarySlipPDF(salary);
 
-  // Use port 587 (STARTTLS) — Render blocks port 465 (SSL) entirely on all plans.
-  // dns.setDefaultResultOrder('ipv4first') at the top handles the IPv6 ENETUNREACH issue.
-  const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 587,
-    secure: false, // STARTTLS — upgrades to TLS after handshake
-    auth: {
-      user: process.env.PAYROLL_EMAIL,
-      pass: process.env.PAYROLL_EMAIL_PASS,
-    },
-    tls: {
-      rejectUnauthorized: true,
-    },
-  });
-
-  // ── Subject & plain-text body ──────────────────────────────────────
+  // ── Subject ────────────────────────────────────────────────────────
   const subject = isUpdate
     ? `Salary Slip Updated — ${monthYear} | Jamia Tul Mastwaar`
     : `Salary Slip — ${monthYear} | Jamia Tul Mastwaar`;
 
+  // ── Plain-text fallback ────────────────────────────────────────────
   const plainText = isUpdate
     ? `Assalam-u-Alaikum ${salary.staffName},
 
@@ -597,15 +580,15 @@ Jamia Tul Mastwaar
 
   // ── HTML body ──────────────────────────────────────────────────────
   const headerGradient = isUpdate
-    ? 'linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)'   // blue for update
-    : 'linear-gradient(135deg, #0f766e 0%, #14b8a6 100%)';  // teal for new
+    ? 'linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)'
+    : 'linear-gradient(135deg, #0f766e 0%, #14b8a6 100%)';
 
-  const badgeColor   = isUpdate ? '#1d4ed8' : '#0f766e';
-  const badgeBg      = isUpdate ? '#eff6ff' : '#f0fdf4';
-  const badgeBorder  = isUpdate ? '#bfdbfe' : '#bbf7d0';
-  const amountColor  = isUpdate ? '#1d4ed8' : '#0f766e';
+  const badgeColor  = isUpdate ? '#1d4ed8' : '#0f766e';
+  const badgeBg     = isUpdate ? '#eff6ff' : '#f0fdf4';
+  const badgeBorder = isUpdate ? '#bfdbfe' : '#bbf7d0';
+  const amountColor = isUpdate ? '#1d4ed8' : '#0f766e';
+  const headerTitle = isUpdate ? 'Salary Slip — Updated' : 'Salary Slip';
 
-  const headerTitle  = isUpdate ? 'Salary Slip — Updated' : 'Salary Slip';
   const intro = isUpdate
     ? `We would like to inform you that your salary details for the month of <strong>${monthYear}</strong> have been <strong style="color:${badgeColor}">updated</strong>. Please find the revised salary slip attached.`
     : `Please find attached your salary slip for the month of <strong>${monthYear}</strong>.`;
@@ -650,21 +633,33 @@ Jamia Tul Mastwaar
   </div>
 </div>`;
 
-  const mailOptions = {
-    from: `"Accounts Department - Jamia Tul Mastwaar" <${process.env.PAYROLL_EMAIL}>`,
+  // ── Send via Resend HTTPS API ──────────────────────────────────────
+  //
+  // FROM ADDRESS NOTE:
+  //   • Free plan (no custom domain): use 'onboarding@resend.dev' — works immediately.
+  //   • After verifying your own domain in Resend dashboard you can change this to
+  //     something like: 'Accounts Department <accounts@jamiatulmastwaar.com>'
+  //
+  const pdfFilename = `${salary.staffName.replace(/\s/g, '_')}_Salary_Slip_${MONTHS[salary.month - 1]}_${salary.year}.pdf`;
+
+  const { data, error } = await resend.emails.send({
+    from: 'Accounts Department - Jamia Tul Mastwaar <onboarding@resend.dev>',
     to: staffEmail,
     subject,
     text: plainText,
     html: htmlBody,
     attachments: [
       {
-        filename: `${salary.staffName.replace(/\s/g, '_')}_Salary_Slip_${MONTHS[salary.month - 1]}_${salary.year}.pdf`,
-        content: pdfBuffer,
-        contentType: 'application/pdf',
+        filename: pdfFilename,
+        content: pdfBuffer.toString('base64'), // Resend expects base64 string
       },
     ],
-  };
+  });
 
-  await transporter.sendMail(mailOptions);
-  console.log(`✅ Salary slip email (${type}) sent to ${staffEmail} for ${salary.staffName}`);
+  if (error) {
+    // Throw so the caller's catch block logs it exactly as before
+    throw new Error(`Resend API error: ${JSON.stringify(error)}`);
+  }
+
+  console.log(`✅ Salary slip email (${type}) sent via Resend [id: ${data.id}] to ${staffEmail} for ${salary.staffName}`);
 }

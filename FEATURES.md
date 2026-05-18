@@ -304,6 +304,12 @@ A comprehensive web-based management system for Jamia Tul Mastwaar (Makhdoom Pur
   - Auto-status calculation
   - Payment history
 
+- **Automated Notifications**
+  - Automated PDF Salary Slip generation
+  - NodeMailer integration for direct email delivery to staff
+  - Dynamic templates for new records and updates
+  - Optional toggle to notify staff during form submission
+
 #### Salary Reports
 - Monthly salary summaries
 - Role-wise salary distribution
@@ -407,6 +413,21 @@ A comprehensive web-based management system for Jamia Tul Mastwaar (Makhdoom Pur
   - Total donations
   - Purpose-wise analysis
   - Monthly trends
+
+#### Overall Expenses & Master Dashboard
+- **Unified Financial Overview**
+  - Combined reporting across all financial sectors (Fees, Salaries, Bills, Donations)
+  - Real-time Income vs. Expense calculation
+  - Net Profit / Loss indicators
+  - Interactive multi-select filters to toggle specific categories
+
+#### Advanced PDF Reporting
+- **High-End PDF Generation**
+  - Professional, branded layouts using jsPDF
+  - Emerald/Teal gradient headers with geometric design elements
+  - Institute logo integration and watermark support
+  - Dynamic tabular layouts for multi-category reports
+  - Final financial summary cards included directly in the exported PDFs
 
 #### Attendance Reports
 - Student attendance analytics

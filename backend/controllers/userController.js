@@ -9,7 +9,7 @@ import bcrypt from 'bcryptjs';
 // Helper function to generate JWT token with role included
 const generateToken = (id, role) => {
   return jwt.sign({ id, role }, process.env.JWT_SECRET, {
-    expiresIn: '1h', // Token expires in 1 hour
+    expiresIn: '24h', // Token expires in 24 hours
   });
 };
 

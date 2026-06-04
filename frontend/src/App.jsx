@@ -67,7 +67,7 @@ const App = () => {
 
   const handleLogin = (userInfo) => {
     setCurrentUser(userInfo);
-    sessionStorage.setItem('userInfo', JSON.stringify(userInfo));
+    localStorage.setItem('userInfo', JSON.stringify(userInfo));
   };
 
   const handleLogout = () => {

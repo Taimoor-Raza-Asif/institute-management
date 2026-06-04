@@ -10,6 +10,7 @@ import AlertDialog from './AlertDialog';
 import Loader from './Loader';
 import Message from './Message';
 import SkippedStudentsModal from './SkippedStudentsModal';
+import { resolveFileUrl } from '../utils/urlHelper.js';
 import {
   BanknotesIcon,
   WalletIcon,
@@ -660,16 +661,16 @@ const FeeList = () => {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className={`${currentTheme?.theadBg || 'bg-gradient-to-r from-green-600 to-emerald-600'}`}>
                 <tr>
-                  <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider rounded-tl-xl"><Th>Student</Th></th>
-                  <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider"><Th>Month</Th></th>
-                  <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider"><Th>Year</Th></th>
-                  <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider"><Th>Total</Th></th>
-                  <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider"><Th>Received</Th></th>
-                  <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider"><Th>Due</Th></th>
-                  <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider"><Th>Method</Th></th>
-                  <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider"><Th>Received Date</Th></th>
-                  <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider"><Th>Attachment</Th></th>
-                  <th scope="col" className="px-6 py-4 text-center text-xs font-bold text-white uppercase tracking-wider rounded-tr-xl"><Th>Actions</Th></th>
+                  <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider rounded-tl-xl">Student</th>
+                  <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Month</th>
+                  <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Year</th>
+                  <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Total</th>
+                  <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Received</th>
+                  <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Due</th>
+                  <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Method</th>
+                  <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Received Date</th>
+                  <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Attachment</th>
+                  <th scope="col" className="px-6 py-4 text-center text-xs font-bold text-white uppercase tracking-wider rounded-tr-xl">Actions</th>
                 </tr>
               </thead>
               <tbody className={`${currentTheme?.tbodyBg || 'bg-white'} divide-y divide-gray-100`}>
@@ -682,7 +683,7 @@ const FeeList = () => {
                       <div className="flex items-center">
                         {f.studentId?.profilePictureUrl ? (
                           <img
-                            src={`${backendBaseUrl}${f.studentId.profilePictureUrl}`}
+                            src={resolveFileUrl(f.studentId.profilePictureUrl)}
                             alt="avatar"
                             className="h-10 w-10 rounded-full object-cover ring-2 ring-green-100"
                             onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/40x40/10b981/ffffff?text=' + (f.studentId?.name?.[0] || 'S'); }}
@@ -721,7 +722,7 @@ const FeeList = () => {
                     <Td className={`${currentTheme?.text || 'text-gray-600'}`}>{f.receivedDate ? new Date(f.receivedDate).toLocaleDateString() : '—'}</Td>
                     <Td>
                       {f.billScreenshotUrl ? (
-                        <a className={`${currentTheme?.text || 'text-teal-700'} hover:underline`} href={`${backendBaseUrl}${f.billScreenshotUrl}`} target="_blank" rel="noreferrer">View</a>
+                        <a className={`${currentTheme?.text || 'text-teal-700'} hover:underline`} href={resolveFileUrl(f.billScreenshotUrl)} target="_blank" rel="noreferrer">View</a>
                       ) : (
                         <span className={`${currentTheme?.mutedText || 'text-gray-400'}`}>—</span>
                       )}

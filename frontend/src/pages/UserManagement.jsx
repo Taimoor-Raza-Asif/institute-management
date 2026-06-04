@@ -5,6 +5,7 @@ import { UserContext } from '../App';
 import { useTheme } from '../context/ThemeContext'; // Assuming UserContext is provided by App.jsx
 import { PlusIcon, PencilIcon, TrashIcon, EyeIcon, FunnelIcon, XMarkIcon, MagnifyingGlassIcon, UserCircleIcon } from '@heroicons/react/24/outline';
 import Modal from '../components/Modal'; // Assuming a Modal component exists
+import { resolveFileUrl } from '../utils/urlHelper.js';
 
 // UserForm.jsx (Nested component for Add/Edit/View User)
 const UserForm = ({ user, formMode, onClose, students, staffMembers, users }) => {
@@ -400,7 +401,7 @@ const UserManagement = () => {
                         <div className="flex items-center">
                           {user.profileId?.profilePictureUrl ? (
                             <img
-                              src={`http://localhost:5000${user.profileId.profilePictureUrl}`}
+                              src={resolveFileUrl(user.profileId.profilePictureUrl)}
                               alt={`${user.profileId.cnic}'s Profile`}
                               className={`h-9 w-9 rounded-full object-cover mr-3 ring-2 ${currentTheme.heroPillBorder || 'ring-green-100'}`}
                               onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/36x36/cccccc/ffffff?text=NA'; }}

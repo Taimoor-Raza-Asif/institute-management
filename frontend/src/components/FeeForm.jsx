@@ -435,6 +435,7 @@ const FeeForm = ({ editingFee, fetchFees, studentsForForm, onClose, isViewMode =
     const studentCnic = selectedStudent ? selectedStudent.cnic : '-';
     const studentClassOrDegree = selectedStudent
       ? (selectedStudent.class === 'Class'
+        // classNumber now stores the classIdentifier string (e.g. "9th Science")
         ? `${selectedStudent.classNumber || '-'}`
         : selectedStudent.class === 'BS'
         ? `${selectedStudent.degreeName || '-'} (Semester ${selectedStudent.semester || '-'})`
@@ -588,6 +589,7 @@ const FeeForm = ({ editingFee, fetchFees, studentsForForm, onClose, isViewMode =
     const studentCnic = selectedStudent ? selectedStudent.cnic : '-';
     const studentClassOrDegree = selectedStudent
       ? (selectedStudent.class === 'Class'
+        // classNumber now stores the classIdentifier string (e.g. "9th Science")
         ? `${selectedStudent.classNumber || '-'}`
         : selectedStudent.class === 'BS'
         ? `${selectedStudent.degreeName || '-'} (Semester ${selectedStudent.semester || '-'})`

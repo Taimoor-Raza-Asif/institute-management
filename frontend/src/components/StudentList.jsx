@@ -15,6 +15,7 @@ import { UserContext } from '../App';
 import { useTheme } from '../context/ThemeContext';
 // Assuming you have a Loader component available, otherwise uncomment the note below
 // import Loader from './Loader'; // <-- UNCOMMENT IF YOU HAVE THIS COMPONENT
+import { resolveFileUrl } from '../utils/urlHelper.js';
 
 // Define months array (used in both StudentList and FeeForm)
 const months = [
@@ -615,7 +616,7 @@ const StudentList = () => {
                         <div className="flex items-center">
                           {s.profilePictureUrl ? (
                             <img
-                              src={`http://localhost:5000${s.profilePictureUrl}`}
+                              src={resolveFileUrl(s.profilePictureUrl)}
                               alt={`${s.name}'s Profile`}
                               className={`h-10 w-10 rounded-full object-cover ring-2 ${currentTheme.heroPillBorder || 'ring-green-100'} mr-3`}
                               onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/40x40/10b981/ffffff?text=' + s.name[0]; }}

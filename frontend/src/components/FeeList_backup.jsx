@@ -8,6 +8,7 @@ import FeeForm from './FeeForm';
 import ConfirmationModal from './ConfirmationModal';
 import Loader from './Loader';
 import Message from './Message';
+import { resolveFileUrl } from '../utils/urlHelper.js';
 import {
   BanknotesIcon,
   WalletIcon,
@@ -433,7 +434,7 @@ const FeeList = () => {
                       <div className="flex items-center">
                         {f.studentId?.profilePictureUrl ? (
                           <img
-                            src={`${backendBaseUrl}${f.studentId.profilePictureUrl}`}
+                            src={resolveFileUrl(f.studentId.profilePictureUrl)}
                             alt="avatar"
                             className="h-10 w-10 rounded-full object-cover ring-2 ring-green-100"
                             onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/40x40/10b981/ffffff?text=' + (f.studentId?.name?.[0] || 'S'); }}
@@ -472,7 +473,7 @@ const FeeList = () => {
                     <Td>{f.receivedDate ? new Date(f.receivedDate).toLocaleDateString() : '—'}</Td>
                     <Td>
                       {f.billScreenshotUrl ? (
-                        <a className="text-teal-700 hover:underline" href={`${backendBaseUrl}${f.billScreenshotUrl}`} target="_blank" rel="noreferrer">View</a>
+                        <a className="text-teal-700 hover:underline" href={resolveFileUrl(f.billScreenshotUrl)} target="_blank" rel="noreferrer">View</a>
                       ) : (
                         <span className="text-gray-400">—</span>
                       )}

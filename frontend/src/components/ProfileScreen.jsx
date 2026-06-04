@@ -12,6 +12,7 @@ import Message from '../components/Message';
 
 import StaffForm from '../components/StaffForm';
 import StudentForm from '../components/StudentForm';
+import { resolveFileUrl } from '../utils/urlHelper.js';
 
 const ProfileScreen = () => {
     const { currentUser: user, updateCurrentUser } = useContext(UserContext);
@@ -99,7 +100,7 @@ const ProfileScreen = () => {
                                 <div className="h-24 w-24 rounded-2xl overflow-hidden ring-4 ring-white shadow-xl">
                                     <img
                                         className="h-full w-full object-cover"
-                                        src={profile.profilePictureUrl ? `${backendBaseUrl}${profile.profilePictureUrl}` : '/default-avatar.png'}
+                                        src={profile.profilePictureUrl ? resolveFileUrl(profile.profilePictureUrl) : '/default-avatar.png'}
                                         alt={`${profile.name}'s profile picture`}
                                         onError={(e) => { e.target.src = '/default-avatar.png'; }}
                                     />

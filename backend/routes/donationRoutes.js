@@ -7,9 +7,10 @@ import {
   updateDonation,
   deleteDonation,
   downloadReceipt,
-  getDonationReports,
-  upload 
+  getDonationReports
 } from '../controllers/donationController.js';
+
+import upload from '../middleware/upload.js';
 
 const router = express.Router();
 
@@ -18,7 +19,7 @@ const allowedRoles = ['admin', 'accountant'];
 
 // Apply the 'upload' middleware directly to the POST route
 router.route('/')
-  .post(protect, authorizeRoles(...allowedRoles), upload, addDonation)
+  .post(protect, authorizeRoles(...allowedRoles), upload.single('receipt'), addDonation)
   .get(protect, authorizeRoles(...allowedRoles), getDonations);
 
 

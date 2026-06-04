@@ -35,6 +35,7 @@
 // }).catch(err => console.error(err));
 
 
+import './env.js'; // Must be the very first import to load dotenv before other modules evaluate
 import express from 'express';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
@@ -61,8 +62,7 @@ import importRoutes from './routes/importRoutes.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Load environment variables from .env file
-dotenv.config({ path: path.resolve(__dirname, '../.env') });
+// Environment variables are now loaded via import './env.js' at the top of the file
 
 const app = express();
 

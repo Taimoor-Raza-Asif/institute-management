@@ -125,6 +125,152 @@ const getDefaultStructure = () => {
 };
 // --- End Default Data Factory ---
 
+// ─────────────────────────────────────────────────────────────────────────────
+// AddClassForm: TOP-LEVEL component (defined OUTSIDE AcademicStructurePanel)
+// This is critical — if it were defined INSIDE the parent render function,
+// every parent state update would create a new function reference and React
+// would unmount+remount it, stealing focus from the inputs on every keystroke.
+// ─────────────────────────────────────────────────────────────────────────────
+const AddClassForm = ({ isAlmiya, existingConfig, onAdd }) => {
+    const { currentTheme } = useTheme();
+    const [showForm, setShowForm] = useState(false);
+    const [gradeNumber, setGradeNumber] = useState('');
+    const [group, setGroup] = useState('');
+    const [section, setSection] = useState('');
+
+    const getOrdinal = (n) => {
+        const s = ['th', 'st', 'nd', 'rd'];
+        const v = n % 100;
+        return n + (s[(v - 20) % 10] || s[v] || s[0]);
+    };
+
+    const generateClassId = (grade, grp, sec) => {
+        if (!grade || isNaN(parseInt(grade))) return '';
+        const parts = [getOrdinal(parseInt(grade))];
+        if (grp && grp.trim()) parts.push(grp.trim());
+        if (sec && sec.trim()) parts.push(sec.trim());
+        return parts.join(' ');
+    };
+
+    const preview = generateClassId(gradeNumber, group, section);
+
+    const handleSubmit = () => {
+        if (!gradeNumber || parseInt(gradeNumber) < 1) {
+            toast.error('Please enter a valid grade number (minimum 1).');
+            return;
+        }
+        const classIdentifier = generateClassId(gradeNumber, group, section);
+        if (!classIdentifier) { toast.error('Could not generate class identifier.'); return; }
+        if ((existingConfig || []).some(c => c.classIdentifier.trim().toLowerCase() === classIdentifier.toLowerCase())) {
+            toast.error(`A class named "${classIdentifier}" already exists.`);
+            return;
+        }
+        onAdd({
+            classIdentifier,
+            classNumber: parseInt(gradeNumber),
+            group: group.trim(),
+            section: section.trim(),
+            subjects: []
+        });
+        setGradeNumber(''); setGroup(''); setSection('');
+        setShowForm(false);
+        toast.success(`"${classIdentifier}" added. Click Save to persist.`);
+    };
+
+    const handleCancel = () => {
+        setGradeNumber(''); setGroup(''); setSection('');
+        setShowForm(false);
+    };
+
+    if (!showForm) {
+        return (
+            <button
+                onClick={() => setShowForm(true)}
+                className={`flex items-center px-4 py-2 rounded-md transition duration-200 ${currentTheme?.btnPrimaryBg || 'bg-green-600'} ${currentTheme?.btnPrimaryText || 'text-white'} ${currentTheme?.btnPrimaryHover || 'hover:bg-green-700'} ${currentTheme?.shadow || 'shadow-md'}`}
+            >
+                <PlusIcon className="h-5 w-5 mr-2" />
+                Add {isAlmiya ? 'Almiya' : 'Regular'} Class
+            </button>
+        );
+    }
+
+    return (
+        <div className={`p-4 rounded-xl border-2 border-dashed ${currentTheme?.panelBorder || 'border-green-300'} ${currentTheme?.panelBg || 'bg-green-50'}`}>
+            <h4 className={`text-sm font-bold mb-3 flex items-center gap-2 ${currentTheme?.heroTitle || 'text-green-800'}`}>
+                <PlusIcon className="h-4 w-4" /> Add New {isAlmiya ? 'Almiya' : 'Regular'} Class
+            </h4>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3 items-end">
+                <div>
+                    <label className={`block text-xs font-semibold mb-1 ${currentTheme?.subtitle || 'text-gray-700'}`}>
+                        Grade / Order No. <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                        type="number" min="1"
+                        value={gradeNumber}
+                        onChange={e => setGradeNumber(e.target.value)}
+                        placeholder="e.g. 9"
+                        className={`w-full px-2 py-1.5 text-sm rounded-md border ${currentTheme?.inputBorder || 'border-gray-300'} focus:outline-none focus:ring-1`}
+                        autoFocus
+                    />
+                </div>
+                {!isAlmiya && (
+                    <div>
+                        <label className={`block text-xs font-semibold mb-1 ${currentTheme?.subtitle || 'text-gray-700'}`}>
+                            Group <span className="font-normal text-gray-400">(optional)</span>
+                        </label>
+                        <input
+                            list="class-group-presets"
+                            value={group}
+                            onChange={e => setGroup(e.target.value)}
+                            placeholder="Arts, Science, ICS…"
+                            className={`w-full px-2 py-1.5 text-sm rounded-md border ${currentTheme?.inputBorder || 'border-gray-300'} focus:outline-none focus:ring-1`}
+                        />
+                        <datalist id="class-group-presets">
+                            {['Arts','Science','Pre-Engineering','Pre-Medical','ICS','ICOM','General'].map(g => (
+                                <option key={g} value={g} />
+                            ))}
+                        </datalist>
+                    </div>
+                )}
+                <div>
+                    <label className={`block text-xs font-semibold mb-1 ${currentTheme?.subtitle || 'text-gray-700'}`}>
+                        Section <span className="font-normal text-gray-400">(optional)</span>
+                    </label>
+                    <input
+                        list="class-section-presets"
+                        value={section}
+                        onChange={e => setSection(e.target.value)}
+                        placeholder="A, B, C…"
+                        className={`w-full px-2 py-1.5 text-sm rounded-md border ${currentTheme?.inputBorder || 'border-gray-300'} focus:outline-none focus:ring-1`}
+                    />
+                    <datalist id="class-section-presets">
+                        {['A','B','C','D','E'].map(s => <option key={s} value={s} />)}
+                    </datalist>
+                </div>
+                <div>
+                    <div className={`text-xs font-semibold mb-1 ${currentTheme?.subtitle || 'text-gray-500'}`}>Preview</div>
+                    <div className={`px-3 py-1.5 text-sm font-semibold rounded-md border ${currentTheme?.cardBorder || 'border-green-300'} ${currentTheme?.panelBg || 'bg-white'} min-h-[34px] flex items-center`}>
+                        {preview
+                            ? <span className={currentTheme?.heroTitle || 'text-green-700'}>{preview}</span>
+                            : <span className="text-gray-400 italic text-xs">enter grade number…</span>
+                        }
+                    </div>
+                </div>
+            </div>
+            <div className="flex gap-2 flex-wrap">
+                <button
+                    onClick={handleSubmit}
+                    className={`px-4 py-1.5 text-sm rounded-md font-semibold ${currentTheme?.btnPrimaryBg || 'bg-green-600'} ${currentTheme?.btnPrimaryText || 'text-white'} ${currentTheme?.btnPrimaryHover || 'hover:bg-green-700'} ${currentTheme?.shadow || 'shadow-sm'}`}
+                >✓ Add Class</button>
+                <button
+                    onClick={handleCancel}
+                    className={`px-4 py-1.5 text-sm rounded-md font-semibold ${currentTheme?.btnSecondaryBg || 'bg-gray-200'} ${currentTheme?.btnSecondaryText || 'text-gray-800'} ${currentTheme?.btnSecondaryHover || 'hover:bg-gray-300'}`}
+                >✕ Cancel</button>
+            </div>
+        </div>
+    );
+};
+
 const AcademicStructurePanel = () => {
     const { currentUser: user } = useContext(UserContext);
     const { currentTheme } = useTheme();
@@ -143,6 +289,7 @@ const AcademicStructurePanel = () => {
     const [dialogOpen, setDialogOpen] = useState(false);
     const [dialogType, setDialogType] = useState('success');
     const [dialogMessage, setDialogMessage] = useState('');
+
     const showDialog = (type, message) => {
         setDialogType(type);
         setDialogMessage(message);
@@ -225,6 +372,8 @@ const AcademicStructurePanel = () => {
             setLoading(false);
         }
     }, [user, fetchStructure]);
+
+
 
     // MODIFIED: handleSaveStructure now accepts an optional payload to bypass async state update
     const handleSaveStructure = async (initialPayload = null) => { 
@@ -399,52 +548,35 @@ const AcademicStructurePanel = () => {
     };
 
     // --- Class/Almiya Configuration Component ---
+    // NOTE: This component is still defined inside AcademicStructurePanel (so it can access closures),
+    // but the add-class form has been extracted to the top-level <AddClassForm> component above
+    // to prevent focus-stealing on every keystroke. This component only manages the class cards grid.
     const ClassConfigEditor = ({ type, updateConfig, confirm, showDialog }) => {
         const isAlmiya = type.slug === 'Almiya';
 
-        const handleAddClass = () => {
-            const currentMax = type.classConfig.length > 0 ? Math.max(...type.classConfig.map(c => c.classNumber)) : 0;
-            const newClassNum = currentMax + 1;
-            const newClass = {
-                classIdentifier: isAlmiya ? `New Almiya Class ${newClassNum}` : `${newClassNum}th Grade`,
-                classNumber: newClassNum,
-                subjects: []
-            };
-            try {
-                updateConfig('classConfig', [...type.classConfig, newClass]);
-                showDialog('success', `${isAlmiya ? 'Almiya' : 'Regular'} class added successfully. Click Save to persist changes.`);
-            } catch (err) {
-                console.error('Error adding class:', err);
-                showDialog('error', 'Could not add — something went wrong.');
-            }
-        };
-
-        // FIXED: Stabilized handler for class property updates (Identifier, Number)
         const handleUpdateClass = (index, field, value) => {
-            
-            // 1. Validate for duplicates if changing classNumber
-            if (field === 'classNumber') {
-                 const num = parseInt(value) || '';
-                 if (num !== '' && type.classConfig.some((c, i) => i !== index && c.classNumber === num)) {
-                     toast.error("Class number must be unique.");
-                     return;
-                 }
+            if (field === 'classIdentifier') {
+                if (!value.trim()) { toast.error('Class identifier cannot be empty.'); return; }
+                if ((type.classConfig || []).some((c, i) => i !== index && c.classIdentifier.trim().toLowerCase() === value.trim().toLowerCase())) {
+                    toast.error('A class with this identifier already exists.');
+                    return;
+                }
             }
-            
-            // 2. Perform the immutable update correctly
-            updateConfig('classConfig', type.classConfig.map((cls, i) => {
+            if (field === 'classNumber') {
+                const num = parseInt(value);
+                if (isNaN(num) || num < 1) { toast.error('Grade number must be a positive integer.'); return; }
+            }
+            updateConfig('classConfig', (type.classConfig || []).map((cls, i) => {
                 if (i === index) {
-                    return { ...cls, [field]: value };
+                    return { ...cls, [field]: field === 'classNumber' ? (parseInt(value) || cls.classNumber) : value };
                 }
                 return cls;
             }));
         };
 
-        // FIXED: Stabilized handler for subject input changes
         const handleUpdateSubject = (classIndex, subIndex, value) => {
-            updateConfig('classConfig', type.classConfig.map((cls, i) => {
+            updateConfig('classConfig', (type.classConfig || []).map((cls, i) => {
                 if (i === classIndex) {
-                    // Create a new subjects array for immutability
                     const newSubjects = cls.subjects.map((sub, j) => j === subIndex ? value : sub);
                     return { ...cls, subjects: newSubjects };
                 }
@@ -453,111 +585,131 @@ const AcademicStructurePanel = () => {
         };
 
         const handleAddSubject = (classIndex) => {
-            updateConfig('classConfig', type.classConfig.map((cls, i) => {
-                if (i === classIndex) {
-                    return { ...cls, subjects: [...cls.subjects, ''] };
-                }
+            updateConfig('classConfig', (type.classConfig || []).map((cls, i) => {
+                if (i === classIndex) return { ...cls, subjects: [...cls.subjects, ''] };
                 return cls;
             }));
-            // show feedback
-            try {
-                showDialog('success', 'Subject added. Click Save to persist changes.');
-            } catch (e) {
-                // no-op if showDialog isn't provided
-            }
         };
 
-        const handleRemoveClass = (classNumber) => {
+        const handleRemoveClass = (classIdentifier) => {
             confirm(
-                `Remove class with number ${classNumber}?`,
-                () => updateConfig('classConfig', type.classConfig.filter(c => c.classNumber !== classNumber))
+                `Remove class "${classIdentifier}"? Students assigned to it will need to be re-assigned.`,
+                () => updateConfig('classConfig', (type.classConfig || []).filter(c => c.classIdentifier !== classIdentifier))
             );
         };
 
+        // Sort by grade number → group → section
+        const sortedConfig = [...(type.classConfig || [])].sort((a, b) =>
+            (a.classNumber - b.classNumber) ||
+            (a.group || '').localeCompare(b.group || '') ||
+            (a.section || '').localeCompare(b.section || '')
+        );
 
         return (
             <div className="space-y-6">
-                <button
-                    onClick={handleAddClass}
-                    className={`flex items-center px-4 py-2 rounded-md transition duration-200 ${currentTheme?.btnPrimaryBg || 'bg-green-600'} ${currentTheme?.btnPrimaryText || 'text-white'} ${currentTheme?.btnPrimaryHover || 'hover:bg-green-700'} ${currentTheme?.shadow || 'shadow-md'}`}
-                >
-                    <PlusIcon className="h-5 w-5 mr-2" />
-                    Add {isAlmiya ? 'Almiya' : 'Regular'} Class
-                </button>
-
+                {/* ── Class Cards Grid ── */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {type.classConfig.sort((a, b) => a.classNumber - b.classNumber).map((cls, classIndex) => (
-                        <div key={cls.classNumber} className={`p-4 rounded-lg relative ${currentTheme.cardBg || 'bg-white'} ${currentTheme.cardBorder || 'border border-green-200'} ${currentTheme.shadow || 'shadow-md'}`}>
-                            <button
-                                onClick={() => handleRemoveClass(cls.classNumber)}
-                                className={`absolute top-2 right-2 p-1 rounded-full transition ${currentTheme?.btnDangerBg || 'bg-red-600'} ${currentTheme?.btnDangerText || 'text-white'} ${currentTheme?.btnDangerHover || 'hover:bg-red-700'}`}
-                                title="Remove Class"
-                            >
-                                <TrashIcon className="h-5 w-5" />
-                            </button>
-                            <h4 className={`text-md font-bold mb-3 pb-2 ${currentTheme.heroTitle || 'text-green-700'} ${currentTheme.divider || 'border-b border-green-100'}`}>
-                                {cls.classIdentifier}
-                            </h4>
-                            
-                            <div className="space-y-3">
-                                <div>
-                                    <label className={`block text-xs font-medium ${currentTheme.subtitle || 'text-gray-700'}`}>Class Identifier</label>
-                                    <UncontrolledInput
-                                        initialValue={cls.classIdentifier}
-                                        onCommit={(val) => handleUpdateClass(classIndex, 'classIdentifier', val)}
-                                        className={`mt-1 block w-full px-2 py-1 text-sm rounded-md ${currentTheme.inputBorder || 'border border-gray-300'} ${currentTheme.shadow || 'shadow-sm'}`}
-                                    />
-                                </div>
-                                <div>
-                                    <label className={`block text-xs font-medium ${currentTheme.subtitle || 'text-gray-700'}`}>Class Number (Unique ID)</label>
-                                    <UncontrolledInput
-                                        type="number"
-                                        min="1"
-                                        initialValue={cls.classNumber}
-                                        onCommit={(val) => handleUpdateClass(classIndex, 'classNumber', val)}
-                                        className={`mt-1 block w-full px-2 py-1 text-sm rounded-md ${currentTheme.inputBorder || 'border border-gray-300'} ${currentTheme.shadow || 'shadow-sm'} ${currentTheme.panelBg || 'bg-green-50'}`}
-                                    />
-                                </div>
-                            </div>
-                            
-                            <h5 className={`font-semibold text-sm mt-4 mb-2 border-t pt-2 ${currentTheme.subtitle || 'text-gray-800'}`}>Subjects</h5>
-                            <div className="space-y-1">
-                                {cls.subjects.map((subject, subIndex) => (
-                                    <div key={subIndex} className="flex items-center space-x-2">
+                    {sortedConfig.map((cls) => {
+                        // Resolve the index inside the original (unsorted) array so updates target the right entry
+                        const originalIndex = (type.classConfig || []).findIndex(c => c.classIdentifier === cls.classIdentifier);
+                        return (
+                            <div key={cls.classIdentifier} className={`p-4 rounded-lg relative ${currentTheme.cardBg || 'bg-white'} ${currentTheme.cardBorder || 'border border-green-200'} ${currentTheme.shadow || 'shadow-md'}`}>
+                                <button
+                                    onClick={() => handleRemoveClass(cls.classIdentifier)}
+                                    className={`absolute top-2 right-2 p-1 rounded-full transition ${currentTheme?.btnDangerBg || 'bg-red-600'} ${currentTheme?.btnDangerText || 'text-white'} ${currentTheme?.btnDangerHover || 'hover:bg-red-700'}`}
+                                    title="Remove Class"
+                                >
+                                    <TrashIcon className="h-5 w-5" />
+                                </button>
+
+                                {/* Card header */}
+                                <h4 className={`text-md font-bold mb-3 pb-2 pr-8 ${currentTheme.heroTitle || 'text-green-700'} ${currentTheme.divider || 'border-b border-green-100'}`}>
+                                    {cls.classIdentifier}
+                                    {cls.section && (
+                                        <span className="ml-1 text-xs font-medium px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700">§{cls.section}</span>
+                                    )}
+                                </h4>
+
+                                <div className="space-y-2">
+                                    <div>
+                                        <label className={`block text-xs font-medium ${currentTheme.subtitle || 'text-gray-700'}`}>Class Identifier</label>
                                         <UncontrolledInput
-                                            initialValue={subject}
-                                            onCommit={(val) => handleUpdateSubject(classIndex, subIndex, val)}
-                                            className={`block w-full px-2 py-1 text-xs rounded-md ${currentTheme.inputBorder || 'border border-gray-300'} ${currentTheme.shadow || 'shadow-sm'}`}
-                                            placeholder={`Subject ${subIndex + 1}`}
+                                            initialValue={cls.classIdentifier}
+                                            onCommit={(val) => handleUpdateClass(originalIndex, 'classIdentifier', val)}
+                                            className={`mt-1 block w-full px-2 py-1 text-sm rounded-md ${currentTheme.inputBorder || 'border border-gray-300'} ${currentTheme.shadow || 'shadow-sm'}`}
                                         />
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                updateConfig('classConfig', type.classConfig.map((c, i) => {
-                                                    if (i === classIndex) {
-                                                        const newSubjects = c.subjects.filter((_, j) => j !== subIndex);
-                                                        return { ...c, subjects: newSubjects };
-                                                    }
-                                                    return c;
-                                                }));
-                                            }}
-                                            className={`p-1 ${currentTheme?.btnDangerIcon || 'text-red-600'} ${currentTheme?.btnDangerHover || 'hover:text-red-600'}`}
-                                        >
-                                            <MinusCircleIcon className="h-4 w-4" />
-                                        </button>
                                     </div>
-                                ))}
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <div>
+                                            <label className={`block text-xs font-medium ${currentTheme.subtitle || 'text-gray-700'}`}>Grade No. (Sort)</label>
+                                            <UncontrolledInput
+                                                type="number" min="1"
+                                                initialValue={cls.classNumber}
+                                                onCommit={(val) => handleUpdateClass(originalIndex, 'classNumber', val)}
+                                                className={`mt-1 block w-full px-2 py-1 text-sm rounded-md ${currentTheme.inputBorder || 'border border-gray-300'} ${currentTheme.shadow || 'shadow-sm'} ${currentTheme.panelBg || 'bg-green-50'}`}
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className={`block text-xs font-medium ${currentTheme.subtitle || 'text-gray-700'}`}>Section</label>
+                                            <UncontrolledInput
+                                                initialValue={cls.section || ''}
+                                                onCommit={(val) => handleUpdateClass(originalIndex, 'section', val)}
+                                                placeholder="A, B, C…"
+                                                className={`mt-1 block w-full px-2 py-1 text-sm rounded-md ${currentTheme.inputBorder || 'border border-gray-300'} ${currentTheme.shadow || 'shadow-sm'}`}
+                                            />
+                                        </div>
+                                    </div>
+                                    {!isAlmiya && (
+                                        <div>
+                                            <label className={`block text-xs font-medium ${currentTheme.subtitle || 'text-gray-700'}`}>Group</label>
+                                            <UncontrolledInput
+                                                initialValue={cls.group || ''}
+                                                onCommit={(val) => handleUpdateClass(originalIndex, 'group', val)}
+                                                placeholder="Arts, Science, ICS…"
+                                                className={`mt-1 block w-full px-2 py-1 text-sm rounded-md ${currentTheme.inputBorder || 'border border-gray-300'} ${currentTheme.shadow || 'shadow-sm'}`}
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+
+                                <h5 className={`font-semibold text-sm mt-4 mb-2 border-t pt-2 ${currentTheme.subtitle || 'text-gray-800'}`}>Subjects</h5>
+                                <div className="space-y-1">
+                                    {cls.subjects.map((subject, subIndex) => (
+                                        <div key={subIndex} className="flex items-center space-x-2">
+                                            <UncontrolledInput
+                                                initialValue={subject}
+                                                onCommit={(val) => handleUpdateSubject(originalIndex, subIndex, val)}
+                                                className={`block w-full px-2 py-1 text-xs rounded-md ${currentTheme.inputBorder || 'border border-gray-300'} ${currentTheme.shadow || 'shadow-sm'}`}
+                                                placeholder={`Subject ${subIndex + 1}`}
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    updateConfig('classConfig', (type.classConfig || []).map((c, i) => {
+                                                        if (i === originalIndex) {
+                                                            const newSubjects = c.subjects.filter((_, j) => j !== subIndex);
+                                                            return { ...c, subjects: newSubjects };
+                                                        }
+                                                        return c;
+                                                    }));
+                                                }}
+                                                className={`p-1 ${currentTheme?.btnDangerIcon || 'text-red-600'} ${currentTheme?.btnDangerHover || 'hover:text-red-600'}`}
+                                            >
+                                                <MinusCircleIcon className="h-4 w-4" />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                                <button
+                                    onClick={() => handleAddSubject(originalIndex)}
+                                    className={`text-xs inline-flex items-center mt-2 font-medium px-2 py-1 rounded ${currentTheme?.btnPrimaryBg || 'bg-green-600'} ${currentTheme?.btnPrimaryText || 'text-white'} ${currentTheme?.btnPrimaryHover || 'hover:bg-green-700'} ${currentTheme?.shadow || ''}`}
+                                >
+                                    <PlusIcon className="h-4 w-4 mr-1" /> Add Subject
+                                </button>
                             </div>
-                            <button
-                                onClick={() => handleAddSubject(classIndex)}
-                                className={`text-xs inline-flex items-center mt-2 font-medium px-2 py-1 rounded ${currentTheme?.btnPrimaryBg || 'bg-green-600'} ${currentTheme?.btnPrimaryText || 'text-white'} ${currentTheme?.btnPrimaryHover || 'hover:bg-green-700'} ${currentTheme?.shadow || ''}`}
-                            >
-                                <PlusIcon className="h-4 w-4 mr-1" /> Add Subject
-                            </button>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
-                
             </div>
         );
     };
@@ -965,12 +1117,21 @@ const AcademicStructurePanel = () => {
 
                         {/* RENDER DYNAMIC CONFIGURATION EDITOR */}
                         {['Class', 'Almiya'].includes(activeType.slug) && (
-                            <ClassConfigEditor
-                                type={activeType}
-                                updateConfig={(field, value) => updateTypeConfig(activeTab, field, value)}
-                                confirm={askConfirm}
-                                showDialog={showDialog}
-                            />
+                            <div className="space-y-6">
+                                {/* AddClassForm is a stable top-level component — no focus-stealing on keystroke */}
+                                <AddClassForm
+                                    key={activeType.slug}
+                                    isAlmiya={activeType.slug === 'Almiya'}
+                                    existingConfig={activeType.classConfig || []}
+                                    onAdd={(newClass) => updateTypeConfig(activeTab, 'classConfig', [...(activeType.classConfig || []), newClass])}
+                                />
+                                <ClassConfigEditor
+                                    type={activeType}
+                                    updateConfig={(field, value) => updateTypeConfig(activeTab, field, value)}
+                                    confirm={askConfirm}
+                                    showDialog={showDialog}
+                                />
+                            </div>
                         )}
 
                         {activeType.slug === 'BS' && (

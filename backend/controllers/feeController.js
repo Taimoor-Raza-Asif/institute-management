@@ -30,34 +30,14 @@ const recomputeStudentFeeStatus = async (studentId) => {
   await student.save({ validateBeforeSave: false });
 };
 
-const getRelativeUploadUrl = (filePath) => {
-  if (!filePath) return '';
-  const uploadsBaseDir = path.join(__dirname, '..', 'uploads');
-  const relativePath = path.relative(uploadsBaseDir, filePath);
-  return '/uploads/' + relativePath.replace(/\\/g, '/');
-};
-
 const handleBillScreenshotUpload = (file, existingUrlFromReqBody, oldUrlFromDb) => {
-  let newUrl = oldUrlFromDb;
-
   if (file) {
-    if (oldUrlFromDb) {
-      const oldPath = path.join(__dirname, '..', oldUrlFromDb);
-      fs.unlink(oldPath, (err) => {
-        if (err) console.error('Error deleting old bill screenshot:', err);
-      });
-    }
-    newUrl = getRelativeUploadUrl(file.path);
-  } else if (existingUrlFromReqBody === '') {
-    if (oldUrlFromDb) {
-      const oldPath = path.join(__dirname, '..', oldUrlFromDb);
-      fs.unlink(oldPath, (err) => {
-        if (err) console.error('Error deleting old bill screenshot (cleared):', err);
-      });
-    }
-    newUrl = '';
+    return file.path; // Cloudinary returns the full secure URL in path
   }
-  return newUrl;
+  if (existingUrlFromReqBody === '') {
+    return '';
+  }
+  return oldUrlFromDb;
 };
 
 
@@ -71,7 +51,7 @@ export const createFeeRecord = async (req, res) => {
 
     let billScreenshotUrl = '';
     if (req.file) {
-      billScreenshotUrl = getRelativeUploadUrl(req.file.path);
+      billScreenshotUrl = req.file.path; // Cloudinary URL
     } else if (existingBillScreenshotUrl) {
       billScreenshotUrl = existingBillScreenshotUrl;
     }
@@ -149,11 +129,7 @@ export const createFeeRecord = async (req, res) => {
     res.status(201).json(savedFeeRecord);
   } catch (err) {
     console.error("Error creating fee record:", err);
-    if (req.file) {
-      fs.unlink(req.file.path, (unlinkErr) => {
-        if (unlinkErr) console.error('Error deleting bill screenshot file after failed fee record creation:', unlinkErr);
-      });
-    }
+    // No local fs.unlink needed since using cloud storage
     if (err && err.code === 11000) {
       return res.status(409).json({ message: 'A fee record for this student and period already exists.' });
     }
@@ -359,25 +335,14 @@ export const updateFeeRecord = async (req, res) => {
 
     const currentFeeRecord = await FeeRecord.findById(id);
     if (!currentFeeRecord) {
-      if (req.file) { // Clean up newly uploaded file if fee record not found
-        fs.unlink(req.file.path, (unlinkErr) => {
-          if (unlinkErr) console.error('Error deleting newly uploaded bill screenshot for non-existent fee record:', unlinkErr);
-        });
-      }
       return res.status(404).json({ message: 'Fee record not found' });
     }
 
     const total = parseFloat(totalFee);
     const received = parseFloat(receivedAmount);
     const dueAmount = Math.max(0, total - received);
-    // Ensure uniqueness for student/month/year on update (if changed)
     const conflict = await FeeRecord.findOne({ studentId, month, year: parseInt(year), _id: { $ne: id } });
     if (conflict) {
-      if (req.file) {
-        fs.unlink(req.file.path, (unlinkErr) => {
-          if (unlinkErr) console.error('Error deleting newly uploaded bill screenshot after uniqueness conflict:', unlinkErr);
-        });
-      }
       return res.status(409).json({ message: `Another fee record already exists for this student for ${month} ${year}.` });
     }
 
@@ -457,11 +422,7 @@ export const updateFeeRecord = async (req, res) => {
     res.json(updatedFeeRecord);
   } catch (err) {
     console.error("Error updating fee record:", err);
-    if (req.file) {
-      fs.unlink(req.file.path, (unlinkErr) => {
-        if (unlinkErr) console.error('Error deleting bill screenshot file after failed fee record update:', unlinkErr);
-      });
-    }
+    // No local fs.unlink needed since using cloud storage
     if (err.name === 'ValidationError') {
       const errors = {};
       for (let field in err.errors) {
@@ -484,14 +445,7 @@ export const deleteFeeRecord = async (req, res) => {
 
     const studentId = fee.studentId; // Get studentId before deleting fee record
 
-    // Delete bill screenshot file if it exists
-    if (fee.billScreenshotUrl && fee.billScreenshotUrl !== '') {
-      const filePath = path.join(__dirname, '..', fee.billScreenshotUrl);
-      fs.unlink(filePath, (err) => {
-        if (err) console.error('Error deleting bill screenshot file:', err);
-      });
-    }
-
+    // Could delete bill screenshot from Cloudinary API here if needed in future
     await fee.deleteOne();
 
     // --- Re-evaluate Student's Fee Status and Financials after deletion ---

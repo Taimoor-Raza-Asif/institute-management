@@ -49,30 +49,11 @@ import {
   getFeeReports,
   bulkCreateFees
 } from '../controllers/feeController.js';
-import multer from 'multer';
-import path from 'path';
-import { protect, authorizeRoles } from '../middleware/authMiddleware.js'; // <--- NEW: Import auth middleware
-import { fileURLToPath } from 'url'; // Import fileURLToPath
-import fs from 'fs';
+import { protect, authorizeRoles } from '../middleware/authMiddleware.js';
+import upload from '../middleware/upload.js';
 
-// Helper to get __dirname in ES modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const router = express.Router();
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadPath = path.join(__dirname, '../uploads/billScreenshots'); // Specific folder for bill screenshots
-    fs.mkdirSync(uploadPath, { recursive: true }); // Ensure directory exists
-    cb(null, uploadPath);
-  },
-  filename: (req, file, cb) => {
-    cb(null, `${Date.now()}-${file.originalname}`);
-  }
-});
-
-const upload = multer({ storage });
 
 // --- PROTECTED ROUTES ---
 

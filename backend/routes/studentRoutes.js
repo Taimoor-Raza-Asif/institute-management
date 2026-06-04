@@ -191,34 +191,8 @@ import {
   promoteSemester,       // ADD THIS LINE
   demoteSemester
 } from '../controllers/studentController.js';
-import multer from 'multer';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import fs from 'fs';
-import { protect, authorizeRoles, ensureStudentModuleAccess } from '../middleware/authMiddleware.js'; // <--- NEW: Import auth middleware
-
-// Helper to get __dirname in ES modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Multer storage configuration
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    let uploadPath = path.join(__dirname, '../uploads');
-    if (file.fieldname === 'profilePicture') {
-      uploadPath = path.join(uploadPath, 'profilePictures');
-    } else {
-      uploadPath = path.join(uploadPath, 'documents');
-    }
-    fs.mkdirSync(uploadPath, { recursive: true });
-    cb(null, uploadPath);
-  },
-  filename: (req, file, cb) => {
-    cb(null, `${file.fieldname}-${Date.now()}${path.extname(file.originalname)}`);
-  }
-});
-
-const upload = multer({ storage: storage });
+import { protect, authorizeRoles, ensureStudentModuleAccess } from '../middleware/authMiddleware.js';
+import upload from '../middleware/upload.js';
 
 const router = express.Router();
 

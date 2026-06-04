@@ -10,32 +10,7 @@ import { jsPDF } from 'jspdf';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Multer storage configuration for file uploads
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    const uploadPath = path.join(__dirname, '../uploads/bill_attachments');
-    if (!fs.existsSync(uploadPath)) {
-      fs.mkdirSync(uploadPath, { recursive: true });
-    }
-    cb(null, uploadPath);
-  },
-  filename: function (req, file, cb) {
-    cb(null, `${Date.now()}-${file.originalname}`);
-  }
-});
-
-// The `upload` middleware is now exported directly
-const upload = multer({
-  storage: storage,
-  fileFilter: (req, file, cb) => {
-    // Optional: Validate file types
-    if (file.mimetype.startsWith('image/') || file.mimetype === 'application/pdf') {
-      cb(null, true);
-    } else {
-      cb(new Error('Only images and PDF files are allowed!'), false);
-    }
-  }
-}).single('attachment'); // 'attachment' is the field name in the form
+// upload middleware is now handled via routes import
 
 // @desc    Add a new bill
 // @route   POST /api/billing
@@ -54,7 +29,7 @@ const addBill = asyncHandler(async (req, res) => {
     paidTo,
     remarks,
     meta: meta ? JSON.parse(meta) : {},
-    attachmentPath: req.file ? `/uploads/bill_attachments/${req.file.filename}` : null,
+    attachmentPath: req.file ? req.file.path : null, // Cloudinary URL
     markedBy: req.user._id,
   });
 
@@ -168,12 +143,7 @@ const updateBill = asyncHandler(async (req, res) => {
 
     // If there's a new file, update the attachment
     if (req.file) {
-      if (bill.attachmentPath) {
-        fs.unlink(path.join(__dirname, '..', bill.attachmentPath), (err) => {
-          if (err) console.error('Error deleting old file:', err);
-        });
-      }
-      bill.attachmentPath = `/uploads/bill_attachments/${req.file.filename}`;
+      bill.attachmentPath = req.file.path; // Cloudinary URL
     }
 
     const updatedBill = await bill.save();
@@ -191,11 +161,8 @@ const deleteBill = asyncHandler(async (req, res) => {
   const bill = await Bill.findById(req.params.id);
 
   if (bill) {
-    if (bill.attachmentPath) {
-      fs.unlink(path.join(__dirname, '..', bill.attachmentPath), (err) => {
-        if (err) console.error('Error deleting old file:', err);
-      });
-    }
+    // Note: To completely remove the image from Cloudinary, you'd call their API here.
+    // For now, we just delete the database record.
     await bill.deleteOne();
     res.json({ message: 'Bill removed' });
   } else {
@@ -432,4 +399,4 @@ export const getBillReports = asyncHandler(async (req, res) => {
   }
 });
 
-export { addBill, getBills, getBillById, updateBill, deleteBill, downloadReceipt, upload};
+export { addBill, getBills, getBillById, updateBill, deleteBill, downloadReceipt };

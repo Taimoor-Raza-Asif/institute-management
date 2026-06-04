@@ -11,36 +11,15 @@ import asyncHandler from 'express-async-handler';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Helper to get relative URL for uploaded files
-const getRelativeUploadUrl = (filePath) => {
-  if (!filePath) return '';
-  const uploadsBaseDir = path.join(__dirname, '..', 'uploads');
-  const relativePath = path.relative(uploadsBaseDir, filePath);
-  return '/uploads/' + relativePath.replace(/\\/g, '/');
-};
-
-// Helper function to handle profile picture upload logic
+// Helper function to handle profile picture upload logic for cloud storage
 const handleProfilePictureUpload = (file, existingUrlFromReqBody, oldUrlFromDb) => {
-  let newUrl = oldUrlFromDb;
-
   if (file) {
-    if (oldUrlFromDb) {
-      const oldPath = path.join(__dirname, '..', oldUrlFromDb);
-      fs.unlink(oldPath, (err) => {
-        if (err) console.error('Error deleting old profile picture:', err);
-      });
-    }
-    newUrl = getRelativeUploadUrl(file.path);
-  } else if (existingUrlFromReqBody === '') {
-    if (oldUrlFromDb) {
-      const oldPath = path.join(__dirname, '..', oldUrlFromDb);
-      fs.unlink(oldPath, (err) => {
-        if (err) console.error('Error deleting old profile picture (cleared):', err);
-      });
-    }
-    newUrl = '';
+    return file.path; // Cloudinary returns the full secure URL in file.path
   }
-  return newUrl;
+  if (existingUrlFromReqBody === '') {
+    return '';
+  }
+  return oldUrlFromDb;
 };
 
 
@@ -54,7 +33,7 @@ export const createStaff = async (req, res) => {
 
     let profilePictureUrl = '';
     if (req.file) {
-      profilePictureUrl = getRelativeUploadUrl(req.file.path);
+      profilePictureUrl = req.file.path; // Cloudinary URL
     }
 
     const qrCodeSecret = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
@@ -112,11 +91,7 @@ export const createStaff = async (req, res) => {
     res.status(201).json({ staff: savedStaff, qrCodeDataUrl });
   } catch (err) {
     console.error("Error creating staff:", err);
-    if (req.file) {
-      fs.unlink(req.file.path, (unlinkErr) => {
-        if (unlinkErr) console.error('Error deleting uploaded file after failed staff creation:', unlinkErr);
-      });
-    }
+    // If using Cloudinary, no local file needs to be deleted here
     if (err.name === 'ValidationError') {
       const errors = {};
       for (let field in err.errors) {
@@ -225,11 +200,6 @@ export const updateStaff = async (req, res) => {
 
     const currentStaff = await Staff.findById(id);
     if (!currentStaff) {
-      if (req.file) {
-        fs.unlink(req.file.path, (unlinkErr) => {
-          if (unlinkErr) console.error('Error deleting newly uploaded file for non-existent staff:', unlinkErr);
-        });
-      }
       return res.status(404).json({ message: 'Staff not found' });
     }
 
@@ -289,11 +259,7 @@ export const updateStaff = async (req, res) => {
     res.json(updatedStaff);
   } catch (err) {
     console.error("Error updating staff:", err);
-    if (req.file) {
-      fs.unlink(req.file.path, (unlinkErr) => {
-        if (unlinkErr) console.error('Error deleting uploaded file on update error:', unlinkErr);
-      });
-    }
+    // Local fs.unlink is no longer needed since it is cloud storage
     if (err.name === 'ValidationError') {
       const errors = {};
       for (let field in err.errors) {
@@ -317,13 +283,7 @@ export const deleteStaff = async (req, res) => {
       return res.status(404).json({ message: 'Staff not found' });
     }
 
-    if (staff.profilePictureUrl && staff.profilePictureUrl !== '') {
-      const filePath = path.join(__dirname, '..', staff.profilePictureUrl);
-      fs.unlink(filePath, (err) => {
-        if (err) console.error('Error deleting staff profile picture file:', err);
-      });
-    }
-
+    // Cloudinary images can optionally be deleted via API here in the future
     await staff.deleteOne();
     res.json({ message: 'Staff deleted successfully' });
   } catch (err) {

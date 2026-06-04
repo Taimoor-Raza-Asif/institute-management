@@ -2,27 +2,27 @@
 import multer from 'multer';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import fs from 'fs'; // Node.js file system module
+import { v2 as cloudinary } from 'cloudinary';
+import { CloudinaryStorage } from 'multer-storage-cloudinary';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Define the uploads directory
-const uploadsDir = path.join(__dirname, '../uploads/profilePictures');
+// Configure Cloudinary using credentials from .env
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
-// Create the uploads directory if it doesn't exist
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadsDir); // Files will be saved in backend/uploads/profilePictures
+// Configure Multer Storage Engine for Cloudinary
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'institute-management/uploads', // The folder name in your Cloudinary account
+    allowed_formats: ['jpg', 'png', 'jpeg', 'webp'], // Allowed image formats
+    // transformation: [{ width: 500, height: 500, crop: 'limit' }], // Optional: automatic resize on upload
   },
-  filename: (req, file, cb) => {
-    // Generate a unique filename: fieldname-timestamp.ext
-    cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
-  }
 });
 
 // Filter for image files
@@ -38,7 +38,7 @@ const upload = multer({
   storage: storage,
   fileFilter: fileFilter,
   limits: {
-    fileSize: 1024 * 1024 * 5 // 5MB file size limit
+    fileSize: 1024 * 1024 * 15 // 15MB file size limit to accommodate high-res photos
   }
 });
 

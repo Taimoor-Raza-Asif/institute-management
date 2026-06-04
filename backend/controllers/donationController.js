@@ -1,42 +1,7 @@
 import asyncHandler from 'express-async-handler';
 import Donation from '../models/Donation.js';
 import User from '../models/User.js';
-import path from 'path';
-import multer from 'multer';
-import fs from 'fs';
-import { fileURLToPath } from 'url';
-
-// Helper function to get __dirname in ES module
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Multer storage configuration for file uploads
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    const uploadPath = path.join(__dirname, '../uploads/donation_receipts');
-    // Create the directory if it doesn't exist
-    if (!fs.existsSync(uploadPath)) {
-      fs.mkdirSync(uploadPath, { recursive: true });
-    }
-    cb(null, uploadPath);
-  },
-  filename: function (req, file, cb) {
-    cb(null, `${Date.now()}-${file.originalname}`);
-  }
-});
-
-// The `upload` middleware is now exported directly to be used in routes
-const upload = multer({
-  storage: storage,
-  fileFilter: (req, file, cb) => {
-    // Optional: Validate file types
-    if (file.mimetype.startsWith('image/') || file.mimetype === 'application/pdf') {
-      cb(null, true);
-    } else {
-      cb(new Error('Only images and PDF files are allowed!'), false);
-    }
-  }
-}).single('receipt'); // 'receipt' is the field name in the form
+// upload middleware is now handled via routes import
 
 // @desc    Add a new donation
 // @route   POST /api/donations
@@ -56,7 +21,7 @@ const addDonation = asyncHandler(async (req, res) => {
     cnic,
     organizationName,
     paymentMethod,
-    receiptPath: req.file ? `/uploads/donation_receipts/${req.file.filename}` : null,
+    receiptPath: req.file ? req.file.path : null, // Cloudinary URL
     markedBy: req.user._id
   });
 
@@ -168,13 +133,8 @@ const downloadReceipt = asyncHandler(async (req, res) => {
   const donation = await Donation.findById(req.params.id);
 
   if (donation && donation.receiptPath) {
-    const filePath = path.join(__dirname, '..', donation.receiptPath);
-    if (fs.existsSync(filePath)) {
-      res.download(filePath);
-    } else {
-      res.status(404);
-      throw new Error('Receipt file not found');
-    }
+    // For cloud storage, we just redirect the user to the public URL
+    res.redirect(donation.receiptPath);
   } else {
     res.status(404);
     throw new Error('Donation or receipt not found');
@@ -239,4 +199,4 @@ export const getDonationReports = asyncHandler(async (req, res) => {
   }
 });
 
-export { addDonation, getDonations, getDonationById, updateDonation, deleteDonation, downloadReceipt, upload };
+export { addDonation, getDonations, getDonationById, updateDonation, deleteDonation, downloadReceipt };

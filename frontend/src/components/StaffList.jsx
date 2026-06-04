@@ -11,6 +11,7 @@ import {
   ClipboardDocumentListIcon, EllipsisVerticalIcon, PhotoIcon, UserCircleIcon
 } from '@heroicons/react/24/outline';
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
+import { resolveFileUrl } from '../utils/urlHelper.js';
 
 
 const StaffList = () => {
@@ -302,7 +303,7 @@ const inputRef = useRef(null);
                     <div className="flex items-center">
                       {person.profilePictureUrl ? (
                         <img
-                          src={`http://localhost:5000${person.profilePictureUrl}`}
+                          src={resolveFileUrl(person.profilePictureUrl)}
                           alt={`${person.name}'s Profile`}
                           className="h-10 w-10 rounded-full object-cover ring-2 ring-green-100 mr-3"
                           onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/40x40/cccccc/ffffff?text=NA'; }}

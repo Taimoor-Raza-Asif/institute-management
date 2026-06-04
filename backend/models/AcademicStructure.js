@@ -4,10 +4,12 @@ import mongoose from 'mongoose';
 
 // 1. Class / Almiya Common Schema
 const classSubSchema = new mongoose.Schema({
-    // For Class: '1', '2', etc. | For Almiya: 'Ama Awal', 'Khasa Dom', etc.
-    classIdentifier: { type: String, required: true, trim: true }, 
-    classNumber: { type: Number, required: true, min: 1 }, // Used for ordering/promotion logic
-    subjects: [{ type: String, required: true, trim: true }],
+    // For Class: '6th Arts', '9th Science', etc. | For Almiya: 'Ama Awal', etc.
+    classIdentifier: { type: String, required: true, trim: true }, // Must be unique within a classConfig array
+    classNumber: { type: Number, required: true, min: 1 }, // Grade/order number — CAN repeat for different groups (e.g., two "9th" entries for Arts & Science)
+    group: { type: String, trim: true, default: '' }, // e.g., 'Arts', 'Science', 'Pre-Engineering', 'Pre-Medical', 'ICS', 'ICOM'
+    section: { type: String, trim: true, default: '' }, // e.g., 'A', 'B', 'C'
+    subjects: [{ type: String, trim: true }],
 });
 
 // 2. BS / Degree Schema

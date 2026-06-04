@@ -7,16 +7,17 @@ import {
   updateBill,
   deleteBill,
   downloadReceipt,
-  getBillReports,
-  upload
+  getBillReports
 } from '../controllers/billingController.js';
+
+import upload from '../middleware/upload.js';
 
 const router = express.Router();
 
 const allowedRoles = ['admin', 'accountant'];
 
 router.route('/')
-  .post(protect, authorizeRoles(...allowedRoles), upload, addBill)
+  .post(protect, authorizeRoles(...allowedRoles), upload.single('attachment'), addBill)
   .get(protect, authorizeRoles(...allowedRoles), getBills);
 
 router
@@ -25,7 +26,7 @@ router
 
 router.route('/:id')
   .get(protect, authorizeRoles(...allowedRoles), getBillById)
-  .put(protect, authorizeRoles(...allowedRoles), upload, updateBill)
+  .put(protect, authorizeRoles(...allowedRoles), upload.single('attachment'), updateBill)
   .delete(protect, authorizeRoles(...allowedRoles), deleteBill);
 
 router.get('/:id/receipt', protect, authorizeRoles(...allowedRoles), downloadReceipt);

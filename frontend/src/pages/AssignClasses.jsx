@@ -34,7 +34,7 @@ const AssignClasses = () => {
         classIdentifier: "", 
         degreeName: "",
         semester: "",
-        subjects: [""] // Always initialize with one empty subject input
+        subjects: [] 
     });
     const [formErrors, setFormErrors] = useState({});
     const [editingAssignmentIndex, setEditingAssignmentIndex] = useState(null);
@@ -70,7 +70,6 @@ const AssignClasses = () => {
     // --- Dynamic Subject Suggestions ---
     const getAvailableSubjects = useMemo(() => {
         let suggestedSubjects = [];
-        const currentSubjects = currentAssignment.subjects.filter(s => s.trim()).map(s => s.toLowerCase());
 
         if (isClassOrAlmiya && currentAssignment.classNumber) {
             const classConfig = selectedAcademicType?.classConfig?.find(c => String(c.classNumber) === String(currentAssignment.classNumber));
@@ -88,8 +87,7 @@ const AssignClasses = () => {
              suggestedSubjects = ['Hifaz/Quran Memorization'];
         }
 
-        // Filter out subjects already added to the current assignment list
-        return suggestedSubjects.filter(sub => !currentSubjects.includes(sub.toLowerCase()));
+        return suggestedSubjects;
     }, [currentAssignment, selectedAcademicType]);
 
     // --- Data Fetching ---
@@ -168,28 +166,18 @@ const AssignClasses = () => {
                 newState.classIdentifier = "";
                 newState.degreeName = "";
                 newState.semester = "";
-                newState.subjects = [""];
-            } else if (name === 'classNumber') {
+                newState.subjects = [];
+            } else if (name === 'classIdentifier') {
                 const config = getAcademicConfig(newState.type);
-                const classObj = config?.classConfig?.find(c => String(c.classNumber) === String(value));
+                const classObj = config?.classConfig?.find(c => String(c.classIdentifier) === String(value));
+                newState.classNumber = classObj?.classNumber || "";
                 newState.classIdentifier = classObj?.classIdentifier || "";
-                newState.subjects = classObj?.subjects.length > 0 ? classObj.subjects : [""];
+                newState.subjects = [];
             } else if (name === 'degreeName') {
                 newState.semester = "";
-                newState.subjects = [""];
+                newState.subjects = [];
             } else if (name === 'semester' && newState.type === 'BS' && newState.degreeName) {
-                // Auto-populate subjects when semester is selected for BS degrees
-                const config = getAcademicConfig('BS');
-                const degreeConfig = config?.degreeConfig?.find(d => d.degreeName === newState.degreeName);
-                if (degreeConfig?.subjectsBySemester) {
-                    const semesterKey = String(value);
-                    const semesterSubjects = degreeConfig.subjectsBySemester instanceof Map 
-                        ? (degreeConfig.subjectsBySemester.get(semesterKey) || [])
-                        : (degreeConfig.subjectsBySemester[semesterKey] || []);
-                    newState.subjects = semesterSubjects.length > 0 ? [...semesterSubjects] : [""];
-                } else {
-                    newState.subjects = [""];
-                }
+                newState.subjects = [];
             }
 
             return newState;
@@ -197,15 +185,15 @@ const AssignClasses = () => {
         setFormErrors(prev => ({ ...prev, [name]: "" }));
     };
 
-    const handleSubjectChange = (value, index) => {
-        const updatedSubjects = currentAssignment.subjects.map((s, i) => i === index ? value : s);
-        setCurrentAssignment(prev => ({ ...prev, subjects: updatedSubjects }));
+    const handleCheckboxChange = (subject, isChecked) => {
+        setCurrentAssignment(prev => {
+            if (isChecked) {
+                return { ...prev, subjects: [...prev.subjects, subject] };
+            } else {
+                return { ...prev, subjects: prev.subjects.filter(s => s !== subject) };
+            }
+        });
         setFormErrors(prev => ({ ...prev, subjects: "" }));
-    };
-
-    const handleRemoveSubject = (index) => {
-        const updatedSubjects = currentAssignment.subjects.filter((_, i) => i !== index);
-        setCurrentAssignment(prev => ({ ...prev, subjects: updatedSubjects }));
     };
 
     const validateAssignmentForm = (currentAssignmentsList, currentItemIndex = null) => {
@@ -225,16 +213,16 @@ const AssignClasses = () => {
         const isClassOrAlmiya = ['Class', 'Almiya'].includes(assignment.type);
         
         if (isClassOrAlmiya) {
-            if (!assignment.classNumber) {
-                errors.classNumber = "Class/Grade is required.";
+            if (!assignment.classIdentifier) {
+                errors.classIdentifier = "Class/Grade is required.";
                 isValid = false;
             } else {
-                // Check for duplicate classNumber regardless of 'Class' or 'Almiya' slug
+                // Check for duplicate
                 const isDuplicate = currentAssignmentsList.some((a, i) =>
-                    i !== currentItemIndex && ['Class', 'Almiya'].includes(a.type) && String(a.classNumber) === String(assignment.classNumber)
+                    i !== currentItemIndex && ['Class', 'Almiya'].includes(a.type) && String(a.classIdentifier) === String(assignment.classIdentifier)
                 );
                 if (isDuplicate) {
-                    errors.classNumber = `This class/grade is already assigned to this teacher.`;
+                    errors.classIdentifier = `This class/grade is already assigned to this teacher.`;
                     isValid = false;
                 }
             }
@@ -316,7 +304,7 @@ const AssignClasses = () => {
             classIdentifier: "",
             degreeName: "",
             semester: "",
-            subjects: [""]
+            subjects: []
         });
         setEditingAssignmentIndex(null);
         setFormErrors({});
@@ -364,6 +352,36 @@ const AssignClasses = () => {
         setShowAssignmentForm(false);
     };
 
+    const handleEditPendingAssignment = (index) => {
+        setSuccessMessage("");
+        setError(null);
+        
+        const combinedList = [...assignmentsForSelectedTeacher, ...newAssignments];
+        const assignmentToEdit = combinedList[index];
+        
+        setCurrentAssignment({
+            ...assignmentToEdit,
+            subjects: assignmentToEdit.subjects.length > 0 ? assignmentToEdit.subjects : []
+        });
+        setEditingAssignmentIndex(index);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    const handleDeletePendingAssignment = (index) => {
+        if (index < assignmentsForSelectedTeacher.length) {
+            setAssignmentsForSelectedTeacher(prev => prev.filter((_, i) => i !== index));
+        } else {
+            const newIndex = index - assignmentsForSelectedTeacher.length;
+            setNewAssignments(prev => prev.filter((_, i) => i !== newIndex));
+        }
+        
+        if (editingAssignmentIndex === index) {
+            resetCurrentAssignmentForm();
+        } else if (editingAssignmentIndex !== null && editingAssignmentIndex > index) {
+            setEditingAssignmentIndex(editingAssignmentIndex - 1);
+        }
+    };
+    
     const handleEditTableAssignment = (teacherId, assignmentIndex) => {
         setSuccessMessage("");
         setError(null);
@@ -378,7 +396,7 @@ const AssignClasses = () => {
         const assignmentToEdit = assignments[assignmentIndex];
         setCurrentAssignment({
             ...assignmentToEdit,
-            subjects: assignmentToEdit.subjects.length > 0 ? assignmentToEdit.subjects : [""]
+            subjects: assignmentToEdit.subjects.length > 0 ? assignmentToEdit.subjects : []
         });
         setEditingAssignmentIndex(assignmentIndex); // Index of the item in assignmentsForSelectedTeacher
         
@@ -578,23 +596,23 @@ const AssignClasses = () => {
                                 
                                 {isClassOrAlmiya && selectedAcademicType && (
                                     <div>
-                                        <label htmlFor="classNumber" className={`block text-sm font-medium ${currentTheme?.title || 'text-gray-700'}`}>{selectedAcademicType.name} Class/Grade</label>
+                                        <label htmlFor="classIdentifier" className={`block text-sm font-medium ${currentTheme?.title || 'text-gray-700'}`}>{selectedAcademicType.name} Class/Grade</label>
                                         <select
-                                            id="classNumber"
-                                            name="classNumber"
-                                            value={currentAssignment.classNumber}
+                                            id="classIdentifier"
+                                            name="classIdentifier"
+                                            value={currentAssignment.classIdentifier}
                                             onChange={handleAssignmentInputChange}
-                                            className={`mt-1 block w-full px-4 py-2 rounded-lg border focus:outline-none transition ${formErrors.classNumber ? 'border-red-500' : (currentTheme?.inputBg ? currentTheme?.inputBg.split(' ')[0] : 'border-gray-200')} ${currentTheme?.inputText || 'text-gray-800'} ${currentTheme?.inputRing || 'focus:ring-2 focus:ring-green-500'}`}
+                                            className={`mt-1 block w-full px-4 py-2 rounded-lg border focus:outline-none transition ${formErrors.classIdentifier ? 'border-red-500' : (currentTheme?.inputBg ? currentTheme?.inputBg.split(' ')[0] : 'border-gray-200')} ${currentTheme?.inputText || 'text-gray-800'} ${currentTheme?.inputRing || 'focus:ring-2 focus:ring-green-500'}`}
                                             required
                                         >
                                             <option value="">Select Grade</option>
-                                            {selectedAcademicType.classConfig?.sort((a, b) => a.classNumber - b.classNumber).map(cls => (
-                                                <option key={cls.classNumber} value={cls.classNumber}>
+                                            {selectedAcademicType.classConfig?.slice().sort((a, b) => a.classNumber - b.classNumber || (a.group||'').localeCompare(b.group||'') || (a.section||'').localeCompare(b.section||'')).map(cls => (
+                                                <option key={cls.classIdentifier} value={cls.classIdentifier}>
                                                     {cls.classIdentifier}
                                                 </option>
                                             ))}
                                             </select>
-                                        {formErrors.classNumber && <p className="mt-1 text-sm text-red-600">{formErrors.classNumber}</p>}
+                                        {formErrors.classIdentifier && <p className="mt-1 text-sm text-red-600">{formErrors.classIdentifier}</p>}
                                     </div>
                                 )}
                                 {currentAssignment.type === "BS" && selectedAcademicType && (
@@ -654,43 +672,26 @@ const AssignClasses = () => {
                                 <p className="text-xs text-gray-500 mb-2">
                                     *List subjects the teacher will teach for this specific class/semester. Suggestions pulled from Academic Structure.
                                 </p>
-                                <div className="space-y-2">
-                                    {currentAssignment.subjects.map((subject, index) => (
-                                        <div key={index} className="flex items-center space-x-2">
-                                            <input
-                                                type="text"
-                                                value={subject}
-                                                onChange={(e) => handleSubjectChange(e.target.value, index)}
-                                                className={`block w-full px-4 py-2 rounded-lg border focus:outline-none transition ${formErrors.subjects ? 'border-red-500' : (currentTheme?.inputBg ? currentTheme?.inputBg.split(' ')[0] : 'border-gray-200')} ${currentTheme?.inputText || 'text-gray-800'} ${currentTheme?.inputRing || 'focus:ring-2 focus:ring-green-500'}`}
-                                                placeholder={`Subject ${index + 1}`}
-                                                list={`subjects-list-${currentAssignment.type}-${currentAssignment.classNumber || currentAssignment.degreeName}-${currentAssignment.semester}`}
-                                            />
-                                            {/* Data List for Subject Suggestions (FIXED) */}
-                                            <datalist id={`subjects-list-${currentAssignment.type}-${currentAssignment.classNumber || currentAssignment.degreeName}-${currentAssignment.semester}`}>
-                                                {getAvailableSubjects.map(sub => (
-                                                    <option key={sub} value={sub} />
-                                                ))}
-                                            </datalist>
-                                            
-                                            {currentAssignment.subjects.length > 1 && (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => handleRemoveSubject(index)}
-                                                    className="text-red-600 hover:text-red-800 p-1 transition-colors"
-                                                >
-                                                    <XMarkIcon className="h-5 w-5" />
-                                                </button>
-                                            )}
-                                        </div>
-                                        ))}
-                                    </div>
-                                {/* <button
-                                    type="button"
-                                    onClick={() => setCurrentAssignment(prev => ({ ...prev, subjects: [...prev.subjects, ""] }))}
-                                    className={`mt-3 w-full inline-flex items-center justify-center px-4 py-2 rounded-md text-sm font-medium ${currentTheme?.inputText || 'text-gray-700'} border-dashed ${currentTheme?.border || 'border border-gray-100'} hover:opacity-90 transition-colors`}
-                                >
-                                    <PlusIcon className="h-4 w-4 mr-2" /> Add Subject
-                                </button> */}
+                                <div className={`space-y-2 max-h-60 overflow-y-auto p-4 border rounded-lg ${currentTheme?.inputBg || 'bg-white border-gray-200'}`}>
+                                    {getAvailableSubjects.length > 0 ? (
+                                        getAvailableSubjects.map((subject, index) => (
+                                            <div key={index} className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded-md transition-colors">
+                                                <input
+                                                    type="checkbox"
+                                                    id={`subject-${index}`}
+                                                    checked={currentAssignment.subjects.includes(subject)}
+                                                    onChange={(e) => handleCheckboxChange(subject, e.target.checked)}
+                                                    className="w-5 h-5 text-green-600 border-gray-300 rounded focus:ring-green-500 cursor-pointer"
+                                                />
+                                                <label htmlFor={`subject-${index}`} className={`text-sm font-medium ${currentTheme?.inputText || 'text-gray-700'} cursor-pointer flex-1`}>
+                                                    {subject}
+                                                </label>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <p className="text-sm text-gray-500 italic">Please select a class/semester to see available subjects.</p>
+                                    )}
+                                </div>
                                 {formErrors.subjects && <p className="mt-1 text-sm text-red-600">{formErrors.subjects}</p>}
                             </div>
                             
@@ -737,14 +738,14 @@ const AssignClasses = () => {
                                             <div className="flex items-center space-x-2">
                                                 <button
                                                     type="button"
-                                                    onClick={() => handleEditTableAssignment(selectedStaff, index)} // Re-use table edit logic
+                                                    onClick={() => handleEditPendingAssignment(index)}
                                                     className="text-yellow-600 hover:text-yellow-800 p-1"
                                                 >
                                                     <PencilIcon className="h-5 w-5" />
                                                 </button>
                                                 <button
                                                     type="button"
-                                                    onClick={() => handleDeleteTableAssignment(selectedStaff, index)}
+                                                    onClick={() => handleDeletePendingAssignment(index)}
                                                     className="text-red-600 hover:text-red-800 p-1"
                                                 >
                                                     <TrashIcon className="h-5 w-5" />

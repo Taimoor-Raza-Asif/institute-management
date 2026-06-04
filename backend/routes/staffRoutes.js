@@ -12,31 +12,9 @@ import {
   updateLeaveStatus,
   getAllLeaveRequests,
   updateAssignedClasses
-  // assignClasses
 } from '../controllers/staffController.js';
-import multer from 'multer';
-import path from 'path';
-import fs from 'fs';
-import { fileURLToPath } from 'url';
-import { protect, authorizeRoles, ensureStaffModuleAccess } from '../middleware/authMiddleware.js'; // <--- NEW: Import auth middleware
-
-// Helper to get __dirname in ES modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Multer storage configuration for staff profile pictures
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadPath = path.join(__dirname, '../uploads/staffProfilePictures');
-    fs.mkdirSync(uploadPath, { recursive: true }); // Ensure directory exists
-    cb(null, uploadPath);
-  },
-  filename: (req, file, cb) => {
-    cb(null, `${file.fieldname}-${Date.now()}${path.extname(file.originalname)}`);
-  }
-});
-
-const upload = multer({ storage: storage });
+import { protect, authorizeRoles, ensureStaffModuleAccess } from '../middleware/authMiddleware.js';
+import upload from '../middleware/upload.js';
 
 const router = express.Router();
 

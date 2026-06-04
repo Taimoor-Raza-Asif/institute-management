@@ -8,6 +8,7 @@ import Loader from "../components/Loader";
 import Message from "../components/Message";
 import ConfirmationModal from "../components/ConfirmationModal";
 import { useTheme } from "../context/ThemeContext";
+import { resolveFileUrl } from '../utils/urlHelper.js';
 
 const AccessControlPanel = () => {
   const { currentUser } = useContext(UserContext);
@@ -255,7 +256,7 @@ const AccessControlPanel = () => {
                         <div className="flex items-center">
                           {user.profileId?.profilePictureUrl ? (
                             <img
-                              src={`http://localhost:5000${user.profileId.profilePictureUrl}`}
+                              src={resolveFileUrl(user.profileId.profilePictureUrl)}
                               alt={`${user.profileId?.name || 'User'}'s Profile`}
                               className={`h-10 w-10 rounded-full object-cover ring-2 ${currentTheme.heroPillBorder || 'ring-green-200'}`}
                               onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/40x40/cccccc/ffffff?text=NA'; }}

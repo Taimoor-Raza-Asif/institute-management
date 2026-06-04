@@ -96,36 +96,15 @@ const getNextCohortSequence = async (prefix) => {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Helper to get relative URL for uploaded files
-const getRelativeUploadUrl = (filePath) => {
-  if (!filePath) return '';
-  const uploadsBaseDir = path.join(__dirname, '..', 'uploads');
-  const relativePath = path.relative(uploadsBaseDir, filePath);
-  return '/uploads/' + relativePath.replace(/\\/g, '/');
-};
-
-// Helper function to handle file upload logic (for both create and update)
+// Helper function to handle file upload logic (for both create and update) for cloud storage
 const handleFileUploadLogic = (files, existingUrlFromReqBody, oldUrlFromDb, fieldName) => {
-  let newUrl = oldUrlFromDb;
-
   if (files && files.length > 0) {
-    if (oldUrlFromDb) {
-      const oldPath = path.join(__dirname, '..', oldUrlFromDb);
-      fs.unlink(oldPath, (err) => {
-        if (err) console.error(`Error deleting old ${fieldName} file (${oldPath}):`, err);
-      });
-    }
-    newUrl = getRelativeUploadUrl(files[0].path);
-  } else if (existingUrlFromReqBody === '') {
-    if (oldUrlFromDb) {
-      const oldPath = path.join(__dirname, '..', oldUrlFromDb);
-      fs.unlink(oldPath, (err) => {
-        if (err) console.error(`Error deleting old ${fieldName} file (cleared) (${oldPath}):`, err);
-      });
-    }
-    newUrl = '';
+    return files[0].path; // Cloudinary returns the full secure URL in path
   }
-  return newUrl;
+  if (existingUrlFromReqBody === '') {
+    return '';
+  }
+  return oldUrlFromDb;
 };
 
 
@@ -328,13 +307,7 @@ export const updateStudent = async (req, res) => {
 
   } catch (err) {
     console.error("Error updating student:", err);
-    if (req.files) {
-      Object.values(req.files).flat().forEach(file => {
-        fs.unlink(file.path, (unlinkErr) => {
-          if (unlinkErr) console.error('Error deleting newly uploaded file on update error:', unlinkErr);
-        });
-      });
-    }
+    // No local fs.unlink needed since using cloud storage
 
     if (err.name === 'ValidationError') {
       const errors = {};
@@ -551,13 +524,6 @@ export const getStudentById = asyncHandler(async (req, res) => {
 //     res.status(201).json(savedStudent);
 //   } catch (err) {
 //     console.error("Error creating student:", err);
-//     if (req.files) {
-//       Object.values(req.files).flat().forEach(file => {
-//         fs.unlink(file.path, (unlinkErr) => {
-//           if (unlinkErr) console.error('Error deleting uploaded file after failed student creation:', unlinkErr);
-//         });
-//       });
-//     }
 //     if (err.name === 'ValidationError') {
 //       const errors = {};
 //       for (let field in err.errors) {
@@ -585,63 +551,20 @@ export const createStudent = async (req, res) => {
       reason, currentJuz, currentSurah
     } = req.body;
 
-    const profilePictureUrl = req.files?.profilePicture ? getRelativeUploadUrl(req.files.profilePicture[0].path) : '';
-    const cnicFrontUrl = req.files?.cnicFront ? getRelativeUploadUrl(req.files.cnicFront[0].path) : '';
-    const cnicBackUrl = req.files?.cnicBack ? getRelativeUploadUrl(req.files.cnicBack[0].path) : '';
-    const bFormUrl = req.files?.bForm ? getRelativeUploadUrl(req.files.bForm[0].path) : '';
-    const characterCertificateUrl = req.files?.characterCertificate ? getRelativeUploadUrl(req.files.characterCertificate[0].path) : '';
-    const previousClassResultUrl = req.files?.previousClassResult ? getRelativeUploadUrl(req.files.previousClassResult[0].path) : '';
-    const class10ResultUrl = req.files?.class10Result ? getRelativeUploadUrl(req.files.class10Result[0].path) : '';
-    const class12ResultUrl = req.files?.class12Result ? getRelativeUploadUrl(req.files.class12Result[0].path) : '';
+    const profilePictureUrl = req.files?.profilePicture ? req.files.profilePicture[0].path : '';
+    const cnicFrontUrl = req.files?.cnicFront ? req.files.cnicFront[0].path : '';
+    const cnicBackUrl = req.files?.cnicBack ? req.files.cnicBack[0].path : '';
+    const bFormUrl = req.files?.bForm ? req.files.bForm[0].path : '';
+    const characterCertificateUrl = req.files?.characterCertificate ? req.files.characterCertificate[0].path : '';
+    const previousClassResultUrl = req.files?.previousClassResult ? req.files.previousClassResult[0].path : '';
+    const class10ResultUrl = req.files?.class10Result ? req.files.class10Result[0].path : '';
+    const class12ResultUrl = req.files?.class12Result ? req.files.class12Result[0].path : '';
 
 
     if ((studentStatus === 'Expelled' || studentStatus === 'Withdrawn') && !reason) {
-      // If files were uploaded, delete them before sending error response
-      if (req.files) {
-        Object.values(req.files).flat().forEach(file => {
-          fs.unlink(file.path, (unlinkErr) => {
-            if (unlinkErr) console.error('Error deleting uploaded file on validation error:', unlinkErr);
-          });
-        });
-      }
       return res.status(400).json({ message: 'Reason is required for Expelled or Withdrawn status.' });
     }
 
-    // // 1. Create the Student record first
-    // const newStudent = new Student({
-    //   name,
-    //   fatherName,
-    //   cnic,
-    //   rollNumber,
-    //   address,
-    //   guardianContact,
-    //   additionalContact,
-    //   dob: new Date(dob),
-    //   gender,
-    //   admissionDate: new Date(admissionDate),
-    //   email,
-    //   profilePictureUrl,
-    //   class: studentClass,
-    //   studentStatus,
-    //   feePerMonth: parseFloat(feePerMonth),
-    //   reason: (studentStatus === 'Expelled' || studentStatus === 'Withdrawn') ? reason : undefined,
-    //   depositedAmount: depositedAmount || 0,
-    //   otherDues: otherDues || 0,
-    //   classNumber: studentClass === 'Class' ? classNumber : undefined,
-    //   majorSubject: studentClass === 'Class' ? majorSubject : undefined,
-    //   degreeName: studentClass === 'BS' ? degreeName : undefined,
-    //   semester: studentClass === 'BS' ? parseInt(semester) : undefined,
-    //   cnicFrontUrl,
-    //   cnicBackUrl,
-    //   bFormUrl,
-    //   characterCertificateUrl,
-    //   previousClassResultUrl,
-    //   class10ResultUrl,
-    //   class12ResultUrl,
-    // });
-
-
-    // 1. Create the Student record first
     const newStudent = new Student({
       name, //
       fatherName, //
@@ -693,8 +616,6 @@ export const createStudent = async (req, res) => {
       // If provided, ensure it's not already used in that cohort
       const exists = await Student.findOne({ ...cohort, rollNumber: String(newStudent.rollNumber) });
       if (exists) {
-        // cleanup uploaded files
-        if (req.files) Object.values(req.files).flat().forEach(f => fs.unlink(f.path, () => {}));
         return res.status(400).json({ message: 'Provided roll number is already taken in the selected cohort.' });
       }
       // provided roll is unique within cohort; keep as-is
@@ -715,23 +636,11 @@ export const createStudent = async (req, res) => {
       console.log(`User account created automatically for student: ${savedStudent.name}`);
     } catch (userError) {
       console.error("Error creating user for student (but student saved):", userError.message);
-      // IMPORTANT: Decide on rollback strategy here.
-      // If user creation is critical, you might want to delete the student record:
-      // await savedStudent.deleteOne();
-      // return res.status(500).json({ message: 'Student created but failed to create user account: ' + userError.message });
-      // Otherwise, just log and proceed.
     }
 
     res.status(201).json(savedStudent);
   } catch (err) {
     console.error("Error creating student:", err);
-    if (req.files) {
-      Object.values(req.files).flat().forEach(file => {
-        fs.unlink(file.path, (unlinkErr) => {
-          if (unlinkErr) console.error('Error deleting uploaded file after failed student creation:', unlinkErr);
-        });
-      });
-    }
     if (err.name === 'ValidationError') {
       const errors = {};
       for (let field in err.errors) {
@@ -755,26 +664,8 @@ export const deleteStudent = async (req, res) => {
       return res.status(404).json({ message: 'Student not found' });
     }
 
-    const documentUrls = [
-      student.profilePictureUrl,
-      student.cnicFrontUrl,
-      student.cnicBackUrl,
-      student.bFormUrl,
-      student.characterCertificateUrl,
-      student.previousClassResultUrl,
-      student.class10ResultUrl,
-      student.class12ResultUrl,
-    ];
-
-    documentUrls.forEach(url => {
-      if (url && url !== '') {
-        const filePath = path.join(__dirname, '..', url);
-        fs.unlink(filePath, (err) => {
-          if (err) console.error(`Error deleting file (${filePath}):`, err);
-        });
-      }
-    });
-
+    // Could delete from Cloudinary here via their API, but skipping for simplicity
+    
     await student.deleteOne();
     res.json({ message: 'Student deleted successfully' });
   } catch (err) {

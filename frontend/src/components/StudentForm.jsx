@@ -6,6 +6,7 @@ import { XMarkIcon, ArrowDownTrayIcon, MinusCircleIcon } from '@heroicons/react/
 import { useTheme } from '../context/ThemeContext';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable'; // For better table generation in PDF
+import { resolveFileUrl } from '../utils/urlHelper.js';
 
 // NOTE: Hardcoded map is now redundant but kept here for the PDF function's original logic.
 // It will be phased out as the dynamic structure is fully integrated.
@@ -230,7 +231,8 @@ const StudentForm = ({ editingStudent, fetchStudents, onClose, isViewMode = fals
         let newVal = value;
 
         // Fields that must only contain digits
-        const digitOnlyFields = ['cnic', 'guardianContact', 'additionalContact', 'feePerMonth', 'depositedAmount', 'otherDues', 'classNumber', 'semester', 'currentJuz'];
+        // Note: classNumber is now a string identifier (e.g. "9th Science") — do NOT strip it
+        const digitOnlyFields = ['cnic', 'guardianContact', 'additionalContact', 'feePerMonth', 'depositedAmount', 'otherDues', 'semester', 'currentJuz'];
         if (digitOnlyFields.includes(name)) {
             // Strip any non-digit characters
             newVal = String(value || '').replace(/\D/g, '');
@@ -435,7 +437,19 @@ const StudentForm = ({ editingStudent, fetchStudents, onClose, isViewMode = fals
     const isHifazType = student.class === 'Hifaz';
     const isBsStudent = student.class === 'BS';
     
-    const isClass9OrAbove = isClassType && parseInt(student.classNumber) >= 9;
+    // MODIFIED: Use the passed prop for dynamic config
+    const selectedAcademicType = getAcademicConfig(academicStructure, student.class);
+
+    // isClass9OrAbove: classNumber is now a classIdentifier string (e.g. "9th Science").
+    // Resolve the numeric grade by looking up in the academic config.
+    const resolvedClassNumber = (() => {
+        if (!isClassType || !selectedAcademicType) return 0;
+        const matchedClass = selectedAcademicType.classConfig?.find(
+            c => c.classIdentifier === student.classNumber
+        );
+        return matchedClass ? matchedClass.classNumber : parseInt(student.classNumber) || 0;
+    })();
+    const isClass9OrAbove = isClassType && resolvedClassNumber >= 9;
 
     // Determine if the current user is a student editing their own profile
     const isSelfStudent = currentUser?.role === 'student' && currentUser?.profileId === editingStudent?._id;
@@ -447,10 +461,6 @@ const StudentForm = ({ editingStudent, fetchStudents, onClose, isViewMode = fals
     // Determine which result fields to show
     const showPreviousClassResultField = isClass9OrAbove || isAlmiyaType || isHifazType;
     const showBsResultsFields = isBsStudent;
-
-
-    // MODIFIED: Use the passed prop for dynamic config
-    const selectedAcademicType = getAcademicConfig(academicStructure, student.class);
 
 
     const handleDownloadPdf = async () => {
@@ -540,7 +550,7 @@ const StudentForm = ({ editingStudent, fetchStudents, onClose, isViewMode = fals
         if (student.profilePictureUrl) {
             try {
                 const img = new Image();
-                img.src = `${backendBaseUrl}${student.profilePictureUrl}`;
+                img.src = resolveFileUrl(student.profilePictureUrl);
                 await new Promise((resolve) => {
                     img.onload = () => {
                         const imgWidth = 45;
@@ -661,7 +671,7 @@ const StudentForm = ({ editingStudent, fetchStudents, onClose, isViewMode = fals
             if (url) {
                 doc.setTextColor(41, 98, 255);
                 doc.textWithLink('View Document', margin + labelWidth + 3, yPos, { 
-                    url: `${backendBaseUrl}${url}` 
+                    url: resolveFileUrl(url) 
                 });
                 
                 // Add clickable icon indicator
@@ -693,7 +703,8 @@ const StudentForm = ({ editingStudent, fetchStudents, onClose, isViewMode = fals
         
         // Dynamic Academic Info for PDF
         if (student.class === 'Class' || student.class === 'Almiya') {
-            const classIdentifier = selectedAcademicType?.classConfig?.find(c => c.classNumber === student.classNumber)?.classIdentifier || student.classNumber;
+            // classNumber now stores the classIdentifier string (e.g. "9th Science")
+            const classIdentifier = student.classNumber || '-';
             addTwoFields('Class Grade/Number', classIdentifier, 'Major Subject', student.majorSubject);
         } else if (student.class === 'BS') {
             const degreeConfig = selectedAcademicType?.degreeConfig.find(d => d.degreeName === student.degreeName);
@@ -785,7 +796,7 @@ const StudentForm = ({ editingStudent, fetchStudents, onClose, isViewMode = fals
             ) : null}
             {(file || url) && (
                 <div className="mt-2 relative w-40 h-40 border border-gray-300 rounded-md overflow-hidden">
-                    <img src={file ? URL.createObjectURL(file) : `${backendBaseUrl}${url}`} alt={`${label} Preview`} className="w-full h-full object-cover" />
+                    <img src={file ? URL.createObjectURL(file) : resolveFileUrl(url)} alt={`${label} Preview`} className="w-full h-full object-cover" />
                     {!isViewMode && (
                         <button
                             type="button"
@@ -798,7 +809,7 @@ const StudentForm = ({ editingStudent, fetchStudents, onClose, isViewMode = fals
                     )}
                     {isViewMode && url && (
                         <a
-                            href={`${backendBaseUrl}${url}`}
+                            href={resolveFileUrl(url)}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="absolute bottom-1 left-1 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded-md hover:bg-opacity-75"
@@ -987,11 +998,16 @@ const StudentForm = ({ editingStudent, fetchStudents, onClose, isViewMode = fals
                         {selectedAcademicType && ['Class', 'Almiya'].includes(student.class) && (
                             <>
                                 <div>
-                                    <label htmlFor="classNumber" className="block text-sm font-medium text-gray-700 mb-1">{selectedAcademicType.name} Grade/Number<span className="text-red-500">*</span></label>
+                                    <label htmlFor="classNumber" className="block text-sm font-medium text-gray-700 mb-1">{selectedAcademicType.name.replace('(1-8)', '(6-12)')} Grade/Number<span className="text-red-500">*</span></label>
                                     <select id="classNumber" name="classNumber" value={student.classNumber} onChange={handleChange} disabled={isViewMode} className={`block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring focus:ring-green-200 focus:ring-opacity-50 p-2.5 transition duration-150 ease-in-out ${fieldErrors.classNumber ? 'border-red-500' : ''}`}>
                                         <option value="">Select Class</option>
-                                        {selectedAcademicType.classConfig?.sort((a, b) => a.classNumber - b.classNumber).map((cls) => (
-                                            <option key={cls.classNumber} value={cls.classNumber}>
+                                        {selectedAcademicType.classConfig
+                                            ?.slice()
+                                            .sort((a, b) => a.classNumber - b.classNumber || (a.group||'').localeCompare(b.group||'') || (a.section||'').localeCompare(b.section||''))
+                                            .map((cls) => (
+                                            // value = classIdentifier (unique string like "9th Science")
+                                            // This prevents ambiguity when two classes share the same classNumber
+                                            <option key={cls.classIdentifier} value={cls.classIdentifier}>
                                                 {cls.classIdentifier} ({cls.classNumber})
                                             </option>
                                         ))}

@@ -5,6 +5,7 @@ import api from '../api';
 import { XMarkIcon, ArrowDownTrayIcon, MinusCircleIcon } from '@heroicons/react/24/outline';
 import jsPDF from 'jspdf';
 import QRCode from 'qrcode'; // For generating QR code on frontend
+import { resolveFileUrl } from '../utils/urlHelper.js';
 
 const staffTypes = ['Teacher', 'Admin', 'Accountant', 'Cook', 'Cleaner'];
 const educationLevels = ['High School', 'Associate', 'Bachelor', 'Master', 'PhD', 'Other', 'None'];
@@ -458,7 +459,7 @@ const StaffForm = ({ editingStaff, fetchStaff, onClose, isViewMode = false }) =>
     if (staff.profilePictureUrl) {
       try {
         const img = new Image();
-        img.src = `${backendBaseUrl}${staff.profilePictureUrl}`;
+        img.src = resolveFileUrl(staff.profilePictureUrl);
         await new Promise((resolve) => {
           img.onload = () => {
             const imgWidth = 42;
@@ -677,7 +678,7 @@ const StaffForm = ({ editingStaff, fetchStaff, onClose, isViewMode = false }) =>
               )}
               {(profilePictureFile || staff.profilePictureUrl) && (
                 <div className="mt-3 relative w-48 h-48 border-2 border-gray-200 rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition">
-                  <img src={profilePictureFile ? URL.createObjectURL(profilePictureFile) : `${backendBaseUrl}${staff.profilePictureUrl}`} alt="Profile Preview" className="w-full h-full object-cover" />
+                  <img src={profilePictureFile ? URL.createObjectURL(profilePictureFile) : resolveFileUrl(staff.profilePictureUrl)} alt="Profile Preview" className="w-full h-full object-cover" />
                   {!isViewMode && (
                     <button
                       type="button"
@@ -690,7 +691,7 @@ const StaffForm = ({ editingStaff, fetchStaff, onClose, isViewMode = false }) =>
                   )}
                   {isViewMode && staff.profilePictureUrl && (
                     <a
-                      href={`${backendBaseUrl}${staff.profilePictureUrl}`}
+                      href={resolveFileUrl(staff.profilePictureUrl)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white text-xs px-3 py-1.5 rounded-lg hover:bg-opacity-75 transition"

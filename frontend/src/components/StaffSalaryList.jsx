@@ -12,6 +12,7 @@ import AlertDialog from './AlertDialog';
 import ConfirmationModal from './ConfirmationModal';
 import jsPDF from 'jspdf';
 import 'react-datepicker/dist/react-datepicker.css';
+import { resolveFileUrl } from '../utils/urlHelper.js';
 import {
   CurrencyDollarIcon, EyeIcon, PencilIcon, TrashIcon, PlusCircleIcon, DocumentArrowDownIcon, XMarkIcon, FunnelIcon, MagnifyingGlassIcon, UserCircleIcon, BanknotesIcon, ClockIcon
 } from '@heroicons/react/24/outline';
@@ -636,7 +637,7 @@ const StaffSalaryList = () => {
                       <div className="flex items-center">
                         {salary.profilePictureUrl ? (
                           <img
-                            src={`http://localhost:5000${salary.profilePictureUrl}`}
+                            src={resolveFileUrl(salary.profilePictureUrl)}
                             alt={`${salary.staffName}'s Profile`}
                             className={`h-10 w-10 rounded-full object-cover ring-2 ${currentTheme?.heroPillBorder || 'ring-green-200'} mr-3`}
                             onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/40x40/10b981/ffffff?text=' + (salary.staffName?.[0] || 'S'); }}

@@ -36,8 +36,11 @@ import RegisteredSubjects from './components/RegisteredSubjects';
 import DonationManagement from './components/DonationManagement';
 import BillingManagement from './components/BillingManagement';
 import Reports from './pages/Reports';
+import DiscountedStudents from './pages/DiscountedStudents'; // New Import
 import EditMarksForm from './components/EditMarksForm'; // New Import
 import AcademicStructurePanel from './pages/AcademicStructurePanel';
+import FeeStructurePanel from './pages/FeeStructurePanel';
+import SalaryStructurePanel from './pages/SalaryStructurePanel';
 import { ThemeProvider } from './context/ThemeContext'; 
 
 export const UserContext = createContext(null);
@@ -145,6 +148,8 @@ const App = () => {
            <Route path="/admin/marks" element={<PrivateRoute roles={['admin']}><MarksList /></PrivateRoute>} /> {/* New Route */}
            
           <Route path="/academic-structure" element={<PrivateRoute roles={['admin']}><AcademicStructurePanel /></PrivateRoute>} />
+          <Route path="/fee-structure" element={<PrivateRoute roles={['admin']}><FeeStructurePanel /></PrivateRoute>} />
+          <Route path="/salary-structure" element={<PrivateRoute roles={['admin', 'accountant']}><SalaryStructurePanel /></PrivateRoute>} />
 
           <Route path="/salaries" element={<PrivateRoute roles={['admin', 'accountant']}><StaffSalaryList /></PrivateRoute>} />
           <Route path="/salary/add" element={<PrivateRoute roles={['admin', 'accountant']}><SalaryForm /></PrivateRoute>} />
@@ -153,6 +158,7 @@ const App = () => {
           <Route path="/donations" element={<PrivateRoute roles={['admin', 'accountant']}><DonationManagement /></PrivateRoute>} />
           <Route path="/billing" element={<PrivateRoute roles={['admin', 'accountant']}><BillingManagement /></PrivateRoute>} />
           <Route path="/financial-reports" element={<PrivateRoute roles={['admin', 'accountant']}><Reports /></PrivateRoute>} />
+          <Route path="/discounted-students" element={<PrivateRoute roles={['admin', 'accountant']}><DiscountedStudents /></PrivateRoute>} />
           {/* Staff-specific route */}
           <Route path="/my-salaries" element={<PrivateRoute><StaffSalaryList /></PrivateRoute>} />
 

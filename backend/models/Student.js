@@ -63,6 +63,7 @@ const studentSchema = new mongoose.Schema(
     currentSurah: { type: String, default: "" }, // Tracks the specific surah/checkpoint
 
     feePerMonth: { type: Number, required: true },
+    feeDiscount: { type: Number, default: 0, min: 0, max: 100 }, // Percentage discount (0-100), per student
     feeStatus: {
       type: String,
       enum: ["Paid", "Unpaid", "Partial Paid"],

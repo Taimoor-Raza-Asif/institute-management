@@ -85,6 +85,12 @@ const salarySchema = new mongoose.Schema({
   staffJoiningDate: {
     type: Date,
   },
+  // Calculated at the time the salary record is created
+  serviceTimeYears:  { type: Number, default: 0 },
+  serviceTimeMonths: { type: Number, default: 0 },
+  serviceTimeDays:   { type: Number, default: 0 },
+  // The staff member's salary when they first joined (earliest record)
+  startingSalary: { type: Number, default: null },
 }, {
   timestamps: true,
 });

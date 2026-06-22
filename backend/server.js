@@ -58,6 +58,8 @@ import billingRoutes from './routes/billingRoutes.js';
 import marksRoutes from './routes/marksRoutes.js'; // Import the new routes
 import academicStructureRoutes from './routes/academicStructureRoutes.js';
 import importRoutes from './routes/importRoutes.js';
+import feeStructureRoutes from './routes/feeStructureRoutes.js';
+import salaryStructureRoutes from './routes/salaryStructureRoutes.js';
 // Helper to get __filename and __dirname in ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -117,6 +119,8 @@ app.use('/api/billing', billingRoutes);
 app.use('/api/marks', marksRoutes);
 app.use('/api/academic-structure', academicStructureRoutes);
 app.use('/api/import', importRoutes);
+app.use('/api/fee-structure', feeStructureRoutes);
+app.use('/api/salary-structure', salaryStructureRoutes);
 // Define the port for the server
 const PORT = process.env.PORT || 5000;
 

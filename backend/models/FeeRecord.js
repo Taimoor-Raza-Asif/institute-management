@@ -14,7 +14,7 @@ const feeSchema = new mongoose.Schema({
   admissionFee: { type: Number } ,
   paymentMethod: {
     type: String,
-    enum: ['Cash', 'Online Wallet', 'Bank Transfer', 'Easypaisa', 'JazzCash', 'Deposited Cash'], // Added Easypaisa, JazzCash
+    enum: ['Cash', 'Online Wallet', 'Bank Transfer', 'Easypaisa', 'JazzCash', 'Deposited Cash', 'Auto'],
     required: true
   },
   billScreenshotUrl: String // optional

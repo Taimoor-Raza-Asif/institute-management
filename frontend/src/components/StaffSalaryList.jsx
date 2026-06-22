@@ -1,4 +1,4 @@
-﻿// src/components/StaffSalaryList.jsx
+// src/components/StaffSalaryList.jsx
 import React, { useState, useEffect, useContext, useCallback, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../api';
@@ -167,6 +167,43 @@ const StaffSalaryList = () => {
     }
   }, [user, fetchSalaries, fetchStaffList, isAdmin]);
 
+  const getServiceTimeStr = (salary) => {
+    if (salary.serviceTimeYears !== undefined && salary.serviceTimeMonths !== undefined && salary.serviceTimeDays !== undefined) {
+      const parts = [];
+      if (salary.serviceTimeYears > 0) parts.push(`${salary.serviceTimeYears} year${salary.serviceTimeYears > 1 ? 's' : ''}`);
+      if (salary.serviceTimeMonths > 0) parts.push(`${salary.serviceTimeMonths} month${salary.serviceTimeMonths > 1 ? 's' : ''}`);
+      if (salary.serviceTimeDays > 0) parts.push(`${salary.serviceTimeDays} day${salary.serviceTimeDays > 1 ? 's' : ''}`);
+      if (parts.length > 0) return parts.join(', ');
+    }
+
+    // Fallback calculation on the fly
+    const joiningDate = salary.staffJoiningDate || (salary.staff && salary.staff.dateOfJoining);
+    if (!joiningDate) return 'N/A';
+    const start = new Date(joiningDate);
+    const end = salary.paidAt ? new Date(salary.paidAt) : new Date();
+    if (end < start) return '0 days';
+
+    let years = end.getFullYear() - start.getFullYear();
+    let months = end.getMonth() - start.getMonth();
+    let days = end.getDate() - start.getDate();
+
+    if (days < 0) {
+      months--;
+      const prevMonth = new Date(end.getFullYear(), end.getMonth(), 0);
+      days += prevMonth.getDate();
+    }
+    if (months < 0) {
+      years--;
+      months += 12;
+    }
+
+    const parts = [];
+    if (years > 0) parts.push(`${years} year${years > 1 ? 's' : ''}`);
+    if (months > 0) parts.push(`${months} month${months > 1 ? 's' : ''}`);
+    if (days > 0) parts.push(`${days} day${days > 1 ? 's' : ''}`);
+    return parts.join(', ') || '0 days';
+  };
+
   const handleDownloadReceiptPdf = useCallback((salaryId) => {
     const salary = salaries.find(s => s._id === salaryId);
     if (!salary) {
@@ -297,9 +334,14 @@ const StaffSalaryList = () => {
 
       // ── STAFF INFORMATION ──
       drawSectionHeader('STAFF INFORMATION');
+      const startingSalaryVal = salary.startingSalary || salary.salaryPerMonth;
+      const currentSalaryVal = salary.salaryPerMonth;
+      const serviceTimeStr = getServiceTimeStr(salary);
+
       drawInfoRow('Full Name', salary.staffName, 'CNIC', salary.staffCnic);
-      drawInfoRow('Role / Position', salary.staffRole, 'Salary / Month', `PKR ${parseFloat(salary.salaryPerMonth).toLocaleString()}`);
-      drawInfoRow('Date of Joining', salary.staffJoiningDate ? new Date(salary.staffJoiningDate).toLocaleDateString() : 'N/A', '', '');
+      drawInfoRow('Role / Position', salary.staffRole, 'Service Time', serviceTimeStr);
+      drawInfoRow('Date of Joining', salary.staffJoiningDate ? new Date(salary.staffJoiningDate).toLocaleDateString() : 'N/A', 'Starting Salary', `PKR ${parseFloat(startingSalaryVal).toLocaleString()}`);
+      drawInfoRow('Current Salary', `PKR ${parseFloat(currentSalaryVal).toLocaleString()}`, '', '');
       yPos += 6;
 
       // ── SALARY DETAILS ──

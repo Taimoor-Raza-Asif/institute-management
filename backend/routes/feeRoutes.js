@@ -47,7 +47,9 @@ import {
   updateFeeRecord,
   deleteFeeRecord,
   getFeeReports,
-  bulkCreateFees
+  bulkCreateFees,
+  getDiscountedStudents,
+  fixDiscountedStudentFeeStatus
 } from '../controllers/feeController.js';
 import { protect, authorizeRoles } from '../middleware/authMiddleware.js';
 import upload from '../middleware/upload.js';
@@ -79,6 +81,12 @@ router.put('/:id', protect, authorizeRoles('admin', 'accountant'), upload.single
 
 // Delete a fee record (Admin, Accountant)
 router.delete('/:id', protect, authorizeRoles('admin', 'accountant'), deleteFeeRecord);
+
+// Discounted students report
+router.get('/discounted-students', protect, authorizeRoles('admin', 'accountant'), getDiscountedStudents);
+
+// Fix 100% discount students fee status (Admin only)
+router.post('/fix-discount-status', protect, authorizeRoles('admin'), fixDiscountedStudentFeeStatus);
 
 export default router;
 

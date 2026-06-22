@@ -22,6 +22,7 @@ import {
   EyeIcon,
   DocumentArrowDownIcon,
   XMarkIcon,
+  WrenchScrewdriverIcon,
 } from '@heroicons/react/24/outline';
 
 const months = [
@@ -42,6 +43,7 @@ const FeeList = () => {
   const [academicStructure, setAcademicStructure] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [fixingStatus, setFixingStatus] = useState(false);
 
   // --- Filter States ---
   const [searchTerm, setSearchTerm] = useState('');
@@ -72,6 +74,9 @@ const FeeList = () => {
 
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [feeToDelete, setFeeToDelete] = useState(null);
+
+  // Auto Pay confirm modal
+  const [autoPayConfirmOpen, setAutoPayConfirmOpen] = useState(false);
 
   // Skipped students modal state
   const [showSkippedModal, setShowSkippedModal] = useState(false);
@@ -399,6 +404,25 @@ const FeeList = () => {
     setSkippedList([]);
   };
 
+  // Fix feeStatus for 100%-discount students and create current month fee records
+  const handleFixStatus = () => {
+    setAutoPayConfirmOpen(true);
+  };
+
+  const runAutoPayAction = async () => {
+    setAutoPayConfirmOpen(false);
+    try {
+      setFixingStatus(true);
+      const { data } = await api.post('/fees/fix-discount-status');
+      showAlert(data.message || 'Fee statuses fixed and records generated!', 'success', 'Auto Pay Complete');
+      fetchFees();
+    } catch (err) {
+      showAlert('Failed to run Auto Pay: ' + (err.response?.data?.message || err.message), 'error', 'Error');
+    } finally {
+      setFixingStatus(false);
+    }
+  };
+
   const handleResetFilters = () => {
     setSearchTerm('');
     setDebouncedSearchTerm('');
@@ -459,9 +483,26 @@ const FeeList = () => {
               {showAdvancedFilters ? 'Hide' : 'Filters'}
             </button>
             {canManage && (
-              <button onClick={openAdd} className={`group flex items-center justify-center px-8 py-2 rounded-xl font-bold text-white transition-all duration-300 shadow-lg hover:shadow-2xl transform hover:-translate-y-0.5 w-full sm:w-auto ${currentTheme.btnPrimaryBg || 'bg-gradient-to-r from-green-600 to-emerald-600'} ${currentTheme.btnPrimaryHover || 'hover:from-green-700 hover:to-emerald-700'}`}>
-                <PlusCircleIcon className="h-5 w-5 mr-2 transition-transform group-hover:rotate-90" />Fee
-              </button>
+              <>
+                {currentUser?.role === 'admin' && (
+                  <button
+                    onClick={handleFixStatus}
+                    disabled={fixingStatus}
+                    title="Auto Pay: Sets feeStatus to 'Paid' for all 100%-discount students and creates this month's fee records for tracking"
+                    className="flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold transition-all duration-200 shadow-sm hover:shadow-md w-full sm:w-auto bg-orange-50 text-orange-700 border border-orange-300 hover:bg-orange-100 disabled:opacity-50 whitespace-nowrap"
+                  >
+                    <WrenchScrewdriverIcon className="h-4 w-4 flex-shrink-0" />
+                    {fixingStatus ? 'Running...' : 'Auto Pay'}
+                  </button>
+                )}
+                <button
+                  onClick={openAdd}
+                  className={`group flex items-center justify-center gap-1.5 px-5 py-2 rounded-xl text-sm font-bold text-white transition-all duration-300 shadow-lg hover:shadow-2xl transform hover:-translate-y-0.5 w-full sm:w-auto ${currentTheme.btnPrimaryBg || 'bg-gradient-to-r from-green-600 to-emerald-600'} ${currentTheme.btnPrimaryHover || 'hover:from-green-700 hover:to-emerald-700'}`}
+                >
+                  <PlusCircleIcon className="h-4 w-4 transition-transform group-hover:rotate-90" />
+                  Fee
+                </button>
+              </>
             )}
           </div>
         </div>
@@ -782,7 +823,29 @@ const FeeList = () => {
         isOpen={confirmOpen}
         onClose={() => setConfirmOpen(false)}
         onConfirm={confirmDelete}
-        message={feeToDelete ? `Delete fee record for ${feeToDelete.studentId?.name || 'this student'} (${feeToDelete.month} ${feeToDelete.year})?` : 'Delete this fee record?'}
+        title="Delete Fee Record"
+        description={feeToDelete ? `Remove the fee record for ${feeToDelete.studentId?.name || 'this student'} (${feeToDelete.month} ${feeToDelete.year})?` : 'Delete this fee record?'}
+        confirmLabel="Yes, Delete"
+        cancelLabel="Cancel"
+        variant="danger"
+      />
+
+      {/* Auto Pay confirmation */}
+      <ConfirmationModal
+        isOpen={autoPayConfirmOpen}
+        onClose={() => setAutoPayConfirmOpen(false)}
+        onConfirm={runAutoPayAction}
+        variant="warning"
+        title="Run Auto Pay for 100% Discount Students?"
+        description="This action will automatically process payments for all students with a 100% fee discount."
+        bullets={[
+          'Sets feeStatus to “Paid” for every 100%-discount student',
+          'Creates a fee record for the current month (PKR 0 due) if one does not exist',
+          'Allows fee history tracking for fully-discounted students',
+          'Existing fee records will not be duplicated',
+        ]}
+        confirmLabel="Yes, Run Auto Pay"
+        cancelLabel="Cancel"
       />
 
       {/* Custom Alert Dialog */}

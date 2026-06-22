@@ -20,13 +20,38 @@ const OverallExpenses = () => {
   const fetchAll = useCallback(async () => {
     setLoading(true);
     try {
-      const params = { year };
-      if (month !== 'all') params.month = month;
+      const feesParams = { year };
+      if (month !== 'all') {
+        feesParams.month = monthNames[month - 1];
+      }
+
+      let startD, endD;
+      if (month === 'all') {
+        startD = `${year}-01-01`;
+        endD = `${year}-12-31`;
+      } else {
+        const mStr = String(month).padStart(2, '0');
+        const lastDay = new Date(year, month, 0).getDate();
+        startD = `${year}-${mStr}-01`;
+        endD = `${year}-${mStr}-${lastDay}`;
+      }
+      const donParams = { startDate: startD, endDate: endD };
+
+      const billParams = { year };
+      if (month !== 'all') {
+        billParams.month = month;
+      }
+
+      const salParams = { year };
+      if (month !== 'all') {
+        salParams.month = month;
+      }
+
       const [feesRes, salRes, billRes, donRes] = await Promise.all([
-        api.get('/fees', { params: { year, ...(month !== 'all' ? { month } : {}) } }),
-        api.get('/salary/all', { params: { year, ...(month !== 'all' ? { month } : {}) } }),
-        api.get('/billing', { params: { year, ...(month !== 'all' ? { month: month, year: year } : { year }) } }),
-        api.get('/donations', { params: { year, ...(month !== 'all' ? { month } : {}) } }),
+        api.get('/fees', { params: feesParams }),
+        api.get('/salary/all', { params: salParams }),
+        api.get('/billing', { params: billParams }),
+        api.get('/donations', { params: donParams }),
       ]);
       setData({
         fees: Array.isArray(feesRes.data) ? feesRes.data : (feesRes.data?.fees || []),
@@ -40,8 +65,8 @@ const OverallExpenses = () => {
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
-  const totalFees = data.fees.reduce((s,f) => s + (parseFloat(f.amountPaid||f.amount||0)), 0);
-  const totalDonations = data.donations.reduce((s,d) => s + (parseFloat(d.amount||0)), 0);
+  const totalFees = data.fees.reduce((s,f) => s + (parseFloat(f.receivedAmount||0)), 0);
+  const totalDonations = data.donations.reduce((s,d) => s + (parseFloat(d.donationAmount||0)), 0);
   const totalSalaries = data.salaries.reduce((s,r) => s + (parseFloat(r.paidAmount||0)), 0);
   const totalBills = data.bills.reduce((s,b) => s + (parseFloat(b.amount||0)), 0);
 
@@ -137,7 +162,17 @@ const OverallExpenses = () => {
       secHeader('FEES COLLECTED');
       if (fees.length) {
         tblHeader(['#','Student','Amount (PKR)','Month/Year','Method','Status'], fW);
-        fees.forEach((f,i) => tblRow([i+1, f.studentName||'N/A', Number(f.amountPaid||f.amount||0).toLocaleString(), f.month&&f.year?`${monthNames[(f.month||1)-1]} ${f.year}`:'N/A', f.paymentMethod||'N/A', f.status||'N/A'], fW, i%2===1));
+        fees.forEach((f,i) => {
+          const feeStatus = f.dueAmount === 0 ? 'Paid' : f.receivedAmount > 0 ? 'Partial Paid' : 'Unpaid';
+          tblRow([
+            i+1, 
+            f.studentId?.name||'N/A', 
+            Number(f.receivedAmount||0).toLocaleString(), 
+            f.month&&f.year?`${f.month} ${f.year}`:'N/A', 
+            f.paymentMethod||'N/A', 
+            feeStatus
+          ], fW, i%2===1);
+        });
         y+=4;
       } else { doc.setFontSize(9); doc.text('No fee records found.',m,y+4); y+=12; }
       totalCard('TOTAL FEES COLLECTED', totalFees, 'Fees Summary');
@@ -150,7 +185,7 @@ const OverallExpenses = () => {
       secHeader('DONATIONS RECEIVED');
       if (dons.length) {
         tblHeader(['#','Donor','Amount (PKR)','Date','Purpose'], dW);
-        dons.forEach((d,i) => tblRow([i+1, d.donorName||'N/A', Number(d.amount||0).toLocaleString(), d.donationDate?new Date(d.donationDate).toLocaleDateString():'N/A', d.purpose||'N/A'], dW, i%2===1));
+        dons.forEach((d,i) => tblRow([i+1, d.donorName||'N/A', Number(d.donationAmount||0).toLocaleString(), d.donationDate?new Date(d.donationDate).toLocaleDateString():'N/A', d.donationPurpose||'N/A'], dW, i%2===1));
         y+=4;
       } else { doc.setFontSize(9); doc.text('No donation records found.',m,y+4); y+=12; }
       totalCard('TOTAL DONATIONS', totalDonations, 'Donations Summary');

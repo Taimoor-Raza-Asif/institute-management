@@ -56,6 +56,7 @@ const StudentForm = ({ editingStudent, fetchStudents, onClose, isViewMode = fals
         currentJuz: 0, // For Hifaz (NEW)
         currentSurah: '', // For Hifaz (NEW)
         feePerMonth: '',
+        feeDiscount: 0, // Discount percentage (0-100), default 0%
         profilePictureUrl: '',
         depositedAmount: '',
         otherDues: '',
@@ -70,6 +71,8 @@ const StudentForm = ({ editingStudent, fetchStudents, onClose, isViewMode = fals
         rollNumber: '',
     };
     const [student, setStudent] = useState(initialState);
+    const [feeStructure, setFeeStructure] = useState(null); // Fee structure for auto-fill
+    const [feeAutoFilled, setFeeAutoFilled] = useState(false); // Track if fee was auto-filled
     const [profilePictureFile, setProfilePictureFile] = useState(null);
     const [cnicFrontFile, setCnicFrontFile] = useState(null);
     const [cnicBackFile, setCnicBackFile] = useState(null);
@@ -119,6 +122,10 @@ const StudentForm = ({ editingStudent, fetchStudents, onClose, isViewMode = fals
             if (!/^\d+$/.test(String(student.feePerMonth || '')) || parseInt(student.feePerMonth || '0', 10) <= 0) {
                 newFieldErrors.feePerMonth = 'Fee Per Month must be a positive whole number.'; ok=false;
             }
+            const disc = parseFloat(student.feeDiscount ?? 0);
+            if (isNaN(disc) || disc < 0 || disc > 100) {
+                newFieldErrors.feeDiscount = 'Discount must be between 0 and 100.'; ok=false;
+            }
         }
 
         setFieldErrors(prev => ({ ...prev, ...newFieldErrors }));
@@ -137,6 +144,46 @@ const StudentForm = ({ editingStudent, fetchStudents, onClose, isViewMode = fals
         setGeneralFormError('');
     };
 
+    // Fetch fee structure for auto-fill on mount
+    useEffect(() => {
+        const loadFeeStructure = async () => {
+            try {
+                const { data } = await api.get('/fee-structure');
+                setFeeStructure(data);
+            } catch (err) {
+                console.warn('Could not load fee structure:', err.message);
+            }
+        };
+        if (!isViewMode) loadFeeStructure();
+    }, [isViewMode]);
+
+    // Auto-fill fee when class type / class / degree changes (only for new students)
+    useEffect(() => {
+        if (isViewMode || !feeStructure?.feeTypes) return;
+        if (editingStudent) return; // Don't auto-fill when editing
+
+        const feeType = feeStructure.feeTypes.find(ft => ft.slug === student.class);
+        if (!feeType) { setFeeAutoFilled(false); return; }
+
+        let autoFee = null;
+        if (feeType.classFees && student.classNumber) {
+            const match = feeType.classFees.find(cf => cf.classIdentifier === student.classNumber);
+            if (match) autoFee = match.feePerMonth;
+        } else if (feeType.degreeFees && student.degreeName) {
+            const match = feeType.degreeFees.find(df => df.degreeName === student.degreeName);
+            if (match) autoFee = match.feePerMonth;
+        } else if (student.class === 'Hifaz' && feeType.flatFee !== undefined) {
+            autoFee = feeType.flatFee;
+        }
+
+        if (autoFee !== null && autoFee > 0) {
+            setStudent(prev => ({ ...prev, feePerMonth: String(autoFee) }));
+            setFeeAutoFilled(true);
+        } else {
+            setFeeAutoFilled(false);
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [student.class, student.classNumber, student.degreeName, feeStructure, isViewMode, editingStudent]);
 
     useEffect(() => {
         if (editingStudent) {
@@ -146,6 +193,7 @@ const StudentForm = ({ editingStudent, fetchStudents, onClose, isViewMode = fals
                 admissionDate: editingStudent.admissionDate ? new Date(editingStudent.admissionDate).toISOString().split('T')[0] : '',
                 profilePictureUrl: editingStudent.profilePictureUrl || '',
                 feePerMonth: editingStudent.feePerMonth !== undefined ? editingStudent.feePerMonth.toString() : '',
+                feeDiscount: editingStudent.feeDiscount !== undefined ? editingStudent.feeDiscount : 0,
                 reason: editingStudent.reason || '',
                 depositedAmount: editingStudent.depositedAmount !== undefined ? editingStudent.depositedAmount.toString() : '',
                 otherDues: editingStudent.otherDues !== undefined ? editingStudent.otherDues.toString() : '',
@@ -230,12 +278,22 @@ const StudentForm = ({ editingStudent, fetchStudents, onClose, isViewMode = fals
         const { name, value } = e.target;
         let newVal = value;
 
+        // Reset auto-fill badge when user manually changes fee
+        if (name === 'feePerMonth') setFeeAutoFilled(false);
+
         // Fields that must only contain digits
         // Note: classNumber is now a string identifier (e.g. "9th Science") — do NOT strip it
         const digitOnlyFields = ['cnic', 'guardianContact', 'additionalContact', 'feePerMonth', 'depositedAmount', 'otherDues', 'semester', 'currentJuz'];
         if (digitOnlyFields.includes(name)) {
             // Strip any non-digit characters
             newVal = String(value || '').replace(/\D/g, '');
+        }
+
+        // feeDiscount allows decimals within 0-100
+        if (name === 'feeDiscount') {
+            const parsed = parseFloat(value);
+            if (!isNaN(parsed)) newVal = Math.min(100, Math.max(0, parsed));
+            else newVal = 0;
         }
 
         // Enforce max lengths while typing
@@ -327,6 +385,12 @@ const StudentForm = ({ editingStudent, fetchStudents, onClose, isViewMode = fals
         }
         if (student.otherDues && !/^\d+$/.test(String(student.otherDues))) {
             newFieldErrors.otherDues = 'Other Dues must be a whole number (no decimals).';
+            hasError = true;
+        }
+        // Validate discount
+        const disc = parseFloat(student.feeDiscount ?? 0);
+        if (isNaN(disc) || disc < 0 || disc > 100) {
+            newFieldErrors.feeDiscount = 'Discount must be between 0 and 100.';
             hasError = true;
         }
 
@@ -461,6 +525,11 @@ const StudentForm = ({ editingStudent, fetchStudents, onClose, isViewMode = fals
     // Determine which result fields to show
     const showPreviousClassResultField = isClass9OrAbove || isAlmiyaType || isHifazType;
     const showBsResultsFields = isBsStudent;
+
+    // Computed effective fee after discount
+    const feePerMonthNum = parseFloat(student.feePerMonth) || 0;
+    const discountPct = parseFloat(student.feeDiscount) || 0;
+    const effectiveFee = Math.round(feePerMonthNum * (1 - discountPct / 100));
 
 
     const handleDownloadPdf = async () => {
@@ -724,6 +793,12 @@ const StudentForm = ({ editingStudent, fetchStudents, onClose, isViewMode = fals
         addTwoFields(
             'Fee Per Month', 
             student.feePerMonth ? `PKR ${parseFloat(student.feePerMonth).toLocaleString()}` : '-', 
+            'Fee Discount',
+            `${student.feeDiscount || 0}%`
+        );
+        addTwoFields(
+            'Effective Monthly Fee',
+            feePerMonthNum > 0 ? `PKR ${effectiveFee.toLocaleString()}` : '-',
             'Deposited Amount', 
             student.depositedAmount !== '' ? `PKR ${parseFloat(student.depositedAmount).toLocaleString()}` : 'PKR 0'
         );
@@ -897,7 +972,6 @@ const StudentForm = ({ editingStudent, fetchStudents, onClose, isViewMode = fals
                             <label htmlFor="cnic" className="block text-sm font-bold text-gray-700 mb-2">CNIC <span className="text-red-500">*</span></label>
                             <input inputMode="numeric" pattern="\d*" maxLength={13} type="text" id="cnic" name="cnic" value={student.cnic} onChange={handleChange} readOnly={isViewMode} className={`mt-1 block w-full px-4 py-2 bg-white border-2 border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-500 transition duration-200 sm:text-sm ${isViewMode ? 'bg-gray-50' : 'hover:border-gray-300'}`} />
                             {fieldErrors.cnic && <p className="mt-1 text-sm text-red-600">{fieldErrors.cnic}</p>}
-                            {fieldErrors.cnic && <p className="mt-1 text-sm text-red-600">{fieldErrors.cnic}</p>}
                         </div>
                         {/* Roll Number is auto-generated per-cohort; show in view mode only */}
                         {isViewMode && (
@@ -942,13 +1016,11 @@ const StudentForm = ({ editingStudent, fetchStudents, onClose, isViewMode = fals
                             <label htmlFor="guardianContact" className="block text-sm font-bold text-gray-700 mb-2">Guardian Contact <span className="text-red-500">*</span></label>
                             <input inputMode="numeric" pattern="\d*" maxLength={11} type="text" id="guardianContact" name="guardianContact" value={student.guardianContact} onChange={handleChange} readOnly={isViewMode} className={`mt-1 block w-full px-4 py-2 bg-white border-2 border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-500 transition duration-200 sm:text-sm ${isViewMode ? 'bg-gray-50' : 'hover:border-gray-300'}`} />
                             {fieldErrors.guardianContact && <p className="mt-1 text-sm text-red-600">{fieldErrors.guardianContact}</p>}
-                            {fieldErrors.guardianContact && <p className="mt-1 text-sm text-red-600">{fieldErrors.guardianContact}</p>}
                         </div>
                         {/* Additional Contact */}
                         <div>
                             <label htmlFor="additionalContact" className="block text-sm font-bold text-gray-700 mb-2">Additional Contact</label>
                             <input inputMode="numeric" pattern="\d*" maxLength={11} type="text" id="additionalContact" name="additionalContact" value={student.additionalContact} onChange={handleChange} readOnly={isViewMode} className={`mt-1 block w-full px-4 py-2 bg-white border-2 border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-500 transition duration-200 sm:text-sm ${isViewMode ? 'bg-gray-50' : 'hover:border-gray-300'}`} />
-                            {fieldErrors.additionalContact && <p className="mt-1 text-sm text-red-600">{fieldErrors.additionalContact}</p>}
                             {fieldErrors.additionalContact && <p className="mt-1 text-sm text-red-600">{fieldErrors.additionalContact}</p>}
                         </div>
                         {/* Address */}
@@ -1079,23 +1151,59 @@ const StudentForm = ({ editingStudent, fetchStudents, onClose, isViewMode = fals
                         )}
                         {/* Fee Per Month */}
                         <div>
-                            <label htmlFor="feePerMonth" className="block text-sm font-bold text-gray-700 mb-2">Fee Per Month (PKR) <span className="text-red-500">*</span></label>
-                            <input inputMode="numeric" pattern="\d*" type="text" id="feePerMonth" name="feePerMonth" value={student.feePerMonth} onChange={handleChange} readOnly={isViewMode || isSelfStudent} className={`mt-1 block w-full px-4 py-2 bg-white border-2 border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-500 transition duration-200 sm:text-sm ${(isViewMode || isSelfStudent) ? 'bg-gray-50' : 'hover:border-gray-300'}`} />
-                            {fieldErrors.feePerMonth && <p className="mt-1 text-sm text-red-600">{fieldErrors.feePerMonth}</p>}
+                            <label htmlFor="feePerMonth" className="block text-sm font-bold text-gray-700 mb-2">
+                                Fee Per Month (PKR) <span className="text-red-500">*</span>
+                                {feeAutoFilled && !isViewMode && (
+                                    <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                                        ✓ Auto-filled
+                                    </span>
+                                )}
+                            </label>
+                            <input inputMode="numeric" pattern="\d*" type="text" id="feePerMonth" name="feePerMonth" value={student.feePerMonth} onChange={handleChange} readOnly={isViewMode || isSelfStudent} className={`mt-1 block w-full px-4 py-2 bg-white border-2 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-500 transition duration-200 sm:text-sm ${(isViewMode || isSelfStudent) ? 'bg-gray-50 border-gray-200' : feeAutoFilled ? 'border-green-400 bg-green-50 hover:border-green-500' : 'border-gray-200 hover:border-gray-300'}`} />
                             {fieldErrors.feePerMonth && <p className="mt-1 text-sm text-red-600">{fieldErrors.feePerMonth}</p>}
                         </div>
+
+                        {/* Fee Discount */}
+                        <div>
+                            <label htmlFor="feeDiscount" className="block text-sm font-bold text-gray-700 mb-2">
+                                Fee Discount (%)
+                                <span className="ml-1 text-xs font-normal text-gray-400">0 = no discount, 100 = full</span>
+                            </label>
+                            <input
+                                type="number"
+                                id="feeDiscount"
+                                name="feeDiscount"
+                                min="0"
+                                max="100"
+                                step="0.5"
+                                value={student.feeDiscount ?? 0}
+                                onChange={handleChange}
+                                readOnly={isViewMode || isSelfStudent}
+                                className={`mt-1 block w-full px-4 py-2 bg-white border-2 border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-500 transition duration-200 sm:text-sm ${(isViewMode || isSelfStudent) ? 'bg-gray-50' : 'hover:border-gray-300'}`}
+                            />
+                            {fieldErrors.feeDiscount && <p className="mt-1 text-sm text-red-600">{fieldErrors.feeDiscount}</p>}
+                            {/* Effective fee preview */}
+                            {feePerMonthNum > 0 && (
+                                <div className={`mt-2 px-3 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 ${discountPct > 0 ? 'bg-amber-50 text-amber-800 border border-amber-200' : 'bg-green-50 text-green-800 border border-green-200'}`}>
+                                    <span>Effective Fee:</span>
+                                    <span className="font-bold">PKR {effectiveFee.toLocaleString()}/mo</span>
+                                    {discountPct > 0 && (
+                                        <span className="text-xs ml-auto text-amber-600">({discountPct}% off)</span>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+
                         {/* Deposited Amount */}
                         <div>
                             <label htmlFor="depositedAmount" className="block text-sm font-bold text-gray-700 mb-2">Deposited Amount (PKR)</label>
                             <input inputMode="numeric" pattern="\d*" type="text" id="depositedAmount" name="depositedAmount" value={student.depositedAmount} onChange={handleChange} readOnly={isViewMode || isSelfStudent} className={`mt-1 block w-full px-4 py-2 bg-white border-2 border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-500 transition duration-200 sm:text-sm ${(isViewMode || isSelfStudent) ? 'bg-gray-50' : 'hover:border-gray-300'}`} />
-                            {fieldErrors.depositedAmount && <p className="mt-1 text-sm text-red-600">{fieldErrors.depositedAmount}</p>}
                             {fieldErrors.depositedAmount && <p className="mt-1 text-sm text-red-600">{fieldErrors.depositedAmount}</p>}
                         </div>
                         {/* Other Dues */}
                         <div>
                             <label htmlFor="otherDues" className="block text-sm font-bold text-gray-700 mb-2">Other Dues (PKR)</label>
                             <input inputMode="numeric" pattern="\d*" type="text" id="otherDues" name="otherDues" value={student.otherDues} onChange={handleChange} readOnly={isViewMode || isSelfStudent} className={`mt-1 block w-full px-4 py-2 bg-white border-2 border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-500 transition duration-200 sm:text-sm ${(isViewMode || isSelfStudent) ? 'bg-gray-50' : 'hover:border-gray-300'}`} />
-                            {fieldErrors.otherDues && <p className="mt-1 text-sm text-red-600">{fieldErrors.otherDues}</p>}
                             {fieldErrors.otherDues && <p className="mt-1 text-sm text-red-600">{fieldErrors.otherDues}</p>}
                         </div>
                 </div>
@@ -1156,7 +1264,7 @@ const StudentForm = ({ editingStudent, fetchStudents, onClose, isViewMode = fals
                             isViewMode={isViewMode}
                         />
 
-                        {/* Previous Class Result (Conditional for Class >= 9) */}
+                        {/* Previous Class Result (Conditional) */}
                         {showPreviousClassResultField && (
                             <FileInputWithPreview
                                 label="Previous Class Result"
@@ -1170,7 +1278,7 @@ const StudentForm = ({ editingStudent, fetchStudents, onClose, isViewMode = fals
                             />
                         )}
 
-                        {/* Class 10 & 12 Results (Conditional for BS Students) */}
+                        {/* BS Result Fields (Conditional) */}
                         {showBsResultsFields && (
                             <>
                                 <FileInputWithPreview
@@ -1197,76 +1305,75 @@ const StudentForm = ({ editingStudent, fetchStudents, onClose, isViewMode = fals
                         )}
                 </div>
 
-                {/* Review step content */}
-                {!isViewMode && (
-                    <div className={`${currentStep === 3 ? 'grid grid-cols-1 gap-4 md:gap-6 border-t pt-6 mt-4 border-gray-200 animate-fade-in' : 'hidden'}`}>
-                        <h3 className={`text-xl font-bold ${currentTheme?.heroTitle || 'text-emerald-700'} mb-4`}>Review Your Details</h3>
-                        <div className={`${currentTheme?.panelBg || 'bg-emerald-50'} ${currentTheme?.border || 'border border-green-200'} ${currentTheme?.shadow || 'shadow-sm'} rounded-xl p-6 grid sm:grid-cols-2 gap-4`}>
-                            <div className="flex justify-between"><span className="text-gray-600 font-medium">Name:</span> <span className="font-semibold text-gray-900">{student.name}</span></div>
-                            <div className="flex justify-between"><span className="text-gray-600 font-medium">Father Name:</span> <span className="font-semibold text-gray-900">{student.fatherName}</span></div>
-                            <div className="flex justify-between"><span className="text-gray-600 font-medium">CNIC:</span> <span className="font-semibold text-gray-900">{student.cnic}</span></div>
-                            {student.rollNumber && (
-                                <div className="flex justify-between"><span className="text-gray-600 font-medium">Roll Number:</span> <span className="font-semibold text-gray-900">{student.rollNumber}</span></div>
-                            )}
-                            <div className="flex justify-between"><span className="text-gray-600 font-medium">Gender:</span> <span className="font-semibold text-gray-900">{student.gender}</span></div>
-                            <div className="flex justify-between"><span className="text-gray-600 font-medium">Guardian Contact:</span> <span className="font-semibold text-gray-900">{student.guardianContact}</span></div>
-                            <div className="flex justify-between"><span className="text-gray-600 font-medium">Address:</span> <span className="font-semibold text-gray-900">{student.address}</span></div>
-                            <div className="flex justify-between"><span className="text-gray-600 font-medium">Class Type:</span> <span className="font-semibold text-green-700">{student.class}</span></div>
-                            {student.class === 'Class' && <div className="flex justify-between"><span className="text-gray-600 font-medium">Class Number:</span> <span className="font-semibold text-gray-900">{student.classNumber}</span></div>}
-                            {student.class === 'BS' && <div className="flex justify-between"><span className="text-gray-600 font-medium">Degree/Semester:</span> <span className="font-semibold text-gray-900">{student.degreeName} · {student.semester}</span></div>}
-                            <div className="flex justify-between"><span className="text-gray-600 font-medium">Fee/Month:</span> <span className="font-semibold text-green-700">PKR {student.feePerMonth}</span></div>
+                {/* Review Step */}
+                <div className={`${currentStep === 3 || isViewMode ? 'space-y-6 mb-6 animate-fade-in' : 'hidden'}`}>
+                    {isViewMode ? (
+                        <div className="flex justify-end">
+                            <button type="button" onClick={handleDownloadPdf} className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition shadow-md">
+                                <ArrowDownTrayIcon className="h-5 w-5" /> Download PDF
+                            </button>
                         </div>
-                        <p className="text-gray-600 text-sm italic">Please verify all information above before submitting.</p>
-                    </div>
-                )}
-            </form>
+                    ) : (
+                        <div className={`p-6 rounded-xl ${currentTheme?.panelBg || 'bg-green-50'} border ${currentTheme?.panelBorder || 'border-green-200'}`}>
+                            <h3 className={`text-lg font-bold mb-4 ${currentTheme?.heroTitle || 'text-green-800'}`}>Review Your Information</h3>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                                <div><span className="font-semibold text-gray-600">Name:</span> <span>{student.name || '—'}</span></div>
+                                <div><span className="font-semibold text-gray-600">Father Name:</span> <span>{student.fatherName || '—'}</span></div>
+                                <div><span className="font-semibold text-gray-600">CNIC:</span> <span>{student.cnic || '—'}</span></div>
+                                <div><span className="font-semibold text-gray-600">Gender:</span> <span>{student.gender || '—'}</span></div>
+                                <div><span className="font-semibold text-gray-600">Date of Birth:</span> <span>{student.dob || '—'}</span></div>
+                                <div><span className="font-semibold text-gray-600">Admission Date:</span> <span>{student.admissionDate || '—'}</span></div>
+                                <div><span className="font-semibold text-gray-600">Class Type:</span> <span>{student.class || '—'}</span></div>
+                                <div><span className="font-semibold text-gray-600">Class/Degree:</span> <span>{student.classNumber || student.degreeName || '—'}</span></div>
+                                <div><span className="font-semibold text-gray-600">Fee/Month:</span> <span className="font-bold text-green-700">PKR {parseInt(student.feePerMonth || 0).toLocaleString()}</span></div>
+                                <div><span className="font-semibold text-gray-600">Discount:</span> <span>{student.feeDiscount || 0}%</span></div>
+                                {feePerMonthNum > 0 && (
+                                    <div className="sm:col-span-2 p-3 bg-white rounded-lg border border-green-200">
+                                        <span className="font-semibold text-gray-600">Effective Monthly Fee after Discount: </span>
+                                        <span className="font-bold text-lg text-green-700">PKR {effectiveFee.toLocaleString()}</span>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                </div>
 
-            {/* Footer Section (fixed at bottom) */}
-            <div className={`mt-auto pt-6 border-t border-gray-200 flex flex-col sm:flex-row justify-between sm:justify-end space-y-3 sm:space-y-0 sm:space-x-3 flex-shrink-0 ${currentTheme?.cardBg || 'bg-white'} px-4 -mx-4 -mb-4 rounded-b-2xl py-4`}>
-                {isViewMode ? (
-                    <>
+                {/* Navigation buttons */}
+                {!isViewMode && (
+                    <div className="flex-shrink-0 flex justify-between items-center pt-4 mt-auto border-t border-gray-200">
                         <button
                             type="button"
-                            onClick={handleDownloadPdf}
-                            className={`flex items-center justify-center px-8 py-2 rounded-lg font-semibold ${currentTheme.btnPrimaryBg || 'bg-emerald-600'} ${currentTheme.btnPrimaryHover || 'hover:bg-emerald-700'} ${currentTheme.btnPrimaryText || 'text-white'} ${currentTheme.btnPrimaryBorder || 'border border-emerald-700'} ${currentTheme?.shadow || 'shadow-md'} transition duration-300 active:scale-95`}
-                            title="Download Student Details as PDF"
+                            onClick={goPrev}
+                            disabled={currentStep === 0}
+                            className={`px-6 py-2 rounded-lg font-semibold text-sm transition duration-200 ${currentStep === 0 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
                         >
-                            <ArrowDownTrayIcon className="h-5 w-5 mr-2" />
-                            Download PDF
+                            Back
                         </button>
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className={`px-6 py-2 rounded-lg font-semibold ${currentTheme.btnSecondaryBg || 'bg-white'} ${currentTheme.btnSecondaryText || 'text-gray-700'} ${currentTheme.btnSecondaryBorder || 'border border-gray-200'} ${currentTheme.btnSecondaryHover || 'hover:bg-gray-50'} ${currentTheme?.shadow || 'shadow-sm'} transition duration-300 active:scale-95`}
-                        >
-                            Close
-                        </button>
-                    </>
-                ) : (
-                    <>
-                        <div className="flex gap-3 items-center">
-                            {currentStep > 0 && (
-                                <button type="button" onClick={goPrev} className={`px-6 py-2 rounded-lg font-semibold ${currentTheme.btnSecondaryBg || 'bg-white'} ${currentTheme.btnSecondaryText || 'text-gray-700'} ${currentTheme.btnSecondaryBorder || 'border border-gray-200'} ${currentTheme.btnSecondaryHover || 'hover:bg-gray-50'} ${currentTheme?.shadow || 'shadow-sm'} transition duration-300 active:scale-95`}>
-                                    Back
-                                </button>
-                            )}
-                            {currentStep < steps.length - 1 && (
-                                <button type="button" onClick={goNext} className={`px-6 py-2 rounded-lg font-semibold ${currentTheme.btnPrimaryBg || 'bg-emerald-600'} ${currentTheme.btnPrimaryHover || 'hover:bg-emerald-700'} ${currentTheme.btnPrimaryText || 'text-white'} ${currentTheme.btnPrimaryBorder || 'border border-emerald-700'} ${currentTheme?.shadow || 'shadow-md'} transition duration-300 active:scale-95`}>
+                        <div className="flex gap-3">
+                            <button type="button" onClick={onClose} className="px-6 py-2 rounded-lg font-semibold text-sm bg-gray-100 text-gray-700 hover:bg-gray-200 transition duration-200">
+                                Cancel
+                            </button>
+                            {currentStep < steps.length - 1 ? (
+                                <button
+                                    type="button"
+                                    onClick={goNext}
+                                    className={`px-6 py-2 rounded-lg font-bold text-sm transition duration-200 ${currentTheme?.btnPrimaryBg || 'bg-green-600'} ${currentTheme?.btnPrimaryText || 'text-white'} ${currentTheme?.btnPrimaryHover || 'hover:bg-green-700'} shadow-md`}
+                                >
                                     Next
                                 </button>
-                            )}
-                            {currentStep === steps.length - 1 && (
-                                <button type="submit" onClick={handleSubmit} className={`px-8 py-2 rounded-lg font-bold ${currentTheme.btnPrimaryBg || 'bg-emerald-600'} ${currentTheme.btnPrimaryHover || 'hover:bg-emerald-700'} ${currentTheme.btnPrimaryText || 'text-white'} ${currentTheme.btnPrimaryBorder || 'border border-emerald-700'} ${currentTheme?.shadow || 'shadow-md'} transition duration-300 active:scale-95`}>
+                            ) : (
+                                <button
+                                    type="submit"
+                                    disabled={!isEditAllowed}
+                                    className={`px-6 py-2 rounded-lg font-bold text-sm transition duration-200 ${currentTheme?.btnPrimaryBg || 'bg-green-600'} ${currentTheme?.btnPrimaryText || 'text-white'} ${currentTheme?.btnPrimaryHover || 'hover:bg-green-700'} shadow-md disabled:opacity-50 disabled:cursor-not-allowed`}
+                                >
                                     {editingStudent ? 'Update Student' : 'Add Student'}
                                 </button>
                             )}
                         </div>
-                        <button type="button" onClick={onClose} className={`px-6 py-2 rounded-lg font-semibold ${currentTheme.btnSecondaryBg || 'bg-white'} ${currentTheme.btnSecondaryText || 'text-gray-700'} ${currentTheme.btnSecondaryBorder || 'border border-gray-200'} ${currentTheme.btnSecondaryHover || 'hover:bg-gray-50'} ${currentTheme?.shadow || 'shadow-sm'} transition duration-300 active:scale-95`}>
-                            Cancel
-                        </button>
-                    </>
+                    </div>
                 )}
-            </div>
+            </form>
         </div>
     );
 };

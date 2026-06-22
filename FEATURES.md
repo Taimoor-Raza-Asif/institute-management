@@ -1,7 +1,10 @@
 # Jamia Tul Mastwaar - Institute Management System
 
 ## Project Overview
-A comprehensive web-based management system for Jamia Tul Mastwaar (Makhdoom Pur Sharif, Chakwal), designed to streamline administrative operations, student management, financial tracking, and academic monitoring.
+A **Vertical ERP for Educational Institutions** - A comprehensive web-based management system for Jamia Tul Mastwaar (Makhdoom Pur Sharif, Chakwal), designed to streamline administrative operations, student management, financial tracking, and academic monitoring.
+
+### System Classification
+**Small-to-Medium Educational ERP** - Purpose-built specifically for Islamic educational institutions (Madrasah), featuring specialized modules for student management, Islamic education tracking, financial operations, and staff administration.
 
 ---
 
@@ -794,54 +797,6 @@ A comprehensive web-based management system for Jamia Tul Mastwaar (Makhdoom Pur
 
 ---
 
-## Future Enhancement Opportunities
-
-1. **SMS/Email Notifications**
-   - Fee reminders
-   - Leave approval notifications
-   - Attendance alerts
-   - Exam schedules
-
-2. **Mobile Application**
-   - Native iOS/Android apps
-   - Push notifications
-   - Offline support
-
-3. **Advanced Analytics**
-   - Predictive analytics
-   - Student performance forecasting
-   - Financial forecasting
-   - Attendance prediction
-
-4. **Parent Portal**
-   - View student progress
-   - Fee payment
-   - Communication with teachers
-   - Attendance monitoring
-
-5. **Exam Management**
-   - Exam scheduling
-   - Question bank
-   - Online exams
-   - Result processing
-
-6. **Library Management**
-   - Book inventory
-   - Issue/Return tracking
-   - Fine management
-
-7. **Transport Management**
-   - Route planning
-   - Vehicle tracking
-   - Fee collection
-
-8. **Hostel Management**
-   - Room allocation
-   - Mess management
-   - Attendance tracking
-
----
-
 ## Technical Features
 
 ### Performance
@@ -893,28 +848,24 @@ A comprehensive web-based management system for Jamia Tul Mastwaar (Makhdoom Pur
 ### Security
 - Environment-based configs
 - Secure file uploads
-- Rate limiting (future)
 - Input validation
-- SQL injection prevention
+- CSRF protection
+- Password encryption with bcryptjs
 
 ---
 
-## Documentation & Support
+## Documentation
 
 ### Code Documentation
 - Inline comments
 - Function descriptions
 - API documentation
 - Component documentation
-
-### User Guides (Future)
-- Admin manual
-- Teacher guide
-- Student handbook
-- Accountant guide
+- Deployment guide (see DEPLOYMENT_GUIDE.md)
 
 ---
 
-**Last Updated:** December 21, 2025  
+**Last Updated:** June 20, 2026  
 **Version:** 1.0  
-**Institute:** Jamia Tul Mastwaar, Makhdoom Pur Sharif, Chakwal
+**Institute:** Jamia Tul Mastwaar, Makhdoom Pur Sharif, Chakwal  
+**System Type:** Vertical ERP for Educational Institutions

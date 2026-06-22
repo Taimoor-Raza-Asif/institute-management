@@ -27,7 +27,7 @@ const handleProfilePictureUpload = (file, existingUrlFromReqBody, oldUrlFromDb) 
 export const createStaff = async (req, res) => {
   try {
     const {
-      name, fatherName, gender, dateOfBirth, staffType, contactNumber, email, address, dateOfJoining, salary,
+      name, fatherName, gender, dateOfBirth, staffType, contactNumber, email, address, dateOfJoining, salary, startingSalary,
       highestEducationLevel, degrees, subjectsTaught, emergencyContact, bankAccountDetails, cnic, assignClasses
     } = req.body;
 
@@ -51,6 +51,7 @@ export const createStaff = async (req, res) => {
       address,
       dateOfJoining: new Date(dateOfJoining),
       salary: parseFloat(salary),
+      startingSalary: startingSalary !== undefined && startingSalary !== '' ? parseFloat(startingSalary) : parseFloat(salary),
       profilePictureUrl,
       highestEducationLevel,
       degrees: degrees ? JSON.parse(degrees) : [],
@@ -193,7 +194,7 @@ export const updateStaff = async (req, res) => {
   try {
     const { id } = req.params;
     const {
-      name, fatherName, gender, dateOfBirth, staffType, contactNumber, email, address, dateOfJoining, salary,
+      name, fatherName, gender, dateOfBirth, staffType, contactNumber, email, address, dateOfJoining, salary, startingSalary,
       highestEducationLevel, degrees, subjectsTaught, emergencyContact, bankAccountDetails, cnic, assignClasses,
       profilePictureUrl: existingProfilePictureUrl
     } = req.body;
@@ -229,6 +230,7 @@ export const updateStaff = async (req, res) => {
     if (address !== undefined) updateFields.address = address;
     if (dateOfJoining !== undefined) updateFields.dateOfJoining = new Date(dateOfJoining);
     if (salary !== undefined) updateFields.salary = parseFloat(salary);
+    if (startingSalary !== undefined) updateFields.startingSalary = startingSalary !== '' ? parseFloat(startingSalary) : null;
     if (highestEducationLevel !== undefined) updateFields.highestEducationLevel = highestEducationLevel;
     if (degrees !== undefined) updateFields.degrees = degrees ? JSON.parse(degrees) : [];
     if (subjectsTaught !== undefined) updateFields.subjectsTaught = subjectsTaught ? JSON.parse(subjectsTaught) : [];

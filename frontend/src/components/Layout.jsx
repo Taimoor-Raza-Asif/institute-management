@@ -8,7 +8,7 @@ import {
   BanknotesIcon, ChartBarIcon, PowerIcon, HomeIcon,
   ClipboardDocumentListIcon, CalendarDaysIcon, BookOpenIcon,
   Bars3Icon, XMarkIcon, ClockIcon, ClipboardDocumentCheckIcon, UserGroupIcon, WalletIcon,
-  ChevronDownIcon, PaintBrushIcon // Icon for theme selector
+  ChevronDownIcon, PaintBrushIcon, AdjustmentsHorizontalIcon, CreditCardIcon, HeartIcon, ReceiptRefundIcon, ReceiptPercentIcon
 } from '@heroicons/react/24/outline';
 
 
@@ -332,23 +332,38 @@ const Layout = ({ children, currentUser, onLogout }) => {
                           </NavLink>
                         </li>
                         <li>
+                          <NavLink to="/fee-structure" className={navClass} onClick={toggleSidebar}>
+                            <AdjustmentsHorizontalIcon className={`h-5 w-5 mr-3`} /> Fee Structure
+                          </NavLink>
+                        </li>
+                        <li>
+                          <NavLink to="/salary-structure" className={navClass} onClick={toggleSidebar}>
+                            <AdjustmentsHorizontalIcon className={`h-5 w-5 mr-3`} /> Salary Structure
+                          </NavLink>
+                        </li>
+                        <li>
                           <NavLink to="/salaries" className={navClass} onClick={toggleSidebar}>
-                            <BanknotesIcon className={`h-5 w-5 mr-3`} /> Salary Management
+                            <CreditCardIcon className={`h-5 w-5 mr-3`} /> Salary Management
                           </NavLink>
                         </li>
                         <li>
                           <NavLink to="/donations" className={navClass} onClick={toggleSidebar}>
-                            <BanknotesIcon className={`h-5 w-5 mr-3`} /> Donation Management
+                            <HeartIcon className={`h-5 w-5 mr-3`} /> Donation Management
                           </NavLink>
                         </li>
                         <li>
                           <NavLink to="/billing" className={navClass} onClick={toggleSidebar}>
-                            <BanknotesIcon className={`h-5 w-5 mr-3`} /> Bills Management
+                            <ReceiptRefundIcon className={`h-5 w-5 mr-3`} /> Bills Management
                           </NavLink>
                         </li>
                         <li>
                           <NavLink to="/financial-reports" className={navClass} onClick={toggleSidebar}>
                             <ChartBarIcon className={`h-5 w-5 mr-3`} /> Financial Reports
+                          </NavLink>
+                        </li>
+                        <li>
+                          <NavLink to="/discounted-students" className={navClass} onClick={toggleSidebar}>
+                            <ReceiptPercentIcon className={`h-5 w-5 mr-3`} /> Discounted Students
                           </NavLink>
                         </li>
 
@@ -581,23 +596,33 @@ const Layout = ({ children, currentUser, onLogout }) => {
                           </NavLink>
                         </li>
                         <li>
+                          <NavLink to="/salary-structure" className={navClass} onClick={toggleSidebar}>
+                            <AdjustmentsHorizontalIcon className={`h-5 w-5 mr-3`} /> Salary Structure
+                          </NavLink>
+                        </li>
+                        <li>
                           <NavLink to="/salaries" className={navClass} onClick={toggleSidebar}>
-                            <BanknotesIcon className={`h-5 w-5 mr-3`} /> Salary Management
+                            <CreditCardIcon className={`h-5 w-5 mr-3`} /> Salary Management
                           </NavLink>
                         </li>
                         <li>
                           <NavLink to="/billing" className={navClass} onClick={toggleSidebar}>
-                            <BanknotesIcon className={`h-5 w-5 mr-3`} /> Bill Management
+                            <ReceiptRefundIcon className={`h-5 w-5 mr-3`} /> Bill Management
                           </NavLink>
                         </li>
                         <li>
                           <NavLink to="/donations" className={navClass} onClick={toggleSidebar}>
-                            <BanknotesIcon className={`h-5 w-5 mr-3`} /> Donation Management
+                            <HeartIcon className={`h-5 w-5 mr-3`} /> Donation Management
                           </NavLink>
                         </li>
                         <li>
                           <NavLink to="/financial-reports" className={navClass} onClick={toggleSidebar}>
                             <ChartBarIcon className={`h-5 w-5 mr-3`} /> Financial Reports
+                          </NavLink>
+                        </li>
+                        <li>
+                          <NavLink to="/discounted-students" className={navClass} onClick={toggleSidebar}>
+                            <ReceiptPercentIcon className={`h-5 w-5 mr-3`} /> Discounted Students
                           </NavLink>
                         </li>
                       </ul>

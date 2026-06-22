@@ -66,6 +66,7 @@ const staffSchema = new mongoose.Schema({
     address: { type: String, required: true, trim: true },
     dateOfJoining: { type: Date, required: true },
     salary: { type: Number, required: true, min: 0 },
+    startingSalary: { type: Number, min: 0, default: null },
     profilePictureUrl: { type: String, default: '' }, // Similar to student profile picture
 
     // Education Details

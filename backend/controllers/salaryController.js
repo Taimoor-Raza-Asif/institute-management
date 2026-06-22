@@ -5,6 +5,36 @@ import Staff from '../models/Staff.js';
 import User from '../models/User.js';
 import { sendSalarySlipEmail } from '../utils/salaryMailer.js';
 
+// Helper to calculate exact service time in years, months, and days
+const calculateServiceTime = (joiningDate, referenceDate = new Date()) => {
+  if (!joiningDate) return { years: 0, months: 0, days: 0 };
+  
+  const start = new Date(joiningDate);
+  const end = new Date(referenceDate);
+  
+  if (end < start) {
+    return { years: 0, months: 0, days: 0 };
+  }
+
+  let years = end.getFullYear() - start.getFullYear();
+  let months = end.getMonth() - start.getMonth();
+  let days = end.getDate() - start.getDate();
+
+  if (days < 0) {
+    months--;
+    const prevMonth = new Date(end.getFullYear(), end.getMonth(), 0);
+    days += prevMonth.getDate();
+  }
+
+  if (months < 0) {
+    years--;
+    months += 12;
+  }
+
+  return { years, months, days };
+};
+
+
 // @desc    Get a list of staff members for salary management
 // @route   GET /api/salary/staff
 // @access  Private/Admin
@@ -68,7 +98,7 @@ const createOrUpdateSalary = asyncHandler(async (req, res) => {
   }
 
   // Find the staff member to get their details, including salary and role
-  const staffMember = await Staff.findById(staffId).select('name cnic staffType salary dateOfJoining').lean();
+  const staffMember = await Staff.findById(staffId).select('name cnic staffType salary dateOfJoining startingSalary').lean();
   if (!staffMember) {
     res.status(404);
     throw new Error('Staff member not found');
@@ -84,6 +114,11 @@ const createOrUpdateSalary = asyncHandler(async (req, res) => {
 
   // status: status || 'Unpaid',
 
+  // Calculate service time
+  const serviceTime = calculateServiceTime(staffMember.dateOfJoining);
+
+  let startingSalary = staffMember.startingSalary !== undefined && staffMember.startingSalary !== null ? staffMember.startingSalary : staffMember.salary;
+
   // Use the salary from the staffMember record
   const salaryDetails = {
     staff: staffId,
@@ -92,6 +127,10 @@ const createOrUpdateSalary = asyncHandler(async (req, res) => {
     staffRole: staffMember.staffType.toLocaleLowerCase(),
     salaryPerMonth: staffMember.salary, // Use the salary from the staff record
     staffJoiningDate: staffMember.dateOfJoining || null,
+    serviceTimeYears: serviceTime.years,
+    serviceTimeMonths: serviceTime.months,
+    serviceTimeDays: serviceTime.days,
+    startingSalary: startingSalary,
     month,
     year,
     paidAmount: paidAmount || 0,
@@ -174,7 +213,7 @@ const getAllSalaries = asyncHandler(async (req, res) => {
 
   const salaries = await Salary.find(filter)
     .sort({ createdAt: -1 })
-    .populate('staff', 'profilePictureUrl dateOfJoining')
+    .populate('staff', 'profilePictureUrl dateOfJoining startingSalary salary')
     .lean();
 
   // Map the populated staff field to the main salary object
@@ -182,7 +221,11 @@ const getAllSalaries = asyncHandler(async (req, res) => {
     ...salary,
     profilePictureUrl: salary.staff?.profilePictureUrl || '',
     // Use saved value first; fall back to live staff record for older salary entries
-    staffJoiningDate: salary.staffJoiningDate || salary.staff?.dateOfJoining || null
+    staffJoiningDate: salary.staffJoiningDate || salary.staff?.dateOfJoining || null,
+    // Use live staff startingSalary if available, else fall back to snapshot startingSalary
+    startingSalary: salary.staff?.startingSalary !== undefined && salary.staff?.startingSalary !== null
+      ? salary.staff.startingSalary
+      : (salary.startingSalary || salary.staff?.salary || salary.salaryPerMonth)
   }));
 
   res.json(salariesWithProfile);
@@ -211,16 +254,25 @@ const getAllSalaries = asyncHandler(async (req, res) => {
 // @route   GET /api/salary/my-salaries
 // @access  Private/Staff
 const getMySalaries = asyncHandler(async (req, res) => {
-  // const currentUserAttached = req.user.profileId;
-  // console.log(`currentUserAttached ${currentUserAttached}`);
-  // console.log(`currentUser ${req.user._id}`);
   const staff = req.user.profileId;
   if (!staff) {
     res.status(404);
     throw new Error('Staff profile not found');
   }
-  const mySalaries = await Salary.find({ staff: staff._id }).sort({ year: -1, month: -1 }).lean();
-  res.json(mySalaries);
+  const mySalaries = await Salary.find({ staff: staff._id || staff })
+    .sort({ year: -1, month: -1 })
+    .populate('staff', 'profilePictureUrl dateOfJoining startingSalary salary')
+    .lean();
+
+  const mappedSalaries = mySalaries.map(salary => ({
+    ...salary,
+    startingSalary: salary.staff?.startingSalary !== undefined && salary.staff?.startingSalary !== null
+      ? salary.staff.startingSalary
+      : (salary.startingSalary || salary.staff?.salary || salary.salaryPerMonth),
+    staffJoiningDate: salary.staffJoiningDate || salary.staff?.dateOfJoining || null
+  }));
+
+  res.json(mappedSalaries);
 });
 
 
@@ -229,13 +281,22 @@ const getMySalaries = asyncHandler(async (req, res) => {
 // @route   GET /api/salary/:id
 // @access  Private/Admin, Staff
 const getSalaryById = asyncHandler(async (req, res) => {
-  const salary = await Salary.findById(req.params.id);
+  const salary = await Salary.findById(req.params.id)
+    .populate('staff', 'profilePictureUrl dateOfJoining startingSalary salary')
+    .lean();
 
   if (salary) {
     // Check if user is an admin OR the staff member to whom the salary belongs
     const staff = await Staff.findOne({ user: req.user._id });
-    if ((req.user.role === 'admin') || (req.user.role === 'accountant') || (staff && salary.staff.equals(staff._id))) {
-      res.json(salary);
+    if ((req.user.role === 'admin') || (req.user.role === 'accountant') || (staff && (salary.staff?._id || salary.staff).toString() === staff._id.toString())) {
+      const mappedSalary = {
+        ...salary,
+        startingSalary: salary.staff?.startingSalary !== undefined && salary.staff?.startingSalary !== null
+          ? salary.staff.startingSalary
+          : (salary.startingSalary || salary.staff?.salary || salary.salaryPerMonth),
+        staffJoiningDate: salary.staffJoiningDate || salary.staff?.dateOfJoining || null
+      };
+      res.json(mappedSalary);
     } else {
       res.status(403);
       throw new Error('Not authorized to view this salary record');
@@ -326,8 +387,13 @@ const bulkCreateSalaries = asyncHandler(async (req, res) => {
   // Prepare salary records
   const preparedSalaries = await Promise.all(
     salaries.map(async (salary) => {
-      const staff = await Staff.findById(salary.staffId).select('name cnic staffType salary').lean();
+      const staff = await Staff.findById(salary.staffId).select('name cnic staffType salary dateOfJoining startingSalary').lean();
       if (!staff) throw new Error(`Staff member with ID ${salary.staffId} not found`);
+
+      // Calculate service time
+      const serviceTime = calculateServiceTime(staff.dateOfJoining);
+
+      const startingSalary = staff.startingSalary !== undefined && staff.startingSalary !== null ? staff.startingSalary : staff.salary;
 
       return {
         staff: salary.staffId,
@@ -335,12 +401,17 @@ const bulkCreateSalaries = asyncHandler(async (req, res) => {
         staffCnic: staff.cnic,
         staffRole: staff.staffType.toLowerCase(),
         salaryPerMonth: staff.salary,
+        staffJoiningDate: staff.dateOfJoining || null,
+        serviceTimeYears: serviceTime.years,
+        serviceTimeMonths: serviceTime.months,
+        serviceTimeDays: serviceTime.days,
+        startingSalary: startingSalary,
         month: salary.month,
         year: salary.year,
         paidAmount: salary.paidAmount || 0,
         paidAs: salary.paidAs || 'Cash',
         paidBy: req.user._id,
-        paidByName: paidBy.name,
+        paidByName: paidByName,
         bonus: salary.bonus || 0,
         overtime: salary.overtime || 0,
         paidAt: new Date(),

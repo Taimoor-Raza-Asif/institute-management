@@ -115,7 +115,7 @@ export const updateStudent = async (req, res) => {
     const {
       name, fatherName, rollNumber, cnic, address, guardianContact, additionalContact,
       dob, gender, email, admissionDate, class: studentClass, classNumber,
-      majorSubject, degreeName, semester, feePerMonth, studentStatus, depositedAmount, otherDues,
+      majorSubject, degreeName, semester, feePerMonth, feeDiscount, studentStatus, depositedAmount, otherDues,
       reason, currentJuz, currentSurah,
       profilePictureUrl: existingProfilePictureUrl,
       cnicFrontUrl: existingCnicFrontUrl,
@@ -169,6 +169,16 @@ export const updateStudent = async (req, res) => {
     // --- Academic & Financial Fields ---
     if (studentClass !== undefined) updateFields.class = studentClass;
     if (feePerMonth !== undefined) updateFields.feePerMonth = parseFloat(feePerMonth);
+    if (feeDiscount !== undefined) {
+      updateFields.feeDiscount = parseFloat(feeDiscount);
+      if (updateFields.feeDiscount === 100) {
+        updateFields.feeStatus = 'Paid';
+      } else if (currentStudent.feeDiscount === 100 && updateFields.feeDiscount !== 100) {
+        // If discount was 100 but changed, we should ideally recompute, but defaulting to Unpaid is safer
+        // Actually, let fee record logic handle it, or just set to Unpaid for now.
+        updateFields.feeStatus = 'Unpaid';
+      }
+    }
     if (depositedAmount !== undefined) updateFields.depositedAmount = depositedAmount;
     if (otherDues !== undefined) updateFields.otherDues = otherDues;
 
@@ -547,7 +557,7 @@ export const createStudent = async (req, res) => {
     const {
       name, fatherName, rollNumber, cnic, address, guardianContact, additionalContact,
       dob, gender, email, admissionDate, class: studentClass, classNumber,
-      majorSubject, degreeName, semester, feePerMonth, studentStatus, depositedAmount, otherDues,
+      majorSubject, degreeName, semester, feePerMonth, feeDiscount, studentStatus, depositedAmount, otherDues,
       reason, currentJuz, currentSurah
     } = req.body;
 
@@ -581,6 +591,8 @@ export const createStudent = async (req, res) => {
       class: studentClass, //
       studentStatus, //
       feePerMonth: parseFloat(feePerMonth), //
+      feeDiscount: parseFloat(feeDiscount) || 0, //
+      feeStatus: parseFloat(feeDiscount) === 100 ? 'Paid' : 'Unpaid', //
       reason: (studentStatus === 'Expelled' || studentStatus === 'Withdrawn') ? reason : undefined, //
       depositedAmount: depositedAmount || 0, //
       otherDues: otherDues || 0, //

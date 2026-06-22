@@ -105,13 +105,25 @@ const FeeForm = ({ editingFee, fetchFees, studentsForForm, onClose, isViewMode =
     if (fee.studentId && studentsForForm.length > 0) {
       const selectedStudent = studentsForForm.find(s => s._id === fee.studentId);
       if (selectedStudent) {
+        const baseFee = selectedStudent.feePerMonth || 0;
+        const discount = selectedStudent.feeDiscount || 0;
+        const effectiveFee = Math.max(0, baseFee - (baseFee * (discount / 100)));
+        const isFullDiscount = discount === 100;
+
         setFee(prev => ({
           ...prev,
-          totalFee: selectedStudent.feePerMonth !== undefined ? selectedStudent.feePerMonth.toString() : ''
+          totalFee: effectiveFee.toString(),
+          // For 100% discount students, auto-set payment info
+          ...(isFullDiscount && !editingFee ? {
+            paidBy: 'N/A (100% Discount)',
+            receivedBy: 'System',
+            receivedAmount: '0',
+            paymentMethod: 'Auto',
+          } : {}),
         }));
         setStudentDepositedAmount(selectedStudent.depositedAmount || 0);
         setStudentOtherDues(selectedStudent.otherDues || 0);
-        setStudentAdmissionFeeStatus(selectedStudent.admissionFeeStatus); 
+        setStudentAdmissionFeeStatus(selectedStudent.admissionFeeStatus);
         setStudentQuery(`${selectedStudent.name} (${selectedStudent.cnic})`);
       } else {
         setFee(prev => ({ ...prev, totalFee: '' }));
@@ -282,21 +294,36 @@ const FeeForm = ({ editingFee, fetchFees, studentsForForm, onClose, isViewMode =
       setFormError('You are not authorized to add fee records.');
       return;
     }
+    // Detect 100% discount student
+    const selectedStudent = studentsForForm.find(s => s._id === fee.studentId);
+    const isFullDiscount = selectedStudent?.feeDiscount === 100;
+
     // Form validation
-    if (!fee.studentId || !fee.paidBy || !fee.receivedAmount || !fee.month || !fee.year || !fee.receivedDate || !fee.receivedBy || !fee.paymentMethod) {
-      setFormError('Please fill in all required fields (Student, Paid By, Received Amount, Month, Year, Received Date, Received By, Payment Method).');
+    if (!fee.studentId || !fee.month || !fee.year || !fee.receivedDate || !fee.paymentMethod) {
+      setFormError('Please fill in all required fields (Student, Month, Year, Received Date, Payment Method).');
       return;
     }
-    if (!/^\d+$/.test(String(fee.totalFee || '')) || parseInt(fee.totalFee || '0', 10) <= 0) {
+    // For non-discount students require paidBy, receivedBy, receivedAmount
+    if (!isFullDiscount && (!fee.paidBy || !fee.receivedBy)) {
+      setFormError('Please fill in Paid By and Received By fields.');
+      return;
+    }
+    // totalFee: allow 0 for 100% discount students, else must be positive
+    const totalFeeNum = parseInt(fee.totalFee ?? '0', 10);
+    if (!isFullDiscount && (!/^\d+$/.test(String(fee.totalFee || '')) || totalFeeNum <= 0)) {
       setFormError('Total Fee must be a positive whole number (auto-populated based on student). Please select a student with a valid fee.');
       return;
     }
-    if (!/^\d+$/.test(String(fee.receivedAmount || '')) || parseInt(fee.receivedAmount || '0', 10) < 0) {
+    if (isFullDiscount && totalFeeNum !== 0) {
+      setFormError('Total Fee should be 0 for students with 100% discount.');
+      return;
+    }
+    if (!/^\d+$/.test(String(fee.receivedAmount ?? '0')) || parseInt(fee.receivedAmount ?? '0', 10) < 0) {
       setFormError('Received Amount must be a non-negative whole number.');
       return;
     }
-    // Validation: Prevent receivedAmount from exceeding totalFee for non-Deposited Cash methods
-    if (fee.paymentMethod !== 'Deposited Cash' && !fee.admissionFee>0 && parseFloat(fee.receivedAmount) > parseFloat(fee.totalFee)) {
+    // Validation: Prevent receivedAmount from exceeding totalFee for non-Deposited Cash, non-discount methods
+    if (!isFullDiscount && fee.paymentMethod !== 'Deposited Cash' && !fee.admissionFee>0 && parseFloat(fee.receivedAmount) > parseFloat(fee.totalFee)) {
       setFormError('Received Amount cannot be greater than Total Fee for this payment method.');
       return;
     }

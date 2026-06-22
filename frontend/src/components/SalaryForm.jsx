@@ -26,6 +26,11 @@ const SalaryForm = ({ salaryToEdit, isViewMode, onAdd, onEdit, onClose }) => {
     const [advancedSalary, setAdvancedSalary] = useState(0);
     const [deduction, setDeduction] = useState(0);
     const [sendEmail, setSendEmail] = useState(false);  // email opt-in for updates
+    const [startingSalary, setStartingSalary] = useState('');
+    const [serviceTimeYears, setServiceTimeYears] = useState(0);
+    const [serviceTimeMonths, setServiceTimeMonths] = useState(0);
+    const [serviceTimeDays, setServiceTimeDays] = useState(0);
+    const [staffJoiningDate, setStaffJoiningDate] = useState(null);
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -34,6 +39,14 @@ const SalaryForm = ({ salaryToEdit, isViewMode, onAdd, onEdit, onClose }) => {
     const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
     const years = [...Array(10).keys()].map(i => new Date().getFullYear() - i);
     const salaryStatuses = ['Paid', 'Unpaid', 'Partial Paid'];
+
+    const getServiceTimeStr = () => {
+        const parts = [];
+        if (serviceTimeYears > 0) parts.push(`${serviceTimeYears} year${serviceTimeYears > 1 ? 's' : ''}`);
+        if (serviceTimeMonths > 0) parts.push(`${serviceTimeMonths} month${serviceTimeMonths > 1 ? 's' : ''}`);
+        if (serviceTimeDays > 0) parts.push(`${serviceTimeDays} day${serviceTimeDays > 1 ? 's' : ''}`);
+        return parts.join(', ') || '0 days';
+    };
 
     useEffect(() => {
         const fetchStaff = async () => {
@@ -72,6 +85,11 @@ const SalaryForm = ({ salaryToEdit, isViewMode, onAdd, onEdit, onClose }) => {
                     setOvertime(data.overtime);
                     setAdvancedSalary(data.advancedSalary);
                     setDeduction(data.deduction || 0);
+                    setStartingSalary(data.startingSalary || data.salaryPerMonth);
+                    setServiceTimeYears(data.serviceTimeYears || 0);
+                    setServiceTimeMonths(data.serviceTimeMonths || 0);
+                    setServiceTimeDays(data.serviceTimeDays || 0);
+                    setStaffJoiningDate(data.staffJoiningDate || null);
                 } catch (err) {
                     setError(err.response?.data?.message || 'Failed to fetch salary details.');
                 } finally {
@@ -91,6 +109,11 @@ const SalaryForm = ({ salaryToEdit, isViewMode, onAdd, onEdit, onClose }) => {
             setOvertime(salaryToEdit.overtime);
             setAdvancedSalary(salaryToEdit.advancedSalary);
             setDeduction(salaryToEdit.deduction || 0);
+            setStartingSalary(salaryToEdit.startingSalary || salaryToEdit.salaryPerMonth);
+            setServiceTimeYears(salaryToEdit.serviceTimeYears || 0);
+            setServiceTimeMonths(salaryToEdit.serviceTimeMonths || 0);
+            setServiceTimeDays(salaryToEdit.serviceTimeDays || 0);
+            setStaffJoiningDate(salaryToEdit.staffJoiningDate || null);
         }
     }, [id, salaryToEdit]);
 
@@ -263,6 +286,44 @@ const SalaryForm = ({ salaryToEdit, isViewMode, onAdd, onEdit, onClose }) => {
                                     <option value="Other">Other</option>
                                 </select>
                             </div>
+
+                            {(isViewMode || id || salaryToEdit) && (
+                                <>
+                                    <div className="space-y-1">
+                                        <label className={labelBase}>
+                                            <CalendarDaysIcon className="h-4 w-4 text-emerald-600" /> Date of Joining
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={staffJoiningDate ? new Date(staffJoiningDate).toLocaleDateString() : 'N/A'}
+                                            disabled
+                                            className={`${inputBase} bg-gray-100/80`}
+                                        />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className={labelBase}>
+                                            <ClockIcon className="h-4 w-4 text-emerald-600" /> Service Time
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={getServiceTimeStr()}
+                                            disabled
+                                            className={`${inputBase} bg-gray-100/80`}
+                                        />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className={labelBase}>
+                                            <CurrencyDollarIcon className="h-4 w-4 text-emerald-600" /> Starting Salary
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={startingSalary ? `PKR ${parseFloat(startingSalary).toLocaleString()}` : '—'}
+                                            disabled
+                                            className={`${inputBase} bg-gray-100/80`}
+                                        />
+                                    </div>
+                                </>
+                            )}
                         </div>
                     </div>
 

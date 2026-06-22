@@ -24,6 +24,7 @@ const StaffForm = ({ editingStaff, fetchStaff, onClose, isViewMode = false }) =>
     address: '',
     dateOfJoining: '',
     salary: '',
+    startingSalary: '',
     profilePictureUrl: '',
     highestEducationLevel: 'None',
     degrees: [], // Array of { degreeName, major, institution, yearCompleted }
@@ -44,7 +45,20 @@ const StaffForm = ({ editingStaff, fetchStaff, onClose, isViewMode = false }) =>
   const [currentUser, setCurrentUser] = useState(null);
   const [isSelfEdit, setIsSelfEdit] = useState(false);
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState(''); // State to hold the QR code data URL
+  const [salaryStructure, setSalaryStructure] = useState(null);
   const backendBaseUrl = 'http://localhost:5000';
+
+  useEffect(() => {
+    const fetchSalaryStructure = async () => {
+      try {
+        const { data } = await api.get('/salary-structure');
+        setSalaryStructure(data);
+      } catch (err) {
+        console.error('Failed to fetch salary structure:', err);
+      }
+    };
+    fetchSalaryStructure();
+  }, []);
 
   // Multi-step pagination
   const steps = ['Personal', 'Education', 'Additional', 'Review'];
@@ -56,7 +70,7 @@ const StaffForm = ({ editingStaff, fetchStaff, onClose, isViewMode = false }) =>
 
     if (stepIdx === 0) {
       // Personal step validation
-      ['name', 'gender', 'dateOfBirth', 'staffType', 'contactNumber', 'dateOfJoining', 'salary', 'address', 'email', 'cnic'].forEach((f) => {
+      ['name', 'gender', 'dateOfBirth', 'staffType', 'contactNumber', 'dateOfJoining', 'salary', 'startingSalary', 'address', 'email', 'cnic'].forEach((f) => {
         if (!staff[f]) { newFieldErrors[f] = 'This field is required.'; ok = false; }
       });
       if (!/^[\w.-]+@([\w-]+\.)+[\w-]{2,4}$/.test(staff.email || '')) {
@@ -67,6 +81,9 @@ const StaffForm = ({ editingStaff, fetchStaff, onClose, isViewMode = false }) =>
       }
       if (isNaN(parseFloat(staff.salary)) || parseFloat(staff.salary) <= 0) {
         newFieldErrors.salary = 'Salary must be a positive number.'; ok = false;
+      }
+      if (isNaN(parseFloat(staff.startingSalary)) || parseFloat(staff.startingSalary) <= 0) {
+        newFieldErrors.startingSalary = 'Starting salary must be a positive number.'; ok = false;
       }
     }
 
@@ -112,6 +129,7 @@ const StaffForm = ({ editingStaff, fetchStaff, onClose, isViewMode = false }) =>
         dateOfJoining: editingStaff.dateOfJoining ? new Date(editingStaff.dateOfJoining).toISOString().split('T')[0] : '',
         dateOfBirth: editingStaff.dateOfBirth ? new Date(editingStaff.dateOfBirth).toISOString().split('T')[0] : '',
         salary: editingStaff.salary !== undefined ? editingStaff.salary.toString() : '',
+        startingSalary: editingStaff.startingSalary !== undefined && editingStaff.startingSalary !== null ? editingStaff.startingSalary.toString() : (editingStaff.salary !== undefined ? editingStaff.salary.toString() : ''),
         // Ensure nested objects/arrays are correctly initialized
         degrees: editingStaff.degrees || [],
         subjectsTaught: editingStaff.subjectsTaught || [],
@@ -180,7 +198,7 @@ const StaffForm = ({ editingStaff, fetchStaff, onClose, isViewMode = false }) =>
       }));
     } else {
       // sanitize digit-only fields
-      const digitOnlyFields = ['cnic', 'contactNumber', 'emergencyContact', 'salary'];
+      const digitOnlyFields = ['cnic', 'contactNumber', 'emergencyContact', 'salary', 'startingSalary'];
       let newVal = value;
       if (digitOnlyFields.includes(name)) {
         newVal = String(value || '').replace(/\D/g, '');
@@ -189,7 +207,23 @@ const StaffForm = ({ editingStaff, fetchStaff, onClose, isViewMode = false }) =>
       if (name === 'cnic') newVal = newVal.slice(0, 13);
       if (name === 'contactNumber' || name === 'emergencyContact') newVal = newVal.slice(0, 11);
 
-      setStaff(prev => ({ ...prev, [name]: newVal }));
+      setStaff(prev => {
+        const updated = { ...prev, [name]: newVal };
+        if (name === 'salary' && !editingStaff) {
+          updated.startingSalary = newVal;
+        }
+        if (name === 'staffType' && !editingStaff && salaryStructure && salaryStructure.staffTypeRules) {
+          const rule = salaryStructure.staffTypeRules.find(r => r.staffType === newVal);
+          if (rule) {
+            updated.salary = rule.baseSalary !== undefined ? rule.baseSalary.toString() : '';
+            updated.startingSalary = rule.baseSalary !== undefined ? rule.baseSalary.toString() : '';
+          } else {
+            updated.salary = '';
+            updated.startingSalary = '';
+          }
+        }
+        return updated;
+      });
     }
     setFieldErrors(prev => ({ ...prev, [name]: '' })); // Clear error on change
     setFormError('');
@@ -254,7 +288,7 @@ const StaffForm = ({ editingStaff, fetchStaff, onClose, isViewMode = false }) =>
     let hasError = false;
 
     // Basic validation
-    const requiredFields = ['name', 'gender', 'dateOfBirth', 'staffType', 'contactNumber', 'address', 'dateOfJoining', 'salary', 'email', 'cnic'];
+    const requiredFields = ['name', 'gender', 'dateOfBirth', 'staffType', 'contactNumber', 'address', 'dateOfJoining', 'salary', 'startingSalary', 'email', 'cnic'];
     requiredFields.forEach(field => {
       if (!staff[field]) {
         newFieldErrors[field] = 'This field is required.';
@@ -280,6 +314,10 @@ const StaffForm = ({ editingStaff, fetchStaff, onClose, isViewMode = false }) =>
     }
     if (!/^\d+$/.test(String(staff.salary || '')) || parseInt(staff.salary || '0', 10) < 0) {
       newFieldErrors.salary = 'Salary must be a non-negative integer.';
+      hasError = true;
+    }
+    if (!/^\d+$/.test(String(staff.startingSalary || '')) || parseInt(staff.startingSalary || '0', 10) < 0) {
+      newFieldErrors.startingSalary = 'Starting salary must be a non-negative integer.';
       hasError = true;
     }
 
@@ -879,6 +917,24 @@ const StaffForm = ({ editingStaff, fetchStaff, onClose, isViewMode = false }) =>
                 {fieldErrors.salary && <p className="mt-1 text-sm text-red-600">{fieldErrors.salary}</p>}
               </div>
 
+              {/* Starting Salary */}
+              <div>
+                <label htmlFor="startingSalary" className="block text-sm font-bold text-gray-700 mb-2">Starting Salary (PKR)<span className="text-red-500">*</span></label>
+                <input 
+                  type="text" 
+                  inputMode="numeric"
+                  pattern="\d*"
+                  placeholder="e.g. 50000"
+                  id="startingSalary" 
+                  name="startingSalary" 
+                  value={staff.startingSalary} 
+                  onChange={handleChange} 
+                  readOnly={isViewMode} 
+                  className={`block w-full border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-400 focus:border-green-500 hover:border-gray-300 transition shadow-sm ${isViewMode ? 'bg-gray-50' : 'bg-white'}`}
+                />
+                {fieldErrors.startingSalary && <p className="mt-1 text-sm text-red-600">{fieldErrors.startingSalary}</p>}
+              </div>
+
               {/* Emergency Contact */}
               <div>
                 <label htmlFor="emergencyContact" className="block text-sm font-bold text-gray-700 mb-2">Emergency Contact</label>
@@ -1129,7 +1185,8 @@ const StaffForm = ({ editingStaff, fetchStaff, onClose, isViewMode = false }) =>
                   <p><span className="font-semibold text-gray-700">Contact:</span> <span className="text-gray-600">{staff.contactNumber || 'N/A'}</span></p>
                   <p><span className="font-semibold text-gray-700">Email:</span> <span className="text-gray-600">{staff.email || 'N/A'}</span></p>
                   <p><span className="font-semibold text-gray-700">Date of Joining:</span> <span className="text-gray-600">{staff.dateOfJoining || 'N/A'}</span></p>
-                  <p><span className="font-semibold text-gray-700">Salary:</span> <span className="text-gray-600">PKR {staff.salary || 'N/A'}</span></p>
+                   <p><span className="font-semibold text-gray-700">Salary:</span> <span className="text-gray-600">PKR {staff.salary || 'N/A'}</span></p>
+                  <p><span className="font-semibold text-gray-700">Starting Salary:</span> <span className="text-gray-600">PKR {staff.startingSalary || 'N/A'}</span></p>
                 </div>
               </div>
 

@@ -170,12 +170,13 @@ export const updateStudent = async (req, res) => {
     if (studentClass !== undefined) updateFields.class = studentClass;
     if (feePerMonth !== undefined) updateFields.feePerMonth = parseFloat(feePerMonth);
     if (feeDiscount !== undefined) {
-      updateFields.feeDiscount = parseFloat(feeDiscount);
+      // feeDiscount is sent as a PKR amount; convert to percentage for storage
+      const feePerMonthVal = feePerMonth !== undefined ? parseFloat(feePerMonth) : parseFloat(currentStudent.feePerMonth) || 0;
+      const discountAmt = parseFloat(feeDiscount) || 0;
+      updateFields.feeDiscount = feePerMonthVal > 0 ? Math.min(100, (discountAmt / feePerMonthVal) * 100) : 0;
       if (updateFields.feeDiscount === 100) {
         updateFields.feeStatus = 'Paid';
       } else if (currentStudent.feeDiscount === 100 && updateFields.feeDiscount !== 100) {
-        // If discount was 100 but changed, we should ideally recompute, but defaulting to Unpaid is safer
-        // Actually, let fee record logic handle it, or just set to Unpaid for now.
         updateFields.feeStatus = 'Unpaid';
       }
     }
@@ -591,8 +592,18 @@ export const createStudent = async (req, res) => {
       class: studentClass, //
       studentStatus, //
       feePerMonth: parseFloat(feePerMonth), //
-      feeDiscount: parseFloat(feeDiscount) || 0, //
-      feeStatus: parseFloat(feeDiscount) === 100 ? 'Paid' : 'Unpaid', //
+      // feeDiscount is sent as a PKR amount; convert to percentage for storage
+      feeDiscount: (() => {
+        const fee = parseFloat(feePerMonth) || 0;
+        const discAmt = parseFloat(feeDiscount) || 0;
+        return fee > 0 ? Math.min(100, (discAmt / fee) * 100) : 0;
+      })(),
+      feeStatus: (() => {
+        const fee = parseFloat(feePerMonth) || 0;
+        const discAmt = parseFloat(feeDiscount) || 0;
+        const pct = fee > 0 ? (discAmt / fee) * 100 : 0;
+        return pct >= 100 ? 'Paid' : 'Unpaid';
+      })(),
       reason: (studentStatus === 'Expelled' || studentStatus === 'Withdrawn') ? reason : undefined, //
       depositedAmount: depositedAmount || 0, //
       otherDues: otherDues || 0, //

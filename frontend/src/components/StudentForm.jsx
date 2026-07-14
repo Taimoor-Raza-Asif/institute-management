@@ -8,8 +8,52 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable'; // For better table generation in PDF
 import { resolveFileUrl } from '../utils/urlHelper.js';
 
-// NOTE: Hardcoded map is now redundant but kept here for the PDF function's original logic.
-// It will be phased out as the dynamic structure is fully integrated.
+// Helper component to render file input and preview
+// IMPORTANT: defined OUTSIDE StudentForm so React doesn't treat it as a
+// new component type on every render (which would cause unmount/remount
+// and could fire phantom form-submit events).
+const FileInputWithPreview = ({ label, name, file, url, onFileChange, onRemoveFile, error, isViewMode }) => (
+    <div>
+        <label htmlFor={name} className="block text-sm font-medium text-gray-700">{label}</label>
+        {!isViewMode ? (
+            <input
+                type="file"
+                id={name}
+                name={name}
+                accept="image/*"
+                onChange={onFileChange}
+                className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
+            />
+        ) : null}
+        {(file || url) && (
+            <div className="mt-2 relative w-40 h-40 border border-gray-300 rounded-md overflow-hidden">
+                <img src={file ? URL.createObjectURL(file) : resolveFileUrl(url)} alt={`${label} Preview`} className="w-full h-full object-cover" />
+                {!isViewMode && (
+                    <button
+                        type="button"
+                        onClick={onRemoveFile}
+                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 text-xs hover:bg-red-600 transition-colors"
+                        aria-label={`Remove ${label}`}
+                    >
+                        <MinusCircleIcon className="h-4 w-4" />
+                    </button>
+                )}
+                {isViewMode && url && (
+                    <a
+                        href={resolveFileUrl(url)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="absolute bottom-1 left-1 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded-md hover:bg-opacity-75"
+                    >
+                        View Full
+                    </a>
+                )}
+            </div>
+        )}
+        {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
+    </div>
+);
+
 const degreeYearsMap = {
     'Islamiyat': 4,
     'Software Engineering': 4,
@@ -56,7 +100,7 @@ const StudentForm = ({ editingStudent, fetchStudents, onClose, isViewMode = fals
         currentJuz: 0, // For Hifaz (NEW)
         currentSurah: '', // For Hifaz (NEW)
         feePerMonth: '',
-        feeDiscount: 0, // Discount percentage (0-100), default 0%
+        feeDiscount: 0, // Discount amount in PKR, default 0
         profilePictureUrl: '',
         depositedAmount: '',
         otherDues: '',
@@ -122,9 +166,10 @@ const StudentForm = ({ editingStudent, fetchStudents, onClose, isViewMode = fals
             if (!/^\d+$/.test(String(student.feePerMonth || '')) || parseInt(student.feePerMonth || '0', 10) <= 0) {
                 newFieldErrors.feePerMonth = 'Fee Per Month must be a positive whole number.'; ok=false;
             }
-            const disc = parseFloat(student.feeDiscount ?? 0);
-            if (isNaN(disc) || disc < 0 || disc > 100) {
-                newFieldErrors.feeDiscount = 'Discount must be between 0 and 100.'; ok=false;
+            const discAmt = parseFloat(student.feeDiscount ?? 0);
+            const feeNum = parseFloat(student.feePerMonth) || 0;
+            if (isNaN(discAmt) || discAmt < 0 || (feeNum > 0 && discAmt > feeNum)) {
+                newFieldErrors.feeDiscount = `Discount amount cannot exceed fee (PKR ${feeNum.toLocaleString()}).`; ok=false;
             }
         }
 
@@ -193,7 +238,12 @@ const StudentForm = ({ editingStudent, fetchStudents, onClose, isViewMode = fals
                 admissionDate: editingStudent.admissionDate ? new Date(editingStudent.admissionDate).toISOString().split('T')[0] : '',
                 profilePictureUrl: editingStudent.profilePictureUrl || '',
                 feePerMonth: editingStudent.feePerMonth !== undefined ? editingStudent.feePerMonth.toString() : '',
-                feeDiscount: editingStudent.feeDiscount !== undefined ? editingStudent.feeDiscount : 0,
+                // Convert stored percentage back to PKR amount for display
+                feeDiscount: (() => {
+                    const pct = editingStudent.feeDiscount !== undefined ? parseFloat(editingStudent.feeDiscount) : 0;
+                    const fee = editingStudent.feePerMonth !== undefined ? parseFloat(editingStudent.feePerMonth) : 0;
+                    return fee > 0 ? Math.round((pct / 100) * fee) : 0;
+                })(),
                 reason: editingStudent.reason || '',
                 depositedAmount: editingStudent.depositedAmount !== undefined ? editingStudent.depositedAmount.toString() : '',
                 otherDues: editingStudent.otherDues !== undefined ? editingStudent.otherDues.toString() : '',
@@ -289,11 +339,13 @@ const StudentForm = ({ editingStudent, fetchStudents, onClose, isViewMode = fals
             newVal = String(value || '').replace(/\D/g, '');
         }
 
-        // feeDiscount allows decimals within 0-100
+        // feeDiscount is a PKR amount (whole number), capped at feePerMonth (= 100% discount)
         if (name === 'feeDiscount') {
-            const parsed = parseFloat(value);
-            if (!isNaN(parsed)) newVal = Math.min(100, Math.max(0, parsed));
-            else newVal = 0;
+            newVal = String(value || '').replace(/\D/g, '');
+            const maxDiscount = parseInt(student.feePerMonth, 10) || 0;
+            if (maxDiscount > 0 && parseInt(newVal, 10) > maxDiscount) {
+                newVal = String(maxDiscount);
+            }
         }
 
         // Enforce max lengths while typing
@@ -319,7 +371,7 @@ const StudentForm = ({ editingStudent, fetchStudents, onClose, isViewMode = fals
     };
 
     const handleSubmit = async (e) => {
-        e.preventDefault();
+        if (e && e.preventDefault) e.preventDefault();
         setGeneralFormError('');
         setFieldErrors({});
 
@@ -387,10 +439,11 @@ const StudentForm = ({ editingStudent, fetchStudents, onClose, isViewMode = fals
             newFieldErrors.otherDues = 'Other Dues must be a whole number (no decimals).';
             hasError = true;
         }
-        // Validate discount
+        // Validate discount amount
         const disc = parseFloat(student.feeDiscount ?? 0);
-        if (isNaN(disc) || disc < 0 || disc > 100) {
-            newFieldErrors.feeDiscount = 'Discount must be between 0 and 100.';
+        const feeMonthNum = parseFloat(student.feePerMonth) || 0;
+        if (isNaN(disc) || disc < 0 || (feeMonthNum > 0 && disc > feeMonthNum)) {
+            newFieldErrors.feeDiscount = `Discount amount cannot exceed the monthly fee (PKR ${feeMonthNum.toLocaleString()}).`;
             hasError = true;
         }
 
@@ -526,10 +579,11 @@ const StudentForm = ({ editingStudent, fetchStudents, onClose, isViewMode = fals
     const showPreviousClassResultField = isClass9OrAbove || isAlmiyaType || isHifazType;
     const showBsResultsFields = isBsStudent;
 
-    // Computed effective fee after discount
+    // Computed effective fee after discount (feeDiscount is now a PKR amount)
     const feePerMonthNum = parseFloat(student.feePerMonth) || 0;
-    const discountPct = parseFloat(student.feeDiscount) || 0;
-    const effectiveFee = Math.round(feePerMonthNum * (1 - discountPct / 100));
+    const discountAmt = parseFloat(student.feeDiscount) || 0;
+    const discountPct = feePerMonthNum > 0 ? (discountAmt / feePerMonthNum) * 100 : 0;
+    const effectiveFee = Math.max(0, Math.round(feePerMonthNum - discountAmt));
 
 
     const handleDownloadPdf = async () => {
@@ -793,8 +847,8 @@ const StudentForm = ({ editingStudent, fetchStudents, onClose, isViewMode = fals
         addTwoFields(
             'Fee Per Month', 
             student.feePerMonth ? `PKR ${parseFloat(student.feePerMonth).toLocaleString()}` : '-', 
-            'Fee Discount',
-            `${student.feeDiscount || 0}%`
+            'Discount Amount',
+            discountAmt > 0 ? `PKR ${discountAmt.toLocaleString()} (${discountPct.toFixed(1)}%)` : 'No Discount'
         );
         addTwoFields(
             'Effective Monthly Fee',
@@ -855,48 +909,6 @@ const StudentForm = ({ editingStudent, fetchStudents, onClose, isViewMode = fals
         doc.save(`${student.name.replace(/\s/g, '_')}_details.pdf`);
     };
 
-    // Helper component to render file input and preview
-    const FileInputWithPreview = ({ label, name, file, url, onFileChange, onRemoveFile, error, isViewMode }) => (
-        <div>
-            <label htmlFor={name} className="block text-sm font-medium text-gray-700">{label}</label>
-            {!isViewMode ? (
-                <input
-                    type="file"
-                    id={name}
-                    name={name}
-                    accept="image/*"
-                    onChange={onFileChange}
-                    className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
-                />
-            ) : null}
-            {(file || url) && (
-                <div className="mt-2 relative w-40 h-40 border border-gray-300 rounded-md overflow-hidden">
-                    <img src={file ? URL.createObjectURL(file) : resolveFileUrl(url)} alt={`${label} Preview`} className="w-full h-full object-cover" />
-                    {!isViewMode && (
-                        <button
-                            type="button"
-                            onClick={onRemoveFile}
-                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 text-xs hover:bg-red-600 transition-colors"
-                            aria-label={`Remove ${label}`}
-                        >
-                            <MinusCircleIcon className="h-4 w-4" />
-                        </button>
-                    )}
-                    {isViewMode && url && (
-                        <a
-                            href={resolveFileUrl(url)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="absolute bottom-1 left-1 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded-md hover:bg-opacity-75"
-                        >
-                            View Full
-                        </a>
-                    )}
-                </div>
-            )}
-            {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
-        </div>
-    );
 
 
     return (
@@ -937,7 +949,7 @@ const StudentForm = ({ editingStudent, fetchStudents, onClose, isViewMode = fals
             </div>
 
             {/* Scrollable Form Content Area (takes remaining vertical space) */}
-            <form onSubmit={handleSubmit} className="flex flex-col flex-grow overflow-y-auto pr-2 custom-scrollbar transition-all duration-300">
+            <form onSubmit={e => e.preventDefault()} className="flex flex-col flex-grow overflow-y-auto pr-2 custom-scrollbar transition-all duration-300">
                 <div className={`${currentStep === 0 || isViewMode ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 animate-fade-in' : 'hidden'}`}>
                     {/* Profile Picture */}
                     <div className="sm:col-span-2 lg:col-span-1 flex flex-col items-center">
@@ -1163,19 +1175,18 @@ const StudentForm = ({ editingStudent, fetchStudents, onClose, isViewMode = fals
                             {fieldErrors.feePerMonth && <p className="mt-1 text-sm text-red-600">{fieldErrors.feePerMonth}</p>}
                         </div>
 
-                        {/* Fee Discount */}
+                        {/* Fee Discount Amount */}
                         <div>
                             <label htmlFor="feeDiscount" className="block text-sm font-bold text-gray-700 mb-2">
-                                Fee Discount (%)
-                                <span className="ml-1 text-xs font-normal text-gray-400">0 = no discount, 100 = full</span>
+                                Discount Amount (PKR)
+                                <span className="ml-1 text-xs font-normal text-gray-400">0 = no discount</span>
                             </label>
                             <input
-                                type="number"
+                                inputMode="numeric"
+                                pattern="\d*"
+                                type="text"
                                 id="feeDiscount"
                                 name="feeDiscount"
-                                min="0"
-                                max="100"
-                                step="0.5"
                                 value={student.feeDiscount ?? 0}
                                 onChange={handleChange}
                                 readOnly={isViewMode || isSelfStudent}
@@ -1184,11 +1195,11 @@ const StudentForm = ({ editingStudent, fetchStudents, onClose, isViewMode = fals
                             {fieldErrors.feeDiscount && <p className="mt-1 text-sm text-red-600">{fieldErrors.feeDiscount}</p>}
                             {/* Effective fee preview */}
                             {feePerMonthNum > 0 && (
-                                <div className={`mt-2 px-3 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 ${discountPct > 0 ? 'bg-amber-50 text-amber-800 border border-amber-200' : 'bg-green-50 text-green-800 border border-green-200'}`}>
+                                <div className={`mt-2 px-3 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 ${discountAmt > 0 ? 'bg-amber-50 text-amber-800 border border-amber-200' : 'bg-green-50 text-green-800 border border-green-200'}`}>
                                     <span>Effective Fee:</span>
                                     <span className="font-bold">PKR {effectiveFee.toLocaleString()}/mo</span>
-                                    {discountPct > 0 && (
-                                        <span className="text-xs ml-auto text-amber-600">({discountPct}% off)</span>
+                                    {discountAmt > 0 && (
+                                        <span className="text-xs ml-auto text-amber-600">(-PKR {discountAmt.toLocaleString()} / {discountPct.toFixed(1)}% off)</span>
                                     )}
                                 </div>
                             )}
@@ -1326,7 +1337,7 @@ const StudentForm = ({ editingStudent, fetchStudents, onClose, isViewMode = fals
                                 <div><span className="font-semibold text-gray-600">Class Type:</span> <span>{student.class || '—'}</span></div>
                                 <div><span className="font-semibold text-gray-600">Class/Degree:</span> <span>{student.classNumber || student.degreeName || '—'}</span></div>
                                 <div><span className="font-semibold text-gray-600">Fee/Month:</span> <span className="font-bold text-green-700">PKR {parseInt(student.feePerMonth || 0).toLocaleString()}</span></div>
-                                <div><span className="font-semibold text-gray-600">Discount:</span> <span>{student.feeDiscount || 0}%</span></div>
+                                <div><span className="font-semibold text-gray-600">Discount:</span> <span>{discountAmt > 0 ? `PKR ${discountAmt.toLocaleString()} (${discountPct.toFixed(1)}% off)` : 'No Discount'}</span></div>
                                 {feePerMonthNum > 0 && (
                                     <div className="sm:col-span-2 p-3 bg-white rounded-lg border border-green-200">
                                         <span className="font-semibold text-gray-600">Effective Monthly Fee after Discount: </span>
@@ -1363,7 +1374,8 @@ const StudentForm = ({ editingStudent, fetchStudents, onClose, isViewMode = fals
                                 </button>
                             ) : (
                                 <button
-                                    type="submit"
+                                    type="button"
+                                    onClick={handleSubmit}
                                     disabled={!isEditAllowed}
                                     className={`px-6 py-2 rounded-lg font-bold text-sm transition duration-200 ${currentTheme?.btnPrimaryBg || 'bg-green-600'} ${currentTheme?.btnPrimaryText || 'text-white'} ${currentTheme?.btnPrimaryHover || 'hover:bg-green-700'} shadow-md disabled:opacity-50 disabled:cursor-not-allowed`}
                                 >

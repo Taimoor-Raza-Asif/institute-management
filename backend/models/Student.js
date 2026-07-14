@@ -8,7 +8,7 @@ const studentSchema = new mongoose.Schema(
     cnic: {
       type: String,
       required: true,
-      unique: true,
+      // NOTE: uniqueness is enforced via a partial index below (active students only)
       trim: true,
       match: /^\d{13}$/,
     },
@@ -93,5 +93,12 @@ const studentSchema = new mongoose.Schema(
 
 // Ensure rollNumber is unique within a cohort defined by class + classNumber/degreeName/semester
 studentSchema.index({ class: 1, classNumber: 1, degreeName: 1, semester: 1, rollNumber: 1 }, { unique: true, sparse: true });
+
+// Partial unique index: CNIC must be unique only among active (non-deleted) students.
+// Uses { isDeleted: false } (not $ne: true) for MongoDB Atlas compatibility.
+studentSchema.index(
+  { cnic: 1 },
+  { unique: true, partialFilterExpression: { isDeleted: false } }
+);
 
 export default mongoose.model("Student", studentSchema);

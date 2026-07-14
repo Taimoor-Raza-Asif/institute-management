@@ -594,8 +594,6 @@ const StudentList = () => {
                   <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">CNIC</th>
                   <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Type</th>
                   <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Grade/Juz</th>
-                  <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Major/Degree</th>
-                  <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Semester</th>
                   <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Fee/month</th>
                   <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Status</th>
                   {(canEditStudent || canDeleteStudent) && (
@@ -639,8 +637,6 @@ const StudentList = () => {
                       <td className={`px-6 py-4 whitespace-nowrap text-sm ${currentTheme?.text || 'text-gray-600'} font-medium`}>
                         {s.class === 'Class' || s.class === 'Almiya' ? s.classNumber || '-' : s.class === 'Hifaz' ? `Juz ${s.currentJuz || 0}` : '-'}
                       </td>
-                      <td className={`px-6 py-4 whitespace-nowrap text-sm ${currentTheme?.text || 'text-gray-600'}`}>{s.class === 'BS' ? s.degreeName || '-' : s.majorSubject || '-'}</td>
-                      <td className={`px-6 py-4 whitespace-nowrap text-sm ${currentTheme?.text || 'text-gray-600'}`}>{s.class === 'BS' ? s.semester || '-' : '-'}</td>
                       <td className={`px-6 py-4 whitespace-nowrap text-sm font-semibold ${currentTheme?.text || 'text-gray-900'}`}>PKR {s.feePerMonth || '-'}</td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full border ${s.feeStatus === 'Paid' ? `${currentTheme.badgeSuccessBg || 'bg-green-100'} ${currentTheme.badgeSuccessText || 'text-green-800'}` : s.feeStatus === 'Partial Paid' ? `${currentTheme.badgeWarningBg || 'bg-amber-100'} ${currentTheme.badgeWarningText || 'text-amber-800'}` : `${currentTheme.badgeDangerBg || 'bg-red-100'} ${currentTheme.badgeDangerText || 'text-red-800'}`}`}>
@@ -659,7 +655,7 @@ const StudentList = () => {
                                 <EllipsisVerticalIcon className="h-5 w-5" aria-hidden="true" />
                               </MenuButton>
                             </div>
-                            <MenuItems className="absolute right-0 z-50 mt-2 w-56 origin-top-right rounded-lg bg-white shadow-xl ring-1 ring-black ring-opacity-5 focus:outline-none">
+                            <MenuItems anchor="bottom end" className="w-56 rounded-lg bg-white shadow-xl ring-1 ring-black ring-opacity-5 focus:outline-none z-[9999]">
                               <div className="py-1">
                             {/* Class/Almiya Promotion/Demotion Buttons */}
                             {currentUser?.role === 'admin' && (s.class === 'Class' || s.class === 'Almiya') && s.classNumber && s.classNumber >= 1 && (

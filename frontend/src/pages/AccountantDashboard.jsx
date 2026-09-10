@@ -274,8 +274,11 @@ const AccountantDashboard = () => {
           </div>
         ) : (
           <>
-            {/* Financial Overview Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            {/* Financial Overview Cards — gated by canViewFinancialSummary */}
+            {(currentUser.role === 'admin' || currentUser.canViewFinancialSummary) ? (
+              <>
+                {/* Financial Overview Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
               <StatCard
                 title="Total Fee Revenue"
                 value={`Rs ${stats.totalRevenue.toLocaleString()}`}
@@ -456,7 +459,23 @@ const AccountantDashboard = () => {
               </div>
             </div>
 
-            {/* Quick Actions Grid */}
+              </>
+            ) : (
+              /* Restricted view: user does not have canViewFinancialSummary */
+              <div className={`mb-8 p-8 rounded-2xl ${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.shadow || 'shadow-xl'} ${currentTheme?.border || 'border border-gray-100'} text-center`}>
+                <div className="flex flex-col items-center gap-4">
+                  <div className={`p-4 rounded-full ${currentTheme?.badgeWarningBg || 'bg-amber-50'}`}>
+                    <ChartBarIcon className={`h-10 w-10 ${currentTheme?.badgeWarningText || 'text-amber-500'}`} />
+                  </div>
+                  <h3 className={`text-xl font-bold ${currentTheme?.title || 'text-gray-800'}`}>Financial Summary Restricted</h3>
+                  <p className={`${currentTheme?.mutedText || 'text-gray-500'} max-w-md`}>
+                    You do not have permission to view financial totals and analytics. Contact your administrator to enable this access.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Quick Actions Grid — visible to all accountant users */}
             <div className="mb-8">
               <h2 className={`text-2xl font-bold ${currentTheme?.title || 'text-gray-800'} mb-6 flex items-center`}>
                 <BriefcaseIcon className={`h-7 w-7 mr-3 ${currentTheme?.title || 'text-gray-800'}`} />

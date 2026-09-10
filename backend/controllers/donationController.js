@@ -1,6 +1,7 @@
 import asyncHandler from 'express-async-handler';
 import Donation from '../models/Donation.js';
 import User from '../models/User.js';
+import { postDonationToLedger, reverseEntries } from '../utils/ledgerService.js';
 // upload middleware is now handled via routes import
 
 // @desc    Add a new donation
@@ -26,6 +27,9 @@ const addDonation = asyncHandler(async (req, res) => {
   });
 
   const createdDonation = await newDonation.save();
+
+  // Post to ledger (non-blocking)
+  postDonationToLedger(createdDonation).catch(err => console.error('[Ledger] Donation post error:', err.message));
 
 // Populate markedBy → profileId → name
 const populatedDonation = await Donation.findById(createdDonation._id).populate({
@@ -104,6 +108,12 @@ const updateDonation = asyncHandler(async (req, res) => {
     donation.paymentMethod = req.body.paymentMethod || donation.paymentMethod;
 
     const updatedDonation = await donation.save();
+
+    // Sync ledger
+    reverseEntries({ sourceModule: 'Donation', sourceId: updatedDonation._id, reason: 'Donation updated' })
+      .then(() => postDonationToLedger(updatedDonation))
+      .catch(err => console.error('[Ledger] Donation update sync error:', err.message));
+
     res.json(updatedDonation);
   } else {
     res.status(404);
@@ -118,6 +128,10 @@ const deleteDonation = asyncHandler(async (req, res) => {
   const donation = await Donation.findById(req.params.id);
 
   if (donation) {
+    // Reverse ledger entries before deleting
+    reverseEntries({ sourceModule: 'Donation', sourceId: donation._id, reason: 'Donation deleted' })
+      .catch(err => console.error('[Ledger] Donation delete reversal error:', err.message));
+
     await donation.deleteOne();
     res.json({ message: 'Donation removed' });
   } else {

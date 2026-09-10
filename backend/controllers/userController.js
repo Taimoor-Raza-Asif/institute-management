@@ -17,7 +17,7 @@ const generateToken = (id, role) => {
 // @route   POST /api/users/register
 // @access  Public (or Admin only if registration is restricted)
 export const registerUser = asyncHandler(async (req, res) => {
-  const { cnic, password, role, profileId, editModeEnabled, canAccessStudents, canAccessStaff } = req.body;
+  const { cnic, password, role, profileId, editModeEnabled, canAccessStudents, canAccessStaff, canViewFinancialSummary, canViewReports, canManageSalaries } = req.body;
 
   // Validate required fields
   if (!cnic || !password || !role) {
@@ -81,9 +81,12 @@ export const registerUser = asyncHandler(async (req, res) => {
     role,
     profileId: linkedProfile ? linkedProfile._id : null,
     roleMapping: roleMapping,
-    editModeEnabled: role === 'admin' ? true : (editModeEnabled || false), // Admin is true by default, others based on input
+    editModeEnabled: role === 'admin' ? true : (editModeEnabled || false),
     canAccessStudents: canAccessStudents || false,
-    canAccessStaff: canAccessStaff || false
+    canAccessStaff: canAccessStaff || false,
+    canViewFinancialSummary: role === 'admin' ? true : (canViewFinancialSummary || false),
+    canViewReports: role === 'admin' ? true : (canViewReports || false),
+    canManageSalaries: role === 'admin' ? true : (canManageSalaries || false),
   });
 
   if (user) {
@@ -96,7 +99,10 @@ export const registerUser = asyncHandler(async (req, res) => {
       editModeEnabled: user.editModeEnabled,
       canAccessStudents: user.canAccessStudents,
       canAccessStaff: user.canAccessStaff,
-      token: generateToken(user._id, user.role), // Generate JWT for the new user, including role
+      canViewFinancialSummary: user.canViewFinancialSummary,
+      canViewReports: user.canViewReports,
+      canManageSalaries: user.canManageSalaries,
+      token: generateToken(user._id, user.role),
     });
   } else {
     res.status(400);
@@ -198,6 +204,9 @@ export const authUser = asyncHandler(async (req, res) => {
       editModeEnabled: user.editModeEnabled,
       canAccessStudents: user.canAccessStudents,
       canAccessStaff: user.canAccessStaff,
+      canViewFinancialSummary: user.canViewFinancialSummary,
+      canViewReports: user.canViewReports,
+      canManageSalaries: user.canManageSalaries,
       token: generateToken(user._id, user.role),
     });
   } else {
@@ -311,6 +320,11 @@ export const updateUser = asyncHandler(async (req, res) => {
       if (canAccessStaff !== undefined) {
         user.canAccessStaff = canAccessStaff;
       }
+      // Financial visibility flags
+      const { canViewFinancialSummary: cvfs, canViewReports: cvr, canManageSalaries: cms } = req.body;
+      if (cvfs !== undefined) user.canViewFinancialSummary = Boolean(cvfs);
+      if (cvr !== undefined) user.canViewReports = Boolean(cvr);
+      if (cms !== undefined) user.canManageSalaries = Boolean(cms);
     }
 
 
@@ -325,6 +339,9 @@ export const updateUser = asyncHandler(async (req, res) => {
       editModeEnabled: updatedUser.editModeEnabled,
       canAccessStudents: updatedUser.canAccessStudents,
       canAccessStaff: updatedUser.canAccessStaff,
+      canViewFinancialSummary: updatedUser.canViewFinancialSummary,
+      canViewReports: updatedUser.canViewReports,
+      canManageSalaries: updatedUser.canManageSalaries,
     });
   } else {
     res.status(404);
@@ -491,7 +508,7 @@ export const toggleAllEditMode = asyncHandler(async (req, res) => {
 // @route   PUT /api/users/:id/module-access
 // @access  Private/Admin
 export const updateUserModuleAccess = asyncHandler(async (req, res) => {
-  const { canAccessStudents, canAccessStaff } = req.body;
+  const { canAccessStudents, canAccessStaff, canViewFinancialSummary, canViewReports, canManageSalaries } = req.body;
   const user = await User.findById(req.params.id);
 
   if (!user) {
@@ -504,12 +521,11 @@ export const updateUserModuleAccess = asyncHandler(async (req, res) => {
     throw new Error('You cannot change your own module access from this panel.');
   }
 
-  if (canAccessStudents !== undefined) {
-    user.canAccessStudents = Boolean(canAccessStudents);
-  }
-  if (canAccessStaff !== undefined) {
-    user.canAccessStaff = Boolean(canAccessStaff);
-  }
+  if (canAccessStudents !== undefined) user.canAccessStudents = Boolean(canAccessStudents);
+  if (canAccessStaff !== undefined) user.canAccessStaff = Boolean(canAccessStaff);
+  if (canViewFinancialSummary !== undefined) user.canViewFinancialSummary = Boolean(canViewFinancialSummary);
+  if (canViewReports !== undefined) user.canViewReports = Boolean(canViewReports);
+  if (canManageSalaries !== undefined) user.canManageSalaries = Boolean(canManageSalaries);
 
   const updatedUser = await user.save();
 
@@ -517,6 +533,9 @@ export const updateUserModuleAccess = asyncHandler(async (req, res) => {
     _id: updatedUser._id,
     canAccessStudents: updatedUser.canAccessStudents,
     canAccessStaff: updatedUser.canAccessStaff,
+    canViewFinancialSummary: updatedUser.canViewFinancialSummary,
+    canViewReports: updatedUser.canViewReports,
+    canManageSalaries: updatedUser.canManageSalaries,
     message: 'Module access updated successfully.',
   });
 });

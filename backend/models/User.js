@@ -47,6 +47,19 @@ const userSchema = new mongoose.Schema({
   canAccessStaff: {
     type: Boolean,
     default: false
+  },
+  // Financial visibility permissions
+  canViewFinancialSummary: {
+    type: Boolean,
+    default: false  // If true, user can see total income/expense dashboard cards
+  },
+  canViewReports: {
+    type: Boolean,
+    default: false  // If true, user can access the financial reports page
+  },
+  canManageSalaries: {
+    type: Boolean,
+    default: false  // If true, user can add/edit/delete salary records
   }
 }, {
   timestamps: true // Adds createdAt and updatedAt timestamps

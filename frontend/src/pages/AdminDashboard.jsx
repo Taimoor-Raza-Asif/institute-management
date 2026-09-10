@@ -14,6 +14,13 @@ import {
   ArrowTrendingUpIcon,
   ClockIcon,
   UsersIcon,
+  ArrowDownTrayIcon,
+  ArrowUpTrayIcon,
+  UserGroupIcon,
+  CurrencyRupeeIcon,
+  HeartIcon,
+  CalendarDaysIcon,
+  SparklesIcon,
 } from '@heroicons/react/24/outline';
 
 const AdminDashboard = () => {
@@ -22,6 +29,8 @@ const AdminDashboard = () => {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [dailySummary, setDailySummary] = useState(null);
+  const [dailyLoading, setDailyLoading] = useState(true);
   const [stats, setStats] = useState({
     students: 0,
     staff: 0,
@@ -145,7 +154,14 @@ const AdminDashboard = () => {
       }
     };
 
-    if (currentUser && currentUser.role === 'admin') fetchAll();
+    if (currentUser && currentUser.role === 'admin') {
+      fetchAll();
+      // Fetch daily summary separately so KPIs don't block it
+      api.get('/dashboard/daily-summary')
+        .then(r => setDailySummary(r.data))
+        .catch(err => console.warn('Daily summary error:', err.message))
+        .finally(() => setDailyLoading(false));
+    }
   }, [currentUser, year, todayStr]);
 
   if (!currentUser || currentUser.role !== 'admin') {
@@ -209,6 +225,11 @@ const AdminDashboard = () => {
               <KpiCard key={item.title} {...item} theme={currentTheme} delay={idx * 90} />
             ))}
           </div>
+        )}
+
+        {/* ── Daily Summary ───────────────────────────────────── */}
+        {!loading && (
+          <DailySummarySection data={dailySummary} loading={dailyLoading} theme={currentTheme} />
         )}
 
         {!loading && (
@@ -434,6 +455,187 @@ const BarRow = ({ label, value, max, theme }) => {
           style={{ width: `${pct}%`, animationDelay: '120ms' }}
         />
       </div>
+    </div>
+  );
+};
+
+// ── Daily Summary Section ─────────────────────────────────────────────────────
+const DailySummarySection = ({ data, loading, theme }) => {
+  const currency = (n) =>
+    new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR', maximumFractionDigits: 0 }).format(n || 0);
+
+  const today = new Date();
+  const dateLabel = today.toLocaleDateString('en-PK', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+  const tiles = loading || !data
+    ? []
+    : [
+        {
+          key: 'fees',
+          label: 'Fees Collected Today',
+          value: currency(data.today.fees.amount),
+          sub: `${data.today.fees.count} payment${data.today.fees.count !== 1 ? 's' : ''}`,
+          icon: <ArrowDownTrayIcon className="h-6 w-6" />,
+          color: 'emerald',
+        },
+        {
+          key: 'bills',
+          label: 'Bills Paid Today',
+          value: currency(data.today.bills.amount),
+          sub: `${data.today.bills.count} bill${data.today.bills.count !== 1 ? 's' : ''}`,
+          icon: <ArrowUpTrayIcon className="h-6 w-6" />,
+          color: 'red',
+        },
+        {
+          key: 'attendance',
+          label: "Students Present Today",
+          value: `${data.today.attendance.present} / ${data.today.attendance.total}`,
+          sub: data.today.attendance.marked
+            ? `${Math.round((data.today.attendance.present / data.today.attendance.marked) * 100)}% of marked`
+            : 'Not marked yet',
+          icon: <UserGroupIcon className="h-6 w-6" />,
+          color: 'blue',
+        },
+        {
+          key: 'salaries',
+          label: 'Salaries Paid (This Month)',
+          value: currency(data.thisMonth.salaries.amount),
+          sub: `${data.thisMonth.salaries.count} payment${data.thisMonth.salaries.count !== 1 ? 's' : ''}`,
+          icon: <CurrencyRupeeIcon className="h-6 w-6" />,
+          color: 'orange',
+        },
+        {
+          key: 'donations',
+          label: 'Donations Today',
+          value: currency(data.today.donations.amount),
+          sub: `${data.today.donations.count} donation${data.today.donations.count !== 1 ? 's' : ''}`,
+          icon: <HeartIcon className="h-6 w-6" />,
+          color: 'pink',
+        },
+      ];
+
+  const colorMap = {
+    emerald: { bg: 'bg-emerald-500/10', border: 'border-emerald-400/30', text: 'text-emerald-400', glow: 'from-emerald-500/20' },
+    red:     { bg: 'bg-red-500/10',     border: 'border-red-400/30',     text: 'text-red-400',     glow: 'from-red-500/20' },
+    blue:    { bg: 'bg-blue-500/10',    border: 'border-blue-400/30',    text: 'text-blue-400',    glow: 'from-blue-500/20' },
+    orange:  { bg: 'bg-orange-500/10',  border: 'border-orange-400/30',  text: 'text-orange-400',  glow: 'from-orange-500/20' },
+    pink:    { bg: 'bg-pink-500/10',    border: 'border-pink-400/30',    text: 'text-pink-400',    glow: 'from-pink-500/20' },
+  };
+
+  return (
+    <div className="space-y-4 animate-rise" style={{ animationDelay: '80ms' }}>
+      {/* Section header */}
+      <div className={`glass-card rounded-2xl px-5 py-4 flex items-center justify-between ${theme?.cardBg || 'bg-slate-900/60'} ${theme?.cardBorder || 'border border-emerald-100/50'}`}>
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-xl bg-emerald-500/10 border border-emerald-400/30">
+            <SparklesIcon className="h-5 w-5 text-emerald-400" />
+          </div>
+          <div>
+            <h2 className={`text-lg font-bold ${theme?.title || 'text-white'}`}>Today's Summary</h2>
+            <p className={`text-xs ${theme?.mutedText || 'text-gray-400'} flex items-center gap-1.5`}>
+              <CalendarDaysIcon className="h-3.5 w-3.5" />
+              {dateLabel}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping-slow" />
+          <span className={`text-xs font-semibold ${theme?.mutedText || 'text-emerald-400'}`}>Live</span>
+        </div>
+      </div>
+
+      {/* Stat tiles */}
+      {loading || !data ? (
+        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className={`h-28 rounded-2xl glass-card border ${theme?.cardBorder || 'border-white/20'} animate-pulse-soft`}>
+              <div className="p-4 space-y-2">
+                <div className="h-3 w-20 bg-white/10 rounded" />
+                <div className="h-5 w-28 bg-white/20 rounded" />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
+          {tiles.map((tile, i) => {
+            const cc = colorMap[tile.color];
+            return (
+              <div
+                key={tile.key}
+                className={`glass-card shine rounded-2xl p-4 border ${cc.border} ${cc.bg} relative overflow-hidden hover:-translate-y-1 transition duration-300 animate-rise`}
+                style={{ animationDelay: `${i * 70}ms` }}
+              >
+                <div className={`absolute -top-4 -right-4 w-20 h-20 rounded-full blur-2xl bg-gradient-to-br ${cc.glow} to-transparent opacity-60 pointer-events-none`} />
+                <div className={`inline-flex items-center justify-center p-2 rounded-xl mb-3 ${cc.bg} border ${cc.border} ${cc.text}`}>
+                  {tile.icon}
+                </div>
+                <p className={`text-xs font-medium ${theme?.mutedText || 'text-gray-400'} mb-1`}>{tile.label}</p>
+                <p className={`text-xl font-extrabold ${theme?.statCardValue || 'text-white'} leading-tight`}>{tile.value}</p>
+                <p className={`text-xs mt-1 ${cc.text}`}>{tile.sub}</p>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Recent Activity Feed */}
+      {!loading && data && data.recentActivity?.length > 0 && (
+        <div className={`glass-card rounded-2xl ${theme?.cardBg || 'bg-slate-900/60'} ${theme?.cardBorder || 'border border-emerald-100/50'} overflow-hidden`}>
+          <div className="px-5 py-4 border-b border-white/10 flex items-center justify-between">
+            <h3 className={`font-bold text-base ${theme?.title || 'text-white'}`}>Recent Activity</h3>
+            <span className={`text-xs px-2 py-1 rounded-full bg-emerald-500/10 border border-emerald-400/30 text-emerald-400`}>
+              Last {data.recentActivity.length} transactions
+            </span>
+          </div>
+          <ul className="divide-y divide-white/5">
+            {data.recentActivity.map((act, i) => {
+              const typeConfig = {
+                fee:      { icon: <ArrowDownTrayIcon className="h-4 w-4" />, color: 'emerald', label: 'Fee' },
+                bill:     { icon: <ArrowUpTrayIcon className="h-4 w-4" />,   color: 'red',     label: 'Bill' },
+                salary:   { icon: <CurrencyRupeeIcon className="h-4 w-4" />, color: 'orange',  label: 'Salary' },
+                donation: { icon: <HeartIcon className="h-4 w-4" />,         color: 'pink',    label: 'Donation' },
+              };
+              const cfg = typeConfig[act.type] || typeConfig.fee;
+              const cc  = colorMap[cfg.color];
+              const timeAgo = (dateStr) => {
+                const diff = Date.now() - new Date(dateStr).getTime();
+                const mins = Math.floor(diff / 60000);
+                const hrs  = Math.floor(mins / 60);
+                const days = Math.floor(hrs / 24);
+                if (days > 0)  return `${days}d ago`;
+                if (hrs > 0)   return `${hrs}h ago`;
+                if (mins > 0)  return `${mins}m ago`;
+                return 'just now';
+              };
+
+              return (
+                <li
+                  key={i}
+                  className={`flex items-center gap-4 px-5 py-3 hover:bg-white/5 transition animate-rise`}
+                  style={{ animationDelay: `${i * 50}ms` }}
+                >
+                  <div className={`flex-shrink-0 p-2 rounded-xl ${cc.bg} border ${cc.border} ${cc.text}`}>
+                    {cfg.icon}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-sm font-semibold truncate ${theme?.text || 'text-white'}`}>{act.label}</p>
+                    {act.subLabel && (
+                      <p className={`text-xs truncate ${theme?.mutedText || 'text-gray-400'}`}>{act.subLabel}</p>
+                    )}
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <p className={`text-sm font-bold ${act.positive ? 'text-emerald-400' : 'text-red-400'}`}>
+                      {act.positive ? '+' : '-'} PKR {(act.amount || 0).toLocaleString()}
+                    </p>
+                    <p className={`text-xs ${theme?.mutedText || 'text-gray-500'}`}>{timeAgo(act.time)}</p>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
     </div>
   );
 };

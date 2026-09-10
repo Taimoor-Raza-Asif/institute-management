@@ -21,6 +21,9 @@ const SalaryForm = ({ salaryToEdit, isViewMode, onAdd, onEdit, onClose }) => {
     const [status, setStatus] = useState('Unpaid');
     const [paidAmount, setPaidAmount] = useState('');
     const [paidAs, setPaidAs] = useState('Cash');
+    const [bankAccount, setBankAccount] = useState('');
+    const [bankAccountOptions, setBankAccountOptions] = useState([]);
+    const [bankAccountsLoading, setBankAccountsLoading] = useState(false);
     const [bonus, setBonus] = useState(0);
     const [overtime, setOvertime] = useState(0);
     const [advancedSalary, setAdvancedSalary] = useState(0);
@@ -65,7 +68,19 @@ const SalaryForm = ({ salaryToEdit, isViewMode, onAdd, onEdit, onClose }) => {
                 setLoading(false);
             }
         };
+        const fetchBankAccounts = async () => {
+            setBankAccountsLoading(true);
+            try {
+                const { data } = await api.get('/bank-accounts');
+                setBankAccountOptions(data);
+            } catch (err) {
+                console.warn('Could not fetch bank accounts:', err.message);
+            } finally {
+                setBankAccountsLoading(false);
+            }
+        };
         fetchStaff();
+        fetchBankAccounts();
     }, [id, salaryToEdit]);
 
     useEffect(() => {
@@ -81,6 +96,7 @@ const SalaryForm = ({ salaryToEdit, isViewMode, onAdd, onEdit, onClose }) => {
                     setStatus(data.status);
                     setPaidAmount(data.paidAmount);
                     setPaidAs(data.paidAs);
+                    setBankAccount(data.bankAccount?._id || data.bankAccount || '');
                     setBonus(data.bonus);
                     setOvertime(data.overtime);
                     setAdvancedSalary(data.advancedSalary);
@@ -105,6 +121,7 @@ const SalaryForm = ({ salaryToEdit, isViewMode, onAdd, onEdit, onClose }) => {
             setStatus(salaryToEdit.status);
             setPaidAmount(salaryToEdit.paidAmount);
             setPaidAs(salaryToEdit.paidAs);
+            setBankAccount(salaryToEdit.bankAccount?._id || salaryToEdit.bankAccount || '');
             setBonus(salaryToEdit.bonus);
             setOvertime(salaryToEdit.overtime);
             setAdvancedSalary(salaryToEdit.advancedSalary);
@@ -148,6 +165,7 @@ const SalaryForm = ({ salaryToEdit, isViewMode, onAdd, onEdit, onClose }) => {
                 status,
                 paidAmount: parseInt(String(paidAmount || '0'), 10),
                 paidAs,
+                bankAccount: paidAs === 'Bank' ? bankAccount : null,
                 bonus: parseInt(String(bonus || '0'), 10),
                 overtime: parseInt(String(overtime || '0'), 10),
                 advancedSalary: parseInt(String(advancedSalary || '0'), 10),
@@ -276,16 +294,42 @@ const SalaryForm = ({ salaryToEdit, isViewMode, onAdd, onEdit, onClose }) => {
                                 <select
                                     id="paidAs"
                                     value={paidAs}
-                                    onChange={(e) => setPaidAs(e.target.value)}
+                                    onChange={(e) => { setPaidAs(e.target.value); setBankAccount(''); }}
                                     disabled={isViewMode}
                                     className={inputBase}
                                 >
                                     <option value="Cash">Cash</option>
-                                    <option value="Online Wallet">Online Wallet</option>
-                                    <option value="Bank Transfer">Bank Transfer</option>
+                                    <option value="Bank">Bank / Wallet</option>
+                                    <option value="Cheque">Cheque</option>
                                     <option value="Other">Other</option>
                                 </select>
                             </div>
+
+                            {paidAs === 'Bank' && (
+                              <div className="space-y-1">
+                                <label htmlFor="bankAccount" className={labelBase}>
+                                    <CurrencyDollarIcon className="h-4 w-4 text-emerald-600" /> Bank / Wallet Account
+                                </label>
+                                <select
+                                    id="bankAccount"
+                                    value={bankAccount}
+                                    onChange={(e) => setBankAccount(e.target.value)}
+                                    disabled={isViewMode || bankAccountsLoading}
+                                    required
+                                    className={inputBase}
+                                >
+                                    <option value="">{bankAccountsLoading ? 'Loading accounts...' : '— Select account —'}</option>
+                                    {bankAccountOptions.map(acc => (
+                                      <option key={acc._id} value={acc._id}>{acc.name}{acc.accountNumber ? ` (${acc.accountNumber})` : ''}</option>
+                                    ))}
+                                </select>
+                                {bankAccountOptions.length === 0 && !bankAccountsLoading && (
+                                  <p className="text-xs text-amber-600 mt-1">
+                                    No accounts configured. Ask admin to add accounts in Accounts &amp; Wallets.
+                                  </p>
+                                )}
+                              </div>
+                            )}
 
                             {(isViewMode || id || salaryToEdit) && (
                                 <>

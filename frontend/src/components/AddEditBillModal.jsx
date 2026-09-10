@@ -7,49 +7,86 @@ import Message from './Message';
 import { useTheme } from '../context/ThemeContext';
 import DatePicker from 'react-datepicker';
 
-const billCategories = ['Utilities', 'Kitchen', 'Vendor Payment', 'Repairs', 'Other'];
 const billStatuses = ['Paid', 'Unpaid', 'Partial'];
-const paymentMethods = ['Cash', 'Bank Transfer', 'Cheque', 'Online Payment'];
+const paymentMethods = ['Cash', 'Bank', 'Cheque'];
 
 const AddEditBillModal = ({ onAdd, onEdit, onClose, billToEdit, isViewMode }) => {
   const [formData, setFormData] = useState({
     title: '',
-    category: billCategories[0],
+    category: '',
+    coaAccount: '',
     amount: '',
-    status: billStatuses[1], // Default to Unpaid
+    status: billStatuses[1],
     billDate: new Date(),
     paymentDate: null,
     paymentMethod: paymentMethods[0],
+    bankAccount: '',
     paidTo: '',
     remarks: '',
   });
   const { currentTheme } = useTheme();
+  const [coaAccounts, setCoaAccounts] = useState([]);
+  const [coaLoading, setCoaLoading] = useState(false);
+  const [bankAccountOptions, setBankAccountOptions] = useState([]);
+  const [bankAccountsLoading, setBankAccountsLoading] = useState(false);
   const [attachmentFile, setAttachmentFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  // Fetch CoA Expense accounts and bank accounts on mount
+  useEffect(() => {
+    const fetchCoaAccounts = async () => {
+      setCoaLoading(true);
+      try {
+        const { data } = await api.get('/coa/type/Expense');
+        setCoaAccounts(data);
+      } catch (err) {
+        console.warn('Could not fetch CoA accounts:', err.message);
+      } finally {
+        setCoaLoading(false);
+      }
+    };
+    const fetchBankAccounts = async () => {
+      setBankAccountsLoading(true);
+      try {
+        const { data } = await api.get('/bank-accounts');
+        setBankAccountOptions(data);
+      } catch (err) {
+        console.warn('Could not fetch bank accounts:', err.message);
+      } finally {
+        setBankAccountsLoading(false);
+      }
+    };
+    fetchCoaAccounts();
+    fetchBankAccounts();
+  }, []);
 
   useEffect(() => {
     if (billToEdit) {
       setFormData({
         title: billToEdit.title,
-        category: billToEdit.category,
+        category: billToEdit.category || '',
+        coaAccount: billToEdit.coaAccount?._id || billToEdit.coaAccount || '',
         amount: billToEdit.amount !== undefined ? String(billToEdit.amount) : '',
         status: billToEdit.status,
         billDate: new Date(billToEdit.billDate),
         paymentDate: billToEdit.paymentDate ? new Date(billToEdit.paymentDate) : null,
         paymentMethod: billToEdit.paymentMethod || paymentMethods[0],
+        bankAccount: billToEdit.bankAccount?._id || billToEdit.bankAccount || '',
         paidTo: billToEdit.paidTo || '',
         remarks: billToEdit.remarks || '',
       });
     } else {
       setFormData({
         title: '',
-        category: billCategories[0],
+        category: '',
+        coaAccount: '',
         amount: '',
         status: billStatuses[1],
         billDate: new Date(),
         paymentDate: null,
         paymentMethod: paymentMethods[0],
+        bankAccount: '',
         paidTo: '',
         remarks: '',
       });
@@ -162,18 +199,32 @@ const AddEditBillModal = ({ onAdd, onEdit, onClose, billToEdit, isViewMode }) =>
               />
             </div>
             <div className="space-y-1">
-              <label htmlFor="category" className={labelBase}>Category</label>
+              <label htmlFor="coaAccount" className={labelBase}>Expense Account (CoA)</label>
               <select
-                id="category"
-                name="category"
-                value={formData.category}
-                onChange={handleChange}
-                required
-                disabled={isViewMode}
+                id="coaAccount"
+                name="coaAccount"
+                value={formData.coaAccount}
+                onChange={(e) => {
+                  const selected = coaAccounts.find(a => a._id === e.target.value);
+                  setFormData(prev => ({
+                    ...prev,
+                    coaAccount: e.target.value,
+                    category: selected ? selected.name : prev.category,
+                  }));
+                }}
+                disabled={isViewMode || coaLoading}
                 className={inputBase}
               >
-                {billCategories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                <option value="">{coaLoading ? 'Loading accounts...' : '— Select expense account —'}</option>
+                {coaAccounts.map(acc => (
+                  <option key={acc._id} value={acc._id}>
+                    {acc.code ? `[${acc.code}] ` : ''}{acc.parent?.name ? `${acc.parent.name} › ` : ''}{acc.name}
+                  </option>
+                ))}
               </select>
+              {coaAccounts.length === 0 && !coaLoading && (
+                <p className="text-xs text-amber-600 mt-1">No expense accounts found. Add them in Chart of Accounts.</p>
+              )}
             </div>
             <div className="space-y-1">
               <label htmlFor="status" className={labelBase}>Status</label>
@@ -261,6 +312,30 @@ const AddEditBillModal = ({ onAdd, onEdit, onClose, billToEdit, isViewMode }) =>
                 >
                   {paymentMethods.map(method => <option key={method} value={method}>{method}</option>)}
                 </select>
+              </div>
+            )}
+            {formData.status !== 'Unpaid' && formData.paymentMethod === 'Bank' && (
+              <div className="space-y-1">
+                <label htmlFor="bankAccount" className={labelBase}>Bank / Wallet Account</label>
+                <select
+                  id="bankAccount"
+                  name="bankAccount"
+                  value={formData.bankAccount}
+                  onChange={handleChange}
+                  disabled={isViewMode || bankAccountsLoading}
+                  required
+                  className={inputBase}
+                >
+                  <option value="">{bankAccountsLoading ? 'Loading accounts...' : '— Select account —'}</option>
+                  {bankAccountOptions.map(acc => (
+                    <option key={acc._id} value={acc._id}>{acc.name}{acc.accountNumber ? ` (${acc.accountNumber})` : ''}</option>
+                  ))}
+                </select>
+                {bankAccountOptions.length === 0 && !bankAccountsLoading && (
+                  <p className="text-xs text-amber-600 mt-1">
+                    No accounts configured. Ask admin to add accounts in Accounts &amp; Wallets.
+                  </p>
+                )}
               </div>
             )}
           </div>

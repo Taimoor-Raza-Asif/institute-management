@@ -4,6 +4,7 @@ import Salary from '../models/Salary.js';
 import Staff from '../models/Staff.js';
 import User from '../models/User.js';
 import { sendSalarySlipEmail } from '../utils/salaryMailer.js';
+import { postSalaryToLedger, reverseEntries } from '../utils/ledgerService.js';
 
 // Helper to calculate exact service time in years, months, and days
 const calculateServiceTime = (joiningDate, referenceDate = new Date()) => {
@@ -89,6 +90,7 @@ const createOrUpdateSalary = asyncHandler(async (req, res) => {
     bonus,
     overtime,
     advancedSalary,
+    bankAccount,
     sendEmail,        // opt-in email flag from the frontend
   } = req.body;
 
@@ -135,6 +137,7 @@ const createOrUpdateSalary = asyncHandler(async (req, res) => {
     year,
     paidAmount: paidAmount || 0,
     paidAs: paidAs || 'Cash',
+    bankAccount: paidAs === 'Bank' ? (bankAccount || null) : null,
     paidBy: req.user._id,
     paidByName,
     bonus: bonus || 0,
@@ -150,6 +153,15 @@ const createOrUpdateSalary = asyncHandler(async (req, res) => {
   if (existingSalary) {
     // Update existing record
     const updatedSalary = await Salary.findByIdAndUpdate(existingSalary._id, salaryDetails, { new: true });
+
+    // Sync ledger: reverse old and re-post if paid
+    reverseEntries({ sourceModule: 'Salary', sourceId: updatedSalary._id, reason: 'Salary updated' })
+      .then(() => {
+        if (['Paid', 'Partial Paid'].includes(updatedSalary.status)) {
+          return postSalaryToLedger(updatedSalary);
+        }
+      })
+      .catch(err => console.error('[Ledger] Salary update sync error:', err.message));
 
     // Send update email only when the user opted in
     if (sendEmail) {
@@ -177,6 +189,10 @@ const createOrUpdateSalary = asyncHandler(async (req, res) => {
     }
 
     res.status(201).json(newSalary);
+    // Post to ledger (non-blocking)
+    if (['Paid', 'Partial Paid'].includes(newSalary.status)) {
+      postSalaryToLedger(newSalary).catch(err => console.error('[Ledger] Salary post error:', err.message));
+    }
   }
 });
 // // @desc    Get all salary records (Admin only)
@@ -435,6 +451,9 @@ const bulkCreateSalaries = asyncHandler(async (req, res) => {
   let created = [];
   if (toInsert.length > 0) {
     created = await Salary.insertMany(toInsert, { ordered: false });
+    // Post any paid salaries in bulk to ledger
+    created.filter(s => ['Paid', 'Partial Paid'].includes(s.status) && s.paidAmount > 0)
+      .forEach(s => postSalaryToLedger(s).catch(err => console.error('[Ledger] Bulk salary post error:', err.message)));
   }
 
   res.status(201).json({ createdCount: created.length, duplicateCount });
@@ -450,6 +469,10 @@ const deleteSalary = asyncHandler(async (req, res) => {
     res.status(404);
     throw new Error('Salary record not found');
   }
+
+  // Reverse any ledger entries before deleting
+  reverseEntries({ sourceModule: 'Salary', sourceId: salary._id, reason: 'Salary deleted' })
+    .catch(err => console.error('[Ledger] Salary delete reversal error:', err.message));
 
   await salary.deleteOne();
   res.status(200).json({ message: 'Salary record deleted successfully' });

@@ -1,5 +1,6 @@
 import asyncHandler from 'express-async-handler';
 import Bill from '../models/Bill.js';
+import { postBillToLedger, reverseEntries } from '../utils/ledgerService.js';
 import path from 'path';
 import multer from 'multer';
 import fs from 'fs';
@@ -16,24 +17,33 @@ const __dirname = path.dirname(__filename);
 // @route   POST /api/billing
 // @access  Private/Admin & Accountant
 const addBill = asyncHandler(async (req, res) => {
-  const { title, category, amount, status, billDate, paymentDate, paymentMethod, paidTo, remarks, meta } = req.body;
+  const { title, category, coaAccount, amount, status, billDate, paymentDate, paymentMethod, bankAccount, paidTo, remarks, meta } = req.body;
 
   const newBill = new Bill({
     title,
-    category,
+    // If coaAccount is provided, its name is used as category for compat; else use raw category
+    category: category || 'Other',
+    coaAccount: coaAccount || null,
     amount,
     status,
     billDate,
     paymentDate,
     paymentMethod,
+    bankAccount: paymentMethod === 'Bank' ? bankAccount : null,
     paidTo,
     remarks,
     meta: meta ? JSON.parse(meta) : {},
-    attachmentPath: req.file ? req.file.path : null, // Cloudinary URL
+    attachmentPath: req.file ? req.file.path : null,
     markedBy: req.user._id,
   });
 
   const createdBill = await newBill.save();
+
+  // Post to ledger for paid bills (non-blocking)
+  if (['Paid', 'Partial'].includes(createdBill.status)) {
+    postBillToLedger(createdBill).catch(err => console.error('[Ledger] Bill post error:', err.message));
+  }
+
   res.status(201).json(createdBill);
 });
 
@@ -111,6 +121,8 @@ const getBills = asyncHandler(async (req, res) => {
         model: 'Staff'
       }
     })
+    .populate('bankAccount', 'name accountNumber type')
+    .populate('coaAccount', 'name code type')
     .sort({ createdAt: -1 });
   res.status(200).json(bills);
 });
@@ -121,7 +133,10 @@ const getBills = asyncHandler(async (req, res) => {
 // @route   GET /api/billing/:id
 // @access  Private/Admin & Accountant
 const getBillById = asyncHandler(async (req, res) => {
-  const bill = await Bill.findById(req.params.id).populate('markedBy', 'cnic name role');
+  const bill = await Bill.findById(req.params.id)
+    .populate('markedBy', 'cnic name role')
+    .populate('bankAccount', 'name accountNumber type')
+    .populate('coaAccount', 'name code type');
   if (bill) {
     res.json(bill);
   } else {
@@ -144,9 +159,14 @@ const updateBill = asyncHandler(async (req, res) => {
     bill.billDate = req.body.billDate || bill.billDate;
     bill.paymentDate = req.body.paymentDate || bill.paymentDate;
     bill.paymentMethod = req.body.paymentMethod || bill.paymentMethod;
+    bill.bankAccount = req.body.paymentMethod === 'Bank' ? (req.body.bankAccount || bill.bankAccount) : null;
     bill.paidTo = req.body.paidTo || bill.paidTo;
     bill.remarks = req.body.remarks || bill.remarks;
     bill.meta = req.body.meta ? JSON.parse(req.body.meta) : bill.meta;
+
+    if (req.body.coaAccount !== undefined) {
+      bill.coaAccount = req.body.coaAccount || null;
+    }
 
     // If there's a new file, update the attachment
     if (req.file) {
@@ -154,6 +174,16 @@ const updateBill = asyncHandler(async (req, res) => {
     }
 
     const updatedBill = await bill.save();
+
+    // Sync ledger entries (reverse previous entries, re-post if still paid)
+    reverseEntries({ sourceModule: 'Bill', sourceId: updatedBill._id, reason: 'Bill updated' })
+      .then(() => {
+        if (['Paid', 'Partial'].includes(updatedBill.status)) {
+          return postBillToLedger(updatedBill);
+        }
+      })
+      .catch(err => console.error('[Ledger] Bill update sync error:', err.message));
+
     res.json(updatedBill);
   } else {
     res.status(404);
@@ -168,6 +198,10 @@ const deleteBill = asyncHandler(async (req, res) => {
   const bill = await Bill.findById(req.params.id);
 
   if (bill) {
+    // Reverse any ledger entries before deleting
+    reverseEntries({ sourceModule: 'Bill', sourceId: bill._id, reason: 'Bill deleted' })
+      .catch(err => console.error('[Ledger] Bill delete reversal error:', err.message));
+
     // Note: To completely remove the image from Cloudinary, you'd call their API here.
     // For now, we just delete the database record.
     await bill.deleteOne();

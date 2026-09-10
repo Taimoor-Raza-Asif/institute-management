@@ -114,9 +114,9 @@ const AccessControlPanel = () => {
     setLoading(true);
     try {
       const nextValue = !userToUpdate[field];
-      const payload = field === 'canAccessStudents' ? { canAccessStudents: nextValue } : { canAccessStaff: nextValue };
-      await api.put(`/users/${userToUpdate._id}/module-access`, payload);
-      setUsers((prev) => prev.map((user) => (user._id === userToUpdate._id ? { ...user, ...payload } : user)));
+      const payload = { [field]: nextValue };
+      const response = await api.put(`/users/${userToUpdate._id}/module-access`, payload);
+      setUsers((prev) => prev.map((user) => (user._id === userToUpdate._id ? { ...user, ...response.data } : user)));
     } catch (err) {
       console.error('Error toggling module access:', err);
       setError(`Failed to update module access for ${userToUpdate.cnic || userToUpdate.email || 'user'}.`);
@@ -124,6 +124,22 @@ const AccessControlPanel = () => {
       setLoading(false);
     }
   };
+
+  // Helper: render a standard permission toggle switch
+  const PermissionSwitch = ({ user, field, label }) => (
+    <Switch
+      checked={!!user[field]}
+      onChange={() => handleToggleModuleAccess(user, field)}
+      className={`${
+        user[field] ? (currentTheme?.btnPrimaryBg || 'bg-green-600') : (currentTheme?.btnSecondaryBg || 'bg-gray-300')
+      } relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 border ${
+        user[field] ? 'border-transparent' : 'border-gray-400'
+      } ${currentTheme?.inputRing || 'focus:ring-green-500'}`}
+    >
+      <span className="sr-only">{label}</span>
+      <span className={`${user[field] ? 'translate-x-6' : 'translate-x-1'} inline-block h-4 w-4 transform rounded-full bg-white shadow-md transition duration-200 ease-in-out`} />
+    </Switch>
+  );
 
   const filteredUsers = users
     .filter((user) => user.role !== "admin" || user._id === currentUser._id)
@@ -245,8 +261,11 @@ const AccessControlPanel = () => {
                     <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Role</th>
                     <th scope="col" className="px-6 py-4 text-center text-xs font-bold text-white uppercase tracking-wider">Students</th>
                     <th scope="col" className="px-6 py-4 text-center text-xs font-bold text-white uppercase tracking-wider">Staff</th>
+                    <th scope="col" className="px-6 py-4 text-center text-xs font-bold text-white uppercase tracking-wider">Fin. Summary</th>
+                    <th scope="col" className="px-6 py-4 text-center text-xs font-bold text-white uppercase tracking-wider">Reports</th>
+                    <th scope="col" className="px-6 py-4 text-center text-xs font-bold text-white uppercase tracking-wider">Salaries</th>
                     <th scope="col" className="px-6 py-4 text-center text-xs font-bold text-white uppercase tracking-wider">Edit Mode</th>
-                    <th scope="col" className="px-6 py-4 text-center text-xs font-bold text-white uppercase tracking-wider rounded-tr-xl">Actions</th>
+                    <th scope="col" className="px-6 py-4 text-center text-xs font-bold text-white uppercase tracking-wider rounded-tr-xl">Toggle Edit</th>
                   </tr>
                 </thead>
                 <tbody className={`${currentTheme?.tbodyBg || "bg-white"} divide-y divide-gray-100`}>
@@ -278,24 +297,19 @@ const AccessControlPanel = () => {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center text-sm">
-                        <Switch
-                          checked={user.canAccessStudents}
-                          onChange={() => handleToggleModuleAccess(user, 'canAccessStudents')}
-                          className={`${user.canAccessStudents ? (currentTheme?.btnPrimaryBg || 'bg-green-600') : (currentTheme?.btnSecondaryBg || 'bg-gray-300')} relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 border ${user.canAccessStudents ? 'border-transparent' : 'border-gray-400'} ${currentTheme?.inputRing || 'focus:ring-green-500'}`}
-                        >
-                          <span className="sr-only">Toggle student module access</span>
-                          <span className={`${user.canAccessStudents ? "translate-x-6" : "translate-x-1"} inline-block h-4 w-4 transform rounded-full bg-white shadow-md transition duration-200 ease-in-out`} />
-                        </Switch>
+                        <PermissionSwitch user={user} field="canAccessStudents" label="Toggle student module access" />
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center text-sm">
-                        <Switch
-                          checked={user.canAccessStaff}
-                          onChange={() => handleToggleModuleAccess(user, 'canAccessStaff')}
-                          className={`${user.canAccessStaff ? (currentTheme?.btnPrimaryBg || 'bg-green-600') : (currentTheme?.btnSecondaryBg || 'bg-gray-300')} relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 border ${user.canAccessStaff ? 'border-transparent' : 'border-gray-400'} ${currentTheme?.inputRing || 'focus:ring-green-500'}`}
-                        >
-                          <span className="sr-only">Toggle staff module access</span>
-                          <span className={`${user.canAccessStaff ? "translate-x-6" : "translate-x-1"} inline-block h-4 w-4 transform rounded-full bg-white shadow-md transition duration-200 ease-in-out`} />
-                        </Switch>
+                        <PermissionSwitch user={user} field="canAccessStaff" label="Toggle staff module access" />
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-center text-sm">
+                        <PermissionSwitch user={user} field="canViewFinancialSummary" label="Toggle financial summary access" />
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-center text-sm">
+                        <PermissionSwitch user={user} field="canViewReports" label="Toggle reports access" />
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-center text-sm">
+                        <PermissionSwitch user={user} field="canManageSalaries" label="Toggle salary management access" />
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center text-sm">
                         <span className={`px-3 py-1 inline-flex text-xs font-semibold rounded-full ${user.editModeEnabled ? (currentTheme?.successPill || "bg-green-100 text-green-800") : (currentTheme?.errorPill || "bg-red-100 text-red-800")}`}>

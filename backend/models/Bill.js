@@ -6,10 +6,11 @@ const BillSchema = new mongoose.Schema({
     required: true,
     trim: true,
   },
+  // Category kept as free-text string for backward compatibility with existing bills.
+  // New bills also set coaAccount (below) pointing to the ChartOfAccount record.
   category: {
     type: String,
-    required: true,
-    enum: ['Utilities', 'Kitchen', 'Vendor Payment', 'Repairs', 'Other'],
+    trim: true,
     default: 'Other',
   },
   amount: {
@@ -38,7 +39,21 @@ const BillSchema = new mongoose.Schema({
     required: function() {
       return this.status === 'Paid' || this.status === 'Partial';
     },
-    enum: ['Cash', 'Bank Transfer', 'Cheque', 'Online Payment'],
+    enum: ['Cash', 'Bank', 'Cheque'],
+  },
+  bankAccount: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'BankAccount',
+    default: null,
+    required: function() {
+      return this.paymentMethod === 'Bank';
+    },
+  },
+  // Reference to Chart of Accounts (Expense account this bill belongs to)
+  coaAccount: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'ChartOfAccount',
+    default: null,
   },
   paidTo: {
     type: String,

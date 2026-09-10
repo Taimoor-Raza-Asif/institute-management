@@ -8,7 +8,8 @@ import {
   BanknotesIcon, ChartBarIcon, PowerIcon, HomeIcon,
   ClipboardDocumentListIcon, CalendarDaysIcon, BookOpenIcon,
   Bars3Icon, XMarkIcon, ClockIcon, ClipboardDocumentCheckIcon, UserGroupIcon, WalletIcon,
-  ChevronDownIcon, PaintBrushIcon, AdjustmentsHorizontalIcon, CreditCardIcon, HeartIcon, ReceiptRefundIcon, ReceiptPercentIcon
+  ChevronDownIcon, PaintBrushIcon, AdjustmentsHorizontalIcon, CreditCardIcon, HeartIcon, ReceiptRefundIcon, ReceiptPercentIcon,
+  DocumentChartBarIcon,
 } from '@heroicons/react/24/outline';
 
 
@@ -357,8 +358,28 @@ const Layout = ({ children, currentUser, onLogout }) => {
                           </NavLink>
                         </li>
                         <li>
+                          <NavLink to="/chart-of-accounts" className={navClass} onClick={toggleSidebar}>
+                            <BanknotesIcon className={`h-5 w-5 mr-3`} /> Chart of Accounts
+                          </NavLink>
+                        </li>
+                        <li>
+                          <NavLink to="/accounts-wallets" className={navClass} onClick={toggleSidebar}>
+                            <WalletIcon className={`h-5 w-5 mr-3`} /> Accounts &amp; Wallets
+                          </NavLink>
+                        </li>
+                        <li>
                           <NavLink to="/financial-reports" className={navClass} onClick={toggleSidebar}>
                             <ChartBarIcon className={`h-5 w-5 mr-3`} /> Financial Reports
+                          </NavLink>
+                        </li>
+                        <li>
+                          <NavLink to="/account-ledger" className={navClass} onClick={toggleSidebar}>
+                            <BookOpenIcon className={`h-5 w-5 mr-3`} /> Account Ledger
+                          </NavLink>
+                        </li>
+                        <li>
+                          <NavLink to="/financial-statements" className={navClass} onClick={toggleSidebar}>
+                            <DocumentChartBarIcon className={`h-5 w-5 mr-3`} /> Financial Statements
                           </NavLink>
                         </li>
                         <li>
@@ -613,6 +634,11 @@ const Layout = ({ children, currentUser, onLogout }) => {
                         <li>
                           <NavLink to="/donations" className={navClass} onClick={toggleSidebar}>
                             <HeartIcon className={`h-5 w-5 mr-3`} /> Donation Management
+                          </NavLink>
+                        </li>
+                        <li>
+                          <NavLink to="/accounts-wallets" className={navClass} onClick={toggleSidebar}>
+                            <WalletIcon className={`h-5 w-5 mr-3`} /> Accounts &amp; Wallets
                           </NavLink>
                         </li>
                         <li>

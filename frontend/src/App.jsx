@@ -41,6 +41,10 @@ import EditMarksForm from './components/EditMarksForm'; // New Import
 import AcademicStructurePanel from './pages/AcademicStructurePanel';
 import FeeStructurePanel from './pages/FeeStructurePanel';
 import SalaryStructurePanel from './pages/SalaryStructurePanel';
+import BankAccountsPage from './pages/BankAccountsPage';
+import ChartOfAccounts from './pages/ChartOfAccounts';
+import AccountLedger from './pages/AccountLedger';
+import FinancialStatements from './pages/FinancialStatements';
 import { ThemeProvider } from './context/ThemeContext'; 
 
 export const UserContext = createContext(null);
@@ -80,9 +84,8 @@ const App = () => {
     window.location.href = '/login';
   };
 
-  const PrivateRoute = ({ children, roles, requiresStudentAccess, requiresStaffAccess }) => {
+  const PrivateRoute = ({ children, roles, requiresStudentAccess, requiresStaffAccess, requiresReportsAccess, requiresSalaryAccess }) => {
     if (loadingUser) {
-      // Basic full-screen loading indicator for initial auth check
       return (
         <div className="flex items-center justify-center min-h-screen bg-gray-100">
           <p className="text-xl text-gray-700">Loading user authentication...</p>
@@ -90,7 +93,7 @@ const App = () => {
       );
     }
     if (!currentUser) {
-      return <Navigate to="/login" replace />; // Use replace to avoid extra history entries
+      return <Navigate to="/login" replace />;
     }
     if (roles && !roles.includes(currentUser.role)) {
       return <Navigate to="/unauthorized" replace />;
@@ -101,7 +104,12 @@ const App = () => {
     if (requiresStaffAccess && currentUser.role !== 'admin' && !currentUser.canAccessStaff) {
       return <Navigate to="/unauthorized" replace />;
     }
-    // Render children wrapped by Layout for protected routes
+    if (requiresReportsAccess && currentUser.role !== 'admin' && !currentUser.canViewReports) {
+      return <Navigate to="/unauthorized" replace />;
+    }
+    if (requiresSalaryAccess && currentUser.role !== 'admin' && !currentUser.canManageSalaries) {
+      return <Navigate to="/unauthorized" replace />;
+    }
     return <Layout currentUser={currentUser} onLogout={handleLogout}>{children}</Layout>;
   };
 
@@ -157,7 +165,11 @@ const App = () => {
 
           <Route path="/donations" element={<PrivateRoute roles={['admin', 'accountant']}><DonationManagement /></PrivateRoute>} />
           <Route path="/billing" element={<PrivateRoute roles={['admin', 'accountant']}><BillingManagement /></PrivateRoute>} />
-          <Route path="/financial-reports" element={<PrivateRoute roles={['admin', 'accountant']}><Reports /></PrivateRoute>} />
+          <Route path="/chart-of-accounts" element={<PrivateRoute roles={['admin']}><ChartOfAccounts /></PrivateRoute>} />
+          <Route path="/account-ledger" element={<PrivateRoute roles={['admin', 'accountant']}><AccountLedger /></PrivateRoute>} />
+          <Route path="/financial-statements" element={<PrivateRoute roles={['admin', 'accountant']}><FinancialStatements /></PrivateRoute>} />
+          <Route path="/accounts-wallets" element={<PrivateRoute roles={['admin', 'accountant']}><BankAccountsPage /></PrivateRoute>} />
+          <Route path="/financial-reports" element={<PrivateRoute roles={['admin', 'accountant']} requiresReportsAccess={true}><Reports /></PrivateRoute>} />
           <Route path="/discounted-students" element={<PrivateRoute roles={['admin', 'accountant']}><DiscountedStudents /></PrivateRoute>} />
           {/* Staff-specific route */}
           <Route path="/my-salaries" element={<PrivateRoute><StaffSalaryList /></PrivateRoute>} />

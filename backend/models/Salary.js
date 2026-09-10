@@ -48,8 +48,16 @@ const salarySchema = new mongoose.Schema({
   },
   paidAs: {
     type: String,
-    enum: ['Cash', 'Online Wallet', 'Bank Transfer', 'Other'],
+    enum: ['Cash', 'Bank', 'Cheque', 'Other'],
     default: 'Cash',
+  },
+  bankAccount: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'BankAccount',
+    default: null,
+    required: function() {
+      return this.paidAs === 'Bank';
+    },
   },
   paidBy: {
     type: mongoose.Schema.Types.ObjectId,

@@ -10,7 +10,7 @@ import { postDonationToLedger, reverseEntries } from '../utils/ledgerService.js'
 const addDonation = asyncHandler(async (req, res) => {
   // `multer` has already processed the request at this point.
   // The file is available at `req.file` and the other fields at `req.body`.
-  const { donationAmount, donationPurpose, donationDate, donorName, contactNumber, emailAddress, cnic, organizationName, paymentMethod } = req.body;
+  const { donationAmount, donationPurpose, donationDate, donorName, contactNumber, emailAddress, cnic, organizationName, paymentMethod, bankAccount } = req.body;
 
   const newDonation = new Donation({
     donationAmount,
@@ -22,6 +22,7 @@ const addDonation = asyncHandler(async (req, res) => {
     cnic,
     organizationName,
     paymentMethod,
+    bankAccount: (paymentMethod === 'Bank Transfer' || paymentMethod === 'Mobile Wallet') && bankAccount ? bankAccount : null,
     receiptPath: req.file ? req.file.path : null, // Cloudinary URL
     markedBy: req.user._id
   });
@@ -31,15 +32,10 @@ const addDonation = asyncHandler(async (req, res) => {
   // Post to ledger (non-blocking)
   postDonationToLedger(createdDonation).catch(err => console.error('[Ledger] Donation post error:', err.message));
 
-// Populate markedBy → profileId → name
-const populatedDonation = await Donation.findById(createdDonation._id).populate({
-  path: 'markedBy',
-  populate: {
-    path: 'profileId',
-    model: 'Staff', 
-    select: 'name'
-  }
-})
+// Populate markedBy → profileId → name and bankAccount
+const populatedDonation = await Donation.findById(createdDonation._id)
+  .populate({ path: 'markedBy', populate: { path: 'profileId', model: 'Staff', select: 'name' } })
+  .populate({ path: 'bankAccount', select: 'name accountNumber accountType' });
 
   res.status(201).json(populatedDonation);
 });
@@ -59,14 +55,9 @@ const getDonations = asyncHandler(async (req, res) => {
     if (endDate) query.donationDate.$lte = new Date(endDate);
   }
 
-  const donations = await Donation.find(query).populate({
-  path: 'markedBy',
-  populate: {
-    path: 'profileId',
-    model: 'Staff', 
-    select: 'name'
-  }
-})
+  const donations = await Donation.find(query)
+    .populate({ path: 'markedBy', populate: { path: 'profileId', model: 'Staff', select: 'name' } })
+    .populate({ path: 'bankAccount', select: 'name accountNumber accountType' });
   res.json(donations);
 });
 
@@ -74,14 +65,9 @@ const getDonations = asyncHandler(async (req, res) => {
 // @route   GET /api/donations/:id
 // @access  Private/Admin & Accountant
 const getDonationById = asyncHandler(async (req, res) => {
-  const donation = await Donation.findById(req.params.id).populate({
-  path: 'markedBy',
-  populate: {
-    path: 'profileId',
-    model: 'Staff', 
-    select: 'name'
-  }
-})
+  const donation = await Donation.findById(req.params.id)
+    .populate({ path: 'markedBy', populate: { path: 'profileId', model: 'Staff', select: 'name' } })
+    .populate({ path: 'bankAccount', select: 'name accountNumber accountType' });
   if (donation) {
     res.json(donation);
   } else {
@@ -106,6 +92,12 @@ const updateDonation = asyncHandler(async (req, res) => {
     donation.cnic = req.body.cnic || donation.cnic;
     donation.organizationName = req.body.organizationName || donation.organizationName;
     donation.paymentMethod = req.body.paymentMethod || donation.paymentMethod;
+    const pm = donation.paymentMethod;
+    if (pm === 'Bank Transfer' || pm === 'Mobile Wallet') {
+      donation.bankAccount = req.body.bankAccount || donation.bankAccount;
+    } else {
+      donation.bankAccount = null;
+    }
 
     const updatedDonation = await donation.save();
 

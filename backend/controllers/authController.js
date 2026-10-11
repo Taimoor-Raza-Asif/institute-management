@@ -2,9 +2,9 @@ import User from '../models/User.js';
 import jwt from 'jsonwebtoken';
 
 // Generate JWT with 24 hour expiration
-const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: '24h', // Token expires in 24 hours
+const generateToken = (id, role) => {
+  return jwt.sign({ id, role }, process.env.JWT_SECRET, {
+    expiresIn: '24h',
   });
 };
 
@@ -15,10 +15,19 @@ export const loginUser = async (req, res) => {
   const { cnic, password } = req.body;
 
   try {
-    // Check if user exists by CNIC
     const user = await User.findOne({ cnic });
 
-    if (user && (await user.matchPassword(password))) {
+    if (!user) {
+      return res.status(401).json({ message: 'Invalid CNIC or Password' });
+    }
+
+    // Block deactivated accounts
+    if (!user.isActive) {
+      return res.status(403).json({ message: 'Account has been deactivated. Please contact the Super Admin.' });
+    }
+
+    const isMatch = await user.matchPassword(password);
+    if (isMatch) {
       res.json({
         _id: user._id,
         cnic: user.cnic,
@@ -27,13 +36,16 @@ export const loginUser = async (req, res) => {
         editModeEnabled: user.editModeEnabled,
         canAccessStudents: user.canAccessStudents,
         canAccessStaff: user.canAccessStaff,
-        token: generateToken(user._id),
+        canViewFinancialSummary: user.canViewFinancialSummary,
+        canViewReports: user.canViewReports,
+        canManageSalaries: user.canManageSalaries,
+        token: generateToken(user._id, user.role),
       });
     } else {
       res.status(401).json({ message: 'Invalid CNIC or Password' });
     }
   } catch (error) {
-    console.error("Login error:", error);
+    console.error('Login error:', error);
     res.status(500).json({ message: 'Server Error during login' });
   }
 };

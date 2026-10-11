@@ -285,6 +285,18 @@ export const deleteStaff = async (req, res) => {
       return res.status(404).json({ message: 'Staff not found' });
     }
 
+    // Protection: Prevent deleting own account
+    const isSelf = (req.user?.profileId && staff._id && req.user.profileId.toString() === staff._id.toString()) ||
+                   (req.user?.cnic && staff.cnic && req.user.cnic === staff.cnic);
+    if (isSelf) {
+      return res.status(400).json({ message: 'You cannot delete your own account.' });
+    }
+
+    // Protection: Only Super Admin can delete Admin accounts
+    if (staff.staffType?.toLowerCase() === 'admin' && req.user?.role !== 'super_admin') {
+      return res.status(403).json({ message: 'Only Super Admin can delete Admin accounts.' });
+    }
+
     // Cloudinary images can optionally be deleted via API here in the future
     await staff.deleteOne();
     res.json({ message: 'Staff deleted successfully' });

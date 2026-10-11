@@ -28,11 +28,24 @@ const protect = asyncHandler(async (req, res, next) => {
       req.user = await User.findById(decoded.id).select('-password');
 
       if (!req.user) {
-        // console.log('[/protect middleware] User not found for ID from token:', decoded.id);
         res.status(401);
         throw new Error('Not authorized, user not found');
       }
-      // console.log('[/protect middleware] User authenticated:', req.user.cnic, 'Role:', req.user.role);
+
+      // Block deactivated accounts
+      if (!req.user.isActive) {
+        res.status(403);
+        throw new Error('Account is deactivated. Contact the Super Admin.');
+      }
+
+      // Session-based super_admin elevation:
+      // If the JWT carries role 'super_admin' but the DB stores 'admin',
+      // apply the elevated role in-memory for this request only.
+      // The DB is never modified — elevation expires when the token is replaced (logout).
+      if (decoded.role === 'super_admin' && req.user.role === 'admin') {
+        req.user = { ...req.user.toObject(), role: 'super_admin' };
+      }
+
       next();
     } catch (error) {
       // console.error('[/protect middleware] Token verification failed:', error.message);
@@ -52,14 +65,23 @@ const protect = asyncHandler(async (req, res, next) => {
 // Authorize roles - restricts access based on user roles
 const authorizeRoles = (...roles) => {
   return (req, res, next) => {
-    // Check if req.user exists and its role is included in the allowed roles
+    // super_admin can always access any admin-protected route
+    if (req.user && req.user.role === 'super_admin') return next();
     if (!req.user || !roles.includes(req.user.role)) {
-      // console.log(req.user);
       res.status(403); // Forbidden
       throw new Error(`Not authorized as ${req.user ? req.user.role : 'guest'}. Required roles: ${roles.join(', ')}`);
     }
     next(); // User has the required role, proceed
   };
+};
+
+// Super-admin-only gate
+const isSuperAdmin = (req, res, next) => {
+  if (!req.user || req.user.role !== 'super_admin') {
+    res.status(403);
+    throw new Error('Not authorized. Super Admin access required.');
+  }
+  next();
 };
 
 // Module-level access gate for student management
@@ -69,7 +91,7 @@ const ensureStudentModuleAccess = (req, res, next) => {
     res.status(401);
     throw new Error('Not authorized, user missing');
   }
-  if (req.user.role === 'admin' || req.user.role === 'student') {
+  if (req.user.role === 'admin' || req.user.role === 'super_admin' || req.user.role === 'student') {
     return next();
   }
   // Allow teacher/accountant to read even without explicit flag
@@ -91,7 +113,7 @@ const ensureStaffModuleAccess = (req, res, next) => {
     res.status(401);
     throw new Error('Not authorized, user missing');
   }
-  if (req.user.role === 'admin') {
+  if (req.user.role === 'admin' || req.user.role === 'super_admin') {
     return next();
   }
   // Allow other staff roles (cook/cleaner) to access their own limited routes handled elsewhere
@@ -109,4 +131,4 @@ const ensureStaffModuleAccess = (req, res, next) => {
   throw new Error('Not authorized for staff management');
 };
 
-export { protect, authorizeRoles, ensureStudentModuleAccess, ensureStaffModuleAccess };
+export { protect, authorizeRoles, isSuperAdmin, ensureStudentModuleAccess, ensureStaffModuleAccess };

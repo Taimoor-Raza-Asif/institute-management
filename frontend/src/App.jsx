@@ -45,7 +45,9 @@ import BankAccountsPage from './pages/BankAccountsPage';
 import ChartOfAccounts from './pages/ChartOfAccounts';
 import AccountLedger from './pages/AccountLedger';
 import FinancialStatements from './pages/FinancialStatements';
-import { ThemeProvider } from './context/ThemeContext'; 
+import { ThemeProvider } from './context/ThemeContext';
+import SuperAdminRegister from './pages/SuperAdminRegister';
+import SuperAdminDashboard from './pages/SuperAdminDashboard';
 
 export const UserContext = createContext(null);
 
@@ -115,6 +117,7 @@ const App = () => {
 
   const roleDashboardPath = (role) => {
     switch (role) {
+      case 'super_admin': return '/super-admin/dashboard';
       case 'admin': return '/admin/dashboard';
       case 'teacher': return '/teacher/dashboard';
       case 'student': return '/student/dashboard';
@@ -134,6 +137,8 @@ const App = () => {
           {/* Public Routes - No Layout */}
           <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
           <Route path="/unauthorized" element={<Unauthorized />} />
+          {/* Hidden Super Admin registration — not linked in nav */}
+          <Route path="/super-admin/register" element={<SuperAdminRegister />} />
 
           {/* Default Route: Always start at login */}
           <Route path="/" element={<Navigate to="/login" replace />} />
@@ -147,8 +152,10 @@ const App = () => {
           <Route path="/attendance/all" element={<PrivateRoute roles={['admin', 'teacher']}><AllAttendanceRecords /></PrivateRoute>} />
 
           {/* Admin Routes */}
-          <Route path="/admin/dashboard" element={<PrivateRoute roles={['admin']}><AdminDashboard /></PrivateRoute>} />
-          <Route path="/admin/users" element={<PrivateRoute roles={['admin']}><UserManagement /></PrivateRoute>} />
+          <Route path="/admin/dashboard" element={<PrivateRoute roles={['admin', 'super_admin']}><AdminDashboard /></PrivateRoute>} />
+          <Route path="/admin/users" element={<PrivateRoute roles={['admin', 'super_admin']}><UserManagement /></PrivateRoute>} />
+          {/* Super Admin Dashboard — has its own full-page UI, no Layout wrapper */}
+          <Route path="/super-admin/dashboard" element={<SuperAdminDashboard />} />
           <Route path="/admin/access-control" element={<PrivateRoute roles={['admin']}><AccessControlPanel /></PrivateRoute>} />
           <Route path="/admin/student-leaves" element={<PrivateRoute roles={['admin']}><LeaveList /></PrivateRoute>} />
           <Route path="/admin/staff-leaves" element={<PrivateRoute roles={['admin']}><StaffLeaveList /></PrivateRoute>} />

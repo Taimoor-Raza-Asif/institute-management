@@ -17,7 +17,7 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['admin', 'student', 'teacher', 'accountant', 'cook', 'cleaner'],
+    enum: ['admin', 'super_admin', 'student', 'teacher', 'accountant', 'cook', 'cleaner'],
     required: true
   },
   profileId: { // This will store the _id of the associated Student or Staff document
@@ -28,8 +28,8 @@ const userSchema = new mongoose.Schema({
   roleMapping: { // Stores the model name ('Student' or 'Staff') for refPath
     type: String,
     required: function() {
-      // profileId is required if role is not 'admin'
-      return this.role !== 'admin';
+      // profileId is required if role is not 'admin' or 'super_admin'
+      return this.role !== 'admin' && this.role !== 'super_admin';
     },
     enum: {
       values: ['Student', 'Staff'],
@@ -60,6 +60,19 @@ const userSchema = new mongoose.Schema({
   canManageSalaries: {
     type: Boolean,
     default: false  // If true, user can add/edit/delete salary records
+  },
+  // Account status & soft-delete fields (managed by super_admin only)
+  isActive: {
+    type: Boolean,
+    default: true   // false = deactivated, cannot log in
+  },
+  pendingDeletion: {
+    type: Boolean,
+    default: false  // true = deletion initiated, 5-min window active
+  },
+  deletionScheduledAt: {
+    type: Date,
+    default: null   // set when pendingDeletion becomes true
   }
 }, {
   timestamps: true // Adds createdAt and updatedAt timestamps

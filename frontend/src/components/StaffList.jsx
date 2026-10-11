@@ -1,10 +1,11 @@
 // src/components/StaffList.jsx
-import React, { useEffect, useState, useCallback, useRef } from 'react';
-import api from '../api'; // Assuming you have an api.js setup for axios
-import Modal from './Modal'; // Reusing your existing Modal component
+import React, { useEffect, useState, useCallback, useRef, useContext } from 'react';
+import api from '../api';
+import Modal from './Modal';
 import StaffForm from './StaffForm';
 import AttendanceModal from './AttendanceModal';
 import { useTheme } from '../context/ThemeContext';
+import { UserContext } from '../App';
 import {
   PencilIcon, TrashIcon, PlusIcon, FunnelIcon, XMarkIcon,
   MagnifyingGlassIcon, EyeIcon, QrCodeIcon, CalendarDaysIcon,
@@ -13,9 +14,9 @@ import {
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
 import { resolveFileUrl } from '../utils/urlHelper.js';
 
-
 const StaffList = () => {
   const { currentTheme } = useTheme();
+  const { currentUser: authUser } = useContext(UserContext) || {};
   const [staff, setStaff] = useState([]);
   const [editingStaff, setEditingStaff] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
@@ -333,9 +334,22 @@ const inputRef = useRef(null);
                           <button onClick={() => handleEdit(person)} className="p-2 text-yellow-600 hover:text-yellow-800 hover:bg-yellow-50 rounded-lg transition-colors duration-200" title="Edit Staff">
                             <PencilIcon className="h-5 w-5" />
                           </button>
-                          <button onClick={() => handleDelete(person._id)} className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors duration-200" title="Delete Staff">
-                            <TrashIcon className="h-5 w-5" />
-                          </button>
+                          {(() => {
+                            const active = authUser || currentUser;
+                            const isAdmin = person.staffType?.toLowerCase() === 'admin';
+                            const isSelf = (active?.profileId && person._id && String(active.profileId) === String(person._id)) ||
+                                           (active?.cnic && person.cnic && active.cnic === person.cnic);
+                            // Simple admin cannot delete himself or other admins. Only Super Admin can delete admin accounts.
+                            const canDelete = !isSelf && (!isAdmin || active?.role === 'super_admin');
+
+                            if (!canDelete) return null;
+
+                            return (
+                              <button onClick={() => handleDelete(person._id)} className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors duration-200" title="Delete Staff">
+                                <TrashIcon className="h-5 w-5" />
+                              </button>
+                            );
+                          })()}
                         </>
                       )}
                     </div>

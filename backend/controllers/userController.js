@@ -60,7 +60,6 @@ export const registerUser = asyncHandler(async (req, res) => {
     roleMapping = 'Staff';
   } else if (role === 'admin') {
     // Admin role does not require a linked profile initially, but can have one.
-    // If profileId is provided for admin, validate it against Staff model.
     if (profileId) {
       linkedProfile = await Staff.findById(profileId);
       if (!linkedProfile) {
@@ -69,6 +68,10 @@ export const registerUser = asyncHandler(async (req, res) => {
       }
       roleMapping = 'Staff';
     }
+  } else if (role === 'super_admin') {
+    // super_admin can only be created via the dedicated /api/super-admin/register endpoint
+    res.status(403);
+    throw new Error('Super Admin accounts cannot be created through this endpoint.');
   } else {
     res.status(400);
     throw new Error('Invalid user role provided.');
@@ -221,7 +224,8 @@ export const authUser = asyncHandler(async (req, res) => {
 // @route   GET /api/users
 // @access  Private/Admin
 export const getAllUsers = asyncHandler(async (req, res) => {
-  const users = await User.find({}).select('-password').populate({
+  // Exclude super_admin accounts — they're managed separately
+  const users = await User.find({ role: { $ne: 'super_admin' } }).select('-password').populate({
     path: 'profileId',
     select: 'name cnic employeeId profilePictureUrl', // Populate name, cnic (for students), employeeId (for staff)
     // We don't need to specify model here as refPath handles it
@@ -356,10 +360,20 @@ export const deleteUser = asyncHandler(async (req, res) => {
   const user = await User.findById(req.params.id);
 
   if (user) {
-    // Prevent admin from deleting their own user account
+    // Prevent deleting own account
     if (req.user._id.toString() === user._id.toString()) {
       res.status(400);
       throw new Error('You cannot delete your own user account.');
+    }
+    // Only super_admin can delete admin accounts
+    if (user.role === 'admin' && req.user.role !== 'super_admin') {
+      res.status(403);
+      throw new Error('Only the Super Admin can delete admin accounts.');
+    }
+    // super_admin accounts cannot be deleted via this endpoint
+    if (user.role === 'super_admin') {
+      res.status(403);
+      throw new Error('Super Admin accounts cannot be deleted.');
     }
     await user.deleteOne();
     res.json({ message: 'User removed.' });

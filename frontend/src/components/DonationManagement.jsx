@@ -451,6 +451,9 @@ const DonationManagement = () => {
                     <td className={`px-6 py-4 whitespace-nowrap text-sm ${currentTheme?.text || 'text-gray-600'}`}>{new Date(donation.donationDate).toLocaleDateString()}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${currentTheme.pillBg || 'bg-gray-100'} ${currentTheme.pillText || 'text-gray-800'} ${currentTheme.pillBorder || 'border border-gray-200'}`}>{donation.paymentMethod}</span>
+                      {donation.bankAccount?.name && (
+                        <p className={`text-xs mt-1 ${currentTheme?.mutedText || 'text-gray-500'}`}>{donation.bankAccount.name}{donation.bankAccount.accountNumber ? ` (${donation.bankAccount.accountNumber})` : ''}</p>
+                      )}
                     </td>
                     <td className={`px-6 py-4 whitespace-nowrap text-sm ${currentTheme?.text || 'text-gray-600'}`}>{donation.markedBy?.profileId?.name} ({donation.markedBy?.role})</td>
                     <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">

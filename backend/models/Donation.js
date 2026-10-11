@@ -43,7 +43,12 @@ const donationSchema = new mongoose.Schema({
   paymentMethod: {
     type: String,
     required: [true, 'Payment method is required.'],
-    enum: ['Cash', 'Bank Transfer', 'Cheque', 'Online Gateway'],
+    enum: ['Cash', 'Bank Transfer', 'Cheque', 'Mobile Wallet'],
+  },
+  bankAccount: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'BankAccount',
+    default: null,
   },
   receiptPath: {
     type: String, // Storing the path to the uploaded file

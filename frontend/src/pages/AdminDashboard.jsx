@@ -1,7 +1,7 @@
 // src/pages/AdminDashboard.jsx
 import React, { useContext, useEffect, useState } from 'react';
 import { UserContext } from '../App';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import api from '../api';
 import {
@@ -24,8 +24,37 @@ import {
 } from '@heroicons/react/24/outline';
 
 const AdminDashboard = () => {
-  const { currentUser } = useContext(UserContext);
+  const { currentUser, setCurrentUser } = useContext(UserContext);
   const { currentTheme } = useTheme();
+  const navigate = useNavigate();
+
+  // Promote-to-super-admin modal state
+  const [showPromoteModal, setShowPromoteModal] = useState(false);
+  const [promoteKey, setPromoteKey] = useState('');
+  const [promoteLoading, setPromoteLoading] = useState(false);
+  const [promoteMsg, setPromoteMsg] = useState({ type: '', text: '' });
+
+  const handlePromoteSelf = async () => {
+    setPromoteLoading(true);
+    setPromoteMsg({ type: '', text: '' });
+    try {
+      const { data } = await api.post('/super-admin/promote-self', { secretKey: promoteKey });
+
+      // Swap token in sessionStorage with the elevated token (sessionStorage only — never localStorage)
+      // This means: on next login the DB returns role: 'admin' as normal
+      const elevated = { ...currentUser, token: data.token, role: 'super_admin' };
+      sessionStorage.setItem('userInfo', JSON.stringify(elevated));
+      localStorage.removeItem('userInfo'); // Prevent elevated token from surviving across browser sessions
+
+      setCurrentUser(elevated);
+      setShowPromoteModal(false);
+      navigate('/super-admin/dashboard');
+    } catch (err) {
+      setPromoteMsg({ type: 'error', text: err.response?.data?.message || 'Elevation failed.' });
+    } finally {
+      setPromoteLoading(false);
+    }
+  };
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -164,7 +193,7 @@ const AdminDashboard = () => {
     }
   }, [currentUser, year, todayStr]);
 
-  if (!currentUser || currentUser.role !== 'admin') {
+  if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'super_admin')) {
     return (
       <div className={`text-center py-8 ${currentTheme?.mutedText || 'text-red-600'}`}>
         <h2 className={`text-2xl font-bold ${currentTheme?.title || 'text-gray-800'}`}>Access Denied</h2>
@@ -192,8 +221,8 @@ const AdminDashboard = () => {
 
       <div className="relative z-10 space-y-8 ">
         {/* Header */}
-        <div className={`glass-card shine rounded-2xl p-6 sm:p-7 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 animate-rise ${currentTheme?.heroBg || 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900'} ${currentTheme?.heroBorder || currentTheme?.cardBorder || 'border border-emerald-100/50'} ${currentTheme?.shadow || 'shadow-xl'}`}>
-          <div>
+        <div className={`glass-card shine rounded-2xl p-6 sm:p-7 flex flex-col sm:flex-row sm:items-stretch sm:justify-between gap-6 animate-rise ${currentTheme?.heroBg || 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900'} ${currentTheme?.heroBorder || currentTheme?.cardBorder || 'border border-emerald-100/50'} ${currentTheme?.shadow || 'shadow-xl'}`}>
+          <div className="flex-1">
             <div className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold mb-3 ${currentTheme?.heroPillBg || 'bg-emerald-50'} ${currentTheme?.heroPillText || 'text-emerald-800'} ${currentTheme?.heroPillBorder || 'border border-emerald-100'}`}>
               <span className={`w-2 h-2 rounded-full mr-2 animate-ping-slow ${currentTheme.btnPrimaryBg || 'bg-emerald-500'}`} />
               Control Center · {year}
@@ -206,9 +235,27 @@ const AdminDashboard = () => {
               <Badge icon={<Cog6ToothIcon className={`h-4 w-4 ${currentTheme.iconText || 'text-blue-600'}`} />} label="Realtime sync" variant="neutral" />
             </div>
           </div>
-          <div className="relative">
-            <div className={`absolute inset-0 blur-2xl bg-gradient-to-br ${currentTheme.dashHeroGlow || 'from-emerald-200 to-teal-200'} opacity-80 animate-floaty`} />
-            <img src="/Jamia%20Logo.png" alt="Jamia logo" className="relative w-16 h-16 sm:w-20 sm:h-20 object-contain drop-shadow" />
+
+          <div className="flex flex-col items-end justify-between gap-3 self-stretch">
+            <div className="relative">
+              <div className={`absolute inset-0 blur-2xl bg-gradient-to-br ${currentTheme.dashHeroGlow || 'from-emerald-200 to-teal-200'} opacity-80 animate-floaty`} />
+              <img src="/Jamia%20Logo.png" alt="Jamia logo" className="relative w-16 h-16 sm:w-20 sm:h-20 object-contain drop-shadow" />
+            </div>
+
+            {/* Super Admin Session — temporary elevation for this session */}
+            {currentUser.role === 'admin' && (
+              <button
+                onClick={() => { setShowPromoteModal(true); setPromoteMsg({ type: '', text: '' }); setPromoteKey(''); }}
+                title="Enter secret key to elevate this session to Super Admin"
+                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold border ${currentTheme?.heroPillBorder || 'border-emerald-200'} ${currentTheme?.heroPillText || 'text-emerald-800'} ${currentTheme?.heroPillBg || 'bg-white/70'} hover:opacity-90 transition shadow-sm backdrop-blur-sm`}
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+                </svg>
+                Super Admin Mode
+              </button>
+            )}
           </div>
         </div>
 
@@ -301,6 +348,60 @@ const AdminDashboard = () => {
           </>
         )}
       </div>
+
+      {/* ── Super Admin Session Modal (Theme-Aware) ─────────────────────── */}
+      {showPromoteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className={`${currentTheme?.modalBg || 'bg-white'} ${currentTheme?.modalBorder || 'border border-gray-200'} ${currentTheme?.modalShadow || 'shadow-2xl'} rounded-2xl p-7 max-w-sm w-full transition-all animate-rise`}>
+            <div className="flex items-center gap-3 mb-5">
+              <div className={`w-12 h-12 rounded-full ${currentTheme?.heroPillBg || 'bg-emerald-50'} ${currentTheme?.heroPillBorder || 'border border-emerald-100'} flex items-center justify-center flex-shrink-0 shadow-sm`}>
+                <svg className={`w-6 h-6 ${currentTheme?.iconText || 'text-emerald-600'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className={`text-lg font-bold ${currentTheme?.title || 'text-gray-900'}`}>Super Admin Access</h3>
+                <p className={`${currentTheme?.mutedText || 'text-gray-500'} text-xs`}>Enter secret key to activate Super Admin session</p>
+              </div>
+            </div>
+
+            {promoteMsg.text && (
+              <div className={`mb-4 px-4 py-3 rounded-xl text-sm ${promoteMsg.type === 'success' ? (currentTheme?.alertSuccessBg || 'bg-emerald-50') + ' ' + (currentTheme?.alertSuccessBorder || 'border border-emerald-200') + ' ' + (currentTheme?.alertSuccessText || 'text-emerald-800') : (currentTheme?.alertErrorBg || 'bg-red-50') + ' ' + (currentTheme?.alertErrorBorder || 'border border-red-200') + ' ' + (currentTheme?.alertErrorText || 'text-red-800')}`}>
+                {promoteMsg.text}
+              </div>
+            )}
+
+            <div className="mb-5">
+              <label className={`block text-xs font-semibold ${currentTheme?.mutedText || 'text-gray-600'} mb-2`}>Secret Key</label>
+              <input
+                type="password"
+                value={promoteKey}
+                onChange={e => setPromoteKey(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handlePromoteSelf()}
+                placeholder="Enter secret key..."
+                className={`w-full px-4 py-3 rounded-xl ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputBorder || 'border border-gray-300'} ${currentTheme?.inputText || 'text-gray-900'} ${currentTheme?.inputPlaceholder || 'placeholder-gray-400'} text-sm focus:outline-none ${currentTheme?.inputRing || 'focus:ring-2 focus:ring-emerald-500'} transition shadow-sm`}
+              />
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowPromoteModal(false)}
+                className={`flex-1 py-2.5 rounded-xl border ${currentTheme?.btnSecondaryBorder || 'border-gray-300'} ${currentTheme?.btnSecondaryBg || 'bg-white'} ${currentTheme?.btnSecondaryText || 'text-gray-700'} hover:${currentTheme?.btnSecondaryHover || 'bg-gray-100'} transition text-sm font-semibold shadow-sm`}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handlePromoteSelf}
+                disabled={promoteLoading || !promoteKey}
+                className={`flex-1 py-2.5 rounded-xl ${currentTheme?.btnPrimaryBg || 'bg-emerald-600'} ${currentTheme?.btnPrimaryText || 'text-white'} hover:${currentTheme?.btnPrimaryHover || 'hover:bg-emerald-700'} font-bold text-sm transition shadow-md disabled:opacity-50 disabled:cursor-not-allowed`}
+              >
+                {promoteLoading ? 'Verifying...' : 'Unlock'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

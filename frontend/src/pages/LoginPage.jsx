@@ -41,6 +41,10 @@ const LoginPage = ({ onLogin }) => {
         editModeEnabled: userData.editModeEnabled,
         canAccessStudents: userData.canAccessStudents,
         canAccessStaff: userData.canAccessStaff,
+        canViewFinancialSummary: userData.canViewFinancialSummary,
+        canViewReports: userData.canViewReports,
+        canManageSalaries: userData.canManageSalaries,
+        _id: userData._id,
       };
 
       // Always keep current session
@@ -53,10 +57,12 @@ const LoginPage = ({ onLogin }) => {
       }
       onLogin(loggedInUser);
 
+      if (userData.role === 'super_admin') navigate('/super-admin/dashboard');
       if (userData.role === 'admin') navigate('/admin/dashboard');
       if (userData.role === 'teacher') navigate('/teacher/dashboard');
       if (userData.role === 'student') navigate('/student/dashboard');
       if (userData.role === 'accountant') navigate('/accountant/dashboard');
+      if (['cook', 'cleaner'].includes(userData.role)) navigate('/staff/dashboard');
     } catch (err) {
       setError(err.response?.data?.message || 'Invalid credentials. Try again.');
     } finally {

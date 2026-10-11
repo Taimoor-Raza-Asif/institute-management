@@ -6,7 +6,9 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 import Message from './Message';
 
-const paymentMethods = ['Cash', 'Bank Transfer', 'Cheque', 'Online Gateway'];
+// Base (always available) payment methods — Mobile Wallet is added dynamically when wallets exist
+const BASE_PAYMENT_METHODS = ['Cash', 'Bank Transfer', 'Cheque'];
+const ACCOUNT_METHODS = ['Bank Transfer', 'Mobile Wallet'];
 
 const donationPurposes = [
   'Zakat',
@@ -30,11 +32,39 @@ const AddDonationModal = ({ onAdd, onEdit, onClose, donationToEdit, isViewMode =
     cnic: '',
     organizationName: '',
     paymentMethod: paymentMethods[0],
+    bankAccount: '',
   });
   const [receiptFile, setReceiptFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [bankAccountOptions, setBankAccountOptions] = useState([]);
+  const [bankAccountsLoading, setBankAccountsLoading] = useState(false);
   const { currentTheme } = useTheme();
+
+  // Fetch bank/wallet accounts on mount
+  useEffect(() => {
+    const fetchBankAccounts = async () => {
+      setBankAccountsLoading(true);
+      try {
+        const { data } = await api.get('/bank-accounts');
+        setBankAccountOptions(data);
+      } catch (err) {
+        console.warn('Could not fetch bank accounts:', err.message);
+      } finally {
+        setBankAccountsLoading(false);
+      }
+    };
+    fetchBankAccounts();
+  }, []);
+
+  // Derived lists
+  const bankOnlyOptions    = bankAccountOptions.filter(a => a.type === 'Bank');
+  const walletOnlyOptions  = bankAccountOptions.filter(a => a.type === 'Mobile Wallet');
+  const hasWallets         = walletOnlyOptions.length > 0;
+  // Available payment methods: add Mobile Wallet only when wallets exist
+  const paymentMethods = hasWallets
+    ? [...BASE_PAYMENT_METHODS, 'Mobile Wallet']
+    : BASE_PAYMENT_METHODS;
 
   useEffect(() => {
     if (donationToEdit) {
@@ -48,6 +78,7 @@ const AddDonationModal = ({ onAdd, onEdit, onClose, donationToEdit, isViewMode =
         cnic: donationToEdit.cnic || '',
         organizationName: donationToEdit.organizationName || '',
         paymentMethod: donationToEdit.paymentMethod,
+        bankAccount: donationToEdit.bankAccount?._id || donationToEdit.bankAccount || '',
       });
       setReceiptFile(null);
     }
@@ -292,6 +323,40 @@ const AddDonationModal = ({ onAdd, onEdit, onClose, donationToEdit, isViewMode =
                 ))}
               </select>
             </div>
+
+            {/* Bank / Wallet account selector — context-aware */}
+            {ACCOUNT_METHODS.includes(formData.paymentMethod) && (() => {
+              const opts = formData.paymentMethod === 'Mobile Wallet' ? walletOnlyOptions : bankOnlyOptions;
+              const label = formData.paymentMethod === 'Mobile Wallet' ? 'Mobile Wallet Account' : 'Bank Account';
+              return (
+                <div className="space-y-1">
+                  <label htmlFor="bankAccount" className={labelBase}>
+                    {label}<span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    id="bankAccount"
+                    name="bankAccount"
+                    value={formData.bankAccount}
+                    onChange={handleChange}
+                    disabled={isViewMode || bankAccountsLoading}
+                    required={!isViewMode}
+                    className={inputBase}
+                  >
+                    <option value="">{bankAccountsLoading ? 'Loading...' : `— Select ${label} —`}</option>
+                    {opts.map(acc => (
+                      <option key={acc._id} value={acc._id}>
+                        {acc.name}{acc.accountNumber ? ` (${acc.accountNumber})` : ''}
+                      </option>
+                    ))}
+                  </select>
+                  {opts.length === 0 && !bankAccountsLoading && (
+                    <p className="text-xs text-amber-600 mt-1">
+                      No {label.toLowerCase()}s configured. Ask admin to add them in Accounts &amp; Wallets.
+                    </p>
+                  )}
+                </div>
+              );
+            })()}
 
             {!donationToEdit && !isViewMode && (
               <div className="space-y-2">

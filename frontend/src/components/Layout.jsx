@@ -237,6 +237,13 @@ const Layout = ({ children, currentUser, onLogout }) => {
               <ThemeSelector />
 
               {/* Dashboard Links */}
+              {currentUser.role === 'super_admin' && (
+                <li className="mb-2">
+                  <NavLink to="/super-admin/dashboard" className={navClass} onClick={toggleSidebar}>
+                    <HomeIcon className={`h-5 w-5 mr-3`} /> Super Admin Console
+                  </NavLink>
+                </li>
+              )}
               {currentUser.role === 'admin' && (
                 <li className="mb-2">
                   <NavLink to="/admin/dashboard" className={navClass} onClick={toggleSidebar}>

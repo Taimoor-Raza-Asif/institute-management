@@ -64,7 +64,9 @@ import bankAccountRoutes from './routes/bankAccountRoutes.js';
 import coaRoutes from './routes/coaRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
 import ledgerRoutes from './routes/ledgerRoutes.js';
+import superAdminRoutes from './routes/superAdminRoutes.js';
 import { seedDefaultCoA } from './utils/seedCoA.js';
+import { processPendingDeletions } from './controllers/superAdminController.js';
 // Helper to get __filename and __dirname in ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -95,7 +97,7 @@ const corsOptions = {
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-super-admin-secret']
 };
 app.use(cors(corsOptions));
 app.use(express.json()); // Parse JSON request bodies
@@ -130,6 +132,7 @@ app.use('/api/bank-accounts', bankAccountRoutes);
 app.use('/api/coa', coaRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/ledger', ledgerRoutes);
+app.use('/api/super-admin', superAdminRoutes);
 // Define the port for the server
 const PORT = process.env.PORT || 5000;
 
@@ -139,6 +142,9 @@ mongoose.connect(process.env.MONGO_URI)
   app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
   // Seed Chart of Accounts on first run
   await seedDefaultCoA();
+  // Start background job: permanently delete admin accounts after 5-minute cooldown
+  setInterval(processPendingDeletions, 30 * 1000); // every 30 seconds
+  console.log('[SuperAdmin] Pending deletion cleanup job started.');
 }).catch(err => console.error('MongoDB connection error:', err)); // More descriptive error message
 
 // Export app for testing (supertest). Tests should handle DB setup/teardown.

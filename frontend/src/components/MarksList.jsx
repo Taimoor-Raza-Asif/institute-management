@@ -599,7 +599,7 @@ const MarksList = () => {
                 {filteredMarks.length > 0 ? (
                     <div className="overflow-x-auto">
                         <div className="overflow-hidden">
-                        <table className={`min-w-full divide-y ${currentTheme?.border || 'divide-gray-200'}`}>
+                        <table className={`min-w-full divide-y ${currentTheme?.border || 'divide-gray-200'} mobile-card-table`}>
                             <thead className={`${currentTheme?.theadBg || 'bg-emerald-600'} ${currentTheme?.theadText || 'text-white'}`}>
                                 <tr>
                                     <th className={`py-3 px-4 text-left text-xs font-semibold uppercase tracking-wide`}>Student Name</th>

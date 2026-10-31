@@ -267,7 +267,7 @@ const AdminDashboard = () => {
         {loading ? (
           <SkeletonGrid />
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-6">
             {kpis.map((item, idx) => (
               <KpiCard key={item.title} {...item} theme={currentTheme} delay={idx * 90} />
             ))}

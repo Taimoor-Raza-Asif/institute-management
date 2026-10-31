@@ -508,7 +508,7 @@ const AttendanceMarking = () => {
           <form onSubmit={handleSubmitAttendance}>
             <div className={`${currentTheme?.cardBg || 'bg-white'} rounded-xl ${currentTheme?.shadow || 'shadow-lg'} overflow-hidden ${currentTheme?.border || 'border border-gray-100'}`}>
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
+              <table className="min-w-full divide-y divide-gray-200 mobile-card-table">
                 <thead className={`${currentTheme?.theadBg || 'bg-emerald-600'} ${currentTheme?.theadText || 'text-white'}`}>
                   <tr>
                     <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider">Name</th>

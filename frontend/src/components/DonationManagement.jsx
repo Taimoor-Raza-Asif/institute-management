@@ -427,7 +427,7 @@ const DonationManagement = () => {
           <p className={`p-4 text-center ${currentTheme?.mutedText || 'text-gray-500'}`}>No donations found.</p>
         ) : (
           <div className="overflow-x-auto rounded-xl overflow-hidden">
-            <table className={`min-w-full divide-y ${currentTheme?.border || 'divide-gray-200'}`}>
+            <table className={`min-w-full divide-y ${currentTheme?.border || 'divide-gray-200'} mobile-card-table`}>
               <thead className={`${currentTheme?.theadBg || 'bg-gradient-to-r from-green-600 to-emerald-600'}`}>
                 <tr>
                   <th scope="col" className={`px-6 py-4 text-left text-xs font-bold ${currentTheme?.theadText || 'text-white'} uppercase tracking-wider rounded-tl-xl`}>Donor Name</th>

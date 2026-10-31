@@ -31,7 +31,7 @@ const AddDonationModal = ({ onAdd, onEdit, onClose, donationToEdit, isViewMode =
     emailAddress: '',
     cnic: '',
     organizationName: '',
-    paymentMethod: paymentMethods[0],
+    paymentMethod: BASE_PAYMENT_METHODS[0],
     bankAccount: '',
   });
   const [receiptFile, setReceiptFile] = useState(null);

@@ -217,7 +217,7 @@ const TeacherDashboard = () => {
         </div>
 
         {/* Quick Actions */}
-        <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="mt-10 hidden md:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           <DashboardCard
             title="My Profile"
             description="Review and update your staff details."

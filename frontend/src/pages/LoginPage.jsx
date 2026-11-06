@@ -71,15 +71,15 @@ const LoginPage = ({ onLogin }) => {
   };
 
   return (
-    <div className={`min-h-screen flex items-center justify-center relative overflow-hidden ${currentTheme.mainBg}`}>
+    <div className={`min-h-screen flex items-start md:items-center justify-center relative overflow-hidden px-2 py-2 sm:px-4 sm:py-4 ${currentTheme.mainBg}`}>
       
       {/* Background glow */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(34,197,94,0.15),transparent_60%)]" />
 
       {/* Main Card */}
       <div
-        className={`relative w-full max-w-6xl min-h-[520px]
-        flex flex-col md:flex-row overflow-hidden rounded-2xl
+        className={`relative w-full max-w-6xl min-h-0 md:min-h-[520px]
+        flex flex-col md:flex-row overflow-hidden rounded-xl md:rounded-2xl
         backdrop-blur-xl bg-opacity-80
         ${currentTheme.cardBg} ${currentTheme.shadow} ${currentTheme.border}
         animate-[fadeIn_0.8s_ease-out]`}
@@ -87,39 +87,39 @@ const LoginPage = ({ onLogin }) => {
 
         {/* LEFT PANEL */}
         <div
-          className={`md:w-3/4 p-10 flex flex-col justify-center items-center text-center
+          className={`md:w-3/4 px-5 pt-4 pb-3 md:p-10 flex flex-col justify-center items-center text-center
           animate-[slideLeft_1s_ease-out]`}
         >
           <img
             src="/Jamia%20Logo.png"
             alt="Jamia Tul Mastwaar"
-            className="w-24 h-24 mb-6 drop-shadow-xl"
+            className="w-14 h-14 sm:w-20 sm:h-20 md:w-24 md:h-24 mb-3 sm:mb-4 md:mb-6 drop-shadow-xl"
           />
 
-          <h1 className="text-5xl font-extrabold tracking-tight mb-4 text-green-800">
+          <h1 className="text-2xl sm:text-4xl md:text-5xl font-extrabold tracking-tight mb-2 sm:mb-3 md:mb-4 text-green-800">
             Jamia Tul Mastwaar
           </h1>
 
-          <div className="w-16 h-1 bg-green-600 rounded-full mb-6" />
+          <div className="w-14 h-1 bg-green-600 rounded-full mb-2 sm:mb-4 md:mb-6" />
 
-          <p className="italic text-lg max-w-md leading-relaxed text-gray-700">
+          <p className="italic text-base md:text-lg max-w-md leading-relaxed text-gray-700">
             “Educating minds, empowering futures through knowledge and wisdom.”
           </p>
 
-          <p className="text-sm mt-6 max-w-md text-gray-500">
+          <p className="hidden sm:block text-sm mt-4 md:mt-6 max-w-md text-gray-500">
             A trusted institution committed to academic excellence and character building.
           </p>
         </div>
 
         {/* RIGHT PANEL */}
-        <div className="md:w-1/2 p-10 flex flex-col justify-center animate-[slideUp_1s_ease-out]">
+        <div className="md:w-1/2 px-5 pb-4 pt-2 sm:px-8 sm:pb-8 sm:pt-4 md:p-10 flex flex-col justify-center animate-[slideUp_1s_ease-out]">
 
-          <h2 className={`text-4xl font-extrabold text-center mb-4 ${currentTheme.title || 'text-green-800'}`}>
+          <h2 className={`text-2xl sm:text-3xl md:text-4xl font-extrabold text-center mb-2 sm:mb-3 md:mb-4 ${currentTheme.title || 'text-green-800'}`}>
             Welcome Back
           </h2>
 
           {/* Divider */}
-          <div className="flex items-center gap-4 mb-8">
+          <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-6 md:mb-8">
             <div className={`flex-1 h-px ${currentTheme.divider || 'bg-gray-300'}`} />
             <span className={`text-sm font-medium ${currentTheme.mutedText || 'text-gray-500'}`}>Secure Login</span>
             <div className={`flex-1 h-px ${currentTheme.divider || 'bg-gray-300'}`} />
@@ -131,7 +131,7 @@ const LoginPage = ({ onLogin }) => {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5 md:space-y-6">
 
             {/* CNIC */}
             <div className="relative">
@@ -142,7 +142,7 @@ const LoginPage = ({ onLogin }) => {
                 onChange={(e) => setCnic(e.target.value)}
                 maxLength="13"
                 placeholder=" "
-                className={`peer w-full pl-11 pr-4 pt-6 pb-2 rounded-xl ${currentTheme.inputBorder || 'border border-gray-300'}
+                className={`peer w-full pl-11 pr-4 pt-5 pb-2 rounded-xl ${currentTheme.inputBorder || 'border border-gray-300'}
                 ${currentTheme.inputBg || 'bg-transparent'} focus:outline-none ${currentTheme.inputRing || 'focus:ring-2 focus:ring-green-500'} transition`}
                 required
               />
@@ -161,7 +161,7 @@ const LoginPage = ({ onLogin }) => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder=" "
-                className={`peer w-full pl-11 pr-12 pt-6 pb-2 rounded-xl ${currentTheme.inputBorder || 'border border-gray-300'}
+                className={`peer w-full pl-11 pr-12 pt-5 pb-2 rounded-xl ${currentTheme.inputBorder || 'border border-gray-300'}
                 ${currentTheme.inputBg || 'bg-transparent'} focus:outline-none ${currentTheme.inputRing || 'focus:ring-2 focus:ring-green-500'} transition`}
                 required
               />
@@ -196,7 +196,7 @@ const LoginPage = ({ onLogin }) => {
             <button
               type="submit"
               disabled={loading}
-              className={`w-full py-3 rounded-xl text-lg font-bold
+              className={`w-full py-2.5 sm:py-3 rounded-xl text-base sm:text-lg font-bold
               ${currentTheme.btnPrimaryBg || 'bg-green-600'} ${currentTheme.btnPrimaryHover || 'hover:bg-green-700'}
               ${currentTheme.btnPrimaryText || 'text-white'}
               shadow-lg hover:shadow-xl
@@ -207,7 +207,7 @@ const LoginPage = ({ onLogin }) => {
             </button>
           </form>
 
-          <p className={`mt-10 text-center text-xs ${currentTheme.mutedText || 'text-gray-500'}`}>
+          <p className={`mt-4 sm:mt-8 md:mt-10 text-center text-xs ${currentTheme.mutedText || 'text-gray-500'}`}>
             © {new Date().getFullYear()} Jamia Tul Mastwaar · All rights reserved
           </p>
         </div>

@@ -188,10 +188,10 @@ const SalaryStructurePanel = () => {
 
   return (
     <div className={`${t?.mainBg || 'bg-gray-50'} min-h-screen`}>
-      <div className="max-w-6xl mx-auto p-6 space-y-5">
+      <div className="max-w-6xl mx-auto p-6 space-y-5 salary-structure-page">
 
         {/* ── Hero Banner ── */}
-        <div className={`relative rounded-2xl p-7 ${t?.heroBg || 'bg-gradient-to-br from-emerald-200 via-emerald-50 to-emerald-500'} shadow-lg overflow-hidden`}>
+        <div className={`salary-hero relative rounded-2xl p-7 ${t?.heroBg || 'bg-gradient-to-br from-emerald-200 via-emerald-50 to-emerald-500'} shadow-lg overflow-hidden`}>
           <div className="absolute -top-8 -right-8 w-48 h-48 rounded-full bg-white opacity-5" />
           <div className="absolute -bottom-10 -left-10 w-56 h-56 rounded-full bg-white opacity-5" />
           <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -211,7 +211,7 @@ const SalaryStructurePanel = () => {
             <button
               onClick={handleSave}
               disabled={saving}
-              className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold shadow-lg transition disabled:opacity-60 ${t?.btnPrimaryBg || 'bg-emerald-600'} ${t?.btnPrimaryText || 'text-white'} ${t?.btnPrimaryHover || 'hover:bg-emerald-700'}`}
+              className={`salary-save-btn flex items-center gap-2 px-6 py-3 rounded-xl font-bold shadow-lg transition disabled:opacity-60 ${t?.btnPrimaryBg || 'bg-emerald-600'} ${t?.btnPrimaryText || 'text-white'} ${t?.btnPrimaryHover || 'hover:bg-emerald-700'}`}
             >
               {saving ? <ArrowPathIcon className="animate-spin w-5 h-5" /> : <BookmarkSquareIcon className="w-5 h-5" />}
               {saving ? 'Saving...' : 'Save Configuration'}
@@ -220,7 +220,7 @@ const SalaryStructurePanel = () => {
         </div>
 
         {/* ── Info Banner ── */}
-        <div className={`flex items-start gap-3 px-4 py-3 rounded-xl text-sm ${t?.alertInfoBg || 'bg-blue-50'} border ${t?.alertInfoBorder || 'border-blue-200'} ${t?.alertInfoText || 'text-blue-800'}`}>
+        <div className={`salary-info-banner flex items-start gap-3 px-4 py-3 rounded-xl text-sm ${t?.alertInfoBg || 'bg-blue-50'} border ${t?.alertInfoBorder || 'border-blue-200'} ${t?.alertInfoText || 'text-blue-800'}`}>
           <InformationCircleIcon className="h-5 w-5 mt-0.5 flex-shrink-0 shrink-0" />
           <p>
             Set a <strong>base salary</strong> for each staff type and optionally enable <strong>increments</strong>
@@ -230,8 +230,8 @@ const SalaryStructurePanel = () => {
         </div>
 
         {/* ── Staff Type Tab Bar ── */}
-        <div className={`${t?.cardBg || 'bg-white'} ${t?.cardShadow || 'shadow-md'} rounded-xl p-4`}>
-          <div className="flex flex-wrap items-center gap-2">
+        <div className={`salary-tab-shell ${t?.cardBg || 'bg-white'} ${t?.cardShadow || 'shadow-md'} rounded-xl p-4`}>
+          <div className="salary-type-tabs flex flex-wrap items-center gap-2">
             {DEFAULT_STAFF_TYPES.map(type => {
               const col = TYPE_COLORS[type];
               const isActive = activeTab === type;
@@ -239,7 +239,7 @@ const SalaryStructurePanel = () => {
                 <button
                   key={type}
                   onClick={() => setActiveTab(type)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold text-sm border transition-all duration-200 ${
+                  className={`salary-type-chip flex items-center gap-2 px-4 py-2 rounded-xl font-semibold text-sm border transition-all duration-200 ${
                     isActive
                       ? `${t?.btnPrimaryBg || 'bg-emerald-600'} ${t?.btnPrimaryText || 'text-white'} border-transparent shadow-md`
                       : `${col.pill} border hover:opacity-90`
@@ -254,7 +254,7 @@ const SalaryStructurePanel = () => {
 
             <button
               onClick={handlePreviewOpen}
-              className={`ml-auto flex items-center gap-2 px-4 py-2 rounded-xl font-semibold text-sm border transition ${t?.btnSecondaryBg || 'bg-white'} ${t?.btnSecondaryText || 'text-emerald-700'} ${t?.btnSecondaryBorder || 'border-emerald-200'} ${t?.btnSecondaryHover || 'hover:bg-emerald-50'}`}
+              className={`salary-preview-btn ml-auto flex items-center gap-2 px-4 py-2 rounded-xl font-semibold text-sm border transition ${t?.btnSecondaryBg || 'bg-white'} ${t?.btnSecondaryText || 'text-emerald-700'} ${t?.btnSecondaryBorder || 'border-emerald-200'} ${t?.btnSecondaryHover || 'hover:bg-emerald-50'}`}
             >
               <CalculatorIcon className="w-4 h-4" />
               Preview &amp; Apply
@@ -263,10 +263,10 @@ const SalaryStructurePanel = () => {
         </div>
 
         {/* ── Active Staff Type Card ── */}
-        <div className={`${t?.cardBg || 'bg-white'} ${t?.cardShadow || 'shadow-md'} rounded-2xl overflow-hidden`}>
+        <div className={`salary-active-card ${t?.cardBg || 'bg-white'} ${t?.cardShadow || 'shadow-md'} rounded-2xl overflow-hidden`}>
 
           {/* Card Header */}
-          <div className={`px-6 py-4 flex items-center gap-3 border-b ${t?.cardBorder || 'border-gray-200'}`}>
+          <div className={`salary-active-head px-6 py-4 flex items-center gap-3 border-b ${t?.cardBorder || 'border-gray-200'}`}>
             <div className={`p-2.5 rounded-xl border ${typeColor.pill}`}>
               <UserGroupIcon className="w-5 h-5" />
             </div>
@@ -467,7 +467,7 @@ const SalaryStructurePanel = () => {
                       ) : (
                         <div className="space-y-3">
                           {activeRule.serviceMilestones.map((m, idx) => (
-                            <div key={idx} className={`flex items-end gap-4 p-4 rounded-xl border ${t?.cardBorder || 'border-gray-200'} ${t?.tableStripedBg || 'bg-gray-50'}`}>
+                            <div key={idx} className={`salary-milestone-row flex items-end gap-4 p-4 rounded-xl border ${t?.cardBorder || 'border-gray-200'} ${t?.tableStripedBg || 'bg-gray-50'}`}>
                               <div className="flex-1">
                                 <label className={`block text-xs font-bold mb-1.5 uppercase tracking-wide ${t?.mutedText || 'text-gray-500'}`}>
                                   After (Years of Service)
@@ -492,7 +492,7 @@ const SalaryStructurePanel = () => {
                               </div>
                               <button
                                 onClick={() => removeMilestone(activeTab, idx)}
-                                className="mb-0.5 p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-xl transition"
+                                className="salary-milestone-remove mb-0.5 p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-xl transition"
                               >
                                 <TrashIcon className="w-4 h-4" />
                               </button>

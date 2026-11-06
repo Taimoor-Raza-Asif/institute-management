@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useCallback, useContext } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import api from '../api';
 import { MagnifyingGlassIcon, PlusIcon, TrashIcon, PencilIcon, XMarkIcon, AcademicCapIcon } from '@heroicons/react/24/outline';
 import Loader from "../components/Loader";
@@ -6,10 +6,8 @@ import Message from "../components/Message";
 import { toast } from 'react-toastify';
 import ConfirmationModal from '../components/ConfirmationModal';
 import { useTheme } from '../context/ThemeContext';
-import { UserContext } from '../App';
 
 const AssignClasses = () => {
-    const { currentUser } = useContext(UserContext);
     const { currentTheme } = useTheme();
     const [academicStructure, setAcademicStructure] = useState(null);
     const [structureLoading, setStructureLoading] = useState(true);
@@ -471,7 +469,7 @@ const AssignClasses = () => {
     
 
     return (
-        <div className={`container mx-auto p-4 sm:p-6 lg:p-8 min-h-screen ${currentTheme?.mainBg || 'bg-gray-50'}`}>
+        <div className={`assign-classes-page container mx-auto p-4 sm:p-6 lg:p-8 min-h-screen ${currentTheme?.mainBg || 'bg-gray-50'}`}>
             {/* Hero Header */}
             <div className={`relative ${currentTheme?.heroBg || 'bg-gradient-to-r from-emerald-50 to-teal-100'} ${currentTheme?.shadow || 'shadow-lg'} rounded-2xl p-8 mb-8 overflow-hidden`}>
                 <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full -mr-32 -mt-32"></div>
@@ -484,7 +482,7 @@ const AssignClasses = () => {
             {error && <Message type="error" text={error} />}
 
             <div className={`${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.shadow || 'shadow-xl'} rounded-xl p-6 mb-8`}>
-                <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-3">
+                <div className="assign-toolbar flex flex-col sm:flex-row justify-between items-center mb-4 gap-3">
                     <div className="relative w-full sm:w-1/2 lg:w-2/3">
                         <input
                             type="text"
@@ -520,10 +518,10 @@ const AssignClasses = () => {
             </div>
 
             {showAssignmentForm && (
-                <div className={`${currentTheme?.cardBg || 'bg-white'} rounded-xl shadow-2xl p-8 mb-8 ${currentTheme?.border || 'border border-green-500'}`}>
-                    <h3 className={`text-2xl font-bold ${currentTheme?.text || 'text-white'} mb-6 text-center`}>Assignment Form</h3>
+                <div className={`assign-form-shell ${currentTheme?.cardBg || 'bg-white'} rounded-xl shadow-2xl p-8 mb-8 ${currentTheme?.border || 'border border-green-500'}`}>
+                    <h3 className={`assign-form-title text-2xl font-bold ${currentTheme?.text || 'text-white'} mb-6 text-center`}>Assignment Form</h3>
                     <form onSubmit={handleSubmit} className="space-y-6">
-                        <div className={`${currentTheme?.panelBg || 'bg-green-50'} rounded-lg p-6 ${currentTheme?.border || 'border border-green-200'} shadow-inner`}>
+                        <div className={`assign-teacher-panel ${currentTheme?.panelBg || 'bg-green-50'} rounded-lg p-6 ${currentTheme?.border || 'border border-green-200'} shadow-inner`}>
                             <h4 className="text-lg font-semibold text-green-800 mb-4 border-b border-green-300 pb-2">Teacher Selection</h4>
                             <div>
                                 <label htmlFor="teacher" className={`block text-sm font-medium ${currentTheme?.mutedText || 'text-gray-700'} mb-1`}>Select Teacher</label>
@@ -573,9 +571,9 @@ const AssignClasses = () => {
                             </div>
                         </div>
 
-                        <div className={`${currentTheme?.cardBg || 'bg-white'} rounded-lg p-6 ${currentTheme?.border || 'border border-gray-100'} ${currentTheme?.shadow || 'shadow-md'}`}>
-                            <h4 className={`text-xl font-semibold ${currentTheme?.title || 'text-gray-800'} mb-4`}>{editingAssignmentIndex !== null ? "Edit Assignment" : "Add New Assignment"}</h4>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
+                        <div className={`assign-editor-card ${currentTheme?.cardBg || 'bg-white'} rounded-lg p-6 ${currentTheme?.border || 'border border-gray-100'} ${currentTheme?.shadow || 'shadow-md'}`}>
+                            <h4 className={`assign-editor-title text-xl font-semibold ${currentTheme?.title || 'text-gray-800'} mb-4`}>{editingAssignmentIndex !== null ? "Edit Assignment" : "Add New Assignment"}</h4>
+                            <div className="assign-field-grid grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
                                 <div>
                                     <label htmlFor="assignType" className={`block text-sm font-medium ${currentTheme?.title || 'text-gray-700'}`}>Academic Track</label>
                                     <select
@@ -667,12 +665,12 @@ const AssignClasses = () => {
                                 )}
                             </div>
 
-                            <div className="mt-4">
+                            <div className="assign-subjects-wrap mt-4">
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Subjects</label>
                                 <p className="text-xs text-gray-500 mb-2">
                                     *List subjects the teacher will teach for this specific class/semester. Suggestions pulled from Academic Structure.
                                 </p>
-                                <div className={`space-y-2 max-h-60 overflow-y-auto p-4 border rounded-lg ${currentTheme?.inputBg || 'bg-white border-gray-200'}`}>
+                                <div className={`assign-subjects-box space-y-2 max-h-60 overflow-y-auto p-4 border rounded-lg ${currentTheme?.inputBg || 'bg-white border-gray-200'}`}>
                                     {getAvailableSubjects.length > 0 ? (
                                         getAvailableSubjects.map((subject, index) => (
                                             <div key={index} className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded-md transition-colors">
@@ -695,12 +693,12 @@ const AssignClasses = () => {
                                 {formErrors.subjects && <p className="mt-1 text-sm text-red-600">{formErrors.subjects}</p>}
                             </div>
                             
-                            <div className="mt-6 flex justify-end">
+                            <div className="assign-editor-actions mt-6 flex justify-end">
                                 {editingAssignmentIndex !== null ? (
                                     <button
                                         type="button"
                                         onClick={handleUpdateAssignment}
-                                        className={`px-6 py-3 ${currentTheme?.btnPrimaryBg || 'bg-green-600'} ${currentTheme?.btnPrimaryText || 'text-white'} font-semibold rounded-lg ${currentTheme?.btnPrimaryHover || 'hover:bg-green-700'} transition duration-200 shadow-md`}
+                                        className={`assign-primary-btn px-6 py-3 ${currentTheme?.btnPrimaryBg || 'bg-green-600'} ${currentTheme?.btnPrimaryText || 'text-white'} font-semibold rounded-lg ${currentTheme?.btnPrimaryHover || 'hover:bg-green-700'} transition duration-200 shadow-md`}
                                     >
                                         Update Assignment
                                     </button>
@@ -708,7 +706,7 @@ const AssignClasses = () => {
                                     <button
                                         type="button"
                                         onClick={handleAddAssignmentToList}
-                                        className={`px-6 py-3 ${currentTheme?.btnPrimaryBg || 'bg-green-600'} ${currentTheme?.btnPrimaryText || 'text-white'} font-semibold rounded-lg ${currentTheme?.btnPrimaryHover || 'hover:bg-green-700'} transition duration-200 shadow-md`}
+                                        className={`assign-primary-btn px-6 py-3 ${currentTheme?.btnPrimaryBg || 'bg-green-600'} ${currentTheme?.btnPrimaryText || 'text-white'} font-semibold rounded-lg ${currentTheme?.btnPrimaryHover || 'hover:bg-green-700'} transition duration-200 shadow-md`}
                                     >
                                         Add to List
                                     </button>
@@ -716,7 +714,7 @@ const AssignClasses = () => {
                                 <button
                                     type="button"
                                     onClick={resetCurrentAssignmentForm}
-                                    className={`ml-4 px-6 py-3 rounded-lg font-semibold ${currentTheme?.btnSecondaryBg || 'bg-transparent'} ${currentTheme?.btnSecondaryText || 'text-gray-700'} border ${currentTheme?.border || 'border border-gray-100'} hover:opacity-95 transition duration-200`}
+                                    className={`assign-secondary-btn ml-4 px-6 py-3 rounded-lg font-semibold ${currentTheme?.btnSecondaryBg || 'bg-transparent'} ${currentTheme?.btnSecondaryText || 'text-gray-700'} border ${currentTheme?.border || 'border border-gray-100'} hover:opacity-95 transition duration-200`}
                                 >
                                     Clear
                                 </button>

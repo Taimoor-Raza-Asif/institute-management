@@ -359,7 +359,7 @@ const AdminDashboard = () => {
                 </ul>
               </div>
 
-              <div className={`rounded-2xl p-6 animate-rise ${currentTheme?.cardBg || 'bg-slate-900/60'} ${currentTheme?.cardBorder || currentTheme?.border || 'border border-emerald-100/50'} ${currentTheme?.shadow || 'shadow-xl'}`} style={{ animationDelay: '280ms' }}>
+              <div className={`hidden md:block rounded-2xl p-6 animate-rise ${currentTheme?.cardBg || 'bg-slate-900/60'} ${currentTheme?.cardBorder || currentTheme?.border || 'border border-emerald-100/50'} ${currentTheme?.shadow || 'shadow-xl'}`} style={{ animationDelay: '280ms' }}>
                 <div className="flex items-center justify-between mb-4">
                   <h3 className={`text-xl font-semibold ${currentTheme.title || 'text-gray-900'}`}>Quick Actions</h3>
                   <span className={`text-xs px-2 py-1 rounded-full ${currentTheme?.badgeInfoBg || 'bg-emerald-50'} ${currentTheme?.badgeInfoText || 'text-emerald-700'} ${currentTheme?.badgeInfoBorder || 'border border-emerald-100'}`}>Always at hand</span>

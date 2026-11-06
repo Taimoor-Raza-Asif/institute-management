@@ -152,7 +152,7 @@ const StudentDashboard = () => {
         </div>
 
         {/* Quick Actions */}
-        <div>
+        <div className="hidden md:block">
           <h2 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${currentTheme?.title || 'text-gray-800'}`}>
             <TrendingUp className={`h-5 w-5 ${currentTheme?.iconText || 'text-emerald-600'}`} />
             Quick Actions

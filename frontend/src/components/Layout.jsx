@@ -1,8 +1,10 @@
 // src/components/Layout.jsx
 import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
+import api from '../api';
 import { useTheme } from '../context/ThemeContext.jsx';
 import ThemeToggle from './ThemeToggle.jsx';
+import { resolveFileUrl } from '../utils/urlHelper.js';
 import {
   UserCircleIcon, Cog6ToothIcon, BriefcaseIcon, AcademicCapIcon,
   BanknotesIcon, ChartBarIcon, PowerIcon, HomeIcon,
@@ -21,6 +23,12 @@ const Layout = ({ children, currentUser, onLogout }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false); // default closed on mobile
   const [openDropdowns, setOpenDropdowns] = useState({});
   const [isMobile, setIsMobile] = useState(false);
+  const [headerAvatarUrl, setHeaderAvatarUrl] = useState('');
+  const [avatarLoadFailed, setAvatarLoadFailed] = useState(false);
+
+  const profileIdValue = currentUser?.profileId && typeof currentUser.profileId === 'object'
+    ? currentUser.profileId._id
+    : currentUser?.profileId;
 
   // Detect mobile
   useEffect(() => {
@@ -44,6 +52,52 @@ const Layout = ({ children, currentUser, onLogout }) => {
     if (isMobile) setIsSidebarOpen(false);
   }, [location.pathname, isMobile]);
 
+  // Resolve top-right avatar image from current user or linked profile.
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadHeaderAvatar = async () => {
+      setAvatarLoadFailed(false);
+
+      if (!currentUser) {
+        setHeaderAvatarUrl('');
+        return;
+      }
+
+      const directAvatar = currentUser.profilePictureUrl || currentUser.profileId?.profilePictureUrl;
+      if (directAvatar) {
+        setHeaderAvatarUrl(resolveFileUrl(directAvatar));
+        return;
+      }
+
+      if (!profileIdValue || currentUser.role === 'super_admin') {
+        setHeaderAvatarUrl('');
+        return;
+      }
+
+      try {
+        const endpoint = currentUser.role === 'student'
+          ? `/students/${profileIdValue}`
+          : `/staff/${profileIdValue}`;
+        const { data } = await api.get(endpoint);
+        const fetchedAvatar = data?.profilePictureUrl || data?.student?.profilePictureUrl || data?.staff?.profilePictureUrl;
+        if (!cancelled) {
+          setHeaderAvatarUrl(fetchedAvatar ? resolveFileUrl(fetchedAvatar) : '');
+        }
+      } catch {
+        if (!cancelled) {
+          setHeaderAvatarUrl('');
+        }
+      }
+    };
+
+    loadHeaderAvatar();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [currentUser, profileIdValue]);
+
   const openSidebar  = () => setIsSidebarOpen(true);
   const closeSidebar = () => setIsSidebarOpen(false);
   const toggleSidebar = () => setIsSidebarOpen(prev => !prev);
@@ -56,19 +110,19 @@ const Layout = ({ children, currentUser, onLogout }) => {
   };
 
   const getMyProfileLink = () => {
-    if (!currentUser || !currentUser.profileId) return null;
+    if (!currentUser || !profileIdValue) return null;
     if (currentUser.role === 'student') {
-      return `/profile/student/${currentUser.profileId}`;
+      return `/profile/student/${profileIdValue}`;
     } else if (['admin', 'teacher', 'accountant', 'cook', 'cleaner'].includes(currentUser.role)) {
-      return `/profile/staff/${currentUser.profileId}`;
+      return `/profile/staff/${profileIdValue}`;
     }
     return null;
   };
 
   const getMyMarksLink = () => {
-    if (!currentUser || !currentUser.profileId) return null;
-    if (currentUser.role === 'teacher') return `/marks/teacher/${currentUser.profileId}`;
-    if (currentUser.role === 'student') return `/marks/student/${currentUser.profileId}`;
+    if (!currentUser || !profileIdValue) return null;
+    if (currentUser.role === 'teacher') return `/marks/teacher/${profileIdValue}`;
+    if (currentUser.role === 'student') return `/marks/student/${profileIdValue}`;
     return null;
   };
 
@@ -620,12 +674,21 @@ const Layout = ({ children, currentUser, onLogout }) => {
             <span className="mob-title">Jamia Tul Mastwaar</span>
             {myProfileLink && (
               <NavLink to={myProfileLink} aria-label="My profile">
-                <div
-                  className="h-8 w-8 rounded-full flex items-center justify-center font-bold text-sm text-white"
-                  style={{ background: accentColor }}
-                >
-                  {currentUser.name ? currentUser.name[0].toUpperCase() : 'U'}
-                </div>
+                {headerAvatarUrl && !avatarLoadFailed ? (
+                  <img
+                    src={headerAvatarUrl}
+                    alt="Profile"
+                    onError={() => setAvatarLoadFailed(true)}
+                    className="h-8 w-8 rounded-full object-cover border border-white/70"
+                  />
+                ) : (
+                  <div
+                    className="h-8 w-8 rounded-full flex items-center justify-center font-bold text-sm text-white"
+                    style={{ background: accentColor }}
+                  >
+                    {currentUser.name ? currentUser.name[0].toUpperCase() : 'U'}
+                  </div>
+                )}
               </NavLink>
             )}
           </header>

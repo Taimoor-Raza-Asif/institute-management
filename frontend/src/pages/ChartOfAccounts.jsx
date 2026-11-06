@@ -52,7 +52,7 @@ const AccountRow = ({ account, depth, color, isAdmin, onEdit, onDelete, searchTe
   return (
     <>
       <div
-        className={`flex items-center gap-2 py-2 px-3 rounded-lg group transition-all ${depth > 0 ? 'hover:bg-gray-50' : ''}`}
+        className={`coa-row flex items-center gap-2 py-2 px-3 rounded-lg group transition-all ${depth > 0 ? 'hover:bg-gray-50' : ''}`}
         style={{ paddingLeft: `${12 + depth * 24}px` }}
       >
         {/* Expand/collapse toggle */}
@@ -75,7 +75,7 @@ const AccountRow = ({ account, depth, color, isAdmin, onEdit, onDelete, searchTe
         )}
 
         {/* Name */}
-        <span className={`flex-1 text-sm ${depth === 0 ? 'font-bold text-gray-800' : 'font-medium text-gray-700'}`}>
+        <span className={`coa-row-name flex-1 text-sm ${depth === 0 ? 'font-bold text-gray-800' : 'font-medium text-gray-700'}`}>
           {highlight(account.name)}
         </span>
 
@@ -93,7 +93,7 @@ const AccountRow = ({ account, depth, color, isAdmin, onEdit, onDelete, searchTe
 
         {/* Actions */}
         {isAdmin && (
-          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+          <div className="coa-row-actions flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
             <button
               onClick={() => onEdit(account)}
               className="p-1 rounded text-emerald-600 hover:bg-emerald-50 transition"
@@ -116,7 +116,7 @@ const AccountRow = ({ account, depth, color, isAdmin, onEdit, onDelete, searchTe
 
       {/* Children */}
       {hasChildren && open && (
-        <div className={`border-l-2 ml-7 ${cc.border}`}>
+        <div className={`coa-row-children border-l-2 ml-7 ${cc.border}`}>
           {account.children.map(child => (
             <AccountRow
               key={child._id}
@@ -280,10 +280,10 @@ const ChartOfAccounts = () => {
   const totalAccounts = flatAccounts.length;
 
   return (
-    <div className={`min-h-screen p-6 lg:p-10 ${currentTheme?.mainBg || 'bg-gray-50'}`}>
+    <div className={`coa-page min-h-screen p-6 lg:p-10 ${currentTheme?.mainBg || 'bg-gray-50'}`}>
 
       {/* ── Page Header ──────────────────────────────────────── */}
-      <div className="flex flex-wrap items-start justify-between gap-4 mb-8">
+      <div className="coa-header flex flex-wrap items-start justify-between gap-4 mb-8">
         <div>
           <p className={`text-xs font-semibold uppercase tracking-[0.18em] ${currentTheme?.heroIcon || 'text-emerald-600'}`}>
             Accounting
@@ -295,8 +295,8 @@ const ChartOfAccounts = () => {
             The full hierarchical structure of all financial accounts — Assets, Liabilities, Income, and Expenses. Every transaction in the system traces back to an account here.
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <div className={`px-4 py-2 rounded-xl text-sm font-semibold ${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.shadow || 'shadow'} border ${currentTheme?.cardBorder || 'border-gray-100'} ${currentTheme?.mutedText || 'text-gray-600'}`}>
+        <div className="coa-header-actions flex items-center gap-3">
+          <div className={`coa-count-pill px-4 py-2 rounded-xl text-sm font-semibold ${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.shadow || 'shadow'} border ${currentTheme?.cardBorder || 'border-gray-100'} ${currentTheme?.mutedText || 'text-gray-600'}`}>
             <BanknotesIcon className="h-4 w-4 inline mr-1.5 text-emerald-500" />
             {totalAccounts} accounts
           </div>
@@ -304,14 +304,14 @@ const ChartOfAccounts = () => {
             <>
               <button
                 onClick={() => setIsSyncModalOpen(true)}
-                className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 border border-emerald-200 dark:border-emerald-800 rounded-xl transition shadow-sm hover:shadow"
+                className="coa-sync-btn inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 border border-emerald-200 dark:border-emerald-800 rounded-xl transition shadow-sm hover:shadow"
               >
                 <SparklesIcon className="h-4 w-4 text-emerald-600" />
                 <span>Sync Historical Data</span>
               </button>
               <button
                 onClick={() => openAddModal()}
-                className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white rounded-xl shadow-md bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 transition"
+                className="coa-add-btn inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white rounded-xl shadow-md bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 transition"
               >
                 <PlusCircleIcon className="h-5 w-5" />
                 Add Account
@@ -334,7 +334,7 @@ const ChartOfAccounts = () => {
       )}
 
       {/* ── Search ───────────────────────────────────────────── */}
-      <div className={`relative mb-6 max-w-sm`}>
+      <div className="coa-search-wrap relative mb-6 max-w-sm">
         <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
         <input
           type="text"
@@ -352,7 +352,7 @@ const ChartOfAccounts = () => {
           <p className={currentTheme?.mutedText || 'text-gray-500'}>Loading Chart of Accounts...</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        <div className="coa-type-grid grid grid-cols-1 xl:grid-cols-2 gap-6">
           {ACCOUNT_TYPES.map(type => {
             const cfg = TYPE_CONFIG[type];
             const cc = COLOR_CLASSES[cfg.color];
@@ -363,10 +363,10 @@ const ChartOfAccounts = () => {
             return (
               <div
                 key={type}
-                className={`rounded-2xl ${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.shadow || 'shadow-xl'} border ${currentTheme?.cardBorder || 'border-gray-100'} overflow-hidden`}
+                className={`coa-type-card rounded-2xl ${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.shadow || 'shadow-xl'} border ${currentTheme?.cardBorder || 'border-gray-100'} overflow-hidden`}
               >
                 {/* Section header */}
-                <div className={`flex items-center justify-between px-5 py-4 ${cc.bg} border-b ${cc.border}`}>
+                <div className={`coa-type-head flex items-center justify-between px-5 py-4 ${cc.bg} border-b ${cc.border}`}>
                   <div className="flex items-center gap-3">
                     <div className={`p-2 rounded-xl ${cc.bg} border ${cc.border}`}>
                       <Icon className={`h-5 w-5 ${cc.icon}`} />
@@ -379,7 +379,7 @@ const ChartOfAccounts = () => {
                   {isAdmin && (
                     <button
                       onClick={() => openAddModal(type)}
-                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border transition ${cc.text} ${cc.bg} ${cc.border} hover:opacity-80`}
+                      className={`coa-type-add inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border transition ${cc.text} ${cc.bg} ${cc.border} hover:opacity-80`}
                     >
                       <PlusCircleIcon className="h-3.5 w-3.5" />
                       Add
@@ -388,7 +388,7 @@ const ChartOfAccounts = () => {
                 </div>
 
                 {/* Account rows */}
-                <div className="p-3">
+                <div className="coa-rows p-3">
                   {typeTree.length === 0 ? (
                     <p className={`text-sm text-center py-6 ${currentTheme?.mutedText || 'text-gray-400'}`}>
                       {searchTerm ? 'No accounts match your search.' : 'No accounts yet.'}

@@ -186,10 +186,10 @@ const AddClassForm = ({ isAlmiya, existingConfig, onAdd }) => {
         return (
             <button
                 onClick={() => setShowForm(true)}
-                className={`flex items-center px-4 py-2 rounded-md transition duration-200 ${currentTheme?.btnPrimaryBg || 'bg-green-600'} ${currentTheme?.btnPrimaryText || 'text-white'} ${currentTheme?.btnPrimaryHover || 'hover:bg-green-700'} ${currentTheme?.shadow || 'shadow-md'}`}
+                className={`academic-add-class-btn flex items-center px-4 py-2 rounded-md transition duration-200 ${currentTheme?.btnPrimaryBg || 'bg-green-600'} ${currentTheme?.btnPrimaryText || 'text-white'} ${currentTheme?.btnPrimaryHover || 'hover:bg-green-700'} ${currentTheme?.shadow || 'shadow-md'}`}
             >
                 <PlusIcon className="h-5 w-5 mr-2" />
-                Add {isAlmiya ? 'Almiya' : 'Regular'} Class
+                Add Class
             </button>
         );
     }
@@ -197,7 +197,7 @@ const AddClassForm = ({ isAlmiya, existingConfig, onAdd }) => {
     return (
         <div className={`p-4 rounded-xl border-2 border-dashed ${currentTheme?.panelBorder || 'border-green-300'} ${currentTheme?.panelBg || 'bg-green-50'}`}>
             <h4 className={`text-sm font-bold mb-3 flex items-center gap-2 ${currentTheme?.heroTitle || 'text-green-800'}`}>
-                <PlusIcon className="h-4 w-4" /> Add New {isAlmiya ? 'Almiya' : 'Regular'} Class
+                <PlusIcon className="h-4 w-4" /> New {isAlmiya ? 'Almiya' : 'Class'}
             </h4>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3 items-end">
                 <div>
@@ -992,9 +992,9 @@ const AcademicStructurePanel = () => {
 
     return (
         <>
-        <div className="container mx-auto p-6 max-w-7xl">
+        <div className="container mx-auto p-6 max-w-7xl academic-structure-page">
             {/* Hero Header */}
-            <div className={`relative ${currentTheme?.heroBg || 'bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500'} ${currentTheme?.shadow || 'shadow-lg'} rounded-2xl p-8 mb-8 overflow-hidden`}>
+            <div className={`academic-hero relative ${currentTheme?.heroBg || 'bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500'} ${currentTheme?.shadow || 'shadow-lg'} rounded-2xl p-8 mb-8 overflow-hidden`}>
                 <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full -mr-32 -mt-32"></div>
                 <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <div className="flex items-center">
@@ -1007,7 +1007,7 @@ const AcademicStructurePanel = () => {
                     <button
                         onClick={() => handleSaveStructure()}
                         disabled={isSaving || isStructureEmpty}
-                        className={`flex items-center justify-center h-12 px-8 rounded-lg font-bold ${currentTheme?.btnPrimaryBg || 'bg-green-600'} ${currentTheme?.btnPrimaryText || 'text-white'} ${currentTheme?.btnPrimaryHover || 'hover:bg-green-700'} ${currentTheme?.shadow || 'shadow-xl'} md:w-auto w-full disabled:bg-gray-400 disabled:cursor-not-allowed disabled:shadow-none flex-shrink-0`}
+                        className={`academic-save-btn flex items-center justify-center h-12 px-8 rounded-lg font-bold ${currentTheme?.btnPrimaryBg || 'bg-green-600'} ${currentTheme?.btnPrimaryText || 'text-white'} ${currentTheme?.btnPrimaryHover || 'hover:bg-green-700'} ${currentTheme?.shadow || 'shadow-xl'} md:w-auto w-full disabled:bg-gray-400 disabled:cursor-not-allowed disabled:shadow-none flex-shrink-0`}
                     >
                         <ArrowPathIcon className={`h-5 w-5 mr-3 ${isSaving ? 'animate-spin' : ''}`} />
                         {isSaving ? 'Saving...' : 'Save Configuration'}
@@ -1039,15 +1039,15 @@ const AcademicStructurePanel = () => {
             )}
 
             {/* FIXED: Responsive layout for Tabs/Add Button and Save Button */}
-            <div className="flex flex-col md:flex-row justify-between items-start mb-6 mt-2 gap-4">
+            <div className="academic-toolbar flex flex-col md:flex-row justify-between items-start mb-6 mt-2 gap-4">
                 
                 {/* Tabs and Add Type Button - Takes full width on mobile/tablet, then shrinks on desktop */}
-                <div className="flex space-x-2 overflow-x-auto pb-2 flex-shrink md:flex-grow md:w-auto w-full">
+                <div className="academic-tabs-row flex space-x-2 overflow-x-auto pb-2 flex-shrink md:flex-grow md:w-auto w-full">
                     {structure?.classTypes.map(type => (
                         <button
                             key={type.slug}
                             onClick={() => setActiveTab(type.slug)}
-                            className={`flex-shrink-0 h-12 px-5 text-sm font-semibold rounded-lg transition duration-150 ${activeTab === type.slug ? `${currentTheme?.btnPrimaryBg || 'bg-green-600'} ${currentTheme?.btnPrimaryText || 'text-white'} ${currentTheme?.shadow || 'shadow-md'}` : `${currentTheme?.btnSecondaryBg || 'bg-white'} ${currentTheme?.btnSecondaryText || 'text-gray-700'} ${currentTheme?.btnSecondaryBorder || 'border border-gray-300'} ${currentTheme?.btnSecondaryHover || 'hover:bg-gray-50'}`}`}
+                            className={`academic-tab-chip flex-shrink-0 h-12 px-5 text-sm font-semibold rounded-lg transition duration-150 ${activeTab === type.slug ? `${currentTheme?.btnPrimaryBg || 'bg-green-600'} ${currentTheme?.btnPrimaryText || 'text-white'} ${currentTheme?.shadow || 'shadow-md'}` : `${currentTheme?.btnSecondaryBg || 'bg-white'} ${currentTheme?.btnSecondaryText || 'text-gray-700'} ${currentTheme?.btnSecondaryBorder || 'border border-gray-300'} ${currentTheme?.btnSecondaryHover || 'hover:bg-gray-50'}`}`}
                         >
                             <span className="flex items-center">
                                 <UsersIcon className="h-5 w-5 mr-1" /> {type.name}
@@ -1057,7 +1057,7 @@ const AcademicStructurePanel = () => {
 
                     <button
                         onClick={() => setIsAddingNewType(true)}
-                        className={`flex-shrink-0 h-12 px-5 text-sm font-medium rounded-lg flex items-center ${currentTheme?.btnPrimaryBg || 'bg-green-600'} ${currentTheme?.btnPrimaryText || 'text-white'} ${currentTheme?.btnPrimaryHover || 'hover:bg-green-700'} ${currentTheme?.shadow || 'shadow-md'}`}
+                        className={`academic-add-type-btn flex-shrink-0 h-12 px-5 text-sm font-medium rounded-lg flex items-center ${currentTheme?.btnPrimaryBg || 'bg-green-600'} ${currentTheme?.btnPrimaryText || 'text-white'} ${currentTheme?.btnPrimaryHover || 'hover:bg-green-700'} ${currentTheme?.shadow || 'shadow-md'}`}
                     >
                         <PlusIcon className="h-5 w-5 mr-2" /> Add Type
                     </button>
@@ -1067,7 +1067,7 @@ const AcademicStructurePanel = () => {
                 <button
                     onClick={() => handleSaveStructure()}
                     disabled={isSaving || isStructureEmpty}
-                    className={`flex items-center justify-center h-12 px-8 rounded-lg font-bold md:w-auto w-full ${currentTheme?.btnSecondaryBg || 'bg-white'} ${currentTheme?.btnSecondaryText || 'text-gray-700'} ${currentTheme?.btnSecondaryBorder || 'border border-gray-300'} ${currentTheme?.btnSecondaryHover || 'hover:bg-gray-50'} ${currentTheme?.shadow || 'shadow-sm'} disabled:bg-gray-200 disabled:text-gray-500 disabled:cursor-not-allowed`}
+                    className={`academic-quick-save-btn flex items-center justify-center h-12 px-8 rounded-lg font-bold md:w-auto w-full ${currentTheme?.btnSecondaryBg || 'bg-white'} ${currentTheme?.btnSecondaryText || 'text-gray-700'} ${currentTheme?.btnSecondaryBorder || 'border border-gray-300'} ${currentTheme?.btnSecondaryHover || 'hover:bg-gray-50'} ${currentTheme?.shadow || 'shadow-sm'} disabled:bg-gray-200 disabled:text-gray-500 disabled:cursor-not-allowed`}
                 >
                     <ArrowPathIcon className={`h-5 w-5 mr-3 ${isSaving ? 'animate-spin' : ''}`} />
                     {isSaving ? 'Saving...' : 'Quick Save'}
@@ -1100,18 +1100,18 @@ const AcademicStructurePanel = () => {
 
 
             {/* Active Tab Content */}
-            <div className={`mt-2 p-6 rounded-xl min-h-[500px] ${currentTheme?.panelBg || 'bg-gray-50'} ${currentTheme?.panelBorder || 'border border-gray-200'}`}>
+            <div className={`academic-config-card mt-2 p-6 rounded-xl min-h-[500px] ${currentTheme?.panelBg || 'bg-gray-50'} ${currentTheme?.panelBorder || 'border border-gray-200'}`}>
                 {activeType ? (
                     <>
-                        <div className={`flex justify-between items-center mb-6 pb-2 ${currentTheme?.divider || 'border-b border-gray-300'}`}>
+                        <div className={`academic-config-head flex justify-between items-center mb-6 pb-2 ${currentTheme?.divider || 'border-b border-gray-300'}`}>
                             <h3 className={`text-2xl font-bold ${currentTheme?.title || 'text-gray-800'}`}>
-                                <UsersIcon className={`h-6 w-6 mr-2 inline-block ${currentTheme?.iconText || 'text-gray-700'}`}/> Configuring: {activeType.name}
+                                <UsersIcon className={`h-6 w-6 mr-2 inline-block ${currentTheme?.iconText || 'text-gray-700'}`}/>{activeType.name}
                             </h3>
                             <button
                                 onClick={() => handleRemoveType(activeType.slug)}
-                                className={`flex items-center text-sm font-medium p-2 rounded-lg transition ${currentTheme?.btnDangerBg || 'bg-red-600'} ${currentTheme?.btnDangerText || 'text-white'} ${currentTheme?.btnDangerHover || 'hover:bg-red-700'}`}
+                                className={`academic-remove-type-btn flex items-center text-sm font-medium p-2 rounded-lg transition ${currentTheme?.btnDangerBg || 'bg-red-600'} ${currentTheme?.btnDangerText || 'text-white'} ${currentTheme?.btnDangerHover || 'hover:bg-red-700'}`}
                             >
-                                <TrashIcon className="h-4 w-4 mr-1" /> Remove {activeType.name} Type
+                                <TrashIcon className="h-4 w-4 mr-1" /> Remove Type
                             </button>
                         </div>
 

@@ -476,7 +476,7 @@ const AccountantDashboard = () => {
             )}
 
             {/* Quick Actions Grid — visible to all accountant users */}
-            <div className="mb-8">
+            <div className="mb-8 hidden md:block">
               <h2 className={`text-2xl font-bold ${currentTheme?.title || 'text-gray-800'} mb-6 flex items-center`}>
                 <BriefcaseIcon className={`h-7 w-7 mr-3 ${currentTheme?.title || 'text-gray-800'}`} />
                 Quick Actions

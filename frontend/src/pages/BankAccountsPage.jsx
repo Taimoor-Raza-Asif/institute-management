@@ -161,9 +161,9 @@ const BankAccountsPage = () => {
   const labelBase = `text-sm font-semibold ${currentTheme?.subtitle || 'text-gray-700'} mb-1 block`;
 
   return (
-    <div className={`min-h-screen p-6 lg:p-10 ${currentTheme?.mainBg || 'bg-gray-50'}`}>
+    <div className={`accounts-wallets-page min-h-screen p-6 lg:p-10 ${currentTheme?.mainBg || 'bg-gray-50'}`}>
       {/* Page Header */}
-      <div className="flex flex-wrap items-start justify-between gap-4 mb-8">
+      <div className="accounts-wallets-header flex flex-wrap items-start justify-between gap-4 mb-8">
         <div>
           <p className={`text-xs font-semibold uppercase tracking-[0.18em] ${currentTheme?.heroIcon || 'text-emerald-600'}`}>
             Configuration
@@ -178,7 +178,7 @@ const BankAccountsPage = () => {
         {isAdmin && (
           <button
             onClick={openAddModal}
-            className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white rounded-xl shadow-md bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 transition"
+            className="accounts-wallets-add-btn inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white rounded-xl shadow-md bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 transition"
           >
             <PlusCircleIcon className="h-5 w-5" />
             Add Account
@@ -195,7 +195,7 @@ const BankAccountsPage = () => {
         <div className="space-y-8">
           {ACCOUNT_TYPES.map(type => (
             <div key={type}>
-              <h2 className={`text-lg font-bold mb-4 flex items-center gap-2 ${currentTheme?.title || 'text-gray-800'}`}>
+              <h2 className={`accounts-wallets-type-title text-lg font-bold mb-4 flex items-center gap-2 ${currentTheme?.title || 'text-gray-800'}`}>
                 <span className={`p-1.5 rounded-lg ${type === 'Bank' ? 'bg-blue-100 text-blue-700' : type === 'Mobile Wallet' ? 'bg-purple-100 text-purple-700' : 'bg-green-100 text-green-700'}`}>
                   {typeIcon(type)}
                 </span>
@@ -213,11 +213,11 @@ const BankAccountsPage = () => {
                   </p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="accounts-wallets-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {grouped[type].map(account => (
                     <div
                       key={account._id}
-                      className={`relative rounded-2xl p-5 ${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.shadow || 'shadow-lg'} border ${account.isActive ? (currentTheme?.cardBorder || 'border-gray-100') : 'border-dashed border-gray-200 opacity-60'} transition`}
+                      className={`accounts-wallet-card relative rounded-2xl p-5 ${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.shadow || 'shadow-lg'} border ${account.isActive ? (currentTheme?.cardBorder || 'border-gray-100') : 'border-dashed border-gray-200 opacity-60'} transition`}
                     >
                       {/* Active/Inactive Badge */}
                       <div className="absolute top-4 right-4 flex items-center gap-2">
@@ -246,7 +246,7 @@ const BankAccountsPage = () => {
                       </div>
 
                       {/* Details */}
-                      <dl className="space-y-1.5 text-sm">
+                      <dl className="accounts-wallet-details space-y-1.5 text-sm">
                         {account.accountNumber && (
                           <div className="flex justify-between">
                             <dt className={`${currentTheme?.mutedText || 'text-gray-500'} font-medium`}>Account No.</dt>
@@ -272,7 +272,7 @@ const BankAccountsPage = () => {
 
                       {/* Actions (admin only) */}
                       {isAdmin && (
-                        <div className="flex items-center gap-2 mt-4 pt-3 border-t border-gray-100">
+                        <div className="accounts-wallet-actions flex items-center gap-2 mt-4 pt-3 border-t border-gray-100">
                           <button
                             onClick={() => openEditModal(account)}
                             className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-lg border border-emerald-200 transition"

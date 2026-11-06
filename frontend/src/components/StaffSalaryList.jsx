@@ -781,40 +781,40 @@ const StaffSalaryList = () => {
       </div>
       {error && <Message type="error">{error}</Message>}
 
-      <div className={`${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.shadow || 'shadow-md'} rounded-xl p-6 mb-6`}>
-        <div className="flex flex-col lg:flex-row justify-between items-stretch lg:items-center gap-4">
+      <div className={`${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.shadow || 'shadow-md'} rounded-2xl p-3.5 sm:p-6 mb-4 sm:mb-6`}>
+        <div className="flex flex-col lg:flex-row justify-between items-stretch lg:items-center gap-3 sm:gap-4">
           <div className="relative flex-1 min-w-0">
             <input
               type="text"
               placeholder="Search by staff name or CNIC..."
-              className={`w-full h-12 pl-10 pr-4 rounded-lg ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} border ${currentTheme?.inputBorder || 'border-gray-300'} focus:outline-none ${currentTheme?.inputRing || 'focus:ring-2 focus:ring-green-500'}`}
+              className={`w-full h-11 sm:h-12 pl-10 pr-4 rounded-xl text-sm ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} border ${currentTheme?.inputBorder || 'border-gray-300'} focus:outline-none ${currentTheme?.inputRing || 'focus:ring-2 focus:ring-green-500'}`}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
             <MagnifyingGlassIcon className={`h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 ${currentTheme?.iconText || 'text-gray-400'}`} />
           </div>
-          <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto flex-shrink-0">
+          <div className="grid grid-cols-2 sm:flex sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto flex-shrink-0">
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className={`flex items-center justify-center h-12 px-6 rounded-lg font-medium text-sm transition-all duration-200 ${currentTheme.btnSecondaryBg || 'bg-white'} ${currentTheme.btnSecondaryText || 'text-emerald-700'} ${currentTheme.btnSecondaryBorder || 'border border-emerald-200'} ${currentTheme.btnSecondaryHover || 'hover:bg-emerald-50'} ${currentTheme?.shadow || 'shadow-md'} flex-1 sm:flex-initial whitespace-nowrap`}
+              className={`flex items-center justify-center h-10 sm:h-12 px-3 sm:px-5 rounded-xl font-semibold text-xs sm:text-sm transition-all duration-200 ${currentTheme.btnSecondaryBg || 'bg-white'} ${currentTheme.btnSecondaryText || 'text-emerald-700'} ${currentTheme.btnSecondaryBorder || 'border border-emerald-200'} ${currentTheme.btnSecondaryHover || 'hover:bg-emerald-50'} ${currentTheme?.shadow || 'shadow-sm'} whitespace-nowrap col-span-1`}
             >
-              <FunnelIcon className="h-5 w-5 mr-2" />
-              {showFilters ? 'Hide Filters' : 'Advanced Filters'}
+              <FunnelIcon className="h-4 w-4 mr-1.5" />
+              {showFilters ? 'Hide' : 'Filters'}
             </button>
             <button
               onClick={handleDownloadSalaryReport}
-              className={`flex items-center justify-center h-12 px-6 rounded-lg font-medium text-sm transition-all duration-200 ${currentTheme.btnSecondaryBg || 'bg-white'} ${currentTheme.btnSecondaryText || 'text-emerald-700'} ${currentTheme.btnSecondaryBorder || 'border border-emerald-200'} ${currentTheme.btnSecondaryHover || 'hover:bg-emerald-50'} ${currentTheme?.shadow || 'shadow-md'} flex-1 sm:flex-initial whitespace-nowrap`}
+              className={`flex items-center justify-center h-10 sm:h-12 px-3 sm:px-5 rounded-xl font-semibold text-xs sm:text-sm transition-all duration-200 ${currentTheme.btnSecondaryBg || 'bg-white'} ${currentTheme.btnSecondaryText || 'text-emerald-700'} ${currentTheme.btnSecondaryBorder || 'border border-emerald-200'} ${currentTheme.btnSecondaryHover || 'hover:bg-emerald-50'} ${currentTheme?.shadow || 'shadow-sm'} whitespace-nowrap col-span-1`}
             >
-              <DocumentArrowDownIcon className="h-5 w-5 mr-2" />
-              Download Report
+              <DocumentArrowDownIcon className="h-4 w-4 mr-1.5" />
+              Report
             </button>
             {isAdmin && (
               <Link
                 to="/salary/add"
-                className={`flex items-center justify-center h-12 px-6 rounded-lg font-medium text-sm transition-all duration-200 ${currentTheme.btnPrimaryBg || 'bg-emerald-600'} ${currentTheme.btnPrimaryHover || 'hover:bg-emerald-700'} ${currentTheme.btnPrimaryText || 'text-white'} ${currentTheme.btnPrimaryBorder || 'border border-emerald-700'} ${currentTheme?.shadow || 'shadow-md'} flex-1 sm:flex-initial whitespace-nowrap`}
+                className={`flex items-center justify-center h-10 sm:h-12 px-4 sm:px-6 rounded-xl font-bold text-xs sm:text-sm transition-all duration-200 ${currentTheme.btnPrimaryBg || 'bg-emerald-600'} ${currentTheme.btnPrimaryHover || 'hover:bg-emerald-700'} ${currentTheme.btnPrimaryText || 'text-white'} ${currentTheme.btnPrimaryBorder || 'border border-emerald-700'} ${currentTheme?.shadow || 'shadow-sm'} whitespace-nowrap col-span-2 sm:col-auto`}
               >
-                <PlusCircleIcon className="h-5 w-5 mr-2" />
-                Add New Record
+                <PlusCircleIcon className="h-4 w-4 mr-1.5" />
+                Add Record
               </Link>
             )}
           </div>

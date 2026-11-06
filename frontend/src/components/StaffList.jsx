@@ -198,35 +198,35 @@ const inputRef = useRef(null);
         </div>
       </div>
 
-      <div className={`mb-6 p-6 rounded-xl ${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.shadow || 'shadow-lg'} ${currentTheme?.border || 'border border-gray-100'}`}>
-        <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-3">
+      <div className={`mb-4 sm:mb-6 p-3.5 sm:p-6 rounded-2xl ${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.shadow || 'shadow-lg'} ${currentTheme?.border || 'border border-gray-100'}`}>
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-3 sm:mb-4 gap-2.5 sm:gap-3">
           <div className="relative w-full sm:w-1/2 lg:w-2/3">
             <input
               ref={inputRef}
               type="text"
               placeholder="Search by name, ID, or contact..."
-              className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none transition ${currentTheme?.inputBg || 'border-gray-300 bg-gray-50'} ${currentTheme?.inputRing || 'focus:ring-2 focus:ring-green-500'}`}
+              className={`w-full pl-10 pr-4 py-2.5 sm:py-3 text-sm border rounded-xl focus:outline-none transition ${currentTheme?.inputBg || 'border-gray-300 bg-gray-50'} ${currentTheme?.inputRing || 'focus:ring-2 focus:ring-green-500'}`}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
             <MagnifyingGlassIcon className="h-5 w-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+          <div className="grid grid-cols-2 gap-2 w-full sm:flex sm:flex-row sm:gap-3 sm:w-auto">
             <button
               onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-              className={`group flex items-center justify-center px-8 py-2 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 w-full sm:w-auto ${currentTheme.btnSecondaryBg || 'bg-white'} ${currentTheme.btnSecondaryText || 'text-emerald-700'} ${currentTheme.btnSecondaryBorder || 'border border-emerald-200'} ${currentTheme.btnSecondaryHover || 'hover:bg-emerald-50'}`}
+              className={`group flex items-center justify-center h-10 sm:h-11 px-3 sm:px-6 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 shadow-sm hover:shadow-md w-full sm:w-auto whitespace-nowrap ${currentTheme.btnSecondaryBg || 'bg-white'} ${currentTheme.btnSecondaryText || 'text-emerald-700'} ${currentTheme.btnSecondaryBorder || 'border border-emerald-200'} ${currentTheme.btnSecondaryHover || 'hover:bg-emerald-50'}`}
             >
-              <FunnelIcon className="h-5 w-5 mr-2 transition-transform group-hover:scale-110" />
+              <FunnelIcon className="h-4 w-4 mr-1.5 transition-transform group-hover:scale-110" />
               {showAdvancedFilters ? 'Hide' : 'Filters'}
             </button>
 
             {canAddStaff && (
               <button
                 onClick={handleAddStaff}
-                className={`group flex items-center justify-center px-8 py-2 rounded-xl font-bold transition-all duration-300 shadow-lg hover:shadow-2xl transform hover:-translate-y-0.5 w-full sm:w-auto ${currentTheme.btnPrimaryBg || 'bg-emerald-600'} ${currentTheme.btnPrimaryHover || 'hover:bg-emerald-700'} ${currentTheme.btnPrimaryText || 'text-white'} ${currentTheme.btnPrimaryBorder || 'border border-emerald-700'}`}
+                className={`group flex items-center justify-center h-10 sm:h-11 px-3 sm:px-6 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 shadow-sm hover:shadow-md w-full sm:w-auto whitespace-nowrap ${currentTheme.btnPrimaryBg || 'bg-emerald-600'} ${currentTheme.btnPrimaryHover || 'hover:bg-emerald-700'} ${currentTheme.btnPrimaryText || 'text-white'} ${currentTheme.btnPrimaryBorder || 'border border-emerald-700'}`}
               >
-                <PlusIcon className="h-5 w-5 mr-2 transition-transform group-hover:rotate-90" />
+                <PlusIcon className="h-4 w-4 mr-1.5 transition-transform group-hover:rotate-90" />
                 Staff
               </button>
             )}

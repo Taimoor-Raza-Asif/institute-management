@@ -566,17 +566,17 @@ const BillingManagement = () => {
                     <MagnifyingGlassIcon className={`h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 ${currentTheme?.iconText || 'text-gray-400'}`} />
                 </div>
                 {/* Action Buttons - Multi-row on mobile, single row on larger screens */}
-                <div className="flex flex-col sm:flex-row gap-3 w-full">
+                <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 w-full sm:w-auto">
                     <button
                         onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-                        className={`flex items-center justify-center h-12 px-6 rounded-lg font-medium text-sm transition-all duration-200 ${currentTheme.btnSecondaryBg || 'bg-white'} ${currentTheme.btnSecondaryText || 'text-emerald-700'} ${currentTheme.btnSecondaryBorder || 'border border-emerald-200'} ${currentTheme.btnSecondaryHover || 'hover:bg-emerald-50'} ${currentTheme?.shadow || 'shadow-md'} flex-1 sm:flex-initial whitespace-nowrap`}
+                        className={`group flex items-center justify-center h-12 px-6 rounded-xl font-semibold transition-all duration-300 ${currentTheme?.shadow || 'shadow-lg'} hover:shadow-xl transform hover:-translate-y-0.5 w-full sm:w-auto ${currentTheme.btnSecondaryBg || 'bg-white'} ${currentTheme.btnSecondaryText || 'text-emerald-700'} ${currentTheme.btnSecondaryBorder || 'border border-emerald-200'} ${currentTheme.btnSecondaryHover || 'hover:bg-emerald-50'} whitespace-nowrap`}
                     >
-                        <FunnelIcon className="h-5 w-5 mr-2" />
-                        {showAdvancedFilters ? 'Hide Filters' : 'Advanced Filters'}
+                        <FunnelIcon className="h-5 w-5 mr-2 transition-transform group-hover:scale-110" />
+                        {showAdvancedFilters ? 'Hide' : 'Filters'}
                     </button>
                     <button
                         onClick={handleDownloadFilteredReport}
-                        className={`flex items-center justify-center h-12 px-6 rounded-lg font-medium text-sm transition-all duration-200 ${currentTheme.btnSecondaryBg || 'bg-white'} ${currentTheme.btnSecondaryText || 'text-emerald-700'} ${currentTheme.btnSecondaryBorder || 'border border-emerald-200'} ${currentTheme.btnSecondaryHover || 'hover:bg-emerald-50'} ${currentTheme?.shadow || 'shadow-md'} flex-1 sm:flex-initial whitespace-nowrap`}
+                        className={`group flex items-center justify-center h-12 px-6 rounded-xl font-semibold transition-all duration-300 ${currentTheme?.shadow || 'shadow-lg'} hover:shadow-xl transform hover:-translate-y-0.5 w-full sm:w-auto ${currentTheme.btnSecondaryBg || 'bg-white'} ${currentTheme.btnSecondaryText || 'text-emerald-700'} ${currentTheme.btnSecondaryBorder || 'border border-emerald-200'} ${currentTheme.btnSecondaryHover || 'hover:bg-emerald-50'} whitespace-nowrap`}
                     >
                         <ArrowDownTrayIcon className="h-5 w-5 mr-2" />
                         Download Report
@@ -584,7 +584,7 @@ const BillingManagement = () => {
                     {isAllowed && (
                         <button
                             onClick={() => setIsImportOpen(true)}
-                            className={`flex items-center justify-center h-12 px-6 rounded-lg font-medium text-sm transition-all duration-200 ${currentTheme.btnSecondaryBg || 'bg-white'} ${currentTheme.btnSecondaryText || 'text-emerald-700'} ${currentTheme.btnSecondaryBorder || 'border border-emerald-200'} ${currentTheme.btnSecondaryHover || 'hover:bg-emerald-50'} ${currentTheme?.shadow || 'shadow-md'} flex-1 sm:flex-initial whitespace-nowrap`}
+                            className={`group flex items-center justify-center h-12 px-6 rounded-xl font-semibold transition-all duration-300 ${currentTheme?.shadow || 'shadow-lg'} hover:shadow-xl transform hover:-translate-y-0.5 w-full sm:w-auto ${currentTheme.btnSecondaryBg || 'bg-white'} ${currentTheme.btnSecondaryText || 'text-emerald-700'} ${currentTheme.btnSecondaryBorder || 'border border-emerald-200'} ${currentTheme.btnSecondaryHover || 'hover:bg-emerald-50'} whitespace-nowrap`}
                         >
                             <ArrowUpTrayIcon className="h-5 w-5 mr-2" />
                             Upload from file
@@ -593,9 +593,9 @@ const BillingManagement = () => {
                     {isAllowed && (
                         <button
                             onClick={handleAddBill}
-                            className={`flex items-center justify-center h-12 px-6 rounded-lg font-medium text-sm transition-all duration-200 ${currentTheme.btnPrimaryBg || 'bg-emerald-600'} ${currentTheme.btnPrimaryHover || 'hover:bg-emerald-700'} ${currentTheme.btnPrimaryText || 'text-white'} ${currentTheme.btnPrimaryBorder || 'border border-emerald-700'} ${currentTheme?.shadow || 'shadow-md'} flex-1 sm:flex-initial whitespace-nowrap`}
+                            className={`group flex items-center justify-center h-12 px-6 rounded-xl font-bold transition-all duration-300 ${currentTheme?.shadow || 'shadow-lg'} hover:shadow-2xl transform hover:-translate-y-0.5 w-full sm:w-auto ${currentTheme.btnPrimaryBg || 'bg-emerald-600'} ${currentTheme.btnPrimaryHover || 'hover:bg-emerald-700'} ${currentTheme.btnPrimaryText || 'text-white'} ${currentTheme.btnPrimaryBorder || 'border border-emerald-700'} whitespace-nowrap`}
                         >
-                            <PlusIcon className="h-5 w-5 mr-2" />
+                            <PlusIcon className="h-5 w-5 mr-2 transition-transform group-hover:rotate-90" />
                             Add New Bill
                         </button>
                     )}

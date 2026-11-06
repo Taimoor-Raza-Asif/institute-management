@@ -6,7 +6,7 @@ import Loader from '../components/Loader';
 import Message from '../components/Message';
 import { useTheme } from '../context/ThemeContext';
 import {
-  CalendarDaysIcon, UserGroupIcon, FunnelIcon, ChartBarIcon, CheckCircleIcon, XCircleIcon, ClockIcon, UserIcon
+  CalendarDaysIcon, UserGroupIcon, FunnelIcon, ChartBarIcon, CheckCircleIcon, XCircleIcon, ClockIcon, UserIcon, MagnifyingGlassIcon
 } from '@heroicons/react/24/outline';
 
 const AllAttendanceRecords = () => {
@@ -22,6 +22,8 @@ const AllAttendanceRecords = () => {
   const [filterStatus, setFilterStatus] = useState('');
   const [filterStartDate, setFilterStartDate] = useState('');
   const [filterEndDate, setFilterEndDate] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const fetchAllAttendance = useCallback(async () => {
     setLoading(true);
@@ -90,70 +92,91 @@ const AllAttendanceRecords = () => {
 
       {error && <Message type="error">{error}</Message>}
 
-      {((user?.role === 'teacher')  || user?.role === 'admin') && (
+      {((user?.role === 'teacher') || user?.role === 'admin') && (
         <div className={`${currentTheme?.cardBg || 'bg-white'} rounded-xl ${currentTheme?.shadow || 'shadow-xl'} p-6 mb-6 ${currentTheme?.border || 'border border-gray-100'}`}>
-          <h3 className={`text-xl font-bold ${currentTheme?.title || currentTheme?.text || 'text-gray-900'} mb-6 flex items-center border-b pb-3`}>
-            <FunnelIcon className={`h-6 w-6 mr-2 ${currentTheme?.iconText || 'text-green-600'}`} /> Filters
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div>
-              <label htmlFor="filterType" className={`block text-sm font-medium ${currentTheme?.mutedText || 'text-gray-700'} mb-2`}>Type</label>
-              <select
-                id="filterType"
-                value={filterType}
-                onChange={(e) => setFilterType(e.target.value)}
-                className={`block w-full h-12 px-4 rounded-lg ${currentTheme?.inputBorder || 'border border-gray-300'} ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} focus:outline-none ${currentTheme?.inputRing || 'focus:ring-2 focus:ring-green-500'}`}
-              >
-                {user?.role === 'admin' && (<option value="">All</option>)}
-                <option value="Student">Student</option>
-                {user?.role === 'admin' && (<option value="Staff">Staff</option>)}
-              </select>
-            </div>
-            <div>
-              <label htmlFor="filterStatus" className={`block text-sm font-medium ${currentTheme?.mutedText || 'text-gray-700'} mb-2`}>Status</label>
-              <select
-                id="filterStatus"
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
-                className={`block w-full h-12 px-4 rounded-lg ${currentTheme?.inputBorder || 'border border-gray-300'} ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} focus:outline-none ${currentTheme?.inputRing || 'focus:ring-2 focus:ring-green-500'}`}
-              >
-                <option value="">All</option>
-                <option value="Present">Present</option>
-                <option value="Absent">Absent</option>
-                <option value="Leave">Leave</option>
-                <option value="Holiday">Holiday</option>
-              </select>
-            </div>
-            <div>
-              <label htmlFor="filterStartDate" className={`block text-sm font-medium ${currentTheme?.mutedText || 'text-gray-700'} mb-2`}>Start Date</label>
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-3">
+            <div className="relative w-full sm:w-1/2 lg:w-2/3">
               <input
-                type="date"
-                id="filterStartDate"
-                value={filterStartDate}
-                onChange={(e) => setFilterStartDate(e.target.value)}
-                className={`block w-full h-12 px-4 rounded-lg ${currentTheme?.inputBorder || 'border border-gray-300'} ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} focus:outline-none ${currentTheme?.inputRing || 'focus:ring-2 focus:ring-green-500'}`}
+                type="text"
+                placeholder="Search by student or staff name..."
+                className={`block w-full h-12 pl-10 pr-4 rounded-lg ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputBorder || 'border border-gray-300'} ${currentTheme?.inputText || 'text-gray-900'} ${currentTheme?.inputPlaceholder || 'placeholder:text-gray-400'} focus:outline-none ${currentTheme?.inputRing || 'focus:ring-2 focus:ring-emerald-500'} ${currentTheme?.inputFocus || 'focus:border-emerald-500'}`}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
               />
+              <MagnifyingGlassIcon className={`h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 ${currentTheme?.mutedText || 'text-gray-400'}`} />
             </div>
-            <div>
-              <label htmlFor="filterEndDate" className={`block text-sm font-medium ${currentTheme?.mutedText || 'text-gray-700'} mb-2`}>End Date</label>
-              <input
-                type="date"
-                id="filterEndDate"
-                value={filterEndDate}
-                onChange={(e) => setFilterEndDate(e.target.value)}
-                className={`block w-full h-12 px-4 rounded-lg ${currentTheme?.inputBorder || 'border border-gray-300'} ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} focus:outline-none ${currentTheme?.inputRing || 'focus:ring-2 focus:ring-green-500'}`}
-              />
-            </div>
-            <div className="md:col-span-2 lg:col-span-4 flex items-end">
+            <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 w-full sm:w-auto">
               <button
-                onClick={handleFilterChange}
-                className={`w-full h-12 flex items-center justify-center px-6 rounded-lg font-medium transition-all duration-200 ${currentTheme?.btnPrimaryBg || 'bg-emerald-600'} ${currentTheme?.btnPrimaryHover || 'hover:bg-emerald-700'} ${currentTheme?.btnPrimaryText || 'text-white'} ${currentTheme?.btnPrimaryBorder || 'border border-emerald-700'} shadow-md disabled:opacity-50 disabled:cursor-not-allowed`}
-                disabled={loading}
+                onClick={() => setShowFilters(!showFilters)}
+                className={`group flex items-center justify-center h-12 px-6 rounded-xl font-semibold transition-all duration-300 ${currentTheme?.shadow || 'shadow-lg'} hover:shadow-xl transform hover:-translate-y-0.5 w-full sm:w-auto ${currentTheme?.btnSecondaryBg || 'bg-white'} ${currentTheme?.btnSecondaryText || 'text-emerald-700'} ${currentTheme?.btnSecondaryBorder || 'border border-emerald-200'} ${currentTheme?.btnSecondaryHover || 'hover:bg-emerald-50'}`}
               >
-                <FunnelIcon className="h-5 w-5 mr-2" /> Apply Filters
+                <FunnelIcon className="h-5 w-5 mr-2 transition-transform group-hover:scale-110" />
+                {showFilters ? 'Hide' : 'Filters'}
               </button>
             </div>
           </div>
+
+          {showFilters && (
+            <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-6 pt-6 border-t ${currentTheme?.border || 'border-gray-200'}`}>
+              <div>
+                <label htmlFor="filterType" className={`block text-sm font-medium mb-2 ${currentTheme?.mutedText || 'text-gray-700'}`}>Type</label>
+                <select
+                  id="filterType"
+                  value={filterType}
+                  onChange={(e) => setFilterType(e.target.value)}
+                  className={`block w-full h-12 px-4 rounded-lg ${currentTheme?.inputBorder || 'border border-gray-300'} ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-900'} focus:outline-none ${currentTheme?.inputRing || 'focus:ring-2 focus:ring-emerald-500'}`}
+                >
+                  {user?.role === 'admin' && (<option value="">All</option>)}
+                  <option value="Student">Student</option>
+                  {user?.role === 'admin' && (<option value="Staff">Staff</option>)}
+                </select>
+              </div>
+              <div>
+                <label htmlFor="filterStatus" className={`block text-sm font-medium mb-2 ${currentTheme?.mutedText || 'text-gray-700'}`}>Status</label>
+                <select
+                  id="filterStatus"
+                  value={filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value)}
+                  className={`block w-full h-12 px-4 rounded-lg ${currentTheme?.inputBorder || 'border border-gray-300'} ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-900'} focus:outline-none ${currentTheme?.inputRing || 'focus:ring-2 focus:ring-emerald-500'}`}
+                >
+                  <option value="">All</option>
+                  <option value="Present">Present</option>
+                  <option value="Absent">Absent</option>
+                  <option value="Leave">Leave</option>
+                  <option value="Holiday">Holiday</option>
+                </select>
+              </div>
+              <div>
+                <label htmlFor="filterStartDate" className={`block text-sm font-medium mb-2 ${currentTheme?.mutedText || 'text-gray-700'}`}>Start Date</label>
+                <input
+                  type="date"
+                  id="filterStartDate"
+                  value={filterStartDate}
+                  onChange={(e) => setFilterStartDate(e.target.value)}
+                  className={`block w-full h-12 px-4 rounded-lg ${currentTheme?.inputBorder || 'border border-gray-300'} ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-900'} focus:outline-none ${currentTheme?.inputRing || 'focus:ring-2 focus:ring-emerald-500'}`}
+                />
+              </div>
+              <div>
+                <label htmlFor="filterEndDate" className={`block text-sm font-medium mb-2 ${currentTheme?.mutedText || 'text-gray-700'}`}>End Date</label>
+                <input
+                  type="date"
+                  id="filterEndDate"
+                  value={filterEndDate}
+                  onChange={(e) => setFilterEndDate(e.target.value)}
+                  className={`block w-full h-12 px-4 rounded-lg ${currentTheme?.inputBorder || 'border border-gray-300'} ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-900'} focus:outline-none ${currentTheme?.inputRing || 'focus:ring-2 focus:ring-emerald-500'}`}
+                />
+              </div>
+              <div className="md:col-span-2 lg:col-span-4 flex items-end">
+                <button
+                  onClick={handleFilterChange}
+                  className={`w-full h-12 flex items-center justify-center px-6 rounded-xl font-bold transition-all duration-300 ${currentTheme?.shadow || 'shadow-lg'} hover:shadow-2xl transform hover:-translate-y-0.5 ${currentTheme?.btnPrimaryBg || 'bg-emerald-600'} ${currentTheme?.btnPrimaryHover || 'hover:bg-emerald-700'} ${currentTheme?.btnPrimaryText || 'text-white'} ${currentTheme?.btnPrimaryBorder || 'border border-emerald-700'} disabled:opacity-50 disabled:cursor-not-allowed`}
+                  disabled={loading}
+                >
+                  <FunnelIcon className="h-5 w-5 mr-2" /> Apply Filters
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -191,7 +214,13 @@ const AllAttendanceRecords = () => {
               </tr>
             </thead>
             <tbody className={`${currentTheme?.tbodyBg || 'bg-white'} divide-y divide-gray-100`}>
-              {attendanceRecords.map((record) => (
+              {attendanceRecords.filter((record) => {
+                if (!searchTerm) return true;
+                const name = record.user?.name || '';
+                const cnic = record.user?.cnic || '';
+                const s = searchTerm.toLowerCase();
+                return name.toLowerCase().includes(s) || cnic.toLowerCase().includes(s);
+              }).map((record) => (
                 <tr key={record._id} className={`transition-all duration-150 ${currentTheme?.tableHover || 'hover:bg-emerald-50'} ${currentTheme?.tableStripedBg || currentTheme?.tableStripe || 'odd:bg-gray-50'} ${currentTheme?.tbodyBg || 'bg-white'}`}>
                   <td className={`px-6 py-4 whitespace-nowrap text-sm font-semibold ${currentTheme?.text || 'text-gray-900'}`}>
                     {new Date(record.date).toLocaleDateString()}

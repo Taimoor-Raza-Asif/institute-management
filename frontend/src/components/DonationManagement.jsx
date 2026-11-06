@@ -343,26 +343,26 @@ const DonationManagement = () => {
               id="filterDonorName"
               value={filterDonorName}
               onChange={(e) => setFilterDonorName(e.target.value)}
-              className={`w-full pl-10 pr-4 h-12 rounded-lg ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} border ${currentTheme?.inputBorder || 'border-gray-300'} focus:outline-none`}
+              className={`w-full pl-10 pr-4 h-11 sm:h-12 rounded-xl text-sm ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} border ${currentTheme?.inputBorder || 'border-gray-300'} focus:outline-none`}
               placeholder="Search by Donor Name..."
             />
             <MagnifyingGlassIcon className={`absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 ${currentTheme?.iconText || 'text-gray-400'}`} />
           </div>
 
           {/* Buttons */}
-          <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto flex-shrink-0">
+          <div className="grid grid-cols-2 sm:flex sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto flex-shrink-0">
             <button
               onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-              className={`flex items-center justify-center h-12 px-6 rounded-lg font-medium transition-all duration-200 ${currentTheme.btnSecondaryBg || 'bg-white'} ${currentTheme.btnSecondaryText || 'text-emerald-700'} ${currentTheme.btnSecondaryBorder || 'border border-emerald-200'} ${currentTheme.btnSecondaryHover || 'hover:bg-emerald-50'} ${currentTheme?.shadow || 'shadow-md'} w-full sm:w-auto`}
+              className={`flex items-center justify-center h-10 sm:h-12 px-3 sm:px-5 rounded-xl font-semibold text-xs sm:text-sm transition-all duration-200 ${currentTheme.btnSecondaryBg || 'bg-white'} ${currentTheme.btnSecondaryText || 'text-emerald-700'} ${currentTheme.btnSecondaryBorder || 'border border-emerald-200'} ${currentTheme.btnSecondaryHover || 'hover:bg-emerald-50'} ${currentTheme?.shadow || 'shadow-sm'} whitespace-nowrap col-span-1`}
             >
-              <FunnelIcon className="h-5 w-5 mr-2" />
-              {showAdvancedFilters ? 'Hide Filters' : 'Show Filters'}
+              <FunnelIcon className="h-4 w-4 mr-1.5" />
+              {showAdvancedFilters ? 'Hide' : 'Filters'}
             </button>
-            <button onClick={() => setIsImportOpen(true)} className={`flex items-center justify-center h-12 px-6 rounded-lg font-medium transition-all duration-200 ${currentTheme.btnSecondaryBg || 'bg-white'} ${currentTheme.btnSecondaryText || 'text-emerald-700'} ${currentTheme.btnSecondaryBorder || 'border border-emerald-200'} ${currentTheme.btnSecondaryHover || 'hover:bg-emerald-50'} ${currentTheme?.shadow || 'shadow-md'} w-full sm:w-auto`}>
-              <ArrowUpTrayIcon className="h-5 w-5 mr-2" /> Upload from file
+            <button onClick={() => setIsImportOpen(true)} className={`flex items-center justify-center h-10 sm:h-12 px-3 sm:px-5 rounded-xl font-semibold text-xs sm:text-sm transition-all duration-200 ${currentTheme.btnSecondaryBg || 'bg-white'} ${currentTheme.btnSecondaryText || 'text-emerald-700'} ${currentTheme.btnSecondaryBorder || 'border border-emerald-200'} ${currentTheme.btnSecondaryHover || 'hover:bg-emerald-50'} ${currentTheme?.shadow || 'shadow-sm'} whitespace-nowrap col-span-1`}>
+              <ArrowUpTrayIcon className="h-4 w-4 mr-1.5" /> Upload file
             </button>
-            <button onClick={handleAddDonationClick} className={`flex items-center justify-center h-12 px-6 rounded-lg font-medium transition-all duration-200 ${currentTheme.btnPrimaryBg || 'bg-emerald-600'} ${currentTheme.btnPrimaryHover || 'hover:bg-emerald-700'} ${currentTheme.btnPrimaryText || 'text-white'} ${currentTheme.btnPrimaryBorder || 'border border-emerald-700'} ${currentTheme?.shadow || 'shadow-md'} w-full sm:w-auto`}>
-              <PlusIcon className="h-5 w-5 mr-2" /> Add New Donation
+            <button onClick={handleAddDonationClick} className={`flex items-center justify-center h-10 sm:h-12 px-4 sm:px-6 rounded-xl font-bold text-xs sm:text-sm transition-all duration-200 ${currentTheme.btnPrimaryBg || 'bg-emerald-600'} ${currentTheme.btnPrimaryHover || 'hover:bg-emerald-700'} ${currentTheme.btnPrimaryText || 'text-white'} ${currentTheme.btnPrimaryBorder || 'border border-emerald-700'} ${currentTheme?.shadow || 'shadow-sm'} whitespace-nowrap col-span-2 sm:col-auto`}>
+              <PlusIcon className="h-4 w-4 mr-1.5" /> Add Donation
             </button>
           </div>
         </div>

@@ -214,29 +214,56 @@ const AdminDashboard = () => {
   ];
 
   return (
-    <div className={`relative -m-6 sm:-m-8 p-6 sm:p-8 dash-shell min-h-screen overflow-hidden ${currentTheme?.pageBg || 'bg-slate-950'}`}>
+    <div className={`relative -m-3 sm:-m-6 md:-m-8 p-3 sm:p-6 md:p-8 dash-shell min-h-screen overflow-hidden ${currentTheme?.pageBg || 'bg-slate-950'}`}>
       <div className="dash-accent top-0 left-10" />
       <div className="dash-accent bottom-10 right-8" />
       <div className="absolute inset-0 dash-grid pointer-events-none" />
 
       <div className="relative z-10 space-y-8 ">
         {/* Header */}
-        <div className={`glass-card shine rounded-2xl p-6 sm:p-7 flex flex-col sm:flex-row sm:items-stretch sm:justify-between gap-6 animate-rise ${currentTheme?.heroBg || 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900'} ${currentTheme?.heroBorder || currentTheme?.cardBorder || 'border border-emerald-100/50'} ${currentTheme?.shadow || 'shadow-xl'}`}>
+        <div className={`glass-card shine rounded-2xl p-4 sm:p-7 flex flex-col sm:flex-row sm:items-stretch sm:justify-between gap-4 sm:gap-6 animate-rise ${currentTheme?.heroBg || 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900'} ${currentTheme?.heroBorder || currentTheme?.cardBorder || 'border border-emerald-100/50'} ${currentTheme?.shadow || 'shadow-xl'}`}>
           <div className="flex-1">
-            <div className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold mb-3 ${currentTheme?.heroPillBg || 'bg-emerald-50'} ${currentTheme?.heroPillText || 'text-emerald-800'} ${currentTheme?.heroPillBorder || 'border border-emerald-100'}`}>
-              <span className={`w-2 h-2 rounded-full mr-2 animate-ping-slow ${currentTheme.btnPrimaryBg || 'bg-emerald-500'}`} />
-              Control Center · {year}
+            {/* Top row on mobile: Badge + Logo */}
+            <div className="flex items-center justify-between sm:justify-start gap-3 mb-2 sm:mb-3">
+              <div className={`inline-flex items-center px-2.5 sm:px-3 py-1 rounded-full text-xs font-semibold ${currentTheme?.heroPillBg || 'bg-emerald-50'} ${currentTheme?.heroPillText || 'text-emerald-800'} ${currentTheme?.heroPillBorder || 'border border-emerald-100'}`}>
+                <span className={`w-2 h-2 rounded-full mr-2 animate-ping-slow ${currentTheme.btnPrimaryBg || 'bg-emerald-500'}`} />
+                Control Center · {year}
+              </div>
+              {/* Logo on mobile only */}
+              <div className="relative sm:hidden flex-shrink-0">
+                <img src="/Jamia%20Logo.png" alt="Jamia logo" className="w-10 h-10 object-contain drop-shadow" />
+              </div>
             </div>
-            <h1 className={`text-3xl sm:text-4xl font-extrabold leading-tight ${currentTheme.dashHeroTitle || currentTheme.title || 'text-emerald-900'}`}>Admin Dashboard</h1>
-            <p className={`${currentTheme.dashHeroSubtitle || currentTheme.mutedText || 'text-emerald-700'} mt-2 text-base`}>Full control over the Student Management System with a refreshed, modern look.</p>
-            <div className="mt-4 flex flex-wrap gap-2 text-xs">
-              <Badge icon={<UsersIcon className={`h-4 w-4 ${currentTheme.iconText || 'text-emerald-600'}`} />} label={`${stats.students} students`} />
-              <Badge icon={<BriefcaseIcon className={`h-4 w-4 ${currentTheme.iconText || 'text-emerald-600'}`} />} label={`${stats.staff} staff`} />
-              <Badge icon={<Cog6ToothIcon className={`h-4 w-4 ${currentTheme.iconText || 'text-blue-600'}`} />} label="Realtime sync" variant="neutral" />
+
+            <h1 className={`text-2xl sm:text-4xl font-extrabold leading-tight ${currentTheme.dashHeroTitle || currentTheme.title || 'text-emerald-900'}`}>Admin Dashboard</h1>
+            <p className={`${currentTheme.dashHeroSubtitle || currentTheme.mutedText || 'text-emerald-700'} mt-1 sm:mt-2 text-xs sm:text-base`}>Full control over the Student Management System with a refreshed, modern look.</p>
+
+            <div className="mt-3 sm:mt-4 flex flex-wrap gap-1.5 sm:gap-2 text-xs">
+              <Badge icon={<UsersIcon className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${currentTheme.iconText || 'text-emerald-600'}`} />} label={`${stats.students} students`} />
+              <Badge icon={<BriefcaseIcon className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${currentTheme.iconText || 'text-emerald-600'}`} />} label={`${stats.staff} staff`} />
+              <Badge icon={<Cog6ToothIcon className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${currentTheme.iconText || 'text-blue-600'}`} />} label="Realtime sync" variant="neutral" />
             </div>
+
+            {/* Mobile Super Admin session toggle button */}
+            {currentUser.role === 'admin' && (
+              <div className="mt-3 pt-3 border-t border-emerald-100/30 sm:hidden">
+                <button
+                  onClick={() => { setShowPromoteModal(true); setPromoteMsg({ type: '', text: '' }); setPromoteKey(''); }}
+                  title="Enter secret key to elevate this session to Super Admin"
+                  className={`w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-bold border ${currentTheme?.heroPillBorder || 'border-emerald-200'} ${currentTheme?.heroPillText || 'text-emerald-800'} ${currentTheme?.heroPillBg || 'bg-white/80'} hover:opacity-90 active:scale-95 transition shadow-sm backdrop-blur-sm`}
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                      d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+                  </svg>
+                  Super Admin Mode
+                </button>
+              </div>
+            )}
           </div>
 
-          <div className="flex flex-col items-end justify-between gap-3 self-stretch">
+          {/* Desktop Logo & Super Admin button */}
+          <div className="hidden sm:flex flex-col items-end justify-between gap-3 self-stretch flex-shrink-0">
             <div className="relative">
               <div className={`absolute inset-0 blur-2xl bg-gradient-to-br ${currentTheme.dashHeroGlow || 'from-emerald-200 to-teal-200'} opacity-80 animate-floaty`} />
               <img src="/Jamia%20Logo.png" alt="Jamia logo" className="relative w-16 h-16 sm:w-20 sm:h-20 object-contain drop-shadow" />
@@ -408,15 +435,28 @@ const AdminDashboard = () => {
 
 const KpiCard = ({ title, value, icon, theme, delay = 0 }) => (
   <div
-    className={`relative glass-card shine rounded-2xl p-5 flex items-center justify-between ${theme?.cardBg || 'bg-slate-900/60'} ${theme?.cardBorder || theme?.border || 'border border-emerald-100/50'} ${theme?.shadow || 'shadow-xl'} hover:-translate-y-1 transition duration-500 hover:shadow-2xl animate-rise`}
+    className={`relative glass-card shine rounded-xl sm:rounded-2xl p-3 sm:p-5 flex flex-col justify-between min-w-0 ${theme?.cardBg || 'bg-slate-900/60'} ${theme?.cardBorder || theme?.border || 'border border-emerald-100/50'} ${theme?.shadow || 'shadow-xl'} hover:-translate-y-1 transition duration-500 hover:shadow-2xl animate-rise`}
     style={{ animationDelay: `${delay}ms` }}
   >
-    <div>
-      <p className={`${theme?.mutedText || 'text-gray-400'} text-sm`}>{title}</p>
-      <p className={`text-2xl font-bold ${theme?.statCardValue || theme?.text || 'text-white'}`}>{value}</p>
+    <div className="flex items-start justify-between gap-2 min-w-0">
+      <p className={`${theme?.mutedText || 'text-gray-400'} text-xs sm:text-sm font-medium line-clamp-2 leading-tight flex-1 min-w-0`}>
+        {title}
+      </p>
+      <div className={`p-1.5 sm:p-3 rounded-lg sm:rounded-full flex-shrink-0 ${theme?.pillBg || 'bg-emerald-50/80'} ${theme?.pillBorder || 'border border-emerald-100/70'} shadow-inner animate-floaty`}>
+        {React.isValidElement(icon)
+          ? React.cloneElement(icon, {
+              className: `h-4 w-4 sm:h-7 sm:w-7 ${icon.props.className?.match(/text-[^\s]+/)?.[0] || theme?.iconText || 'text-emerald-600'}`
+            })
+          : icon}
+      </div>
     </div>
-    <div className={`p-3 rounded-full ${theme?.pillBg || 'bg-emerald-50/80'} ${theme?.pillBorder || 'border border-emerald-100/70'} shadow-inner animate-floaty`}>
-      {icon}
+    <div className="mt-2 sm:mt-4 min-w-0">
+      <p
+        className={`text-lg sm:text-2xl font-black tracking-tight truncate ${theme?.statCardValue || theme?.text || 'text-white'}`}
+        title={typeof value === 'string' || typeof value === 'number' ? String(value) : undefined}
+      >
+        {value}
+      </p>
     </div>
     <div className="absolute -right-3 -top-3 w-16 h-16 bg-gradient-to-br from-emerald-200/20 to-white/5 rounded-full blur-2xl pointer-events-none" />
   </div>
@@ -425,7 +465,7 @@ const KpiCard = ({ title, value, icon, theme, delay = 0 }) => (
 const WalletIconLite = () => {
   const { currentTheme } = useTheme();
   return (
-    <svg className={`h-8 w-8 ${currentTheme?.iconText || 'text-rose-500'}`} viewBox="0 0 24 24" fill="none" stroke="currentColor">
+    <svg className={`h-4 w-4 sm:h-7 sm:w-7 ${currentTheme?.iconText || 'text-rose-500'}`} viewBox="0 0 24 24" fill="none" stroke="currentColor">
       <path strokeWidth="1.5" d="M3 7a2 2 0 012-2h12a2 2 0 012 2v1H7a2 2 0 00-2 2v6H5a2 2 0 01-2-2V7z" />
       <rect x="7" y="8" width="14" height="9" rx="2" strokeWidth="1.5" />
       <circle cx="16" cy="12.5" r="1" />
@@ -647,7 +687,7 @@ const DailySummarySection = ({ data, loading, theme }) => {
 
       {/* Stat tiles */}
       {loading || !data ? (
-        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-2.5 sm:gap-4">
           {Array.from({ length: 5 }).map((_, i) => (
             <div key={i} className={`h-28 rounded-2xl glass-card border ${theme?.cardBorder || 'border-white/20'} animate-pulse-soft`}>
               <div className="p-4 space-y-2">
@@ -658,22 +698,26 @@ const DailySummarySection = ({ data, loading, theme }) => {
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-2.5 sm:gap-4">
           {tiles.map((tile, i) => {
             const cc = colorMap[tile.color];
             return (
               <div
                 key={tile.key}
-                className={`glass-card shine rounded-2xl p-4 border ${cc.border} ${cc.bg} relative overflow-hidden hover:-translate-y-1 transition duration-300 animate-rise`}
+                className={`glass-card shine rounded-xl sm:rounded-2xl p-3 sm:p-4 border ${cc.border} ${cc.bg} relative overflow-hidden hover:-translate-y-1 transition duration-300 animate-rise min-w-0`}
                 style={{ animationDelay: `${i * 70}ms` }}
               >
                 <div className={`absolute -top-4 -right-4 w-20 h-20 rounded-full blur-2xl bg-gradient-to-br ${cc.glow} to-transparent opacity-60 pointer-events-none`} />
-                <div className={`inline-flex items-center justify-center p-2 rounded-xl mb-3 ${cc.bg} border ${cc.border} ${cc.text}`}>
-                  {tile.icon}
+                <div className="flex items-center justify-between mb-2">
+                  <div className={`inline-flex items-center justify-center p-1.5 sm:p-2 rounded-lg sm:rounded-xl ${cc.bg} border ${cc.border} ${cc.text}`}>
+                    {React.isValidElement(tile.icon)
+                      ? React.cloneElement(tile.icon, { className: 'h-4 w-4 sm:h-6 sm:w-6' })
+                      : tile.icon}
+                  </div>
                 </div>
-                <p className={`text-xs font-medium ${theme?.mutedText || 'text-gray-400'} mb-1`}>{tile.label}</p>
-                <p className={`text-xl font-extrabold ${theme?.statCardValue || 'text-white'} leading-tight`}>{tile.value}</p>
-                <p className={`text-xs mt-1 ${cc.text}`}>{tile.sub}</p>
+                <p className={`text-xs font-medium ${theme?.mutedText || 'text-gray-400'} mb-1 line-clamp-1`} title={tile.label}>{tile.label}</p>
+                <p className={`text-base sm:text-xl font-black ${theme?.statCardValue || 'text-white'} leading-tight truncate`} title={typeof tile.value === 'string' ? tile.value : undefined}>{tile.value}</p>
+                <p className={`text-[11px] sm:text-xs mt-1 truncate ${cc.text}`}>{tile.sub}</p>
               </div>
             );
           })}

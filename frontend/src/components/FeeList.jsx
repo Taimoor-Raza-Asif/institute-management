@@ -460,7 +460,7 @@ const FeeList = () => {
 
       {/* Filters & Advanced Filters */}
       {canManage && (
-      <div className={`mb-6 rounded-xl p-6 ${currentTheme.cardBg || 'bg-white'} ${currentTheme.shadow || 'shadow-lg'} ${currentTheme.border || 'border border-gray-100'}`}>
+      <div className={`mb-4 sm:mb-6 rounded-2xl p-3.5 sm:p-6 ${currentTheme.cardBg || 'bg-white'} ${currentTheme.shadow || 'shadow-lg'} ${currentTheme.border || 'border border-gray-100'}`}>
         {/* Top Filter Bar */}
         <div className="flex flex-col sm:flex-row justify-between items-center gap-3 mb-4">
           <div className="relative w-full sm:w-1/2 lg:w-2/3">
@@ -469,15 +469,15 @@ const FeeList = () => {
               id="searchTerm"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none transition ${currentTheme?.inputBg || 'border-gray-300 bg-gray-50'} ${currentTheme?.inputRing || 'focus:ring-2 focus:ring-green-500'}`}
+              className={`w-full pl-10 pr-4 py-2.5 sm:py-3 text-sm border rounded-xl focus:outline-none transition ${currentTheme?.inputBg || 'border-gray-300 bg-gray-50'} ${currentTheme?.inputRing || 'focus:ring-2 focus:ring-green-500'}`}
               placeholder="Search by student name or CNIC..."
             />
             <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
           </div>
-          <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+          <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 w-full sm:w-auto">
             <button
               onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-              className={`group flex items-center justify-center px-8 py-2 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 w-full sm:w-auto ${showAdvancedFilters ? 'bg-gradient-to-r from-gray-700 to-gray-600 text-white' : 'bg-white text-gray-700 border-2 border-gray-200 hover:border-gray-300'}`}
+              className={`group flex items-center justify-center h-12 px-6 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 w-full sm:w-auto ${showAdvancedFilters ? 'bg-gradient-to-r from-gray-700 to-gray-600 text-white' : 'bg-white text-gray-700 border-2 border-gray-200 hover:border-gray-300'} whitespace-nowrap`}
             >
               <FunnelIcon className="h-5 w-5 mr-2 transition-transform group-hover:scale-110" />
               {showAdvancedFilters ? 'Hide' : 'Filters'}
@@ -489,18 +489,18 @@ const FeeList = () => {
                     onClick={handleFixStatus}
                     disabled={fixingStatus}
                     title="Auto Pay: Sets feeStatus to 'Paid' for all 100%-discount students and creates this month's fee records for tracking"
-                    className="flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold transition-all duration-200 shadow-sm hover:shadow-md w-full sm:w-auto bg-orange-50 text-orange-700 border border-orange-300 hover:bg-orange-100 disabled:opacity-50 whitespace-nowrap"
+                    className="group flex items-center justify-center gap-1.5 h-12 px-6 rounded-xl font-semibold transition-all duration-300 shadow-md hover:shadow-lg w-full sm:w-auto bg-amber-50 text-amber-800 border border-amber-300 hover:bg-amber-100 disabled:opacity-50 whitespace-nowrap"
                   >
-                    <WrenchScrewdriverIcon className="h-4 w-4 flex-shrink-0" />
+                    <WrenchScrewdriverIcon className="h-5 w-5 flex-shrink-0 mr-1.5" />
                     {fixingStatus ? 'Running...' : 'Auto Pay'}
                   </button>
                 )}
                 <button
                   onClick={openAdd}
-                  className={`group flex items-center justify-center gap-1.5 px-5 py-2 rounded-xl text-sm font-bold text-white transition-all duration-300 shadow-lg hover:shadow-2xl transform hover:-translate-y-0.5 w-full sm:w-auto ${currentTheme.btnPrimaryBg || 'bg-gradient-to-r from-green-600 to-emerald-600'} ${currentTheme.btnPrimaryHover || 'hover:from-green-700 hover:to-emerald-700'}`}
+                  className={`group flex items-center justify-center gap-2 h-12 px-6 rounded-xl font-bold text-white transition-all duration-300 shadow-lg hover:shadow-2xl transform hover:-translate-y-0.5 w-full sm:w-auto ${currentTheme.btnPrimaryBg || 'bg-gradient-to-r from-green-600 to-emerald-600'} ${currentTheme.btnPrimaryHover || 'hover:from-green-700 hover:to-emerald-700'} whitespace-nowrap`}
                 >
-                  <PlusCircleIcon className="h-4 w-4 transition-transform group-hover:rotate-90" />
-                  Fee
+                  <PlusCircleIcon className="h-5 w-5 transition-transform group-hover:rotate-90" />
+                  Add New Fee
                 </button>
               </>
             )}
@@ -793,14 +793,7 @@ const FeeList = () => {
         )}
       </div>
 
-      {/* Primary CTA for mobile */}
-      {canManage && (
-        <div className="fixed bottom-6 right-6 sm:hidden">
-          <button onClick={openAdd} className="inline-flex items-center px-4 py-3 rounded-full shadow-lg bg-emerald-600 text-white">
-            <PlusCircleIcon className="h-6 w-6 mr-2" /> New Fee
-          </button>
-        </div>
-      )}
+      
 
       {/* Modal */}
       <FeeModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>

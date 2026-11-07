@@ -331,9 +331,13 @@ const TrialBalanceView = ({ data, currency, theme }) => {
                     <td className={`px-6 py-3 text-${cfg.color}-600 font-semibold text-xs`}>{type}</td>
                     <td className="px-6 py-3 text-right font-semibold text-emerald-700">{currency(row.debit)}</td>
                     <td className="px-6 py-3 text-right font-semibold text-red-500">{currency(row.credit)}</td>
-                    <td className={`px-6 py-3 text-right font-bold ${row.net >= 0 ? 'text-gray-800' : 'text-red-600'}`}>
-                      {currency(Math.abs(row.net))}
-                      {row.net < 0 && <span className="text-xs ml-1 text-red-400">(Cr)</span>}
+                    <td className={`px-6 py-3 text-right font-bold ${row.balance !== undefined ? (row.balance >= 0 ? 'text-gray-800' : 'text-red-600') : (row.net >= 0 ? 'text-gray-800' : 'text-red-600')}`}>
+                      {currency(Math.abs(row.balance !== undefined ? row.balance : row.net))}
+                      <span className="text-xs ml-1 text-gray-500">
+                        {row.isNormalDebit
+                          ? (row.net < 0 ? '(Cr - Deficit)' : '(Dr)')
+                          : (row.balance !== undefined && row.balance < 0 ? '(Dr - Deficit)' : '(Cr)')}
+                      </span>
                     </td>
                   </tr>
                 )),

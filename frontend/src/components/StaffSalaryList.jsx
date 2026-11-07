@@ -665,6 +665,7 @@ const StaffSalaryList = () => {
                   <th scope="col" className={`px-6 py-4 text-left text-xs font-bold ${currentTheme?.theadText || 'text-white'} uppercase tracking-wider`}>Role</th>
                   <th scope="col" className={`px-6 py-4 text-left text-xs font-bold ${currentTheme?.theadText || 'text-white'} uppercase tracking-wider`}>Month/Year</th>
                   <th scope="col" className={`px-6 py-4 text-left text-xs font-bold ${currentTheme?.theadText || 'text-white'} uppercase tracking-wider`}>Paid Amount</th>
+                  <th scope="col" className={`px-6 py-4 text-left text-xs font-bold ${currentTheme?.theadText || 'text-white'} uppercase tracking-wider`}>Method</th>
                   <th scope="col" className={`px-6 py-4 text-left text-xs font-bold ${currentTheme?.theadText || 'text-white'} uppercase tracking-wider`}>Status</th>
                   <th scope="col" className={`px-6 py-4 text-center text-xs font-bold ${currentTheme?.theadText || 'text-white'} uppercase tracking-wider rounded-tr-xl`}>Actions</th>
                 </tr>
@@ -698,6 +699,19 @@ const StaffSalaryList = () => {
                     <td className={`px-6 py-4 whitespace-nowrap text-sm ${currentTheme?.text || 'text-gray-600'}`}>{salary.staffRole}</td>
                     <td className={`px-6 py-4 whitespace-nowrap text-sm ${currentTheme?.text || 'text-gray-600'}`}>{months[salary.month - 1]} {salary.year}</td>
                     <td className={`px-6 py-4 whitespace-nowrap text-sm font-semibold ${currentTheme?.text || 'text-gray-900'}`}>PKR {parseFloat(salary.paidAmount).toFixed(2)}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <span className={`px-2.5 py-0.5 inline-flex text-xs font-medium rounded-full ${currentTheme?.pillBg || 'bg-gray-100'} ${currentTheme?.pillText || 'text-gray-700'}`}>
+                        {salary.paidAs || 'Cash'}
+                      </span>
+                      {salary.paidAs === 'Bank' && salary.bankAccount && (
+                        <div className="mt-1 text-xs">
+                          <div className={`font-semibold ${currentTheme?.text || 'text-gray-900'}`}>{salary.bankAccount.name}</div>
+                          {salary.bankAccount.accountNumber && (
+                            <div className={`font-mono text-[11px] ${currentTheme?.mutedText || 'text-gray-500'}`}>{salary.bankAccount.accountNumber}</div>
+                          )}
+                        </div>
+                      )}
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full border ${getStatusBadgeClass(salary.status)}`}>
                         {salary.status}

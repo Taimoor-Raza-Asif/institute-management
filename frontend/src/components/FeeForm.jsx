@@ -1,7 +1,11 @@
 // src/components/FeeForm.jsx
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import api from '../api';
-import { ArrowDownTrayIcon, PrinterIcon, MinusCircleIcon } from '@heroicons/react/24/outline';
+import {
+  ArrowDownTrayIcon, PrinterIcon, MinusCircleIcon,
+  CurrencyDollarIcon, UserIcon, CalendarDaysIcon,
+  BanknotesIcon, DocumentTextIcon, CheckCircleIcon
+} from '@heroicons/react/24/outline';
 import jsPDF from 'jspdf';
 import { useTheme } from '../context/ThemeContext';
 import DuplicateFeeModal from './DuplicateFeeModal';
@@ -50,7 +54,10 @@ const FeeForm = ({ editingFee, fetchFees, studentsForForm, onClose, isViewMode =
   const [currentUser, setCurrentUser] = useState(null);
   const [isEditAllowed, setIsEditAllowed] = useState(false);
   const [isAddAllowed, setIsAddAllowed] = useState(false);
-  const [studentAdmissionFeeStatus, setStudentAdmissionFeeStatus] = useState(false); 
+  const [studentAdmissionFeeStatus, setStudentAdmissionFeeStatus] = useState(false);
+  const [bankAccount, setBankAccount] = useState('');
+  const [bankAccountOptions, setBankAccountOptions] = useState([]);
+  const [bankAccountsLoading, setBankAccountsLoading] = useState(false);
 
   // Effect to initialize fee form and student financial details when editingFee changes
   useEffect(() => {
@@ -63,6 +70,7 @@ const FeeForm = ({ editingFee, fetchFees, studentsForForm, onClose, isViewMode =
         year: editingFee.year?.toString() || new Date().getFullYear().toString(),
         billScreenshotUrl: editingFee.billScreenshotUrl || '',
       });
+      setBankAccount(editingFee.bankAccount?._id || editingFee.bankAccount || '');
       setSelectedFile(null);
       if (editingFee.studentId) {
         setStudentDepositedAmount(editingFee.studentId.depositedAmount || 0);
@@ -78,6 +86,22 @@ const FeeForm = ({ editingFee, fetchFees, studentsForForm, onClose, isViewMode =
     }
     setFormError('');
   }, [editingFee]);
+  // Fetch bank accounts
+  useEffect(() => {
+    const fetchBankAccounts = async () => {
+      setBankAccountsLoading(true);
+      try {
+        const { data } = await api.get('/bank-accounts');
+        setBankAccountOptions(data.filter(acc => acc.isActive));
+      } catch (err) {
+        console.warn('Could not fetch bank accounts:', err.message);
+      } finally {
+        setBankAccountsLoading(false);
+      }
+    };
+    fetchBankAccounts();
+  }, []);
+
   // Newly added useEffect hook
   useEffect(() => {
     const userInfo = sessionStorage.getItem('userInfo') || localStorage.getItem('userInfo');
@@ -199,6 +223,7 @@ const FeeForm = ({ editingFee, fetchFees, studentsForForm, onClose, isViewMode =
 
     if (name === 'paymentMethod') {
       setFee(prev => ({ ...prev, [name]: value }));
+      if (value !== 'Bank') setBankAccount('');
 
       if (value === 'Deposited Cash') {
         const totalFee = parseFloat(fee.totalFee);
@@ -915,278 +940,398 @@ const FeeForm = ({ editingFee, fetchFees, studentsForForm, onClose, isViewMode =
   };
 
 
+  // --- Style helpers (match SalaryForm) ---
+  const inputBase = `w-full rounded-lg border ${currentTheme?.inputBorder || 'border-gray-200'} ${currentTheme?.inputBg || 'bg-white/80'} px-3.5 py-2.5 text-sm ${currentTheme?.inputText || 'text-gray-800'} ${currentTheme?.shadow || 'shadow-sm'} focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed`;
+  const inputDisabled = `w-full rounded-lg border ${currentTheme?.inputBorder || 'border-gray-200'} bg-gray-100 px-3.5 py-2.5 text-sm ${currentTheme?.inputText || 'text-gray-500'} cursor-not-allowed`;
+  const labelBase = `text-sm font-semibold ${currentTheme?.subtitle || 'text-gray-700'} flex items-center gap-2 mb-1`;
+  const sectionBase = `p-4 md:p-5 ${currentTheme?.panelBg || 'bg-gray-50/70'} ${currentTheme?.border || 'border border-gray-100'} rounded-xl space-y-4`;
+
   return (
-    // Main container for the form, now a flex column with responsive width and padding
-    <div className={`p-4 sm:p-6 rounded-lg w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-2xl mx-auto relative flex flex-col h-full overflow-visible ${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.shadow || 'shadow-xl'}`}>
+    <div className={`relative overflow-hidden rounded-2xl ${currentTheme?.cardBg || 'bg-white/90'} backdrop-blur ${currentTheme?.shadow || 'shadow-2xl'} ${currentTheme?.border || 'border border-emerald-50'} p-6 sm:p-8`}>
+      <div className="absolute inset-0 pointer-events-none bg-gradient-to-br from-emerald-100/50 via-white to-teal-50/40" aria-hidden />
+      <div className="relative">
 
-      {/* Form Error */}
-      {formError && (
-        <div className={`${currentTheme?.alertErrorBg || 'bg-red-100'} ${currentTheme?.alertErrorBorder || 'border border-red-400'} ${currentTheme?.alertErrorText || 'text-red-700'} px-4 py-3 rounded relative mb-4 shadow-sm`} role="alert">
-          {formError}
-        </div>
-      )}
+        {/* Error */}
+        {formError && (
+          <div className={`${currentTheme?.alertErrorBg || 'bg-red-50'} ${currentTheme?.alertErrorBorder || 'border border-red-300'} ${currentTheme?.alertErrorText || 'text-red-700'} px-4 py-3 rounded-xl mb-4 text-sm font-medium`} role="alert">
+            {formError}
+          </div>
+        )}
 
-      {/* Scrollable Form Content */}
-      {/* <form onSubmit={handleSubmit} className="flex flex-col flex-grow overflow-y-auto pr-2 custom-scrollbar"> */}
-      <form onSubmit={e => (editingFee && !isEditAllowed) || (!editingFee && !isAddAllowed) ? e.preventDefault() : handleSubmit(e)} className={`p-4 rounded-lg ${currentTheme?.panelBg || 'bg-white'} ${currentTheme?.shadow || 'shadow-md'}`}>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-          {/* Student */}
-          <div ref={studentRef}>
-            <label htmlFor="studentIdInput" className={`block text-sm font-medium ${currentTheme?.subtitle || 'text-gray-700'} mb-1`}>Student<span className="text-red-500">*</span></label>
-            <input
-              id="studentIdInput"
-              name="studentId"
-              value={studentQuery || (fee.studentId ? (studentsForForm.find(s => s._id === fee.studentId) ? `${studentsForForm.find(s => s._id === fee.studentId).name} (${studentsForForm.find(s => s._id === fee.studentId).cnic})` : '') : '')}
-              onChange={handleStudentInputChange}
-              onFocus={() => setShowStudentDropdown(true)}
-              disabled={isViewMode}
-              autoComplete="off"
-              placeholder="Select Student"
-              className={`block w-full rounded-md p-2.5 transition duration-150 ease-in-out ${isViewMode ? (currentTheme?.inputDisabled || 'bg-gray-100') : (currentTheme?.inputBg || 'bg-white')} ${currentTheme?.inputText || 'text-gray-700'} ${currentTheme?.inputBorder || 'border-gray-300'} ${currentTheme?.inputFocus || 'focus:border-emerald-500'} ${currentTheme?.inputRing || 'focus:ring-2 focus:ring-emerald-500 focus:ring-offset-0'}`}
-            />
-            {showStudentDropdown && !isViewMode && (
-              <ul className="mt-1 max-h-48 overflow-auto rounded-md border border-gray-200 bg-white z-50" style={{ position: 'absolute', width: 'calc(50% - 1rem)' }}>
-                <li key="__empty__" className="px-3 py-2 text-sm text-gray-500">Search by name or CNIC</li>
-                {studentsForForm.filter(s => {
-                  const q = (studentQuery || '').toLowerCase();
-                  if (!q) return true;
-                  return (s.name || '').toLowerCase().includes(q) || (s.cnic || '').toLowerCase().includes(q);
-                }).map(student => (
-                  <li key={student._id} onClick={() => handleSelectStudent(student)} className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm">
-                    {student.name} ({student.cnic})
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-          {/* Paid By */}
-          <div>
-            <label htmlFor="paidBy" className={`block text-sm font-medium ${currentTheme?.subtitle || 'text-gray-700'} mb-1`}>Paid By<span className="text-red-500">*</span></label>
-            <input type="text" id="paidBy" name="paidBy" value={fee.paidBy} onChange={handleChange} disabled={isViewMode || fee.paymentMethod === 'Deposited Cash'} className={`block w-full rounded-md p-2.5 transition duration-150 ease-in-out ${isViewMode || fee.paymentMethod === 'Deposited Cash' ? (currentTheme?.inputDisabled || 'bg-gray-100') : (currentTheme?.inputBg || 'bg-white')} ${currentTheme?.inputText || 'text-gray-700'} ${currentTheme?.inputBorder || 'border-gray-300'} ${currentTheme?.inputFocus || 'focus:border-emerald-500'} ${currentTheme?.inputRing || 'focus:ring-2 focus:ring-emerald-500 focus:ring-offset-0'}`} />
-          </div>
-          {/* Total Fee (Auto-populated and disabled) */}
-          <div>
-            <label htmlFor="totalFee" className={`block text-sm font-medium ${currentTheme?.subtitle || 'text-gray-700'} mb-1`}>Total Fee (Per Month)<span className="text-red-500">*</span></label>
-            <input
-              type="text"
-              inputMode="numeric"
-              pattern="\d*"
-              id="totalFee"
-              name="totalFee"
-              value={fee.totalFee}
-              onChange={handleChange}
-              disabled={true}
-              className={`block w-full rounded-md p-2.5 ${currentTheme?.inputDisabled || 'bg-gray-100'} ${currentTheme?.inputText || 'text-gray-700'} cursor-not-allowed ${currentTheme?.inputBorder || 'border-gray-300'}`}
-            />
-          </div>
-          {(!editingFee && !studentAdmissionFeeStatus) && (
-            <div>
-              <label htmlFor="admissionFee" className={`block text-sm font-medium ${currentTheme?.subtitle || 'text-gray-700'} mb-1`}>Admission Fee</label>
-              <input
-                type="text"
-                inputMode="numeric"
-                pattern="\d*"
-                id="admissionFee"
-                name="admissionFee"
-                value={fee.admissionFee}
-                onChange={handleChange}
-                readOnly={isViewMode || !isEditAllowed && editingFee}
-                className={`block w-full rounded-md ${currentTheme?.inputBorder || 'border-gray-300'} shadow-sm ${currentTheme?.inputFocus || 'focus:border-emerald-500'} ${currentTheme?.inputRing || 'focus:ring-2 focus:ring-emerald-500 focus:ring-offset-0'} focus:ring-opacity-50 p-2.5 transition duration-150 ease-in-out ${isViewMode || (!isEditAllowed && editingFee) ? (currentTheme?.inputDisabled || 'bg-gray-100') : (currentTheme?.inputBg || 'bg-white')}`}
-              />
-            </div>
-          )}
-          {/* Received Amount */}
-          <div>
-            <label htmlFor="receivedAmount" className={`block text-sm font-medium ${currentTheme?.subtitle || 'text-gray-700'} mb-1`}>Received Amount<span className="text-red-500">*</span></label>
-            <input type="text" inputMode="numeric" pattern="\d*" id="receivedAmount" name="receivedAmount" value={formatReceivedForDisplay(fee.receivedAmount, fee.paymentMethod)} onChange={handleChange} disabled={isViewMode || fee.paymentMethod === 'Deposited Cash'} className={`block w-full rounded-md p-2.5 transition duration-150 ease-in-out ${isViewMode || fee.paymentMethod === 'Deposited Cash' ? (currentTheme?.inputDisabled || 'bg-gray-100') : (currentTheme?.inputBg || 'bg-white')} ${currentTheme?.inputText || 'text-gray-700'} ${currentTheme?.inputBorder || 'border-gray-300'} ${currentTheme?.inputFocus || 'focus:border-emerald-500'} ${currentTheme?.inputRing || 'focus:ring-2 focus:ring-emerald-500 focus:ring-offset-0'}`} />
-          </div>
-          {/* Due Amount (Display only) */}
-          <div>
-            <label htmlFor="dueAmount" className={`block text-sm font-medium ${currentTheme?.subtitle || 'text-gray-700'} mb-1`}>Due Amount</label>
-            <input type="number" id="dueAmount" name="dueAmount" value={fee.dueAmount} disabled className={`block w-full rounded-md p-2.5 ${currentTheme?.inputDisabled || 'bg-gray-100'} ${currentTheme?.inputText || 'text-gray-700'} cursor-not-allowed ${currentTheme?.inputBorder || 'border-gray-300'}`} />
-          </div>
-          {/* Month */}
-          <div>
-            <label htmlFor="month" className={`block text-sm font-medium ${currentTheme?.subtitle || 'text-gray-700'} mb-1`}>Month<span className="text-red-500">*</span></label>
-            <select id="month" name="month" value={fee.month} onChange={handleChange} disabled={isViewMode} className={`block w-full rounded-md p-2.5 transition duration-150 ease-in-out ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} ${currentTheme?.inputBorder || 'border-gray-300'} ${currentTheme?.inputFocus || 'focus:border-emerald-500'} ${currentTheme?.inputRing || 'focus:ring-2 focus:ring-emerald-500 focus:ring-offset-0'}`}>
-              <option value="">Select Month</option>
-              {months.map(monthName => (
-                <option key={monthName} value={monthName}>{monthName}</option>
-              ))}
-            </select>
-          </div>
-          {/* Year */}
-          <div>
-            <label htmlFor="year" className={`block text-sm font-medium ${currentTheme?.subtitle || 'text-gray-700'} mb-1`}>Year<span className="text-red-500">*</span></label>
-            <select id="year" name="year" value={fee.year} onChange={handleChange} disabled={isViewMode} className={`block w-full rounded-md p-2.5 transition duration-150 ease-in-out ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} ${currentTheme?.inputBorder || 'border-gray-300'} ${currentTheme?.inputFocus || 'focus:border-emerald-500'} ${currentTheme?.inputRing || 'focus:ring-2 focus:ring-emerald-500 focus:ring-offset-0'}`}>
-              {generateYearOptions().map(year => (
-                <option key={year} value={year}>{year}</option>
-              ))}
-            </select>
-          </div>
-          {/* Received Date */}
-          <div>
-            <label htmlFor="receivedDate" className={`block text-sm font-medium ${currentTheme?.subtitle || 'text-gray-700'} mb-1`}>Received Date<span className="text-red-500">*</span></label>
-            <input type="date" id="receivedDate" name="receivedDate" value={fee.receivedDate} onChange={handleChange} disabled={isViewMode} className={`block w-full rounded-md p-2.5 transition duration-150 ease-in-out ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} ${currentTheme?.inputBorder || 'border-gray-300'} ${currentTheme?.inputFocus || 'focus:border-emerald-500'} ${currentTheme?.inputRing || 'focus:ring-2 focus:ring-emerald-500 focus:ring-offset-0'}`} />
-          </div>
-          {/* Received By */}
-          <div>
-            <label htmlFor="receivedBy" className={`block text-sm font-medium ${currentTheme?.subtitle || 'text-gray-700'} mb-1`}>Received By<span className="text-red-500">*</span></label>
-            <input type="text" id="receivedBy" name="receivedBy" value={fee.receivedBy} onChange={handleChange} disabled={isViewMode || fee.paymentMethod === 'Deposited Cash'} className={`block w-full rounded-md p-2.5 transition duration-150 ease-in-out ${isViewMode || fee.paymentMethod === 'Deposited Cash' ? (currentTheme?.inputDisabled || 'bg-gray-100') : (currentTheme?.inputBg || 'bg-white')} ${currentTheme?.inputText || 'text-gray-700'} ${currentTheme?.inputBorder || 'border-gray-300'} ${currentTheme?.inputFocus || 'focus:border-emerald-500'} ${currentTheme?.inputRing || 'focus:ring-2 focus:ring-emerald-500 focus:ring-offset-0'}`} />
-          </div>
-          {/* Payment Method */}
-          <div>
-            <label htmlFor="paymentMethod" className={`block text-sm font-medium ${currentTheme?.subtitle || 'text-gray-700'} mb-1`}>Payment Method<span className="text-red-500">*</span></label>
-            <select id="paymentMethod" name="paymentMethod" value={fee.paymentMethod} onChange={handleChange} disabled={isViewMode} className={`block w-full rounded-md p-2.5 transition duration-150 ease-in-out ${currentTheme?.inputBg || 'bg-white'} ${currentTheme?.inputText || 'text-gray-700'} ${currentTheme?.inputBorder || 'border-gray-300'} ${currentTheme?.inputFocus || 'focus:border-emerald-500'} ${currentTheme?.inputRing || 'focus:ring-2 focus:ring-emerald-500 focus:ring-offset-0'}`}>
-              <option value="">Select Method</option>
-              <option value="Cash">Cash</option>
-              <option value="Bank Transfer">Bank Transfer</option>
-              <option value="Easypaisa">Easypaisa</option>
-              <option value="JazzCash">JazzCash</option>
-              <option value="Online Wallet">Online Wallet</option>
-              <option value="Deposited Cash">Deposited Cash (from advance)</option> {/* New option */}
-            </select>
-          </div>
+        <form onSubmit={e => (editingFee && !isEditAllowed) || (!editingFee && !isAddAllowed) ? e.preventDefault() : handleSubmit(e)} className="space-y-5">
 
-          {/* Display Deposited Amount */}
-          <div className="sm:col-span-1">
-            <label htmlFor="depositedAmountDisplay" className={`block text-sm font-medium ${currentTheme?.subtitle || 'text-gray-700'} mb-1`}>Student Deposited Amount</label>
-            <input
-              type="text"
-              id="depositedAmountDisplay"
-              value={`PKR ${parseFloat(studentDepositedAmount)}`}
-              disabled
-              className={`block w-full rounded-md p-2.5 font-bold cursor-not-allowed ${currentTheme?.inputDisabled || 'bg-gray-100'} ${currentTheme?.inputText || 'text-gray-700'} ${currentTheme?.inputBorder || 'border-gray-300'}`}
-            />
-            <button
-              onClick={() => {
-                const input = prompt("Enter amount to deposit:");
-                const amount = parseFloat(input);
-                if (!isNaN(amount) && amount > 0) {
-                  const newDeposit = studentDepositedAmount + amount;
-                  setStudentDepositedAmount(newDeposit);
-                  updateStudentFinancials(fee.studentId, {
-                    depositedAmount: newDeposit,
-                    otherDues: studentOtherDues
-                  });
-                }
-              }}
-              className={`ml-2 underline text-sm ${currentTheme?.linkText || 'text-green-500'}`}
-            >
-              + Deposit
-            </button>
+          {/* ── Section 1: Student & Fee ── */}
+          <div className={sectionBase}>
+            <h3 className={`text-sm font-bold ${currentTheme?.title || 'text-gray-800'} flex items-center gap-2`}>
+              <UserIcon className="h-5 w-5 text-emerald-600" /> Student & Fee
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
 
-          </div>
+              {/* Student search */}
+              <div ref={studentRef} className="relative">
+                <label htmlFor="studentIdInput" className={labelBase}>
+                  <UserIcon className="h-4 w-4 text-emerald-600" /> Student <span className="text-red-500">*</span>
+                </label>
+                <input
+                  id="studentIdInput"
+                  name="studentId"
+                  value={studentQuery || (fee.studentId ? (studentsForForm.find(s => s._id === fee.studentId) ? `${studentsForForm.find(s => s._id === fee.studentId).name} (${studentsForForm.find(s => s._id === fee.studentId).cnic})` : '') : '')}
+                  onChange={handleStudentInputChange}
+                  onFocus={() => setShowStudentDropdown(true)}
+                  disabled={isViewMode}
+                  autoComplete="off"
+                  placeholder="Search by name or CNIC..."
+                  className={inputBase}
+                />
+                {showStudentDropdown && !isViewMode && (
+                  <ul className="absolute mt-1 max-h-48 overflow-auto rounded-xl border border-gray-200 bg-white z-50 w-full shadow-xl">
+                    <li className="px-3 py-2 text-xs text-gray-400 font-medium border-b border-gray-100">Search by name or CNIC</li>
+                    {studentsForForm.filter(s => {
+                      const q = (studentQuery || '').toLowerCase();
+                      if (!q) return true;
+                      return (s.name || '').toLowerCase().includes(q) || (s.cnic || '').toLowerCase().includes(q);
+                    }).map(student => (
+                      <li key={student._id} onClick={() => handleSelectStudent(student)} className="px-3 py-2.5 hover:bg-emerald-50 cursor-pointer text-sm text-gray-800 transition">
+                        {student.name} <span className="text-gray-400 text-xs">({student.cnic})</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
 
-          {/* Display Other Dues with Clear Button */}
-          <div className="sm:col-span-1">
-            <label htmlFor="otherDuesDisplay" className={`block text-sm font-medium ${currentTheme?.subtitle || 'text-gray-700'} mb-1`}>Student Other Dues</label>
-            <div className="flex items-center space-x-2">
-              <input
-                type="text"
-                id="otherDuesDisplay"
-                value={`PKR ${parseFloat(studentOtherDues)}`}
-                disabled
-                className={`block w-full rounded-md p-2.5 font-bold cursor-not-allowed ${currentTheme?.inputDisabled || 'bg-gray-100'} ${currentTheme?.inputText || 'text-gray-700'} ${currentTheme?.inputBorder || 'border-gray-300'}`}
-              />
-              {!isViewMode && studentOtherDues > 0 && (
-                <button
-                  type="button"
-                  onClick={handleClearOtherDues}
-                  className={`p-2 rounded-full transition duration-200 flex items-center justify-center ${currentTheme?.errorPill || 'bg-red-500 text-white'} ${currentTheme?.shadow || 'shadow-md'}`}
-                  title="Clear Other Dues using Deposited Amount"
-                >
-                  <MinusCircleIcon className="h-5 w-5" />
-                </button>
+              {/* Paid By */}
+              <div>
+                <label htmlFor="paidBy" className={labelBase}>
+                  <UserIcon className="h-4 w-4 text-emerald-600" /> Paid By <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text" id="paidBy" name="paidBy"
+                  value={fee.paidBy} onChange={handleChange}
+                  disabled={isViewMode || fee.paymentMethod === 'Deposited Cash'}
+                  placeholder="Name of payer"
+                  className={isViewMode || fee.paymentMethod === 'Deposited Cash' ? inputDisabled : inputBase}
+                />
+              </div>
+
+              {/* Total Fee */}
+              <div>
+                <label htmlFor="totalFee" className={labelBase}>
+                  <CurrencyDollarIcon className="h-4 w-4 text-emerald-600" /> Total Fee (Per Month) <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text" inputMode="numeric" pattern="\d*"
+                  id="totalFee" name="totalFee"
+                  value={fee.totalFee} onChange={handleChange}
+                  disabled={true}
+                  className={inputDisabled}
+                />
+              </div>
+
+              {/* Admission Fee (only on add, and only if not already paid) */}
+              {(!editingFee && !studentAdmissionFeeStatus) && (
+                <div>
+                  <label htmlFor="admissionFee" className={labelBase}>
+                    <DocumentTextIcon className="h-4 w-4 text-emerald-600" /> Admission Fee
+                  </label>
+                  <input
+                    type="text" inputMode="numeric" pattern="\d*"
+                    id="admissionFee" name="admissionFee"
+                    value={fee.admissionFee} onChange={handleChange}
+                    readOnly={isViewMode || (!isEditAllowed && editingFee)}
+                    className={isViewMode || (!isEditAllowed && editingFee) ? inputDisabled : inputBase}
+                  />
+                </div>
               )}
+
+              {/* Received Amount */}
+              <div>
+                <label htmlFor="receivedAmount" className={labelBase}>
+                  <BanknotesIcon className="h-4 w-4 text-emerald-600" /> Received Amount <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text" inputMode="numeric" pattern="\d*"
+                  id="receivedAmount" name="receivedAmount"
+                  value={formatReceivedForDisplay(fee.receivedAmount, fee.paymentMethod)}
+                  onChange={handleChange}
+                  disabled={isViewMode || fee.paymentMethod === 'Deposited Cash'}
+                  className={isViewMode || fee.paymentMethod === 'Deposited Cash' ? inputDisabled : inputBase}
+                />
+              </div>
+
+              {/* Due Amount */}
+              <div>
+                <label htmlFor="dueAmount" className={labelBase}>
+                  <CurrencyDollarIcon className="h-4 w-4 text-amber-500" /> Due Amount
+                </label>
+                <input
+                  type="number" id="dueAmount" name="dueAmount"
+                  value={fee.dueAmount} disabled
+                  className={inputDisabled}
+                />
+              </div>
+
             </div>
           </div>
 
-          {/* Bill Screenshot */}
-          <div className="sm:col-span-2"> {/* This div spans 2 columns on small screens and up */}
-            <label htmlFor="billScreenshot" className="block text-sm font-medium text-gray-700 mb-1">Bill Screenshot</label>
-            {!isViewMode ? (
-              <input type="file" id="billScreenshot" name="billScreenshot" onChange={handleFileChange} className={`block w-full text-sm ${currentTheme?.inputText || 'text-gray-900'} ${currentTheme?.inputBorder || 'border border-gray-300'} rounded-lg cursor-pointer ${currentTheme?.inputBg || 'bg-gray-50'} focus:outline-none file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold ${currentTheme?.btnSecondaryBg || 'file:bg-green-50'} ${currentTheme?.btnSecondaryText || 'file:text-green-700'} hover:file:${currentTheme?.btnSecondaryHover || 'bg-green-100'}`} />
-            ) : null}
+          {/* ── Section 2: Payment Info ── */}
+          <div className={sectionBase}>
+            <h3 className={`text-sm font-bold ${currentTheme?.title || 'text-gray-800'} flex items-center gap-2`}>
+              <BanknotesIcon className="h-5 w-5 text-emerald-600" /> Payment Details
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
 
+              {/* Payment Method */}
+              <div>
+                <label htmlFor="paymentMethod" className={labelBase}>
+                  <CurrencyDollarIcon className="h-4 w-4 text-emerald-600" /> Payment Method <span className="text-red-500">*</span>
+                </label>
+                <select
+                  id="paymentMethod" name="paymentMethod"
+                  value={fee.paymentMethod} onChange={handleChange}
+                  disabled={isViewMode}
+                  className={isViewMode ? inputDisabled : inputBase}
+                >
+                  <option value="">— Select Method —</option>
+                  <option value="Cash">Cash</option>
+                  <option value="Bank">Bank / Wallet</option>
+                  <option value="Deposited Cash">Deposited Cash (from advance)</option>
+                  {isViewMode && fee.paymentMethod === 'Auto' && <option value="Auto">Auto (100% Discount)</option>}
+                </select>
+              </div>
+
+              {/* Bank / Wallet Account — shown only when paymentMethod === 'Bank' */}
+              {fee.paymentMethod === 'Bank' && (
+                <div>
+                  <label htmlFor="bankAccount" className={labelBase}>
+                    <BanknotesIcon className="h-4 w-4 text-emerald-600" /> Bank / Wallet Account <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    id="bankAccount"
+                    value={bankAccount}
+                    onChange={e => setBankAccount(e.target.value)}
+                    disabled={isViewMode || bankAccountsLoading}
+                    required
+                    className={isViewMode ? inputDisabled : inputBase}
+                  >
+                    <option value="">{bankAccountsLoading ? 'Loading accounts...' : '— Select account —'}</option>
+                    {bankAccountOptions.map(acc => (
+                      <option key={acc._id} value={acc._id}>
+                        {acc.name}{acc.accountNumber ? ` (${acc.accountNumber})` : ''}
+                      </option>
+                    ))}
+                  </select>
+                  {bankAccountOptions.length === 0 && !bankAccountsLoading && (
+                    <p className="text-xs text-amber-600 mt-1">
+                      No active accounts configured. Ask admin to add accounts in Accounts & Wallets.
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* Received By */}
+              <div>
+                <label htmlFor="receivedBy" className={labelBase}>
+                  <CheckCircleIcon className="h-4 w-4 text-emerald-600" /> Received By <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text" id="receivedBy" name="receivedBy"
+                  value={fee.receivedBy} onChange={handleChange}
+                  disabled={isViewMode || fee.paymentMethod === 'Deposited Cash'}
+                  placeholder="Staff name"
+                  className={isViewMode || fee.paymentMethod === 'Deposited Cash' ? inputDisabled : inputBase}
+                />
+              </div>
+
+              {/* Received Date */}
+              <div>
+                <label htmlFor="receivedDate" className={labelBase}>
+                  <CalendarDaysIcon className="h-4 w-4 text-emerald-600" /> Received Date <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="date" id="receivedDate" name="receivedDate"
+                  value={fee.receivedDate} onChange={handleChange}
+                  disabled={isViewMode}
+                  className={isViewMode ? inputDisabled : inputBase}
+                />
+              </div>
+
+            </div>
+          </div>
+
+          {/* ── Section 3: Period ── */}
+          <div className={sectionBase}>
+            <h3 className={`text-sm font-bold ${currentTheme?.title || 'text-gray-800'} flex items-center gap-2`}>
+              <CalendarDaysIcon className="h-5 w-5 text-emerald-600" /> Fee Period
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
+
+              {/* Month */}
+              <div>
+                <label htmlFor="month" className={labelBase}>
+                  <CalendarDaysIcon className="h-4 w-4 text-emerald-600" /> Month <span className="text-red-500">*</span>
+                </label>
+                <select id="month" name="month" value={fee.month} onChange={handleChange} disabled={isViewMode} className={isViewMode ? inputDisabled : inputBase}>
+                  <option value="">Select Month</option>
+                  {months.map(monthName => (
+                    <option key={monthName} value={monthName}>{monthName}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Year */}
+              <div>
+                <label htmlFor="year" className={labelBase}>
+                  <CalendarDaysIcon className="h-4 w-4 text-emerald-600" /> Year <span className="text-red-500">*</span>
+                </label>
+                <select id="year" name="year" value={fee.year} onChange={handleChange} disabled={isViewMode} className={isViewMode ? inputDisabled : inputBase}>
+                  {generateYearOptions().map(year => (
+                    <option key={year} value={year}>{year}</option>
+                  ))}
+                </select>
+              </div>
+
+            </div>
+          </div>
+
+          {/* ── Section 4: Student Financials ── */}
+          <div className={sectionBase}>
+            <h3 className={`text-sm font-bold ${currentTheme?.title || 'text-gray-800'} flex items-center gap-2`}>
+              <DocumentTextIcon className="h-5 w-5 text-emerald-600" /> Student Financials
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
+
+              {/* Deposited Amount */}
+              <div>
+                <label htmlFor="depositedAmountDisplay" className={labelBase}>
+                  <BanknotesIcon className="h-4 w-4 text-emerald-600" />Deposited Amount
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text" id="depositedAmountDisplay"
+                    value={`PKR ${parseFloat(studentDepositedAmount)}`}
+                    disabled
+                    className={`flex-1 ${inputDisabled} font-bold`}
+                  />
+                  {!isViewMode && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const input = prompt('Enter amount to deposit:');
+                        const amount = parseFloat(input);
+                        if (!isNaN(amount) && amount > 0) {
+                          const newDeposit = studentDepositedAmount + amount;
+                          setStudentDepositedAmount(newDeposit);
+                          updateStudentFinancials(fee.studentId, { depositedAmount: newDeposit, otherDues: studentOtherDues });
+                        }
+                      }}
+                      className={`h-10 px-3 rounded-lg text-sm font-semibold transition ${currentTheme?.btnSecondaryBg || 'bg-emerald-50'} ${currentTheme?.btnSecondaryText || 'text-emerald-700'} border ${currentTheme?.btnSecondaryBorder || 'border-emerald-200'} hover:bg-emerald-100 whitespace-nowrap`}
+                    >
+                      + Deposit
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Other Dues */}
+              <div>
+                <label htmlFor="otherDuesDisplay" className={labelBase}>
+                  <CurrencyDollarIcon className="h-4 w-4 text-amber-500" /> Student Other Dues
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text" id="otherDuesDisplay"
+                    value={`PKR ${parseFloat(studentOtherDues)}`}
+                    disabled
+                    className={`flex-1 ${inputDisabled} font-bold`}
+                  />
+                  {!isViewMode && studentOtherDues > 0 && (
+                    <button
+                      type="button"
+                      onClick={handleClearOtherDues}
+                      className="h-10 px-3 rounded-lg text-sm font-semibold bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition whitespace-nowrap"
+                      title="Clear Other Dues using Deposited Amount"
+                    >
+                      <MinusCircleIcon className="h-4 w-4 inline mr-1" /> Clear
+                    </button>
+                  )}
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          {/* ── Section 5: Bill Screenshot ── */}
+          <div className={sectionBase}>
+            <h3 className={`text-sm font-bold ${currentTheme?.title || 'text-gray-800'} flex items-center gap-2`}>
+              <DocumentTextIcon className="h-5 w-5 text-emerald-600" /> Bill Screenshot (Optional)
+            </h3>
+            {!isViewMode && (
+              <input
+                type="file" id="billScreenshot" name="billScreenshot"
+                onChange={handleFileChange}
+                className={`block w-full text-sm ${currentTheme?.inputText || 'text-gray-900'} ${currentTheme?.inputBorder || 'border border-gray-300'} rounded-xl cursor-pointer ${currentTheme?.inputBg || 'bg-gray-50'} focus:outline-none file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100`}
+              />
+            )}
             {(fee.billScreenshotUrl || selectedFile) && (
-              <div className="mt-4 flex flex-col items-center sm:items-start">
-                <p className="text-sm text-gray-500 mb-2">Current Screenshot:</p>
+              <div className="mt-3 flex flex-col items-start gap-2">
+                <p className="text-xs text-gray-500 font-medium">Current Screenshot:</p>
                 <img
                   src={selectedFile ? URL.createObjectURL(selectedFile) : `${backendBaseUrl}${fee.billScreenshotUrl}`}
                   alt="Bill Screenshot"
-                  className={`h-32 w-auto object-cover rounded-md border-4 ${currentTheme?.heroPillBorder || 'border-green-200'} shadow-md`}
-                  onError={(e) => { e.target.onerror = null; e.target.src = '/images/no-image-available.png'; }}
+                  className="h-32 w-auto object-cover rounded-xl border-2 border-emerald-200 shadow-md"
+                  onError={e => { e.target.onerror = null; e.target.src = '/images/no-image-available.png'; }}
                 />
                 {isViewMode && fee.billScreenshotUrl && (
-                  <a
-                    href={`${backendBaseUrl}${fee.billScreenshotUrl}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={`${currentTheme?.iconText || 'text-green-600'} hover:underline text-sm mt-3 inline-block font-medium`}
-                  >
+                  <a href={`${backendBaseUrl}${fee.billScreenshotUrl}`} target="_blank" rel="noopener noreferrer" className="text-emerald-600 hover:underline text-sm font-medium">
                     View Full Image
                   </a>
                 )}
                 {!isViewMode && fee.billScreenshotUrl && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setFee(prev => ({ ...prev, billScreenshotUrl: '' }));
-                          setSelectedFile(null);
-                        }}
-                        className={`mt-3 ${currentTheme?.badgeDangerText || 'text-red-600'} hover:${currentTheme?.badgeDangerText || 'text-red-800'} text-sm font-medium transition duration-200`}
-                      >
-                        Clear Image
-                      </button>
-                    )}
+                  <button type="button" onClick={() => { setFee(prev => ({ ...prev, billScreenshotUrl: '' })); setSelectedFile(null); }} className="text-red-600 hover:text-red-800 text-sm font-medium transition">
+                    Clear Image
+                  </button>
+                )}
               </div>
             )}
           </div>
-        </div>
-      </form>
 
-      {/* Footer Buttons */}
-      <div className={`mt-auto pt-4 border-t ${currentTheme?.cardBorder || 'border-gray-200'} flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-3 flex-shrink-0`}>
-        {isViewMode && (
-          <>
+          {/* ── Footer Actions ── */}
+          <div className={`pt-4 border-t ${currentTheme?.border || 'border-gray-200'} flex flex-col sm:flex-row justify-end gap-3`}>
+            {isViewMode && (
+              <>
+                <button
+                  type="button" onClick={handleDownloadReceiptPdf}
+                  className={`flex items-center justify-center gap-2 h-12 px-6 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl w-full sm:w-auto ${currentTheme?.btnPrimaryBg || 'bg-emerald-600'} ${currentTheme?.btnPrimaryText || 'text-white'} ${currentTheme?.btnPrimaryHover || 'hover:bg-emerald-700'}`}
+                >
+                  <ArrowDownTrayIcon className="h-5 w-5" /> Download PDF
+                </button>
+                <button
+                  type="button" onClick={handlePrintReceipt}
+                  className={`flex items-center justify-center gap-2 h-12 px-6 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl w-full sm:w-auto ${currentTheme?.btnPrimaryBg || 'bg-emerald-600'} ${currentTheme?.btnPrimaryText || 'text-white'} ${currentTheme?.btnPrimaryHover || 'hover:bg-emerald-700'}`}
+                >
+                  <PrinterIcon className="h-5 w-5" /> Print Receipt
+                </button>
+              </>
+            )}
+            {!isViewMode && (
+              <button
+                type="submit" onClick={handleSubmit}
+                disabled={(editingFee && !isEditAllowed) || (!editingFee && !isAddAllowed)}
+                className={`flex items-center justify-center gap-2 h-12 px-6 rounded-xl font-bold transition-all duration-300 shadow-lg hover:shadow-2xl transform hover:-translate-y-0.5 w-full sm:w-auto ${currentTheme?.btnPrimaryBg || 'bg-gradient-to-r from-green-600 to-emerald-600'} ${currentTheme?.btnPrimaryText || 'text-white'} ${currentTheme?.btnPrimaryHover || 'hover:from-green-700 hover:to-emerald-700'} disabled:opacity-50 disabled:cursor-not-allowed`}
+              >
+                <CheckCircleIcon className="h-5 w-5" />
+                {editingFee ? 'Update Fee' : 'Add Fee Record'}
+              </button>
+            )}
             <button
-              type="button"
-              onClick={handleDownloadReceiptPdf}
-              className={`flex items-center justify-center ${currentTheme?.btnPrimaryBg || 'bg-green-600'} ${currentTheme?.btnPrimaryText || 'text-white'} px-6 py-2 rounded-md ${currentTheme?.btnPrimaryHover || 'hover:bg-green-700'} transition duration-200 shadow-md w-full sm:w-auto`}
-              title="Download Fee Receipt as PDF"
+              type="button" onClick={onClose}
+              className={`flex items-center justify-center h-12 px-6 rounded-xl font-semibold transition-all duration-300 shadow-md hover:shadow-lg w-full sm:w-auto ${currentTheme?.btnSecondaryBg || 'bg-white'} ${currentTheme?.btnSecondaryText || 'text-gray-700'} border-2 ${currentTheme?.btnSecondaryBorder || 'border-gray-200'} hover:border-gray-300`}
             >
-              <ArrowDownTrayIcon className="h-5 w-5 mr-2" />
-              Download PDF
+              {isViewMode ? 'Close' : 'Cancel'}
             </button>
-            <button
-              type="button"
-              onClick={handlePrintReceipt}
-              className={`flex items-center justify-center ${currentTheme?.btnPrimaryBg || 'bg-green-600'} ${currentTheme?.btnPrimaryText || 'text-white'} px-6 py-2 rounded-md ${currentTheme?.btnPrimaryHover || 'hover:bg-green-700'} transition duration-200 shadow-md w-full sm:w-auto`}
-              title="Print Fee Receipt"
-            >
-              <PrinterIcon className="h-5 w-5 mr-2" />
-              Print Receipt
-            </button>
-          </>
-        )}
-        {!isViewMode && (
-          <button
-            type="submit"
-            onClick={handleSubmit}
-            disabled={(editingFee && !isEditAllowed) || (!editingFee && !isAddAllowed)}
-            className={`${currentTheme?.btnPrimaryBg || 'bg-green-600'} ${currentTheme?.btnPrimaryText || 'text-white'} px-6 py-2 rounded-md ${currentTheme?.btnPrimaryHover || 'hover:bg-green-700'} transition duration-200 shadow-md w-full sm:w-auto`}
-          >
-            {editingFee ? 'Update Fee' : 'Add Fee'}
-          </button>
-        )}
-        <button
-          type="button"
-          onClick={onClose}
-          className={`${currentTheme?.btnSecondaryBg || 'bg-gray-300'} ${currentTheme?.btnSecondaryText || 'text-gray-800'} px-6 py-2 rounded-md ${currentTheme?.btnSecondaryHover || 'hover:bg-gray-400'} transition duration-200 shadow-md w-full sm:w-auto`}
-        >
-          {isViewMode ? 'Close' : 'Cancel'}
-        </button>
+          </div>
+
+        </form>
       </div>
       <DuplicateFeeModal isOpen={duplicateModalOpen} onClose={() => setDuplicateModalOpen(false)} message={duplicateMessage} />
     </div>

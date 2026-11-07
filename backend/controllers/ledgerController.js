@@ -26,26 +26,69 @@ export const getAccountLedger = asyncHandler(async (req, res) => {
     ...(Object.keys(dateFilter).length ? { date: dateFilter } : {}),
   };
 
-  const total = await LedgerEntry.countDocuments(baseQuery);
-  const entries = await LedgerEntry.find(baseQuery)
-    .populate('debitAccount', 'name code type')
-    .populate('creditAccount', 'name code type')
-    .sort({ date: 1, createdAt: 1 })
-    .skip((page - 1) * limit)
-    .limit(Number(limit));
+  const isNormalDebit = ['Asset', 'Expense'].includes(account.type);
+  const pageNum = Math.max(1, Number(page));
+  const limitNum = Math.max(1, Number(limit));
+  const skipCount = (pageNum - 1) * limitNum;
 
-  // Compute running balance for this account
-  // Convention: debit increases assets/expenses; credit increases income/liabilities
-  let runningBalance = 0;
+  const [total, priorEntries, totalDebitsAgg, totalCreditsAgg, entries] = await Promise.all([
+    LedgerEntry.countDocuments(baseQuery),
+    skipCount > 0
+      ? LedgerEntry.find(baseQuery).sort({ date: 1, createdAt: 1 }).limit(skipCount).lean()
+      : Promise.resolve([]),
+    LedgerEntry.aggregate([
+      { $match: { debitAccount: account._id, isReversed: false, ...(Object.keys(dateFilter).length ? { date: dateFilter } : {}) } },
+      { $group: { _id: null, total: { $sum: '$amount' } } },
+    ]),
+    LedgerEntry.aggregate([
+      { $match: { creditAccount: account._id, isReversed: false, ...(Object.keys(dateFilter).length ? { date: dateFilter } : {}) } },
+      { $group: { _id: null, total: { $sum: '$amount' } } },
+    ]),
+    LedgerEntry.find(baseQuery)
+      .populate('debitAccount', 'name code type')
+      .populate('creditAccount', 'name code type')
+      .sort({ date: 1, createdAt: 1 })
+      .skip(skipCount)
+      .limit(limitNum),
+  ]);
+
+  // Compute opening balance before the current page
+  let openingBalance = 0;
+  if (priorEntries && priorEntries.length > 0) {
+    for (const p of priorEntries) {
+      const isDebit = String(p.debitAccount) === String(coaId);
+      const isCredit = String(p.creditAccount) === String(coaId);
+      if (isNormalDebit) {
+        if (isDebit) openingBalance += p.amount;
+        if (isCredit) openingBalance -= p.amount;
+      } else {
+        if (isCredit) openingBalance += p.amount;
+        if (isDebit) openingBalance -= p.amount;
+      }
+    }
+  }
+
+  // Total debits and credits across the entire filtered period
+  const totalDebit = totalDebitsAgg[0]?.total || 0;
+  const totalCredit = totalCreditsAgg[0]?.total || 0;
+  const closingBalance = isNormalDebit ? (totalDebit - totalCredit) : (totalCredit - totalDebit);
+
+  // Compute running balance for entries on this page starting from openingBalance
+  let runningBalance = openingBalance;
   const entriesWithBalance = entries.map(e => {
     const isDebit  = String(e.debitAccount?._id  || e.debitAccount)  === String(coaId);
     const isCredit = String(e.creditAccount?._id || e.creditAccount) === String(coaId);
 
-    let debit  = 0;
-    let credit = 0;
+    const debit  = isDebit ? e.amount : 0;
+    const credit = isCredit ? e.amount : 0;
 
-    if (isDebit)  { debit  = e.amount; runningBalance += e.amount; }
-    if (isCredit) { credit = e.amount; runningBalance -= e.amount; }
+    if (isNormalDebit) {
+      if (isDebit) runningBalance += e.amount;
+      if (isCredit) runningBalance -= e.amount;
+    } else {
+      if (isCredit) runningBalance += e.amount;
+      if (isDebit) runningBalance -= e.amount;
+    }
 
     return {
       ...e.toObject(),
@@ -58,7 +101,12 @@ export const getAccountLedger = asyncHandler(async (req, res) => {
   res.json({
     account,
     entries: entriesWithBalance,
-    pagination: { total, page: Number(page), pages: Math.ceil(total / limit) },
+    openingBalance,
+    closingBalance,
+    totalDebit,
+    totalCredit,
+    isNormalDebit,
+    pagination: { total, page: pageNum, pages: Math.ceil(total / limitNum) },
   });
 });
 
@@ -106,7 +154,8 @@ export const getTrialBalance = asyncHandler(async (req, res) => {
 
   const rows = accounts.map(acc => {
     const t      = totals[String(acc._id)] || { debit: 0, credit: 0 };
-    const net    = t.debit - t.credit;
+    const isNormalDebit = ['Asset', 'Expense'].includes(acc.type);
+    const balance = isNormalDebit ? (t.debit - t.credit) : (t.credit - t.debit);
     return {
       _id:    acc._id,
       code:   acc.code,
@@ -115,7 +164,9 @@ export const getTrialBalance = asyncHandler(async (req, res) => {
       parent: acc.parent?.name || null,
       debit:  t.debit,
       credit: t.credit,
-      net,    // positive = net debit balance; negative = net credit balance
+      balance,
+      net:    t.debit - t.credit,
+      isNormalDebit,
     };
   });
 

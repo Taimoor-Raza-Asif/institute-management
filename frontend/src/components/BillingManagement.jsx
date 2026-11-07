@@ -664,6 +664,7 @@ const BillingManagement = () => {
                                     <th scope="col" className={`px-6 py-4 text-left text-xs font-bold ${currentTheme?.theadText || 'text-white'} uppercase tracking-wider`}>Status</th>
                                     <th scope="col" className={`px-6 py-4 text-left text-xs font-bold ${currentTheme?.theadText || 'text-white'} uppercase tracking-wider`}>Bill Date</th>
                                     <th scope="col" className={`px-6 py-4 text-left text-xs font-bold ${currentTheme?.theadText || 'text-white'} uppercase tracking-wider`}>Paid To</th>
+                                    <th scope="col" className={`px-6 py-4 text-left text-xs font-bold ${currentTheme?.theadText || 'text-white'} uppercase tracking-wider`}>Method</th>
                                     <th scope="col" className={`px-6 py-4 text-center text-xs font-bold ${currentTheme?.theadText || 'text-white'} uppercase tracking-wider rounded-tr-xl`}>Actions</th>
                                 </tr>
                             </thead>
@@ -683,6 +684,19 @@ const BillingManagement = () => {
                                         </td>
                                         <td className={`px-6 py-4 whitespace-nowrap text-sm ${currentTheme?.text || 'text-gray-600'}`}>{new Date(bill.billDate).toLocaleDateString()}</td>
                                         <td className={`px-6 py-4 whitespace-nowrap text-sm ${currentTheme?.text || 'text-gray-600'}`}>{bill.paidTo || 'N/A'}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                            <span className={`px-2.5 py-0.5 inline-flex text-xs font-medium rounded-full ${currentTheme?.pillBg || 'bg-gray-100'} ${currentTheme?.pillText || 'text-gray-700'}`}>
+                                                {bill.paymentMethod || 'Cash'}
+                                            </span>
+                                            {bill.paymentMethod === 'Bank' && bill.bankAccount && (
+                                                <div className="mt-1 text-xs">
+                                                    <div className={`font-semibold ${currentTheme?.text || 'text-gray-900'}`}>{bill.bankAccount.name}</div>
+                                                    {bill.bankAccount.accountNumber && (
+                                                        <div className={`font-mono text-[11px] ${currentTheme?.mutedText || 'text-gray-500'}`}>{bill.bankAccount.accountNumber}</div>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
                                             <div className="flex items-center justify-center space-x-2">
                                                 <button onClick={() => handleViewBill(bill)} className={`p-2 ${currentTheme?.iconText || 'text-emerald-700'} hover:opacity-80 transition-opacity duration-200`} title="View Bill Details">
@@ -706,7 +720,7 @@ const BillingManagement = () => {
                                     </tr>
                                 )) : (
                                     <tr>
-                                        <td colSpan="7" className={`text-center p-4 ${currentTheme?.mutedText || 'text-gray-500'} text-sm`}>No bills found. {isAllowed && 'Add a new bill!'}</td>
+                                        <td colSpan="8" className={`text-center p-4 ${currentTheme?.mutedText || 'text-gray-500'} text-sm`}>No bills found. {isAllowed && 'Add a new bill!'}</td>
                                     </tr>
                                 )}
                             </tbody>

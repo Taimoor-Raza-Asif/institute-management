@@ -35,7 +35,7 @@ const addDonation = asyncHandler(async (req, res) => {
 // Populate markedBy → profileId → name and bankAccount
 const populatedDonation = await Donation.findById(createdDonation._id)
   .populate({ path: 'markedBy', populate: { path: 'profileId', model: 'Staff', select: 'name' } })
-  .populate({ path: 'bankAccount', select: 'name accountNumber accountType' });
+  .populate({ path: 'bankAccount', select: 'name accountNumber bankName type' });
 
   res.status(201).json(populatedDonation);
 });
@@ -57,7 +57,7 @@ const getDonations = asyncHandler(async (req, res) => {
 
   const donations = await Donation.find(query)
     .populate({ path: 'markedBy', populate: { path: 'profileId', model: 'Staff', select: 'name' } })
-    .populate({ path: 'bankAccount', select: 'name accountNumber accountType' });
+    .populate({ path: 'bankAccount', select: 'name accountNumber bankName type' });
   res.json(donations);
 });
 
@@ -67,7 +67,7 @@ const getDonations = asyncHandler(async (req, res) => {
 const getDonationById = asyncHandler(async (req, res) => {
   const donation = await Donation.findById(req.params.id)
     .populate({ path: 'markedBy', populate: { path: 'profileId', model: 'Staff', select: 'name' } })
-    .populate({ path: 'bankAccount', select: 'name accountNumber accountType' });
+    .populate({ path: 'bankAccount', select: 'name accountNumber bankName type' });
   if (donation) {
     res.json(donation);
   } else {

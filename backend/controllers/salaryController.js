@@ -62,7 +62,9 @@ const getSalaries = asyncHandler(async (req, res) => {
   if (year) query.year = parseInt(year);
   if (status) query.status = status;
 
-  let salaries = await Salary.find(query).sort({ year: -1, month: -1 });
+  let salaries = await Salary.find(query)
+    .sort({ year: -1, month: -1 })
+    .populate('bankAccount', 'name accountNumber bankName type');
 
   if (searchTerm) {
     const searchTermRegex = new RegExp(search, 'i');
@@ -230,6 +232,7 @@ const getAllSalaries = asyncHandler(async (req, res) => {
   const salaries = await Salary.find(filter)
     .sort({ createdAt: -1 })
     .populate('staff', 'profilePictureUrl dateOfJoining startingSalary salary')
+    .populate('bankAccount', 'name accountNumber bankName type')
     .lean();
 
   // Map the populated staff field to the main salary object
@@ -278,6 +281,7 @@ const getMySalaries = asyncHandler(async (req, res) => {
   const mySalaries = await Salary.find({ staff: staff._id || staff })
     .sort({ year: -1, month: -1 })
     .populate('staff', 'profilePictureUrl dateOfJoining startingSalary salary')
+    .populate('bankAccount', 'name accountNumber bankName type')
     .lean();
 
   const mappedSalaries = mySalaries.map(salary => ({

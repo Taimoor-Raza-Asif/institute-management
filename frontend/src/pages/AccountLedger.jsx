@@ -6,7 +6,7 @@ import { useTheme } from '../context/ThemeContext';
 import {
   BookOpenIcon, MagnifyingGlassIcon, ArrowPathIcon,
   ArrowDownTrayIcon, ChevronLeftIcon, ChevronRightIcon,
-  FunnelIcon, SparklesIcon,
+  FunnelIcon, SparklesIcon, ExclamationTriangleIcon,
 } from '@heroicons/react/24/outline';
 import SyncHistoricalDataModal from '../components/SyncHistoricalDataModal';
 
@@ -150,31 +150,62 @@ const AccountLedger = () => {
       </div>
 
       {/* Account summary card */}
-      {account && !loading && (
-        <div className={`rounded-2xl p-5 mb-6 flex flex-wrap items-center gap-6 ${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.shadow || 'shadow'} border ${currentTheme?.cardBorder || 'border-gray-100'}`}>
-          <div>
-            <p className={`text-xs font-semibold ${currentTheme?.mutedText || 'text-gray-500'} uppercase tracking-wider`}>Account</p>
-            <p className={`text-xl font-bold ${currentTheme?.title || 'text-gray-900'}`}>{account.name}</p>
-            {account.code && <p className={`text-xs font-mono ${currentTheme?.mutedText || 'text-gray-400'}`}>#{account.code}</p>}
-          </div>
-          <div>
-            <p className={`text-xs font-semibold ${currentTheme?.mutedText || 'text-gray-500'} uppercase tracking-wider`}>Type</p>
-            <p className={`text-base font-bold ${typeColor[account.type] || 'text-gray-700'}`}>{account.type}</p>
-          </div>
-          <div className="ml-auto text-right">
-            <p className={`text-xs font-semibold ${currentTheme?.mutedText || 'text-gray-500'} uppercase tracking-wider`}>Total Entries</p>
-            <p className={`text-xl font-bold ${currentTheme?.title || 'text-gray-900'}`}>{pagination?.total || 0}</p>
-          </div>
-          {entries.length > 0 && (
-            <div className="text-right">
-              <p className={`text-xs font-semibold ${currentTheme?.mutedText || 'text-gray-500'} uppercase tracking-wider`}>Closing Balance</p>
-              <p className={`text-xl font-bold ${entries[entries.length - 1]?.balance >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
-                {currency(Math.abs(entries[entries.length - 1]?.balance || 0))}
-              </p>
+      {account && !loading && (() => {
+        const closingBal = ledgerData?.closingBalance !== undefined
+          ? ledgerData.closingBalance
+          : (entries[entries.length - 1]?.balance || 0);
+
+        return (
+          <>
+            <div className={`rounded-2xl p-5 mb-4 flex flex-wrap items-center gap-6 ${currentTheme?.cardBg || 'bg-white'} ${currentTheme?.shadow || 'shadow'} border ${currentTheme?.cardBorder || 'border-gray-100'}`}>
+              <div>
+                <p className={`text-xs font-semibold ${currentTheme?.mutedText || 'text-gray-500'} uppercase tracking-wider`}>Account</p>
+                <p className={`text-xl font-bold ${currentTheme?.title || 'text-gray-900'}`}>{account.name}</p>
+                {account.code && <p className={`text-xs font-mono ${currentTheme?.mutedText || 'text-gray-400'}`}>#{account.code}</p>}
+              </div>
+              <div>
+                <p className={`text-xs font-semibold ${currentTheme?.mutedText || 'text-gray-500'} uppercase tracking-wider`}>Type</p>
+                <p className={`text-base font-bold ${typeColor[account.type] || 'text-gray-700'}`}>{account.type}</p>
+              </div>
+              <div>
+                <p className={`text-xs font-semibold ${currentTheme?.mutedText || 'text-gray-500'} uppercase tracking-wider`}>Total Debit</p>
+                <p className="text-xl font-bold text-emerald-600">{currency(ledgerData?.totalDebit || 0)}</p>
+              </div>
+              <div>
+                <p className={`text-xs font-semibold ${currentTheme?.mutedText || 'text-gray-500'} uppercase tracking-wider`}>Total Credit</p>
+                <p className="text-xl font-bold text-red-500">{currency(ledgerData?.totalCredit || 0)}</p>
+              </div>
+              <div className="ml-auto text-right">
+                <p className={`text-xs font-semibold ${currentTheme?.mutedText || 'text-gray-500'} uppercase tracking-wider`}>Total Entries</p>
+                <p className={`text-xl font-bold ${currentTheme?.title || 'text-gray-900'}`}>{pagination?.total || 0}</p>
+              </div>
+              <div className="text-right">
+                <p className={`text-xs font-semibold ${currentTheme?.mutedText || 'text-gray-500'} uppercase tracking-wider`}>Closing Balance</p>
+                <p className={`text-xl font-bold ${closingBal >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+                  {closingBal < 0 ? `- ${currency(Math.abs(closingBal))}` : currency(closingBal)}
+                  {closingBal < 0 && account.type === 'Asset' && <span className="text-xs ml-1 font-semibold text-red-600">(Deficit)</span>}
+                  {closingBal >= 0 && account.type === 'Asset' && <span className="text-xs ml-1 font-semibold text-emerald-600">(Dr)</span>}
+                  {account.type === 'Income' && <span className="text-xs ml-1 font-semibold text-emerald-600">(Total Income)</span>}
+                  {account.type === 'Expense' && <span className="text-xs ml-1 font-semibold text-orange-600">(Total Expense)</span>}
+                </p>
+              </div>
             </div>
-          )}
-        </div>
-      )}
+
+            {/* Warning banner when an Asset account is negative */}
+            {account.type === 'Asset' && closingBal < 0 && (
+              <div className="rounded-2xl p-4 mb-6 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-900 dark:text-amber-200 text-sm flex items-start gap-3">
+                <ExclamationTriangleIcon className="h-5 w-5 flex-shrink-0 text-amber-600 mt-0.5" />
+                <div>
+                  <p className="font-bold">Negative Cash/Bank Balance Detected (Deficit of {currency(Math.abs(closingBal))})</p>
+                  <p className="text-xs mt-1 text-amber-800 dark:text-amber-300">
+                    Total payments recorded (bills &amp; salaries) currently exceed recorded cash received (student fees &amp; donations). The accounting entries themselves are deducting correctly — this balance is negative because the initial opening cash/capital was not recorded when transactions were first added.
+                  </p>
+                </div>
+              </div>
+            )}
+          </>
+        );
+      })()}
 
       {/* Ledger table */}
       {!selectedAccountId ? (
@@ -209,6 +240,24 @@ const AccountLedger = () => {
                 </tr>
               </thead>
               <tbody className={`divide-y ${currentTheme?.cardBorder || 'divide-gray-50'}`}>
+                {/* Opening balance carried forward row for page > 1 */}
+                {page > 1 && (
+                  <tr className="bg-gray-50/70 border-b font-medium italic">
+                    <td className="px-5 py-2.5 text-xs text-gray-500 whitespace-nowrap" colSpan={3}>
+                      ↳ Opening Balance (Carried forward from Page {page - 1})
+                    </td>
+                    <td className="px-5 py-2.5 text-right text-gray-400">—</td>
+                    <td className="px-5 py-2.5 text-right text-gray-400">—</td>
+                    <td className={`px-5 py-2.5 text-right font-bold ${(ledgerData?.openingBalance || 0) >= 0 ? 'text-emerald-700' : 'text-red-600'}`}>
+                      {(ledgerData?.openingBalance || 0) < 0
+                        ? `- ${currency(Math.abs(ledgerData.openingBalance))}`
+                        : currency(ledgerData?.openingBalance || 0)}
+                      {(ledgerData?.openingBalance || 0) < 0 && account.type === 'Asset' && (
+                        <span className="text-xs ml-1 font-semibold text-red-500">(Deficit)</span>
+                      )}
+                    </td>
+                  </tr>
+                )}
                 {entries.map((entry, i) => (
                   <tr key={entry._id} className={`hover:${currentTheme?.tableRowHover || 'bg-gray-50/50'} transition`}>
                     <td className={`px-5 py-3.5 whitespace-nowrap ${currentTheme?.text || 'text-gray-700'}`}>
@@ -238,8 +287,13 @@ const AccountLedger = () => {
                       {entry.credit > 0 ? currency(entry.credit) : '—'}
                     </td>
                     <td className={`px-5 py-3.5 text-right font-bold ${entry.balance >= 0 ? 'text-emerald-700' : 'text-red-600'}`}>
-                      {currency(Math.abs(entry.balance))}
-                      {entry.balance < 0 && <span className="text-xs ml-1">(Cr)</span>}
+                      {entry.balance < 0 ? `- ${currency(Math.abs(entry.balance))}` : currency(entry.balance)}
+                      {entry.balance < 0 && account.type === 'Asset' && (
+                        <span className="text-xs ml-1 font-semibold text-red-500">(Deficit)</span>
+                      )}
+                      {entry.balance < 0 && account.type !== 'Asset' && (
+                        <span className="text-xs ml-1 font-semibold text-red-500">(Dr)</span>
+                      )}
                     </td>
                   </tr>
                 ))}

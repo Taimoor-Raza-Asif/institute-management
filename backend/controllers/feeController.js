@@ -89,7 +89,7 @@ export const createFeeRecord = async (req, res) => {
   try {
     const {
       studentId, paidBy, month, year, totalFee, receivedAmount,
-      receivedDate, receivedBy, paymentMethod, billScreenshotUrl: existingBillScreenshotUrl,admissionFee
+      receivedDate, receivedBy, paymentMethod, bankAccount, billScreenshotUrl: existingBillScreenshotUrl, admissionFee
     } = req.body;
 
     let billScreenshotUrl = '';
@@ -120,6 +120,7 @@ export const createFeeRecord = async (req, res) => {
       receivedDate: new Date(receivedDate),
       receivedBy,
       paymentMethod,
+      bankAccount: (paymentMethod === 'Bank' && bankAccount) ? bankAccount : null,
       billScreenshotUrl,
       admissionFee: parseFloat(admissionFee) || 0,
     });
@@ -357,8 +358,10 @@ export const getAllFees = async (req, res) => {
       filter.paymentMethod = paymentMethod;
     }
 
-    // Populate student details for display
-    const fees = await FeeRecord.find(filter).populate('studentId', 'name cnic feePerMonth depositedAmount otherDues profilePictureUrl');
+    // Populate student and bankAccount details for display
+    const fees = await FeeRecord.find(filter)
+      .populate('studentId', 'name cnic feePerMonth depositedAmount otherDues profilePictureUrl')
+      .populate('bankAccount', 'name accountNumber bankName type');
     res.json(fees);
   } catch (err) {
     console.error("Error fetching fees:", err);
@@ -376,7 +379,9 @@ export const getFeesByStudent = async (req, res) => {
       return res.status(403).json({ message: 'Not authorized to view these fee records.' });
     }
 
-    const fees = await FeeRecord.find({ studentId }).populate('studentId', 'name cnic feePerMonth depositedAmount otherDues profilePictureUrl');
+    const fees = await FeeRecord.find({ studentId })
+      .populate('studentId', 'name cnic feePerMonth depositedAmount otherDues profilePictureUrl')
+      .populate('bankAccount', 'name accountNumber bankName type');
     if (!fees) {
       return res.status(404).json({ message: 'No fee records found for this student' });
     }
@@ -394,7 +399,7 @@ export const updateFeeRecord = async (req, res) => {
     const { id } = req.params;
     const {
       studentId, paidBy, month, year, totalFee, receivedAmount,
-      receivedDate, receivedBy, paymentMethod, billScreenshotUrl: existingBillScreenshotUrl
+      receivedDate, receivedBy, paymentMethod, bankAccount, billScreenshotUrl: existingBillScreenshotUrl
     } = req.body;
 
     const currentFeeRecord = await FeeRecord.findById(id);
@@ -425,6 +430,7 @@ export const updateFeeRecord = async (req, res) => {
         receivedDate: new Date(receivedDate),
         receivedBy,
         paymentMethod,
+        bankAccount: (paymentMethod === 'Bank' && bankAccount) ? bankAccount : null,
         billScreenshotUrl,
       },
       { new: true, runValidators: true, context: 'query' }

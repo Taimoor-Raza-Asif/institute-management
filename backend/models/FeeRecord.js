@@ -14,8 +14,16 @@ const feeSchema = new mongoose.Schema({
   admissionFee: { type: Number } ,
   paymentMethod: {
     type: String,
-    enum: ['Cash', 'Online Wallet', 'Bank Transfer', 'Easypaisa', 'JazzCash', 'Deposited Cash', 'Auto'],
+    enum: ['Cash', 'Online Wallet', 'Bank Transfer', 'Easypaisa', 'JazzCash', 'Deposited Cash', 'Auto', 'Bank'],
     required: true
+  },
+  bankAccount: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'BankAccount',
+    default: null,
+    required: function () {
+      return this.paymentMethod === 'Bank';
+    },
   },
   billScreenshotUrl: String // optional
 }, { timestamps: true });
